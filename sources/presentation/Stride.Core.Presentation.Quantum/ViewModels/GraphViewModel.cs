@@ -97,8 +97,8 @@ public class GraphViewModel : DispatcherViewModel
     /// </summary>
     public event EventHandler<NodeViewModelValueChangedArgs>? NodeValueChanged;
 
-    internal void NotifyNodeChanged(NodeViewModel node)
+    internal void NotifyNodeChanged(NodeViewModel node, bool isValueOnly = false)
     {
-        NodeValueChanged?.Invoke(this, new NodeViewModelValueChangedArgs(this, node));
+        NodeValueChanged?.Invoke(this, new NodeViewModelValueChangedArgs(this, node, isValueOnly));
     }
 }
