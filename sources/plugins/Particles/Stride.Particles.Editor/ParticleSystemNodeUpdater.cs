@@ -28,6 +28,8 @@ namespace Stride.Particles.Editor
                     if (node.Name == nameof(ParticleTransform.DisplayParticlePosition))
                     {
                         node.IsVisible = false;
+                        // Its value shows or hides other members: a change of it refreshes the tree
+                        node.RefreshOnValueChange = true;
                         var isVisible = (bool)node.Value;
 
                         var attrPosition = node.Parent[nameof(ParticleTransform.Position)];
@@ -42,6 +44,8 @@ namespace Stride.Particles.Editor
                     if (node.Name == nameof(ParticleTransform.DisplayParticleRotation))
                     {
                         node.IsVisible = false;
+                        // Its value shows or hides other members: a change of it refreshes the tree
+                        node.RefreshOnValueChange = true;
                         var isVisible = (bool)node.Value;
 
                         var attrRotation = node.Parent[nameof(ParticleTransform.Rotation)];
@@ -56,6 +60,8 @@ namespace Stride.Particles.Editor
                     if (node.Name == nameof(ParticleTransform.DisplayParticleScale))
                     {
                         node.IsVisible = false;
+                        // Its value shows or hides other members: a change of it refreshes the tree
+                        node.RefreshOnValueChange = true;
                         var isVisible = (bool)node.Value;
                         var isVisibleInheritance = isVisible;
 
@@ -75,6 +81,8 @@ namespace Stride.Particles.Editor
                     if (node.Name == nameof(ParticleTransform.DisplayParticleScaleUniform))
                     {
                         node.IsVisible = false;
+                        // Its value shows or hides other members: a change of it refreshes the tree
+                        node.RefreshOnValueChange = true;
                         var isVisible = (bool)node.Value;
                         var isVisibleInheritance = isVisible;
 

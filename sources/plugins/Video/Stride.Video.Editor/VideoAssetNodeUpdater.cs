@@ -20,6 +20,8 @@ namespace Stride.Video.Editor
                 var absoluteWidth = node.Parent.Children.FirstOrDefault(x => x.Name == AbsoluteWidth)
                                     ?? node.Factory.CreateVirtualNodePresenter(node.Parent, AbsoluteWidth, typeof(int), node.Order,
                                         () => node.Value, node.UpdateValue, () => node.HasBase, () => node.IsInherited, () => node.IsOverridden);
+                // It shows the value of the node: it follows its changes
+                absoluteWidth.AddValueDependency(node);
                 absoluteWidth.IsVisible = !asset.IsSizeInPercentage;
                 absoluteWidth.AttachedProperties.Set(NumericData.MinimumKey, 0);
                 absoluteWidth.AttachedProperties.Set(NumericData.MaximumKey, float.MaxValue);
@@ -32,6 +34,8 @@ namespace Stride.Video.Editor
                 var absoluteHeight = node.Parent.Children.FirstOrDefault(x => x.Name == AbsoluteHeight)
                                   ?? node.Factory.CreateVirtualNodePresenter(node.Parent, AbsoluteHeight, typeof(int), node.Order,
                                   () => node.Value, node.UpdateValue, () => node.HasBase, () => node.IsInherited, () => node.IsOverridden);
+                // It shows the value of the node: it follows its changes
+                absoluteHeight.AddValueDependency(node);
                 absoluteHeight.IsVisible = !asset.IsSizeInPercentage;
                 absoluteHeight.AttachedProperties.Set(NumericData.MinimumKey, 0);
                 absoluteHeight.AttachedProperties.Set(NumericData.MaximumKey, float.MaxValue);

@@ -33,6 +33,8 @@ namespace Stride.Physics.Editor
             if ((node.Parent?.Value?.GetType() == typeof(NavigationComponent) && node.Name == nameof(NavigationComponent.GroupId)) ||
                 (node.Root.Type == typeof(NavigationMeshAsset) && node.Parent?.Name == nameof(NavigationMeshAsset.SelectedGroups) && node.Type == typeof(Guid)))
             {
+                // The name of the selected group is shown from the value of the node: a change of it refreshes the node
+                node.RefreshOnValueChange = true;
                 var gameSettingsAsset = GetGameSettingsAssetViewModel()?.Asset as GameSettingsAsset;
                 if (gameSettingsAsset == null)
                 {
