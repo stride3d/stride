@@ -95,7 +95,7 @@ See [versions.md](versions.md) for the full install/uninstall flow.
 
 - [**NewsPageViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/NewsPageViewModel.cs) — fetches the RSS feed at `Urls.RssFeed`, parses `<title>`, `<description>`, `<pubDate>`, `<link>`. `FetchNewsPages(IViewModelServiceProvider, int)` returns up to *n* entries.
 - [**DocumentationPageViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/DocumentationPageViewModel.cs) — fetches the "Getting Started" HTML index and extracts its links. Tied to a specific Stride version so the right doc branch is shown.
-- [**ReleaseNotesViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/ReleaseNotesViewModel.cs) — lazy-loads markdown release notes; has `IsLoading`/`IsLoaded`/`IsUnavailable` flags and a `ToggleCommand` to expand/collapse.
+- [**ReleaseNotesViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/ReleaseNotesViewModel.cs) — lazy-loads markdown release notes; has `IsLoading`/`IsLoaded`/`IsUnavailable` flags and a `ToggleCommand` to expand/collapse. Of an image made for each theme, with GitHub's `#gh-dark-mode-only` / `#gh-light-mode-only` at the end of its URL, only the one for the launcher's theme is shown (`ThemeImages`), and it is swapped when the theme changes.
 - [**AnnouncementViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/AnnouncementViewModel.cs) — loads a markdown announcement from an embedded resource. Uses `MainViewModel.HasDoneTask` / `SaveTaskAsDone` so "don't show again" is persisted per announcement. Currently `MainViewModel.DisplayReleaseAnnouncement` is an empty placeholder — wire announcements here.
 
 ## Converter

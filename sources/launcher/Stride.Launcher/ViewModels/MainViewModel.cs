@@ -82,6 +82,9 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         LoadRecentProjects();
         uninstallHelper = new(serviceProvider, store);
         GameStudioSettings.RecentProjectsUpdated += (sender, e) => Dispatcher.InvokeAsync(LoadRecentProjects).Forget();
+        // The release notes keep the images of the theme shown: from the launcher's setting, or the system's
+        if (Avalonia.Application.Current is { } application)
+            application.ActualThemeVariantChanged += (sender, e) => activeReleaseNotes?.ApplyTheme();
     }
 
     /// <summary>Test-only constructor. Skips NuGet, network, and file-system initialisation.</summary>
@@ -172,7 +175,16 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public ObservableList<NewsPageViewModel> NewsPages { get { return newsPages; } private set { SetValue(ref newsPages, value); } }
 
-    public ReleaseNotesViewModel ActiveReleaseNotes { get { return activeReleaseNotes; } set { SetValue(ref activeReleaseNotes, value); } }
+    public ReleaseNotesViewModel ActiveReleaseNotes
+    {
+        get { return activeReleaseNotes; }
+        set
+        {
+            // Only the shown release notes follow theme changes: the others catch up when they are shown
+            value?.ApplyTheme();
+            SetValue(ref activeReleaseNotes, value);
+        }
+    }
 
     public ObservableList<DocumentationPageViewModel> ActiveDocumentationPages => ActiveVersion.Yield().Concat(StrideVersions).OfType<StrideStoreVersionViewModel>().FirstOrDefault()?.DocumentationPages;
 
