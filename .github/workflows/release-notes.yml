@@ -29,7 +29,7 @@ on:
         default: true
         type: boolean
       docs-notes:
-        description: Use the written release notes from stride-docs (engine only). For a stable X.Y.0, master's notes also open the release body.
+        description: Use the written release notes from stride-docs (engine only). For a stable X.Y.0, master's notes also open the release body; a patch X.Y.Z links to them.
         required: false
         default: true
         type: boolean

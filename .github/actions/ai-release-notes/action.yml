@@ -42,7 +42,7 @@ inputs:
       Use the written release notes from stride-docs (engine releases only). The model gets
       master's documentation and the open docs PRs' release notes, picks the notes for this
       release as guidance, and may read the rest to understand a change. For a stable X.Y.0,
-      master's X.Y notes also go at the top of the release body.
+      master's X.Y notes also go at the top of the release body; a patch X.Y.Z links to them.
     required: false
     default: 'false'
   model:
@@ -515,6 +515,16 @@ runs:
           echo "::notice::Release body opens with $DOCS_REPO master:en/release-notes/$MAJOR_MINOR.md."
         fi
 
+        # A patch X.Y.Z links to the X.Y notes instead: they keep the highlights of X.Y and of its
+        # patches.
+        DOCS_LINK=""
+        if [ -n "$DOCS_DIR" ] && [[ "${TO##*/}" =~ ^([0-9]+\.[0-9]+)\.[1-9][0-9]*$ ]] \
+            && [ -s "$DOCS_DIR/master/en/release-notes/${BASH_REMATCH[1]}.md" ]; then
+          MAJOR_MINOR="${BASH_REMATCH[1]}"
+          DOCS_LINK="See the [Stride $MAJOR_MINOR release notes](https://doc.stride3d.net/en/release-notes/$MAJOR_MINOR.html) for the highlights of $MAJOR_MINOR and its patches."
+          echo "::notice::Release body links to $DOCS_REPO master:en/release-notes/$MAJOR_MINOR.md."
+        fi
+
         # Which authoritative PRs no bullet references, as a hidden comment for whoever edits the
         # raw body. Only meaningful where that list is the inclusion list — the engine (scope "."
         # with excludes) or unscoped; for one scoped product it is an attribution lookup, so the
@@ -560,6 +570,9 @@ runs:
         {
           if [ -n "$WRITTEN" ]; then
             printf '%s\n\n' "$WRITTEN"
+          fi
+          if [ -n "$DOCS_LINK" ]; then
+            printf '%s\n\n' "$DOCS_LINK"
           fi
           echo "## What's Changed"
           echo
