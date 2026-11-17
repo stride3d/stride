@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text.RegularExpressions;
+using Avalonia;
+using Avalonia.Styling;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
@@ -16,6 +18,8 @@ public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
 {
     private readonly MainViewModel launcher;
     private bool isActive;
+    // The release notes as downloaded, before ApplyTheme keeps the images of the current theme
+    private string? loadedMarkdown;
     private string? markdownContent;
     private bool isLoading = true;
     private bool isLoaded;
@@ -75,9 +79,18 @@ public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
 
         try
         {
-            using var response = await LauncherHttpClient.Instance.GetAsync($"{BaseUrl}{releaseNotesFileName}");
-            response.EnsureSuccessStatusCode();
-            releaseNotesMarkdown = await response.Content.ReadAsStringAsync();
+            var url = new Uri($"{BaseUrl}{releaseNotesFileName}");
+            // A local file in Debug (/previewreleasenotes): HttpClient doesn't read file: URLs
+            if (url.IsFile)
+            {
+                releaseNotesMarkdown = await File.ReadAllTextAsync(url.LocalPath);
+            }
+            else
+            {
+                using var response = await LauncherHttpClient.Instance.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                releaseNotesMarkdown = await response.Content.ReadAsStringAsync();
+            }
         }
         catch (Exception)
         {
@@ -90,7 +103,8 @@ public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
         {
             // parse video tag
             var videoRegex = GetVideoRegex();
-            MarkdownContent = videoRegex.Replace(releaseNotesMarkdown, "![]($2)\r\n\r\n[_Click to watch the video_]($4)");
+            loadedMarkdown = videoRegex.Replace(releaseNotesMarkdown, "![]($2)\r\n\r\n[_Click to watch the video_]($4)");
+            ApplyTheme();
             IsLoading = false;
             IsLoaded = true;
         }
@@ -99,6 +113,15 @@ public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
             IsLoading = false;
             IsUnavailable = true;
         }
+    }
+
+    /// <summary>
+    /// Shows the release notes with the images of the current theme only (<see cref="ThemeImages"/>).
+    /// </summary>
+    internal void ApplyTheme()
+    {
+        if (loadedMarkdown is not null)
+            MarkdownContent = ThemeImages.Keep(loadedMarkdown, Application.Current?.ActualThemeVariant != ThemeVariant.Light);
     }
 
     public void Show()
