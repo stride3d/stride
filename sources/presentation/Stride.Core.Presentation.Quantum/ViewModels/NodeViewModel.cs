@@ -732,7 +732,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         // The presenter kept its children and its attached properties: this view model keeps its own
         Parent?.NotifyPropertyChanged(Name);
         OnPropertyChanged(nameof(NodeValue));
-        owner.NotifyNodeChanged(this);
+        owner.NotifyNodeChanged(this, true);
 
         valueChanging = false;
     }

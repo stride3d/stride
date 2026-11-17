@@ -224,7 +224,8 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
 
         private void NodeValueChanged(object sender, NodeViewModelValueChangedArgs e)
         {
-            if (e.Node == null)
+            // A node whose value only changed has the same children: nothing new to show
+            if (e.Node == null || e.IsValueOnly)
                 return;
 
             var rule = GetRule(e.Node);
