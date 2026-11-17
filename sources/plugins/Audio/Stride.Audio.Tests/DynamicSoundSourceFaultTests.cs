@@ -302,7 +302,6 @@ namespace Stride.Audio.Tests
 
                 // The worker waits in UpdateInternal while Dispose and Stop are queued, so one pass handles both.
                 release.Reset();
-                source.Blocked.Reset();
                 Assert.True(source.Blocked.Wait(Timeout), "The worker never reached the source.");
                 source.Dispose();
                 instance.Dispose();
