@@ -101,7 +101,7 @@ public static class DotNetNewTemplateBridge
             // global ~/.templateengine. Versioned subfolder so side-by-side Stride installs don't
             // share template state. NuGet's ~/.nuget/packages/ cache stays shared.
             var profileDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify),
                 "stride", "template-engine", StrideVersion.NuGetVersion);
             if (registry == null)
             {

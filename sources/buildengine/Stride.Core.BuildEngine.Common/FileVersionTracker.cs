@@ -38,7 +38,7 @@ public class FileVersionTracker : IDisposable
         {
             if (defaultFileVersionTracker == null)
             {
-                var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DefaultFileVersionTrackerFile);
+                var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), DefaultFileVersionTrackerFile);
                 var directory = Path.GetDirectoryName(filePath);
                 if (directory != null && !Directory.Exists(directory))
                 {

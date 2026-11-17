@@ -108,7 +108,7 @@ public class ResolveStrideWorktreeVersion : Task
             string root = NormalizePath(StrideRoot);
             string ledgerPath = !string.IsNullOrWhiteSpace(LedgerPath)
                 ? LedgerPath
-                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "worktree-ids.txt");
+                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride", "worktree-ids.txt");
             // Stamp = ledger mtime + source file hash, so a manual worktree-ID remap or any edit to
             // SharedAssemblyInfo.cs invalidates the generated overlay.
             string stamp = LedgerStamp(ledgerPath) + "|" + SourceVersionFileHash();

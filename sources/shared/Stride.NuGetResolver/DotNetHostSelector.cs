@@ -47,7 +47,7 @@ public static class DotNetHostSelector
 
     /// <summary>Where generated runtimeconfigs go; tests redirect it.</summary>
     internal static string RuntimeConfigDirectory { get; set; } =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "host");
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride", "host");
 
     /// <summary>Decision for an app: reads its runtimeconfig, the session's projects and global.json, the args and the environment.</summary>
     /// <param name="currentMajor">Major the app would otherwise run on.</param>
