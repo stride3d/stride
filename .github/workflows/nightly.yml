@@ -2,19 +2,20 @@ name: Nightly
 # Builds the engine packages of a branch as X.Y.Z-nightly.YYYYMMDD.N (unsigned) and pushes them to the nightly feed,
 # https://packages.stride3d.net/nightly/index.json, a static Sleet feed in the stridenightly storage account.
 # The schedule runs on master, which starts the same workflow on each branch of NIGHTLY_BRANCHES. A run builds only
-# when its branch changed since its last published nightly and its tests passed (see the Check job).
+# when its branch changed since its last published nightly and its CI passed (see the Check job).
 # The samples content isn't packed: the engine names the published content, as a release does.
 
 on:
   schedule:
-    # 19:23 UTC daily (04:23 JST): after the scheduled tests (15:43-18:17), off the top of the hour.
+    # 19:23 UTC daily (04:23 JST), off the top of the hour.
     - cron: '23 19 * * *'
-  # Each run of CI or of a scheduled test that ends on master checks again: the nightly publishes as soon as the
-  # tests pass, including when a failed test passes in a manual run or a rerun of its failed jobs.
+  # Each CI run that ends on master or on a branch of NIGHTLY_BRANCHES checks that branch again: the nightly publishes
+  # as soon as CI passes, including when a failed CI passes in a rerun of its failed jobs. These runs always use
+  # master's copy of this file, which starts the branch's own.
   workflow_run:
-    workflows: [CI, Test iOS Game (Vulkan), Test Android Game (Vulkan), Test End-User, Test GameStudio (Screenshots)]
+    workflows: [CI]
     types: [completed]
-    branches: [master]
+    branches: [master, 'master-*']
   workflow_dispatch:
     inputs:
       publish:
@@ -36,7 +37,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: nightly-${{ github.ref }}
+  # By the branch checked: a CI run that ends on another branch only starts that branch's nightly
+  group: nightly-${{ github.event.workflow_run.head_branch || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -45,14 +47,14 @@ jobs:
   #
   Check:
     name: Check
-    # Fork-friendly: the schedule and the test runs start it only when STRIDE_ENABLE_SCHEDULED_CI is set on the
+    # Fork-friendly: the schedule and the CI runs start it only when STRIDE_ENABLE_SCHEDULED_CI is set on the
     # repository. CI runs of pull requests (from a fork's master) don't count.
     if: >-
       (github.event_name == 'workflow_dispatch' || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true') &&
       github.event.workflow_run.event != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
-      actions: write      # reads the test runs, starts the runs of the other branches
+      actions: write      # reads the CI runs, starts the runs of the other branches
       deployments: read   # reads the last publish
     outputs:
       build: ${{ steps.check.outputs.build }}
@@ -77,6 +79,7 @@ jobs:
           BRANCH: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
           FORCE: ${{ inputs.force }}
+          RUN_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           skip() {
             echo "::$1::$2"
@@ -84,17 +87,27 @@ jobs:
             exit 0
           }
 
+          # A CI run that ended on another branch: that branch's own copy of this workflow checks it
+          if [ -n "$RUN_BRANCH" ] && [ "$RUN_BRANCH" != "$BRANCH" ]; then
+            case " $NIGHTLY_BRANCHES " in
+              *" $RUN_BRANCH "*)
+                gh workflow run nightly.yml -R "$REPO" --ref "$RUN_BRANCH" \
+                  || echo "::warning::Could not start the nightly of $RUN_BRANCH (does the branch have this workflow?)"
+                skip notice "The run ended on $RUN_BRANCH: the nightly of $RUN_BRANCH checks it." ;;
+              *)
+                skip notice "$RUN_BRANCH has no nightly." ;;
+            esac
+          fi
+
           # The last publish of this branch: the newest successful deployment to the nightly environment
           deployments=$(gh api "repos/$REPO/deployments?environment=nightly&ref=$BRANCH&per_page=10" \
             --jq '.[] | "\(.id) \(.sha) \(.created_at)"')
           LAST_SHA=""
-          LAST_AT=""
           while read -r id sha at; do
             [ -n "$id" ] || continue
             state=$(gh api "repos/$REPO/deployments/$id/statuses?per_page=1" --jq '.[0].state')
             if [ "$state" = "success" ]; then
               LAST_SHA=$sha
-              LAST_AT=$at
               break
             fi
           done <<< "$deployments"
@@ -102,37 +115,22 @@ jobs:
             skip notice "$BRANCH is at $SHA, already published by its last nightly: nothing to do."
           fi
 
-          # The newest run of a workflow on this branch, among the given events, must have passed. With a third
-          # argument, it must also have started after the last publish: a test that hasn't run since says nothing
-          # new. A run still going isn't waited for: its end starts this check again.
-          check_runs() {
-            local workflow=$1 events=$2 fresh=$3 run status conclusion started url
-            run=$(gh api "repos/$REPO/actions/workflows/$workflow/runs?branch=$BRANCH&per_page=20" \
-              --jq "[.workflow_runs[] | select(.event | IN($events))][0] // empty | \"\(.status) \(.conclusion) \(.run_started_at) \(.html_url)\"")
-            read -r status conclusion started url <<< "$run"
+          # CI of the newest push it ran for, which runs all the tests, must have passed: the commits after it only
+          # touch files that CI ignores. A run still going isn't waited for: its end starts this check again.
+          if [ "$FORCE" != "true" ]; then
+            run=$(gh api "repos/$REPO/actions/workflows/main.yml/runs?branch=$BRANCH&event=push&per_page=1" \
+              --jq '.workflow_runs[0] // empty | "\(.status) \(.conclusion) \(.html_url)"')
+            read -r status conclusion url <<< "$run"
             if [ -z "$run" ]; then
-              skip notice "$workflow has no run on $BRANCH: not publishing."
-            fi
-            if [ -n "$fresh" ] && [ -n "$LAST_AT" ] && [[ ! "$started" > "$LAST_AT" ]]; then
-              skip notice "$workflow hasn't run on $BRANCH since the last nightly ($LAST_AT): not publishing yet."
+              skip notice "CI has no push run on $BRANCH: not publishing."
             fi
             if [ "$status" != "completed" ]; then
-              skip notice "$workflow is still running on $BRANCH ($url): its end checks again."
+              skip notice "CI is still running on $BRANCH ($url): its end checks again."
             fi
             if [ "$conclusion" != "success" ]; then
-              skip warning "$workflow did not pass on $BRANCH ($conclusion, $url): no nightly until it passes."
+              skip warning "CI did not pass on $BRANCH ($conclusion, $url): no nightly until it passes."
             fi
-            echo "$workflow passed: $url"
-          }
-          if [ "$FORCE" != "true" ]; then
-            # CI of the newest push it ran for: the commits after it only touch files that CI ignores
-            check_runs main.yml '"push"'
-            # The scheduled tests run on the default branch only
-            if [ "$BRANCH" = "$(gh api "repos/$REPO" --jq .default_branch)" ]; then
-              for workflow in test-ios-game.yml test-android-game.yml test-enduser.yml test-gamestudio-screenshots.yml; do
-                check_runs "$workflow" '"schedule", "workflow_dispatch"' fresh
-              done
-            fi
+            echo "CI passed: $url"
           fi
           LABEL="nightly.$(date -u +%Y%m%d).${{ github.run_number }}"
           echo "label=$LABEL" >> "$GITHUB_OUTPUT"

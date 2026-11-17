@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   vision-gate:
-    # Only PR-triggered runs carry a PR head to post a check on. Dispatch/schedule runs of Test End-User
+    # Only PR-triggered runs carry a PR head to post a check on. Dispatched runs of Test End-User
     # are trusted and keyed (nothing gets deferred), so they need no gate.
     if: github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-24.04

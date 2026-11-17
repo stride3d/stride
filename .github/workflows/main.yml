@@ -284,6 +284,26 @@ jobs:
     with:
       build-type: Debug
 
+  # The end-user and Game Studio screenshot suites run on each push to master and master-*. Pull requests run them with
+  # the ci-enduser and ci-gamestudio-screenshots labels (pr-label-suites.yml).
+  EndUser-Tests:
+    needs: changes
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/test-enduser.yml
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
+    with:
+      build-type: Debug
+
+  GameStudio-Screenshots:
+    needs: changes
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/test-gamestudio-screenshots.yml
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
+    with:
+      build-type: Debug
+
   # Aggregate result for branch protection: mark only "Gate" as required.
   # Skipped jobs (path filters, draft PRs) are fine; failure/cancellation is not.
   # always() on purpose (unlike the !cancelled() test jobs): a cancelled run must
@@ -310,6 +330,8 @@ jobs:
       - macOS-Tests-Game
       - iOS-Tests-Game
       - Android-Tests-Game
+      - EndUser-Tests
+      - GameStudio-Screenshots
     if: always()
     runs-on: ubuntu-latest
     steps:

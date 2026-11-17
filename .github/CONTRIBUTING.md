@@ -13,8 +13,8 @@ You can help us translate Stride; check out our [Localization Guide](https://doc
 Most CI runs automatically on PR commits, gated by path filters. A few things run only on demand;
 opt in by adding a label to the PR (collaborator access required):
 
-- `ci-enduser` — end-user sample screenshot + packaging suite (never auto-runs)
-- `ci-gamestudio-screenshots` — Game Studio screenshot suite (never auto-runs)
+- `ci-enduser` — end-user sample screenshot + packaging suite (on a PR only with this label; it runs on every push to `master`)
+- `ci-gamestudio-screenshots` — Game Studio screenshot suite (on a PR only with this label; it runs on every push to `master`)
 - `ci-ios` — iOS game suite, when its narrow path filter didn't already trigger it
 - `ci-android` — Android game suite, when its narrow path filter didn't already trigger it
 - `ci-run-on-draft` — run the normal path-gated CI on a **draft** PR (which otherwise skips CI)

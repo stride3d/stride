@@ -27,10 +27,6 @@ on:
     secrets:
       ANTHROPIC_API_KEY:
         required: false
-  schedule:
-    # Daily at 18:17 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
-    # gap from test-enduser (17:37) so they don't compete for runners.
-    - cron: '17 18 * * *'
 
 concurrency:
   group: test-gamestudio-screenshots-${{ github.event.pull_request.number || github.sha }}
@@ -42,13 +38,7 @@ jobs:
   # it (typical on fork PRs, where secrets aren't exposed) the borderline frames are captured and marked
   # "deferred" in <fixture>/vision-deferred.json, and pr-screenshot-vision-gate re-judges them with the
   # key on the uploaded artifacts. Hard LPIPS drift (no vision tiebreak) still fails here regardless.
-  #
-  # Fork-friendly: schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repo.
-  # workflow_dispatch / workflow_call always run.
   Run:
-    if: >
-      github.event_name != 'schedule'
-      || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
     name: Windows (Editor, ${{ matrix.graphics-api }}, ${{ inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     strategy:
@@ -152,7 +142,7 @@ jobs:
       # cost is bounded because Claude only fires on already-failing frames.
       - name: Run editor screenshot tests
         env:
-          # Called by another workflow: the key it passes. Run on its own (dispatch, schedule): the screenshots key.
+          # Called by another workflow: the key it passes. Run on its own (dispatch): the screenshots key.
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
         run: |
           dotnet test tests\editor\Stride.Editor.Tests.csproj `

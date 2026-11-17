@@ -39,7 +39,7 @@ jobs:
     if: github.event.action != 'labeled' || startsWith(github.event.label.name, 'ci-')
     uses: ./.github/workflows/changes.yml
 
-  # End-user packaging/screenshot suite — main.yml never auto-runs it, so no overlap guard needed.
+  # End-user packaging/screenshot suite — main.yml runs it on pushes only, never on a PR, so no overlap guard needed.
   enduser:
     needs: changes
     if: >
@@ -53,7 +53,7 @@ jobs:
     with:
       build-type: Debug
 
-  # GameStudio editor screenshot suite — main.yml never auto-runs it, so no overlap guard needed.
+  # GameStudio editor screenshot suite — main.yml runs it on pushes only, never on a PR, so no overlap guard needed.
   # Keyless on forks: it captures + defers borderline frames, which pr-screenshot-vision-gate
   # re-judges with the key.
   editor:
