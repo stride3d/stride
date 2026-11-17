@@ -31,6 +31,10 @@ on:
         description: After a stable deploy, commit the next Patch to the branch (open next dev version)
         default: true
         type: boolean
+      skip-ci-check:
+        description: Deploy even if CI didn't pass on this commit (an urgent release while a known flake is red)
+        default: false
+        type: boolean
       upload-binlog:
         description: Capture and upload an MSBuild binlog (parallel/race diagnostics). The build has no secrets, so it may hold the binlog.
         default: false
@@ -47,6 +51,9 @@ jobs:
   Validate:
     name: Validate
     runs-on: ubuntu-latest
+    permissions:
+      actions: read   # reads the CI run of the commit
+      contents: read
     steps:
       # GITHUB_TOKEN can't read team membership: the Stride Bot app can (Organization Members: Read).
       - name: Get the Stride Bot token
@@ -72,6 +79,30 @@ jobs:
             echo "::error::Deploy blocked: '$USER' is not a member of $ORG/$TEAM, or the Stride Bot token cannot read it (missing Organization Members: Read). Requires stride-release-managers membership."
             exit 1
           fi
+
+      # Deploy only a commit whose CI passed: the push run of the commit, or of the newest commit before it when the commits
+      # after it change only files CI ignores. A run still going is waited for, so Release can be started right after the push.
+      - uses: actions/checkout@v7
+        if: ${{ inputs.deploy && !inputs.skip-ci-check }}
+        with:
+          fetch-depth: 0  # the history back to the commit CI last ran on
+          lfs: false
+
+      - name: Check CI passed on this commit
+        if: ${{ inputs.deploy && !inputs.skip-ci-check }}
+        timeout-minutes: 240
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: ./.github/scripts/check-release-ci.ps1 -Repository "${{ github.repository }}" -Commit "${{ github.sha }}"
+
+      - name: Note the skipped CI check
+        if: ${{ inputs.deploy && inputs.skip-ci-check }}
+        shell: bash
+        run: |
+          echo "::warning::Deployed with skip-ci-check: CI on ${{ github.sha }} was not checked."
+          echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
+          echo "> Deployed with \`skip-ci-check\`: CI on ${{ github.sha }} was not checked." >> "$GITHUB_STEP_SUMMARY"
 
   #
   # Build and package
