@@ -1,18 +1,22 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core;
 
 namespace Stride.Cli.Core;
 
-// Which versions install, update, available and upgrade take when no exact version is given.
+// Which versions install, update, available, upgrade and the tools (studio, asset) take when no exact version is given.
 internal static class VersionRules
 {
-    // Whether the newest version or the newest of a line may be this one. With a tag, only the custom builds of that tag
-    // (PackageVersion.CustomTag). Without one, never a custom build (a studio's own builds are only taken by their
-    // version or their tag), a nightly only when opted in, even with prereleases, and a prerelease only when opted in.
+    // Whether the newest version or the newest of a line may be this one. With a tag, only the builds of that tag: the
+    // custom builds of a studio (PackageVersion.CustomTag, mystudio), or the local builds of a checkout
+    // (PackageVersion.LocalBuildTag, dev8). Without one, a release, a nightly and a prerelease (alpha, beta, preview, rc)
+    // each only when opted in, and never a custom or a local build, which are only taken by their version or their tag.
     public static bool IsEligible(PackageVersion version, bool includePrerelease, bool includeNightly, string? tag = null)
-        => tag is not null ? string.Equals(version.CustomTag, tag, StringComparison.OrdinalIgnoreCase)
-            : version.CustomTag is null && (version.IsNightly ? includeNightly : includePrerelease || string.IsNullOrEmpty(version.SpecialVersion));
+        => tag is not null ? string.Equals(version.CustomTag ?? version.LocalBuildTag, tag, StringComparison.OrdinalIgnoreCase)
+            : version.IsNightly ? includeNightly
+            : version.IsPrerelease ? includePrerelease
+            : version.CustomTag is null && !version.IsLocalBuild;
 
     // The newest version that the newest version or the newest of a line takes (IsEligible); null for any line. A line with
     // no such version, such as a Major.Minor that only has betas so far, takes its newest prerelease, as the launcher does.
@@ -21,6 +25,36 @@ internal static class VersionRules
         var ofLine = versions.Where(version => line is null || LineOf(version) == line).ToList();
         return ofLine.Where(version => IsEligible(version, includePrerelease, includeNightly, tag)).Max()
             ?? (tag is null ? ofLine.Where(version => version.IsPrerelease).Max() : null);
+    }
+
+    // The version that a version text names among the candidates, as install and the tools take it: the newest one
+    // (ChooseNewest) when there is no text, the newest of a Major.Minor line, else exactly that version.
+    public static PackageVersion? Resolve(IEnumerable<PackageVersion> candidates, string? versionSpec, bool includePrerelease, bool includeNightly, string? tag = null)
+    {
+        if (string.IsNullOrEmpty(versionSpec))
+            return ChooseNewest(candidates, null, includePrerelease, includeNightly, tag);
+        if (TryParseLine(versionSpec, out var line))
+            return ChooseNewest(candidates, line, includePrerelease, includeNightly, tag);
+        var target = new PackageVersion(versionSpec);
+        return candidates.FirstOrDefault(version => version.Equals(target));
+    }
+
+    // What to say when no installed version matches a line or options: what installs one, or, for the tag of a checkout
+    // (dev8, a label that PackageVersion.IsLocalBuild takes), where its builds come from.
+    public static string NoInstalledMatch(string? versionSpec, VersionFilter filter)
+    {
+        var asked = $"{versionSpec} {filter.Options}".Trim();
+        return filter.Tag?.StartsWith("dev", StringComparison.OrdinalIgnoreCase) == true
+            ? $"No installed Stride version matches '{asked}'. The builds tagged {filter.Tag} come from building that Stride checkout."
+            : $"No installed Stride version matches '{asked}'. Install one with: stride sdk install {asked}";
+    }
+
+    // Whether a version text is a Major.Minor line (4.5), and that line as LineOf writes it.
+    public static bool TryParseLine(string versionSpec, [NotNullWhen(true)] out string? line)
+    {
+        var parts = versionSpec.Split('.');
+        line = parts.Length == 2 && int.TryParse(parts[0], out var major) && int.TryParse(parts[1], out var minor) ? $"{major}.{minor}" : null;
+        return line is not null;
     }
 
     // Whether update takes the prereleases of a line without --prerelease: when the newest release or prerelease installed in

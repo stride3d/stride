@@ -130,6 +130,20 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
            && (label.StartsWith("dev", StringComparison.OrdinalIgnoreCase) || label.Contains("-dev", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
+    /// Gets the checkout of a local build, the -devN part of its label in lowercase (dev8 for 4.5.5-dev8 and dev4 for
+    /// 4.4.0-beta7-dev4, dev for the first checkout); null for any other version.
+    /// </summary>
+    public string? LocalBuildTag => IsLocalBuild ? DevSuffix(SpecialVersion) : null;
+
+    /// <summary>
+    /// Gets the -devN part of a version label, which names the checkout of a local build (dev3 for beta8-dev3), in lowercase;
+    /// null without one.
+    /// </summary>
+    /// <param name="versionLabel">The label of a version, after its first hyphen.</param>
+    public static string? DevSuffix(string? versionLabel)
+        => versionLabel?.Split('-').LastOrDefault(part => part.StartsWith("dev", StringComparison.OrdinalIgnoreCase))?.ToLowerInvariant();
+
+    /// <summary>
     /// Gets whether this version is a nightly build: 4.5.0-nightly.20261014.3, or appended to a prerelease for a package
     /// with its own version (5.0.1-beta1.nightly.20261014.3).
     /// </summary>

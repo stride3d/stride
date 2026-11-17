@@ -14,16 +14,12 @@ internal static class UpgradeCommand
             Arity = ArgumentArity.ZeroOrOne,
             Description = "Project or solution to upgrade. Defaults to the solution or project in the current directory.",
         };
-        var version = new Option<string?>("--version") { Description = "Stride version to upgrade to (4.4.0 or newer). Defaults to the newest installed stable version." };
-        var prerelease = new Option<bool>("--prerelease") { Description = "Consider prerelease (beta) versions when choosing the newest version to upgrade to." };
-        var nightly = new Option<bool>("--nightly") { Description = "Consider the installed nightly builds when choosing the newest version to upgrade to (project upgrades might not be fully tested)." };
+        var versionOptions = new CliVersion.Options($"Stride version to upgrade to (4.4.0 or newer), installed first when it isn't; {CliVersion.Options.LineHelp}. Defaults to the newest installed release (nightlies: project upgrades might not be fully tested).");
         var noBackup = new Option<bool>("--no-backup") { Description = "Skip the automatic backup of files the upgrade modifies before editing in place." };
 
         var command = new Command("upgrade", "Upgrade a project to a newer installed Stride version.");
         command.Arguments.Add(path);
-        command.Options.Add(version);
-        command.Options.Add(prerelease);
-        command.Options.Add(nightly);
+        versionOptions.AddTo(command);
         command.Options.Add(noBackup);
         command.SetAction(async (parseResult, cancellationToken) =>
         {
@@ -46,28 +42,33 @@ internal static class UpgradeCommand
 
             var projectDirectory = Path.GetDirectoryName(Path.GetFullPath(input))!;
 
-            // Target version: explicit --version, else the newest installed (stable unless --prerelease). Upgrade
-            // is only supported to Stride 4.4.0+ (older asset compilers lack the 'upgrade' verb).
+            // Target version: an exact --version, else the newest installed that a line and the options allow, as
+            // install takes them. Upgrade is only supported to Stride 4.4.0+ (older asset compilers lack the 'upgrade' verb).
             PackageVersion target;
-            var explicitVersion = parseResult.GetValue(version);
-            if (!string.IsNullOrEmpty(explicitVersion))
+            var versionSpec = parseResult.GetValue(versionOptions.Version);
+            var filter = versionOptions.Filter(parseResult);
+            string? line = null;
+            // A line by its first version: no version of 4.3 can be upgraded to
+            if (!string.IsNullOrEmpty(versionSpec)
+                && !StrideVersionManager.SupportsUpgrade(new PackageVersion(VersionRules.TryParseLine(versionSpec, out line) ? $"{line}.0" : versionSpec)))
             {
-                target = new PackageVersion(explicitVersion);
-                if (!StrideVersionManager.SupportsUpgrade(target))
-                {
-                    Console.Error.WriteLine($"'stride upgrade' supports Stride 4.4.0 and newer only; {target} is older.");
-                    return 1;
-                }
+                Console.Error.WriteLine($"'stride upgrade' supports Stride 4.4.0 and newer only; {versionSpec} is older.");
+                return 1;
+            }
+            if (!string.IsNullOrEmpty(versionSpec) && line is null)
+            {
+                target = new PackageVersion(versionSpec);
+            }
+            else if (manager.FindUpgradeTarget(versionSpec, filter) is { } newest)
+            {
+                target = newest;
             }
             else
             {
-                var newest = manager.GetNewestUpgradeTarget(parseResult.GetValue(prerelease), parseResult.GetValue(nightly));
-                if (newest is null)
-                {
-                    Console.Error.WriteLine("No Stride 4.4.0 or newer is installed to upgrade to. Install one with 'stride sdk install', or pass --prerelease / --version.");
-                    return 1;
-                }
-                target = newest.Version;
+                Console.Error.WriteLine(string.IsNullOrEmpty(versionSpec) && filter == default
+                    ? "No Stride 4.4.0 or newer is installed to upgrade to. Install one with 'stride sdk install', or pass --version or --prerelease / --nightly."
+                    : VersionRules.NoInstalledMatch(versionSpec, filter));
+                return 1;
             }
 
             // Skip when the project already targets the same-or-newer version (no re-reconcile, no downgrade).
@@ -90,7 +91,7 @@ internal static class UpgradeCommand
                 var progress = new InstallProgressConsole();
                 try
                 {
-                    await manager.Install(target.ToString(), parseResult.GetValue(prerelease), parseResult.GetValue(nightly), tag: null, progress, cancellationToken);
+                    await manager.Install(target.ToString(), filter.Prerelease, filter.Nightly, filter.Tag, progress, cancellationToken);
                 }
                 catch (Exception exception)
                 {

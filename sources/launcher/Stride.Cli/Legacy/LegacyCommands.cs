@@ -44,11 +44,11 @@ internal static class LegacyCommands
             Arity = ArgumentArity.ZeroOrOne,
             Description = "Shader file (.sdsl/.sdfx), project, or solution to regenerate. Defaults to the solution or project in the current directory.",
         };
-        var version = new Option<string?>("--version") { Description = "Use a specific Stride version instead of the one resolved from the project." };
+        var versionOptions = new CliVersion.Options($"Stride version to use instead of the one resolved from the project; {CliVersion.Options.LineHelp}.");
 
         var command = new Command("generate-legacy-shader-code", "Regenerate the C# from .sdsl/.sdfx shaders (Stride 4.0-4.3; 4.4+ generates it at build).") { Hidden = true };
         command.Arguments.Add(path);
-        command.Options.Add(version);
+        versionOptions.AddTo(command);
         command.SetAction(parseResult =>
         {
             var explicitInput = parseResult.GetValue(path);
@@ -69,7 +69,7 @@ internal static class LegacyCommands
             PackageVersion? resolved;
             try
             {
-                resolved = manager.ResolveVersion(parseResult.GetValue(version), workingDirectory);
+                resolved = manager.ResolveVersion(parseResult.GetValue(versionOptions.Version), workingDirectory, versionOptions.Filter(parseResult));
             }
             catch (Exception exception)
             {
