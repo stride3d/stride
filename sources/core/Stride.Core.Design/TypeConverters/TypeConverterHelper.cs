@@ -23,12 +23,11 @@ public static class TypeConverterHelper
         if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
 #endif
 
-        // A conversion to a nullable value type is done through its underlying type:
-        // the boxed underlying value is the boxed representation of the nullable value.
+        // A conversion to a nullable value type is done through its underlying type
         var underlyingType = Nullable.GetUnderlyingType(destinationType);
-        if (underlyingType != null)
+        if (underlyingType is not null)
         {
-            return underlyingType.IsAssignableFrom(sourceType) || CanConvert(sourceType, underlyingType);
+            return CanConvert(sourceType, underlyingType);
         }
 
         var context = new DestinationTypeDescriptorContext(destinationType);
@@ -55,6 +54,14 @@ public static class TypeConverterHelper
         if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
 #endif
 
+        // A conversion to a nullable value type is done through its underlying type:
+        // the boxed underlying value is the boxed representation of the nullable value.
+        var underlyingType = Nullable.GetUnderlyingType(destinationType);
+        if (underlyingType is not null)
+        {
+            return TryConvert(source, underlyingType, out target);
+        }
+
         if (source != null)
         {
             try
@@ -64,21 +71,6 @@ public static class TypeConverterHelper
                 {
                     target = source;
                     return true;
-                }
-
-                // Conversion to a nullable value type is done through its underlying type:
-                // the boxed underlying value is the boxed representation of the nullable value.
-                var underlyingType = Nullable.GetUnderlyingType(destinationType);
-                if (underlyingType != null)
-                {
-                    if (TryConvert(source, underlyingType, out var convertedValue))
-                    {
-                        target = convertedValue;
-                        return true;
-                    }
-
-                    target = null;
-                    return false;
                 }
 
                 if (source is IConvertible)

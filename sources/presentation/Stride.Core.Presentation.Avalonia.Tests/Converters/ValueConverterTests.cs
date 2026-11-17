@@ -151,6 +151,22 @@ public sealed class ValueConverterTests
         Assert.Equal(false, new ObjectToBool().Convert(null, typeof(bool), null, Culture));
     }
 
+    [Theory]
+    [InlineData(typeof(float?), true)]
+    [InlineData(typeof(int?), true)]
+    [InlineData(typeof(float), false)]
+    [InlineData(typeof(string), false)]
+    public void IsNullableReturnsTrueForNullableValueTypes(Type type, bool expected)
+    {
+        Assert.Equal(expected, new IsNullable().Convert(type, typeof(bool), null, Culture));
+    }
+
+    [Fact]
+    public void IsNullableRejectsNonTypeValues()
+    {
+        Assert.Throws<ArgumentException>(() => new IsNullable().Convert("not a type", typeof(bool), null, Culture));
+    }
+
     [Fact]
     public void IsEqualToParamUsesValueEqualityForValueTypesAndStrings()
     {

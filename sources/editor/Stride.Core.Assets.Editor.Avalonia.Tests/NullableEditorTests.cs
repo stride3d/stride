@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
@@ -17,8 +17,9 @@ using Stride.Core.Presentation.Quantum.ViewModels;
 namespace Stride.Core.Assets.Editor.Avalonia.Tests;
 
 /// <summary>
-/// The editors of nullable value type members (float?, int?) accept an empty text and commit a null value,
-/// without showing an invalid-value border. See https://github.com/stride3d/stride/issues/3014
+/// The editors of nullable value type members (float?, int?) accept an empty text and commit a null value.
+/// On WPF, the empty text is not reported as an invalid value by the text box validation.
+/// See https://github.com/stride3d/stride/issues/3014
 /// </summary>
 public sealed class NullableEditorTests
 {

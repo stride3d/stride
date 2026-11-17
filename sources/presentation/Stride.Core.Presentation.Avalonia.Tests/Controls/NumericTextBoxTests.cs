@@ -155,7 +155,8 @@ public sealed class NumericTextBoxTests
     [AvaloniaFact]
     public void ANullValueIsKeptWhenTheBoundsChange()
     {
-        // A null value must not break the clamping of the bounds
+        // This pins pre-existing behavior: the lifted double? comparisons were already no-ops for a null value,
+        // and the explicit guards in the change handlers are readability, not a behavior change
         var (window, box) = Show(new NumericTextBox { Value = null, AllowNull = true });
 
         box.Maximum = 3;

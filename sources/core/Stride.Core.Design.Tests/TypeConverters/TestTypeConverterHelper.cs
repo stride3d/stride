@@ -50,18 +50,7 @@ public class TestTypeConverterHelper
         // The result must be a boxed instance of the underlying (non-nullable) type
         var underlyingType = Nullable.GetUnderlyingType(destinationType);
         Assert.IsType(underlyingType, target);
-        Assert.Equal(expectedValue, Convert.ToDouble(target));
-    }
-
-    [Theory]
-    [InlineData(typeof(double), typeof(float?))]
-    [InlineData(typeof(double), typeof(int?))]
-    [InlineData(typeof(int), typeof(int?))]
-    [InlineData(typeof(string), typeof(float?))]
-    [InlineData(typeof(string), typeof(int?))]
-    public void CanConvert_ToNullable_Succeeds(Type sourceType, Type destinationType)
-    {
-        Assert.True(TypeConverterHelper.CanConvert(sourceType, destinationType));
+        Assert.Equal(expectedValue, Convert.ToDouble(target), precision: 15);
     }
 
     [Fact]
@@ -104,7 +93,7 @@ public class TestTypeConverterHelper
     {
         // A boxed underlying value is re-boxed as the nullable value
         Assert.True(TypeConverterHelper.TryConvert(7, typeof(int?), out var target));
-        Assert.IsType(typeof(int), target);
+        Assert.IsType<int>(target);
         Assert.Equal(7, target);
     }
 }

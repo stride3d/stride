@@ -1,7 +1,9 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Globalization;
+using Stride.Core.Presentation.Avalonia.Internal;
+using Stride.Core.Reflection;
 
 namespace Stride.Core.Presentation.Avalonia.Converters;
 
@@ -18,6 +20,6 @@ public sealed class IsNullable : OneWayValueConverter<IsNullable>
             throw new ArgumentException("The object passed to this value converter is not a type.");
         }
 
-        return Nullable.GetUnderlyingType(type) != null;
+        return type.IsNullable().Box();
     }
 }

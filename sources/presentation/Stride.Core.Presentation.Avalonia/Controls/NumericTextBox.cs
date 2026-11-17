@@ -223,7 +223,7 @@ public sealed class NumericTextBox : TemplatedControl
 
     private double? ConvertTextToValue(string? text)
     {
-        if (string.IsNullOrEmpty(text))
+        if (string.IsNullOrWhiteSpace(text))
             return AllowNull ? null : Value;
 
         var currentValueText = ConvertValueToText(Value);

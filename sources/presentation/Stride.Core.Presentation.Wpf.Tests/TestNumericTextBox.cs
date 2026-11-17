@@ -50,6 +50,151 @@ namespace Stride.Core.Presentation.Tests
             Assert.Null(capturedEvents[2].New);
         }
 
+        /// <summary>
+        /// Tests that clearing the text of an <see cref="NumericTextBox"/> with <see cref="NumericTextBox.AllowNull"/> set
+        /// commits a <see langword="null"/> value (see GitHub issue #3014).
+        /// </summary>
+        [Fact]
+        public async Task TestClearingTextWithAllowNullCommitsNull()
+        {
+            double? value = null;
+            var dispatcher = await WindowManagerHelper.CreateUIThread();
+            try
+            {
+                var operation = dispatcher.InvokeAsync(() =>
+                {
+                    var textBox = new NumericTextBox();
+                    textBox.Value = 5.0;
+                    textBox.AllowNull = true;
+
+                    textBox.Text = "";
+                    textBox.Validate();
+
+                    value = textBox.Value;
+                });
+                await operation.Task;
+            }
+            finally
+            {
+                WindowManagerHelper.ShutdownUIThread(dispatcher);
+            }
+
+            Assert.Null(value);
+        }
+
+        /// <summary>
+        /// Tests that clearing the text of an <see cref="NumericTextBox"/> without <see cref="NumericTextBox.AllowNull"/>
+        /// keeps the current value (see GitHub issue #3014).
+        /// </summary>
+        [Fact]
+        public async Task TestClearingTextWithoutAllowNullKeepsValue()
+        {
+            double? value = null;
+            var dispatcher = await WindowManagerHelper.CreateUIThread();
+            try
+            {
+                var operation = dispatcher.InvokeAsync(() =>
+                {
+                    var textBox = new NumericTextBox();
+                    textBox.Value = 5.0;
+
+                    textBox.Text = "";
+                    textBox.Validate();
+
+                    value = textBox.Value;
+                });
+                await operation.Task;
+            }
+            finally
+            {
+                WindowManagerHelper.ShutdownUIThread(dispatcher);
+            }
+
+            Assert.Equal(5.0, value);
+        }
+
+        /// <summary>
+        /// Tests that a whitespace-only text of an <see cref="NumericTextBox"/> with <see cref="NumericTextBox.AllowNull"/> set
+        /// commits a <see langword="null"/> value (see GitHub issue #3014).
+        /// </summary>
+        [Fact]
+        public async Task TestWhitespaceOnlyTextWithAllowNullCommitsNull()
+        {
+            double? value = null;
+            var dispatcher = await WindowManagerHelper.CreateUIThread();
+            try
+            {
+                var operation = dispatcher.InvokeAsync(() =>
+                {
+                    var textBox = new NumericTextBox();
+                    textBox.Value = 5.0;
+                    textBox.AllowNull = true;
+
+                    textBox.Text = " ";
+                    textBox.Validate();
+
+                    value = textBox.Value;
+                });
+                await operation.Task;
+            }
+            finally
+            {
+                WindowManagerHelper.ShutdownUIThread(dispatcher);
+            }
+
+            Assert.Null(value);
+        }
+
+        /// <summary>
+        /// Tests the text compatibility and coercion rules of <see cref="NumericTextBox"/> with and without
+        /// <see cref="NumericTextBox.AllowNull"/> (see GitHub issue #3014).
+        /// </summary>
+        [Fact]
+        public async Task TestTextCompatibilityAndCoercionWithAllowNull()
+        {
+            bool allowNullEmpty = false;
+            bool notAllowNullEmpty = false;
+            bool notAllowNullNumber = false;
+            bool notAllowNullText = false;
+            string coercedValue = null;
+            var dispatcher = await WindowManagerHelper.CreateUIThread();
+            try
+            {
+                var operation = dispatcher.InvokeAsync(() =>
+                {
+                    var textBox = new TestableNumericTextBox();
+                    textBox.AllowNull = true;
+                    allowNullEmpty = textBox.IsCompatible("");
+
+                    textBox.AllowNull = false;
+                    notAllowNullEmpty = textBox.IsCompatible("");
+                    notAllowNullNumber = textBox.IsCompatible("42");
+                    notAllowNullText = textBox.IsCompatible("abc");
+
+                    textBox.Value = 5.0;
+                    coercedValue = textBox.Coerce("");
+                });
+                await operation.Task;
+            }
+            finally
+            {
+                WindowManagerHelper.ShutdownUIThread(dispatcher);
+            }
+
+            Assert.True(allowNullEmpty);
+            Assert.False(notAllowNullEmpty);
+            Assert.True(notAllowNullNumber);
+            Assert.False(notAllowNullText);
+            Assert.Equal("5", coercedValue);
+        }
+
         private record CapturedEvent(double? Old, double? New);
+
+        private sealed class TestableNumericTextBox : NumericTextBox
+        {
+            public bool IsCompatible(string text) => IsTextCompatibleWithValueBinding(text);
+
+            public string Coerce(string text) => CoerceTextForValidation(text);
+        }
     }
 }

@@ -59,28 +59,32 @@ public class TestMemberNode
             Assert.Equal(newValue, obj.StringValue);
     }
 
-    [Theory]
-    // A boxed double targeting a nullable float member (e.g. values coming from numeric text boxes).
-    [InlineData(nameof(SimpleClass.NullableFloatValue), 1.5)]
-    // A boxed double targeting a nullable int member.
-    [InlineData(nameof(SimpleClass.NullableIntValue), 2.0)]
-    public void TestMemberNodeUpdateNullableValue(string memberName, object newValue)
+    [Fact]
+    // A boxed double simulates a value coming from a numeric text box
+    public void TestMemberNodeUpdateNullableFloatValue()
     {
         var obj = new SimpleClass { NullableFloatValue = 0f, NullableIntValue = 0 };
         var nodeContainer = new NodeContainer();
         var parentNode = nodeContainer.GetOrCreateNode(obj);
-        var memberNode = parentNode[memberName];
+        var memberNode = parentNode[nameof(SimpleClass.NullableFloatValue)];
 
-        memberNode.Update(newValue);
+        memberNode.Update(1.5);
 
-        if (memberName == nameof(SimpleClass.NullableFloatValue))
-        {
-            Assert.Equal((float)(double)newValue, obj.NullableFloatValue);
-        }
-        else
-        {
-            Assert.Equal((int)(double)newValue, obj.NullableIntValue);
-        }
+        Assert.Equal(1.5f, obj.NullableFloatValue);
+    }
+
+    [Fact]
+    // A boxed double simulates a value coming from a numeric text box
+    public void TestMemberNodeUpdateNullableIntValue()
+    {
+        var obj = new SimpleClass { NullableFloatValue = 0f, NullableIntValue = 0 };
+        var nodeContainer = new NodeContainer();
+        var parentNode = nodeContainer.GetOrCreateNode(obj);
+        var memberNode = parentNode[nameof(SimpleClass.NullableIntValue)];
+
+        memberNode.Update(2.0);
+
+        Assert.Equal(2, obj.NullableIntValue);
     }
 
     [Fact]
