@@ -145,10 +145,12 @@ postswitch:
 
         public override void Update(GameTime gameTime)
         {
-            if (inputSource == null && Services.GetService<InputManager>() is { } input)
+            if (Services.GetService<InputManager>() is { } input)
             {
-                inputSource = new VRInputSource(this);
-                input.Sources.Add(inputSource);
+                // InputManager.ResetSources removes every source, this one too
+                inputSource ??= new VRInputSource(this);
+                if (!input.Sources.Contains(inputSource))
+                    input.Sources.Add(inputSource);
             }
 
             Device?.Update(gameTime);

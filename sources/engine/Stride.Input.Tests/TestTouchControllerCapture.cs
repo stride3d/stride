@@ -3,7 +3,9 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Games;
 using Stride.VirtualReality;
 using Xunit;
 
@@ -127,6 +129,22 @@ public class TestTouchControllerCapture
 
         Assert.True(controller.IsPressed(TouchControllerButton.A));
         Assert.True(controller.IsPressedDown(TouchControllerButton.A));
+    }
+
+    [Fact]
+    public void VRSourceComesBackAfterResetSources()
+    {
+        using var headless = new HeadlessInput();
+        var services = new ServiceRegistry();
+        services.AddService(headless.Input);
+        var vr = new VRDeviceSystem(services);
+        vr.Update(new GameTime());
+        var vrSource = Assert.Single(headless.Input.Sources, source => source.GetType().Name == "VRInputSource");
+
+        headless.Input.ResetSources();
+        vr.Update(new GameTime());
+
+        Assert.Contains(vrSource, headless.Input.Sources);
     }
 
     private static (HeadlessInput Headless, FakeTouchController Controller) Create()
