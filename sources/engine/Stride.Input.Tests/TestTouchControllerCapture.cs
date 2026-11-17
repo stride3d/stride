@@ -166,7 +166,8 @@ public class TestTouchControllerCapture
         public void Add(IInputDevice device) => RegisterDevice(device);
     }
 
-    private sealed class FakeTouchController : TouchController
+    // Full name: on iOS, TouchController is also a namespace (Apple's framework), found before the using directive
+    private sealed class FakeTouchController : Stride.VirtualReality.TouchController
     {
         public HashSet<TouchControllerButton> Pressed { get; } = new();
         public HashSet<TouchControllerButton> PressedDown { get; } = new();
