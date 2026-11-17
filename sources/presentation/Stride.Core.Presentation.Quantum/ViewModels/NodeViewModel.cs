@@ -683,7 +683,10 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     private void ValueChanged(object? sender, ValueChangedEventArgs valueChangedEventArgs)
     {
-        OnValueChanged();
+        if (valueChangedEventArgs.IsValueOnly)
+            OnValueOnlyChanged();
+        else
+            OnValueChanged();
     }
 
     private void AttachedPropertyUpdated(ref PropertyContainer propertycontainer, PropertyKey propertykey, object newvalue, object? oldvalue)
@@ -718,6 +721,16 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         UpdateViewModelProperties();
         OnPropertyChanged(nameof(VisibleChildrenCount));
 
+        OnPropertyChanged(nameof(NodeValue));
+        owner.NotifyNodeChanged(this);
+
+        valueChanging = false;
+    }
+
+    private void OnValueOnlyChanged()
+    {
+        // The presenter kept its children and its attached properties: this view model keeps its own
+        Parent?.NotifyPropertyChanged(Name);
         OnPropertyChanged(nameof(NodeValue));
         owner.NotifyNodeChanged(this);
 

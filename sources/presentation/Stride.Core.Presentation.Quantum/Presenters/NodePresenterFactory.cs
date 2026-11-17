@@ -9,6 +9,7 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
 {
     private readonly INodeBuilder nodeBuilder;
     private readonly ThreadLocal<bool> buildingNodes = new();
+    private readonly ThreadLocal<Batch?> currentBatch = new();
 
     public NodePresenterFactory(INodeBuilder nodeBuilder, IReadOnlyCollection<INodePresenterCommand> availableCommands, IReadOnlyCollection<INodePresenterUpdater> availableUpdaters)
     {
@@ -27,6 +28,29 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
         return nodeBuilder.PrimitiveTypeFilter.IsPrimitiveType(type);
     }
 
+    public IDisposable BeginBatch()
+    {
+        var batch = currentBatch.Value ??= new Batch();
+        ++batch.Depth;
+        return new BatchScope(this, batch);
+    }
+
+    /// <summary>
+    /// Defers the <see cref="INodePresenter.ValueChanged"/> event of a refreshed presenter to the end of the batch in progress on
+    /// this thread, if any.
+    /// </summary>
+    /// <returns><c>true</c> if a batch is in progress and the event was deferred, <c>false</c> otherwise.</returns>
+    internal bool TryDeferValueChanged(NodePresenterBase presenter, object? oldValue)
+    {
+        if (currentBatch.Value is not { } batch)
+            return false;
+
+        // A presenter refreshed several times raises its event once, at the place of its first change
+        if (batch.RefreshedPresenters.Add(presenter))
+            batch.Changes.Add((presenter, oldValue));
+        return true;
+    }
+
     public INodePresenter CreateNodeHierarchy(IObjectNode rootNode, GraphNodePath rootNodePath, IPropertyProviderViewModel? propertyProvider)
     {
         ArgumentNullException.ThrowIfNull(rootNode);
@@ -35,7 +59,8 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
         GenerateChildren(rootPresenter, rootNode, propertyProvider);
         RunUpdaters(rootPresenter);
         buildingNodes.Value = false;
-        FinalizeTree(rootPresenter);
+        // A new tree is finalized at once, even during a batch
+        FinalizeTreeNow(rootPresenter);
         return rootPresenter;
     }
 
@@ -165,9 +190,70 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
         if (buildingNodes.IsValueCreated && buildingNodes.Value)
             return;
 
+        // During a batch, each tree is finalized once at its end
+        if (currentBatch.Value is { } batch)
+        {
+            if (batch.TreesToFinalize.Add(rootPresenter))
+                batch.TreesInOrder.Add(rootPresenter);
+            return;
+        }
+
+        FinalizeTreeNow(rootPresenter);
+    }
+
+    private void FinalizeTreeNow(INodePresenter rootPresenter)
+    {
         foreach (var updater in AvailableUpdaters)
         {
             updater.FinalizeTree(rootPresenter);
+        }
+    }
+
+    private void EndBatch(Batch batch)
+    {
+        if (--batch.Depth > 0)
+            return;
+
+        currentBatch.Value = null;
+        // The trees first, so that the view models refreshed by the events below see them finalized
+        foreach (var root in batch.TreesInOrder)
+        {
+            if (root is not NodePresenterBase { IsDisposed: true })
+                FinalizeTreeNow(root);
+        }
+        foreach (var (presenter, oldValue) in batch.Changes)
+        {
+            presenter.RaiseDeferredValueChanged(oldValue);
+        }
+    }
+
+    /// <summary>
+    /// The changes of structure of a batch in progress on a thread: the trees to finalize and the events to raise at its end.
+    /// </summary>
+    private sealed class Batch
+    {
+        public int Depth { get; set; }
+
+        public HashSet<INodePresenter> TreesToFinalize { get; } = [];
+
+        public List<INodePresenter> TreesInOrder { get; } = [];
+
+        public HashSet<NodePresenterBase> RefreshedPresenters { get; } = [];
+
+        public List<(NodePresenterBase Presenter, object? OldValue)> Changes { get; } = [];
+    }
+
+    private sealed class BatchScope(NodePresenterFactory factory, Batch batch) : IDisposable
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+
+            disposed = true;
+            factory.EndBatch(batch);
         }
     }
 }

@@ -142,6 +142,12 @@ public class MemberNodePresenter : NodePresenterBase
 
     private void OnMemberChanging(object? sender, MemberNodeChangeEventArgs e)
     {
+        if (IsValueOnlyChange(e))
+        {
+            RaiseValueOnlyChanging(Value);
+            return;
+        }
+
         RaiseValueChanging(Value);
         if (Member.Target != null)
         {
@@ -152,13 +158,19 @@ public class MemberNodePresenter : NodePresenterBase
 
     private void OnMemberChanged(object? sender, MemberNodeChangeEventArgs e)
     {
+        if (IsValueOnlyChange(e))
+        {
+            RaiseValueOnlyChanged(Value);
+            return;
+        }
+
         Refresh();
         if (Member.Target != null)
         {
             Member.Target.ItemChanging += OnItemChanging;
             Member.Target.ItemChanged += OnItemChanged;
         }
-        RaiseValueChanged(Value);
+        RaiseValueChangedAfterRefresh(Value);
     }
 
     private void OnItemChanging(object? sender, ItemChangeEventArgs e)
@@ -168,7 +180,19 @@ public class MemberNodePresenter : NodePresenterBase
 
     private void OnItemChanged(object? sender, ItemChangeEventArgs e)
     {
+        // An item of the collection whose value only changed updates its own presenter: the collection keeps its items
+        if (IsValueOnlyItemChange(Member.Target, e))
+        {
+            RaiseValueChanged(Value, true);
+            return;
+        }
+
         Refresh();
-        RaiseValueChanged(Value);
+        RaiseValueChangedAfterRefresh(Value);
+    }
+
+    private bool IsValueOnlyChange(MemberNodeChangeEventArgs e)
+    {
+        return IsValueOnlyChange(e.OldValue, e.NewValue, Member.Target != null, Member.Type);
     }
 }
