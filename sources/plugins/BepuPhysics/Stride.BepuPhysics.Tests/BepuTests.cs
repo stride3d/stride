@@ -263,6 +263,64 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void ReshapeKeepsAWeldInPlaceTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var compoundA = new CompoundCollider { Colliders = { new BoxCollider(), new BoxCollider { PositionLocal = new Vector3(0, 0, 1) } } };
+                var compoundB = new CompoundCollider { Colliders = { new BoxCollider(), new BoxCollider { PositionLocal = new Vector3(2, 0, 0) } } };
+                var a = new BodyComponent { Collider = compoundA };
+                var b = new BodyComponent { Collider = compoundB };
+
+                var entityA = new Entity { a };
+                entityA.Transform.Rotation = Quaternion.RotationY(MathUtil.DegreesToRadians(30));
+                var entityB = new Entity { b };
+                entityB.Transform.Position = new Vector3(0, 3, 0);
+                entityB.Transform.Rotation = Quaternion.RotationZ(MathUtil.DegreesToRadians(70));
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { entityA, entityB });
+                a.Simulation!.PoseGravity = Vector3.Zero;
+
+                var weld = new WeldConstraintComponent
+                {
+                    A = a, B = b,
+                    LocalOffset = Quaternion.Invert(a.Orientation) * (b.Position - a.Position),
+                    LocalOrientation = b.Orientation * Quaternion.Invert(a.Orientation),
+                };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(new Entity { weld });
+
+                Assert.True(weld.Attached);
+                AssertNear(b.Orientation * Vector3.UnitX, a.Orientation * (weld.LocalOrientation * Vector3.UnitX));
+                AssertNear(b.Position, a.Position + a.Orientation * weld.LocalOffset);
+
+                compoundB.Colliders.RemoveAt(1);
+
+                AssertNear(Vector3.Zero, b.CenterOfMass);
+                AssertNear(b.Position, a.Position + a.Orientation * weld.LocalOffset);
+
+                compoundA.Colliders.RemoveAt(1);
+
+                AssertNear(Vector3.Zero, a.CenterOfMass);
+                AssertNear(b.Position, a.Position + a.Orientation * weld.LocalOffset);
+
+                await a.Simulation.AfterUpdate();
+
+                AssertNear(Vector3.Zero, entityA.Transform.Position);
+                AssertNear(new Vector3(0, 3, 0), entityB.Transform.Position);
+
+                game.Exit();
+            });
+            RunGameTest(game);
+
+            static void AssertNear(Vector3 expected, Vector3 actual)
+            {
+                Assert.True((expected - actual).Length() < 1e-4f, $"expected {expected}, got {actual}");
+            }
+        }
+
+        [Fact]
         public static void ReshapeKeepsAStaticInPlaceTest()
         {
             var game = new GameTest();

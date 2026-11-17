@@ -490,16 +490,17 @@ public class BodyComponent : CollidableComponent
         var bRef = BodyReference.Value;
         _nativeInertia = shapeInertia;
 
-        var worldShift = (Orientation * centerOfMassShift).ToNumeric();
+        var localShift = centerOfMassShift.ToNumeric();
+        var worldShift = System.Numerics.Vector3.Transform(localShift, bRef.Pose.Orientation);
         bRef.Pose.Position += worldShift;
         bRef.Velocity.Linear += System.Numerics.Vector3.Cross(bRef.Velocity.Angular, worldShift);
-        PreviousPose.Position += worldShift;
-        CurrentPose.Position += worldShift;
+        PreviousPose.Position += System.Numerics.Vector3.Transform(localShift, PreviousPose.Orientation);
+        CurrentPose.Position += System.Numerics.Vector3.Transform(localShift, CurrentPose.Orientation);
 
         bRef.SetLocalInertia(Kinematic ? new BodyInertia() : shapeInertia);
         bRef.SetShape(shapeIndex);
 
-        if (BoundConstraints is not null)
+        if (BoundConstraints is not null && centerOfMassShift != Vector3.Zero)
         {
             foreach (var constraint in BoundConstraints)
                 constraint.CenterOfMassShifted(this, centerOfMassShift);

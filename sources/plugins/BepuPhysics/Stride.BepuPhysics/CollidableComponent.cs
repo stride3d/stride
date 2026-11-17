@@ -69,7 +69,9 @@ public abstract class CollidableComponent : EntityComponent
     /// The collider definition used by this object.
     /// </summary>
     /// <remarks>
-    /// Changing this value will reset some of the internal physics state of this body
+    /// Changing this value while in a simulation keeps the velocity and the constraints of this object,
+    /// moves <see cref="CenterOfMass"/> and the offsets of its constraints so that the colliders and the anchors stay in place,
+    /// and ends its current contacts
     /// </remarks>
     [NotNull]
     [Display(category: CategoryCollider, Expand = ExpandRule.Always)]
@@ -309,6 +311,7 @@ public abstract class CollidableComponent : EntityComponent
         CenterOfMass = centerOfMass;
 
         ReshapeInner(index, shapeInertia, centerOfMass - previousCenterOfMass);
+        simulation.ContactEvents.ClearCollisionsOf(this, CollidableReference!.Value.Packed); // Pending manifolds refer to the children of the previous shape
     }
 
     internal void ReAttach(BepuSimulation onSimulation)

@@ -10,6 +10,9 @@ public interface IWithTwoLocalOffset : ITwoBody
     /// <summary>
     /// Offset from the center of body A to its attachment in A's local space.
     /// </summary>
+    /// <remarks>
+    /// Changes when the collider of A changes its center of mass, the attachment stays on the same point of A
+    /// </remarks>
     /// <userdoc>
     /// Offset from the center of body A to its attachment in A's local space.
     /// </userdoc>
@@ -18,6 +21,9 @@ public interface IWithTwoLocalOffset : ITwoBody
     /// <summary>
     /// Offset from the center of body B to its attachment in B's local space.
     /// </summary>
+    /// <remarks>
+    /// Changes when the collider of B changes its center of mass, the attachment stays on the same point of B
+    /// </remarks>
     /// <userdoc>
     /// Offset from the center of body B to its attachment in B's local space.
     /// </userdoc>
