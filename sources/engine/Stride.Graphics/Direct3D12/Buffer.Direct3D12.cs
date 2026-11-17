@@ -265,7 +265,7 @@ namespace Stride.Graphics
                     CopyFenceValue = copyFenceValue;
                 }
 
-                // The copy is done: the upload buffer can be unmapped
+                // Done writing the upload buffer: a replaced one is released only once the GPU is done with it
                 GraphicsDevice.ReleaseUploadBuffer(uploadLease);
             }
 

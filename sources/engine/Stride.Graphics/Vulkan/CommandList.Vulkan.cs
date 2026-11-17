@@ -1907,7 +1907,7 @@ namespace Stride.Graphics
 
             MemoryUtilities.CopyWithAlignmentFallback((void*) (uploadMemory + alignment), (void*) databox.DataPointer, (uint) lengthInBytes);
 
-            // The copy recorded below runs with the frame, which a replaced upload buffer is collected after
+            // Done writing the upload buffer: a replaced one is collected only after this frame, which runs the copy below
             GraphicsDevice.ReleaseUploadBuffer(uploadLease);
 
             // The host wrote the upload buffer, the copy reads it

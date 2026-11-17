@@ -2197,7 +2197,7 @@ namespace Stride.Graphics
 
                 MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) sourceData.DataPointer, (uint) uploadSize);
 
-                // The copy recorded below runs with the frame, which a replaced upload buffer is released after
+                // Done writing the upload buffer: a replaced one is released only after this frame, which runs the copy below
                 GraphicsDevice.ReleaseUploadBuffer(uploadLease);
 
                 ResourceBarrierTransition(resource, BarrierLayout.CopyDest);
