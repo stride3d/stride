@@ -11,10 +11,10 @@ internal static class NewTemplateRules
     public static bool IsItemTemplate(IReadOnlyDictionary<string, string> tags)
         => tags.TryGetValue("type", out var type) && string.Equals(type, "item", StringComparison.OrdinalIgnoreCase);
 
-    // The version to take a template from, given the one resolved before the template was known (--version, else the
-    // newest installed release). Without --version, an item template follows the project it goes into.
-    public static PackageVersion ChooseVersion(string? versionSpec, bool isItemTemplate, PackageVersion resolved, Func<PackageVersion?> projectVersion)
-        => isItemTemplate && versionSpec is null ? projectVersion() ?? resolved : resolved;
+    // The version to take a template from, given the one resolved before the template was known (--version and its options,
+    // else the newest installed release). Unless a version is given, an item template follows the project it goes into.
+    public static PackageVersion ChooseVersion(bool versionGiven, bool isItemTemplate, PackageVersion resolved, Func<PackageVersion?> projectVersion)
+        => isItemTemplate && !versionGiven ? projectVersion() ?? resolved : resolved;
 
     // The engine version a generated project must be upgraded from to reach target, or null to leave it alone. Only a
     // project template generates the project: what an item template's output folder holds is the user's own.

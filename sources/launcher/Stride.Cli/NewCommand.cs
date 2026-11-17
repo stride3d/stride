@@ -28,7 +28,7 @@ internal static class NewCommand
             Arity = ArgumentArity.ZeroOrMore,
             AllowMultipleArgumentsPerToken = true,
         };
-        var versionOption = new Option<string?>("--version") { Description = "Use a specific Stride version instead of the newest installed release (for an asset pack, instead of the version of the project it goes into)." };
+        var versionOptions = new CliVersion.Options($"Stride version to take the templates from instead of the newest installed release (for an asset pack, instead of the version of the project it goes into); {CliVersion.Options.LineHelp}.");
         var forceOption = new Option<bool>("--force") { Description = "Create the project even if the output directory already exists and is not empty (overwrites)." };
 
         var command = new Command("new", "Create a project from an installed Stride version's templates.");
@@ -36,23 +36,23 @@ internal static class NewCommand
         command.Options.Add(nameOption);
         command.Options.Add(outputOption);
         command.Options.Add(packageOption);
-        command.Options.Add(versionOption);
+        versionOptions.AddTo(command);
         command.Options.Add(forceOption);
         // Any remaining --key value / --key=value tokens are forwarded as template parameters.
         command.TreatUnmatchedTokensAsErrors = false;
         // `stride new <template> --help` lists that template's parameters after the command's own help.
         var helpOption = new HelpOption();
-        var templateHelp = new TemplateHelpAction((HelpAction)helpOption.Action!, manager, templateArgument, versionOption);
+        var templateHelp = new TemplateHelpAction((HelpAction)helpOption.Action!, manager, templateArgument, versionOptions);
         helpOption.Action = templateHelp;
         command.Options.Add(helpOption);
 
         // list: print the templates an installed Stride version offers.
         var listCommand = new Command("list", "List the templates available in an installed Stride version.");
-        listCommand.Options.Add(versionOption);
+        versionOptions.AddTo(listCommand);
         listCommand.Options.Add(packageOption);
         listCommand.SetAction(async (parseResult, cancellationToken) =>
         {
-            var context = await LoadTemplates(manager, parseResult.GetValue(versionOption), parseResult.GetValue(packageOption), cancellationToken);
+            var context = await LoadTemplates(manager, parseResult.GetValue(versionOptions.Version), versionOptions.Filter(parseResult), parseResult.GetValue(packageOption), cancellationToken);
             if (context is null)
                 return 1;
 
@@ -75,10 +75,9 @@ internal static class NewCommand
                 return 0;
             }
 
-            var versionSpec = parseResult.GetValue(versionOption);
             var packages = parseResult.GetValue(packageOption);
             var explicitOutput = parseResult.GetValue(outputOption);
-            var context = await LoadTemplates(manager, versionSpec, packages, cancellationToken);
+            var context = await LoadTemplates(manager, parseResult.GetValue(versionOptions.Version), versionOptions.Filter(parseResult), packages, cancellationToken);
             if (context is null)
                 return 1;
 
@@ -102,7 +101,7 @@ internal static class NewCommand
             }
 
             var itemOutput = explicitOutput ?? packPackage?.Project.Directory ?? Environment.CurrentDirectory;
-            context = await MoveToChosenVersion(manager, context, firstTemplate, versionSpec, packages, itemOutput, cancellationToken);
+            context = await MoveToChosenVersion(manager, context, firstTemplate, versionOptions.IsGiven(parseResult), packages, itemOutput, cancellationToken);
             if (context is null)
                 return 1;
 
@@ -216,12 +215,22 @@ internal static class NewCommand
     }
 
     // The version + open registry + templates shared by `new <template>` and `new list`. Resolves the version
-    // (explicit --version, else the newest installed release), opens the template registry behind a transient status,
-    // and returns its templates. Prints the reason and returns null on failure; the caller disposes the registry.
+    // (--version and its options, else the newest installed release), opens the template registry behind a transient
+    // status, and returns its templates. Prints the reason and returns null on failure; the caller disposes the registry.
     private static async Task<TemplateContext?> LoadTemplates(
-        StrideVersionManager manager, string? versionSpec, string[]? packages, CancellationToken cancellationToken)
+        StrideVersionManager manager, string? versionSpec, VersionFilter filter, string[]? packages, CancellationToken cancellationToken)
     {
-        var version = versionSpec is not null ? new PackageVersion(versionSpec) : manager.GetDefault()?.Version;
+        PackageVersion? version;
+        try
+        {
+            version = manager.ResolveInstalled(versionSpec, filter);
+        }
+        catch (InvalidOperationException exception)
+        {
+            Console.Error.WriteLine(exception.Message);
+            return null;
+        }
+
         if (version is null)
         {
             Console.Error.WriteLine("No Stride version is installed. Run 'stride sdk install' first.");
@@ -268,13 +277,13 @@ internal static class NewCommand
     // Reopens the templates on the version the template must come from, when it isn't the one already open: the kind
     // of a template is only known from a registry. Prints the reason and returns null on failure.
     private static async Task<TemplateContext?> MoveToChosenVersion(
-        StrideVersionManager manager, TemplateContext context, ITemplateInfo? template, string? versionSpec, string[]? packages, string itemOutput, CancellationToken cancellationToken)
+        StrideVersionManager manager, TemplateContext context, ITemplateInfo? template, bool versionGiven, string[]? packages, string itemOutput, CancellationToken cancellationToken)
     {
         var isItemTemplate = template is not null && NewTemplateRules.IsItemTemplate(template.TagsCollection);
         PackageVersion chosen;
         try
         {
-            chosen = NewTemplateRules.ChooseVersion(versionSpec, isItemTemplate, context.Version, () => manager.ResolveVersion(null, itemOutput));
+            chosen = NewTemplateRules.ChooseVersion(versionGiven, isItemTemplate, context.Version, () => manager.ResolveVersion(null, itemOutput));
         }
         catch (InvalidOperationException exception)
         {
@@ -287,7 +296,7 @@ internal static class NewCommand
             return context;
 
         context.Registry.Dispose();
-        var projectContext = await LoadTemplates(manager, chosen.ToString(), packages, cancellationToken);
+        var projectContext = await LoadTemplates(manager, chosen.ToString(), default, packages, cancellationToken);
         if (projectContext is null)
             Console.Error.WriteLine(ProjectVersionHint(chosen));
         return projectContext is null ? null : projectContext with { FromProject = true };
@@ -445,15 +454,15 @@ internal static class NewCommand
         private readonly HelpAction defaultHelp;
         private readonly StrideVersionManager manager;
         private readonly Argument<string?> templateArgument;
-        private readonly Option<string?> versionOption;
+        private readonly CliVersion.Options versionOptions;
 
         public TemplateHelpAction(HelpAction defaultHelp, StrideVersionManager manager,
-            Argument<string?> templateArgument, Option<string?> versionOption)
+            Argument<string?> templateArgument, CliVersion.Options versionOptions)
         {
             this.defaultHelp = defaultHelp;
             this.manager = manager;
             this.templateArgument = templateArgument;
-            this.versionOption = versionOption;
+            this.versionOptions = versionOptions;
         }
 
         public override int Invoke(ParseResult parseResult)
@@ -464,13 +473,12 @@ internal static class NewCommand
             if (string.IsNullOrEmpty(templateName))
                 return 0;
 
-            var versionSpec = parseResult.GetValue(versionOption);
-            var version = versionSpec is not null ? new PackageVersion(versionSpec) : manager.GetDefault()?.Version;
-            if (version is null)
-                return 0;
-
             try
             {
+                var version = manager.ResolveInstalled(parseResult.GetValue(versionOptions.Version), versionOptions.Filter(parseResult));
+                if (version is null)
+                    return 0;
+
                 using var registry = manager.OpenTemplateRegistry(version).GetAwaiter().GetResult();
                 var templates = registry?.GetTemplatesAsync().GetAwaiter().GetResult();
                 var template = templates is null ? null : ResolveTemplate(templates, templateName);

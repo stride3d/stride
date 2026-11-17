@@ -25,19 +25,19 @@ public sealed class NewTemplateRulesTests
 
     [Fact]
     public void ItemTemplateInAProjectUsesTheProjectVersion()
-        => Assert.Equal(Project, NewTemplateRules.ChooseVersion(null, true, Newest, () => Project));
+        => Assert.Equal(Project, NewTemplateRules.ChooseVersion(false, true, Newest, () => Project));
 
     [Fact]
     public void ItemTemplateWithNoProjectUsesTheNewestVersion()
-        => Assert.Equal(Newest, NewTemplateRules.ChooseVersion(null, true, Newest, () => null));
+        => Assert.Equal(Newest, NewTemplateRules.ChooseVersion(false, true, Newest, () => null));
 
     [Fact]
     public void ExplicitVersionWinsWithoutLookingAtTheProject()
-        => Assert.Equal(Newest, NewTemplateRules.ChooseVersion(Newest.ToString(), true, Newest, () => throw new InvalidOperationException("The project must not be restored.")));
+        => Assert.Equal(Newest, NewTemplateRules.ChooseVersion(true, true, Newest, () => throw new InvalidOperationException("The project must not be restored.")));
 
     [Fact]
     public void ProjectTemplateDoesNotLookAtTheProject()
-        => Assert.Equal(Newest, NewTemplateRules.ChooseVersion(null, false, Newest, () => throw new InvalidOperationException("The project must not be restored.")));
+        => Assert.Equal(Newest, NewTemplateRules.ChooseVersion(false, false, Newest, () => throw new InvalidOperationException("The project must not be restored.")));
 
     [Fact]
     public void ItemTemplateNeverUpgradesAndDoesNotReadTheUserProject()

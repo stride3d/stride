@@ -24,6 +24,22 @@ public sealed class VersionRulesTests
         => Assert.Equal(eligible, VersionRules.IsEligible(V(version), includePrerelease, includeNightly));
 
     [Theory]
+    // A local build is neither a release nor a prerelease: only the tag of its checkout takes it
+    [InlineData("4.5.5-dev8", true, true, null, false)]
+    [InlineData("4.4.0-beta7-dev4", true, true, null, false)]
+    [InlineData("4.5.5-dev8", false, false, "dev8", true)]
+    [InlineData("4.5.5-DEV8", false, false, "dev8", true)]
+    [InlineData("4.4.0-beta7-dev4", false, false, "dev4", true)]
+    [InlineData("4.5.5-dev", false, false, "dev", true)]
+    [InlineData("4.5.5-dev19", false, false, "dev8", false)]
+    [InlineData("4.5.5-dev8", false, false, "dev", false)]
+    // The tag of a checkout takes nothing else
+    [InlineData("4.5.3", false, false, "dev8", false)]
+    [InlineData("4.5.4-nightly.20261117.80", false, true, "dev8", false)]
+    public void ALocalBuildIsTakenOnlyByTheTagOfItsCheckout(string version, bool includePrerelease, bool includeNightly, string? tag, bool eligible)
+        => Assert.Equal(eligible, VersionRules.IsEligible(V(version), includePrerelease, includeNightly, tag));
+
+    [Theory]
     [InlineData("4.5.3-mystudio.32", true)]
     [InlineData("4.5.3-MyStudio33", true)]
     [InlineData("4.5.3-otherstudio.5", false)]
@@ -56,6 +72,58 @@ public sealed class VersionRulesTests
     [Fact]
     public void WithATagALineDoesNotFallBackToItsBetas()
         => Assert.Null(VersionRules.ChooseNewest(Feed, "4.6", includePrerelease: false, includeNightly: false, tag: "mystudio"));
+
+    // The versions installed on a contributor's computer: the local builds of two checkouts, at the same version, sort above
+    // the nightly of their line
+    private static readonly PackageVersion[] InstalledVersions =
+        [V("4.6.0-beta01"), V("4.5.5-dev8"), V("4.5.5-dev19"), V("4.5.4-nightly.20261117.80"), V("4.5.3-mystudio.32"), V("4.5.3"), V("4.4.2")];
+
+    [Theory]
+    [InlineData(null, false, false, null, "4.5.3")]
+    [InlineData(null, false, true, null, "4.5.4-nightly.20261117.80")]
+    [InlineData(null, true, false, null, "4.6.0-beta01")]
+    [InlineData("4.5", false, false, null, "4.5.3")]
+    // A local build is never a prerelease nor a nightly
+    [InlineData("4.5", true, false, null, "4.5.3")]
+    [InlineData("4.5", false, true, null, "4.5.4-nightly.20261117.80")]
+    // The tag of a checkout takes its build, whichever sorts first
+    [InlineData(null, false, false, "dev19", "4.5.5-dev19")]
+    [InlineData("4.5", false, false, "dev8", "4.5.5-dev8")]
+    [InlineData("4.5", false, false, "mystudio", "4.5.3-mystudio.32")]
+    [InlineData("4.4", false, true, null, "4.4.2")]
+    // A line with only betas takes its newest beta
+    [InlineData("4.6", false, false, null, "4.6.0-beta01")]
+    [InlineData("4.7", false, true, null, null)]
+    [InlineData("4.4", false, false, "dev8", null)]
+    // An exact version is taken whatever the options, when it is one of them
+    [InlineData("4.5.5-dev8", false, false, null, "4.5.5-dev8")]
+    [InlineData("4.5.4-nightly.20261117.80", false, false, null, "4.5.4-nightly.20261117.80")]
+    [InlineData("4.5.4-nightly.20261116.63", false, true, null, null)]
+    public void AVersionTextNamesTheNewestAllowed_TheNewestOfItsLine_OrExactlyItself(string? versionSpec, bool includePrerelease, bool includeNightly, string? tag, string? expected)
+        => Assert.Equal(expected is null ? null : V(expected), VersionRules.Resolve(InstalledVersions, versionSpec, includePrerelease, includeNightly, tag));
+
+    [Theory]
+    [InlineData("4.5", "4.5")]
+    [InlineData("04.05", "4.5")]
+    [InlineData("4.5.3", null)]
+    [InlineData("4.5-nightly", null)]
+    [InlineData("nightly", null)]
+    public void ALineIsAMajorMinor(string versionSpec, string? line)
+    {
+        Assert.Equal(line is not null, VersionRules.TryParseLine(versionSpec, out var parsed));
+        Assert.Equal(line, parsed);
+    }
+
+    [Fact]
+    public void WhenNothingInstalledMatches_TheMessageSaysWhatInstallsIt()
+    {
+        Assert.Equal("No installed Stride version matches '4.5 --nightly'. Install one with: stride sdk install 4.5 --nightly",
+            VersionRules.NoInstalledMatch("4.5", new VersionFilter(Nightly: true)));
+        Assert.Equal("No installed Stride version matches '--prerelease --tag mystudio'. Install one with: stride sdk install --prerelease --tag mystudio",
+            VersionRules.NoInstalledMatch(null, new VersionFilter(Prerelease: true, Tag: "mystudio")));
+        Assert.Equal("No installed Stride version matches '4.5 --tag dev8'. The builds tagged dev8 come from building that Stride checkout.",
+            VersionRules.NoInstalledMatch("4.5", new VersionFilter(Tag: "dev8")));
+    }
 
     [Theory]
     [InlineData("4.5.0", false)]

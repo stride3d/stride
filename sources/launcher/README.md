@@ -76,8 +76,10 @@ Command groups:
 - `stride sdk <list|install|uninstall|update>` — manage installed Stride engine versions.
 - `stride new` — create a project from a template, or add an asset pack (`stride-pack-*`) to the package around the current folder, in the folders it lists, from that project's version and without upgrading it.
 - `stride upgrade` — move a project to a newer installed engine (4.4.0+).
-- `stride studio` — open Game Studio for the project's version. `--editor wpf|avalonia` picks the Game Studio when the version has both; the default is WPF on Windows, Avalonia elsewhere. Off Windows, WPF runs under Wine when `wine` is on the PATH (setting up its prefix for Stride is up to you).
+- `stride studio` — open Game Studio for the project's version, else the newest installed release. `--editor wpf|avalonia` picks the Game Studio when the version has both; the default is WPF on Windows, Avalonia elsewhere. Off Windows, WPF runs under Wine when `wine` is on the PATH (setting up its prefix for Stride is up to you).
 - `stride self update` / `stride version` — manage and inspect the CLI itself.
+
+`studio`, `new` and `upgrade` choose among the installed versions as `stride sdk install` does among the published ones: `--version` takes an exact version or a line (`4.5`), `--prerelease` and `--nightly` widen what the newest version or the newest of a line may be, and `--tag` takes only a studio's custom builds (`mystudio`) or the local builds of one checkout (`dev8`). `stride studio --nightly` opens the newest installed nightly or release, `stride studio --tag dev8` the build of checkout 8.
 
 Build/pack it from source:
 

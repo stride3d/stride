@@ -607,7 +607,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             // the versions it had before are older states of it. Those are hidden, and removed with the row.
             // A checkout builds the WPF and the Avalonia Game Studio, two packages of the same version: one row, as a release,
             // whose Game Studio is picked under Start. The WPF one first, which names the row
-            foreach (var checkout in localPackages.Where(store.IsDevRedirectPackage).GroupBy(x => StrideDevVersionViewModel.DevSuffix(x.Version.SpecialVersion) ?? x.Version.ToString()))
+            foreach (var checkout in localPackages.Where(store.IsDevRedirectPackage).GroupBy(x => x.Version.LocalBuildTag ?? x.Version.ToString()))
             {
                 try
                 {

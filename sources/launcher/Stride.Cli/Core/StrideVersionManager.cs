@@ -323,23 +323,39 @@ public sealed class StrideVersionManager
     public static bool SupportsUpgrade(PackageVersion version) => version.Version >= UpgradeFloor;
 
     /// <summary>
-    ///   The newest installed version that supports in-place upgrade (4.4.0+), preferring stable releases
-    ///   unless <paramref name="includePrerelease"/> or <paramref name="includeNightly"/> is set, never a custom build;
-    ///   null if none qualifies.
+    ///   The newest installed version that supports in-place upgrade (4.4.0+) that a Major.Minor <paramref name="line"/>
+    ///   (any line when null) and the options of <paramref name="filter"/> allow, as <see cref="ResolveInstalled"/> chooses
+    ///   it; null if none qualifies.
     /// </summary>
-    public StrideVersion? GetNewestUpgradeTarget(bool includePrerelease, bool includeNightly)
-        => GetInstalled().FirstOrDefault(version =>
-            SupportsUpgrade(version.Version)
-            && VersionRules.IsEligible(version.Version, includePrerelease, includeNightly));
+    public PackageVersion? FindUpgradeTarget(string? line, VersionFilter filter)
+        => VersionRules.Resolve(GetInstalled().Select(version => version.Version).Where(SupportsUpgrade), line, filter.Prerelease, filter.Nightly, filter.Tag);
 
     /// <summary>
-    ///   Resolves the Stride version to use: <paramref name="explicitVersion"/> if given, otherwise the
-    ///   version pinned by a project under <paramref name="workingDirectory"/>, otherwise <see cref="GetDefault"/>.
+    ///   The installed version that <paramref name="versionSpec"/> and <paramref name="filter"/> name, as <c>sdk install</c>
+    ///   takes them from the feed: an exact version as given, the newest that a Major.Minor line or the options allow, and
+    ///   <see cref="GetDefault"/> when neither is given.
     /// </summary>
-    public PackageVersion? ResolveVersion(string? explicitVersion, string workingDirectory)
+    /// <exception cref="InvalidOperationException">No installed version matches the line or the options.</exception>
+    public PackageVersion? ResolveInstalled(string? versionSpec, VersionFilter filter = default)
     {
-        if (!string.IsNullOrEmpty(explicitVersion))
-            return new PackageVersion(explicitVersion);
+        if (!string.IsNullOrEmpty(versionSpec) && !VersionRules.TryParseLine(versionSpec, out _))
+            return new PackageVersion(versionSpec);
+        if (string.IsNullOrEmpty(versionSpec) && filter == default)
+            return GetDefault()?.Version;
+        return VersionRules.Resolve(GetInstalled().Select(version => version.Version), versionSpec, filter.Prerelease, filter.Nightly, filter.Tag)
+            ?? throw new InvalidOperationException(VersionRules.NoInstalledMatch(versionSpec, filter));
+    }
+
+    /// <summary>
+    ///   Resolves the Stride version to use: the one <paramref name="versionSpec"/> and <paramref name="filter"/> name
+    ///   (<see cref="ResolveInstalled"/>) when either is given, otherwise the version pinned by a project under
+    ///   <paramref name="workingDirectory"/>, otherwise <see cref="GetDefault"/>.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">No installed version matches the line or the options, or the project's version can't be read.</exception>
+    public PackageVersion? ResolveVersion(string? versionSpec, string workingDirectory, VersionFilter filter = default)
+    {
+        if (!string.IsNullOrEmpty(versionSpec) || filter != default)
+            return ResolveInstalled(versionSpec, filter);
 
         var projectFiles = GetProjectFiles(workingDirectory);
         if (projectFiles.Count == 0)
@@ -779,24 +795,8 @@ public sealed class StrideVersionManager
     private StrideVersion ToStrideVersion(PackageVersion version)
         => new(version, GetInstalledEditors(version));
 
-    // available is newest-first. A "major.minor" spec resolves to the newest patch in that line.
     private static NugetServerPackage? Resolve(IReadOnlyList<NugetServerPackage> available, string? versionSpec, bool includePrerelease, bool includeNightly, string? tag)
-    {
-        // Newest/line resolution skips prereleases and nightlies unless opted in, or the line has nothing else, and custom
-        // builds unless their tag is given (VersionRules.ChooseNewest); an explicit version is always honored.
-        NugetServerPackage? Newest(string? line)
-            => VersionRules.ChooseNewest(available.Select(package => package.Version), line, includePrerelease, includeNightly, tag) is { } version
-                ? available.First(package => package.Version == version)
-                : null;
-
-        if (string.IsNullOrEmpty(versionSpec))
-            return Newest(null);
-
-        var parts = versionSpec.Split('.');
-        if (parts.Length == 2 && int.TryParse(parts[0], out var major) && int.TryParse(parts[1], out var minor))
-            return Newest($"{major}.{minor}");
-
-        var target = new PackageVersion(versionSpec);
-        return available.FirstOrDefault(package => package.Version.Equals(target));
-    }
+        => VersionRules.Resolve(available.Select(package => package.Version), versionSpec, includePrerelease, includeNightly, tag) is { } version
+            ? available.First(package => package.Version == version)
+            : null;
 }

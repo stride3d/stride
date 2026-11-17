@@ -119,7 +119,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     /// </summary>
     internal static string? FindCheckoutInLedger(IEnumerable<string> lines, string versionLabel)
     {
-        if (DevSuffix(versionLabel) is not { } suffix)
+        if (PackageVersion.DevSuffix(versionLabel) is not { } suffix)
             return null;
 
         // Lines of "dev3 = C:\dev\stride3"
@@ -140,16 +140,10 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     }
 
     /// <summary>
-    /// Gets the -devN suffix of a version label, which names its checkout (dev3 for beta8-dev3), lowercase; null without one.
-    /// </summary>
-    internal static string? DevSuffix(string? versionLabel)
-        => versionLabel?.Split('-').LastOrDefault(x => x.StartsWith("dev", StringComparison.OrdinalIgnoreCase))?.ToLowerInvariant();
-
-    /// <summary>
     /// Gets the number of the checkout of a version label: 1 for -dev (the first checkout), N for -devN; null without one.
     /// </summary>
     internal static int? CheckoutNumber(string? versionLabel)
-        => DevSuffix(versionLabel) is not { } suffix ? null
+        => PackageVersion.DevSuffix(versionLabel) is not { } suffix ? null
             : suffix.Length == 3 ? 1
             : int.TryParse(suffix.AsSpan(3), out var number) ? number : null;
 
@@ -258,7 +252,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     /// <inheritdoc/>
     // By its checkout: the folder of the project, Stride.GameStudio, is the same in every checkout (the active version is
     // restored by name)
-    public override string Name => DevSuffix(localPackage?.Version.SpecialVersion) is { } suffix ? $"Local {suffix}" : "Local " + path.MakeRelative(path.GetParent());
+    public override string Name => localPackage?.Version.LocalBuildTag is { } suffix ? $"Local {suffix}" : "Local " + path.MakeRelative(path.GetParent());
 
     /// <inheritdoc/>
     public override string DisplayName => ShownVersion is { } version ? $"{PackageSimpleName} {version} (local)" : base.DisplayName;

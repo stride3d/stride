@@ -8,7 +8,7 @@ using Stride.Core;
 using Stride.Core.Assets;
 
 // studio + asset: launch the per-version Stride SDK tools, resolving the version from the current directory's
-// project (or an explicit --version).
+// project, or from --version and the options that widen it (CliVersion.Options).
 internal static class ToolCommands
 {
     // studio: open Game Studio (launches and returns immediately).
@@ -19,7 +19,7 @@ internal static class ToolCommands
             Arity = ArgumentArity.ZeroOrOne,
             Description = "Solution to open. Defaults to the solution in the current directory.",
         };
-        var version = new Option<string?>("--version") { Description = "Open with a specific Stride version instead of the one from a project in the current directory." };
+        var versionOptions = new CliVersion.Options($"Stride version to open instead of the one from a project in the current directory; {CliVersion.Options.LineHelp}.");
         var framework = new Option<string?>(DotNetHostSelector.FrameworkArg) { Description = "Run Game Studio on at least this .NET major (e.g. net11.0); a solution that needs a newer one still gets it." };
         var editor = new Option<GameStudioEditor?>("--editor")
         {
@@ -30,13 +30,13 @@ internal static class ToolCommands
 
         var command = new Command("studio", "Open Game Studio.");
         command.Arguments.Add(path);
-        command.Options.Add(version);
+        versionOptions.AddTo(command);
         command.Options.Add(framework);
         command.Options.Add(editor);
         command.TreatUnmatchedTokensAsErrors = false;
         command.SetAction(parseResult =>
         {
-            var resolved = CliVersion.ResolveOrReport(manager, parseResult.GetValue(version));
+            var resolved = versionOptions.ResolveOrReport(manager, parseResult);
             if (resolved is null)
                 return 1;
             var chosen = ChooseEditor(manager, resolved, parseResult.GetValue(editor));
@@ -137,14 +137,14 @@ internal static class ToolCommands
     // 'stride upgrade' covers the common case and build/pack/generate-code normally run via 'dotnet build'/'pack'.
     public static Command CreateAsset(StrideVersionManager manager)
     {
-        var version = new Option<string?>("--version") { Description = "Use a specific Stride version instead of the one from a project in the current directory." };
+        var versionOptions = new CliVersion.Options($"Stride version to use instead of the one from a project in the current directory; {CliVersion.Options.LineHelp}.");
 
         var command = new Command("asset", "Run the Stride Asset Compiler directly (advanced; arguments are forwarded).") { Hidden = true };
-        command.Options.Add(version);
+        versionOptions.AddTo(command);
         command.TreatUnmatchedTokensAsErrors = false;
         command.SetAction(parseResult =>
         {
-            var resolved = CliVersion.ResolveOrReport(manager, parseResult.GetValue(version));
+            var resolved = versionOptions.ResolveOrReport(manager, parseResult);
             return resolved is null
                 ? 1
                 : Tools.Run(manager.LocateAssetCompiler(resolved), $"the Asset Compiler for Stride {resolved}", parseResult.UnmatchedTokens, wait: true, toolReadsHostArgs: false);
