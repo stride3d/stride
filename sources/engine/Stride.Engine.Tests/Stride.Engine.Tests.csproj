@@ -44,6 +44,7 @@
     <Compile Include="TesselationTest.cs" />
     <Compile Include="EffectFallbackTest.cs" />
     <Compile Include="DirectionalShadowCascadeFitTests.cs" />
+    <Compile Include="RenderSystemDrawJobExceptionTest.cs" />
     <Compile Include="EffectSystemTests.cs" />
     <Compile Include="OpenXRSwapchainCopyTest.cs" />
     <Compile Include="TestEntity.cs" />
