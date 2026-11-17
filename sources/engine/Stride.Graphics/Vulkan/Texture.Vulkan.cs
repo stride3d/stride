@@ -513,7 +513,7 @@ namespace Stride.Graphics
             var copyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
             GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CopyFence.NextFenceValue, commandBuffer);
 
-            // The copy is done: the upload buffer can be unmapped
+            // Done writing the upload buffer: a replaced one is collected only once the GPU is done with it
             if (uploadLease != null)
                 GraphicsDevice.ReleaseUploadBuffer(uploadLease);
 

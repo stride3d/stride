@@ -72,7 +72,7 @@ namespace Stride.Graphics
         private IntPtr nativeUploadBufferStart;
         private int nativeUploadBufferSize;
         private int nativeUploadBufferOffset;
-        private UploadBufferLease nativeUploadBufferLease;
+        private UploadBufferLease nativeUploadBufferLease;   // The callers still writing the current upload buffer
         private object nativeUploadBufferLock = new();
 
         internal FenceHelper FrameFence;
@@ -739,32 +739,31 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   The callers that took space in one upload buffer and are not done with it yet. An upload buffer that is
-        ///   replaced stays mapped and alive until the last of them calls <see cref="ReleaseUploadBuffer"/>.
+        ///   Allocates (or reuses) a Buffer prepared for uploading data from the CPU so it can later
+        ///   be copied from that Buffer to a destination Graphics Resource on the GPU.
         /// </summary>
-        internal sealed class UploadBufferLease
-        {
-            internal VkBuffer Buffer;
-            internal VkDeviceMemory Memory;
-            internal int Count;
-            internal bool Replaced;
-        }
-
-        /// <summary>
-        ///   Takes <paramref name="size"/> bytes of the shared upload buffer.
-        /// </summary>
-        /// <param name="lease">
-        ///   Passed to <see cref="ReleaseUploadBuffer"/> once the caller no longer writes the memory and no copy it submitted
-        ///   reads it anymore; a copy recorded in a <see cref="CommandList"/> runs with the frame, which the collection of a
-        ///   replaced buffer already waits for. Until then another thread can replace the buffer without unmapping it.
+        /// <param name="size">The size of the requested upload buffer, in bytes.</param>
+        /// <param name="resource">When the method returns, contains the allocated upload Buffer.</param>
+        /// <param name="offset">
+        ///   When the method returns, contains the offset in bytes from the start of <paramref name="resource"/>
+        ///   where data can be written to.
         /// </param>
-        /// <returns>A pointer to the mapped memory, at <paramref name="offset"/> in <paramref name="resource"/>.</returns>
+        /// <param name="lease">
+        ///   Passed to <see cref="ReleaseUploadBuffer"/> once the caller is done writing the memory; until then another thread
+        ///   can replace the buffer without unmapping it. A replaced buffer is collected only after the current frame, so the
+        ///   copies submitted or recorded in it can still read it.
+        /// </param>
+        /// <returns>
+        ///   A pointer to the mapped Buffer memory that can be written. It already takes into account the
+        ///   <paramref name="offset"/>.
+        /// </returns>
         internal unsafe IntPtr AllocateUploadBuffer(int size, out VkBuffer resource, out int offset, out UploadBufferLease lease)
         {
             lock (nativeUploadBufferLock)
             {
                 if (nativeUploadBuffer == VkBuffer.Null || nativeUploadBufferOffset + size > nativeUploadBufferSize)
                 {
+                    // The replaced upload buffer is unmapped and collected once its last caller is done writing it
                     if (nativeUploadBuffer != VkBuffer.Null)
                     {
                         nativeUploadBufferLease.Replaced = true;
@@ -802,6 +801,18 @@ namespace Stride.Graphics
 
                 return nativeUploadBufferStart + offset;
             }
+        }
+
+        /// <summary>
+        ///   The callers that took space in one upload buffer and are still writing it. An upload buffer that is
+        ///   replaced stays mapped until the last of them calls <see cref="ReleaseUploadBuffer"/>.
+        /// </summary>
+        internal sealed class UploadBufferLease
+        {
+            internal VkBuffer Buffer;
+            internal VkDeviceMemory Memory;
+            internal int Count;
+            internal bool Replaced;
         }
 
         /// <summary>

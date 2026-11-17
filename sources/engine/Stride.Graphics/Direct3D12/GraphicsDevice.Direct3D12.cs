@@ -242,7 +242,7 @@ namespace Stride.Graphics
         private ID3D12Resource* nativeUploadBuffer;
         private nint nativeUploadBufferMappedAddress;   // Start address of the upload buffer mapped to CPU memory
         private int nativeUploadBufferOffset;           // Offset in bytes from the start of the upload buffer where data can be written
-        private UploadBufferLease nativeUploadBufferLease;   // The callers not done with the current upload buffer
+        private UploadBufferLease nativeUploadBufferLease;   // The callers still writing the current upload buffer
         private readonly object nativeUploadBufferLock = new();
 
         /// <summary>
@@ -776,9 +776,9 @@ namespace Stride.Graphics
         ///   where data can be written to.
         /// </param>
         /// <param name="lease">
-        ///   Passed to <see cref="ReleaseUploadBuffer"/> once the caller no longer writes the memory and no copy it submitted
-        ///   reads it anymore; a copy recorded in a <see cref="CommandList"/> runs with the frame, which the release of a
-        ///   replaced buffer already waits for. Until then another thread can replace the buffer without unmapping it.
+        ///   Passed to <see cref="ReleaseUploadBuffer"/> once the caller is done writing the memory; until then another thread
+        ///   can replace the buffer without unmapping it. A replaced buffer is released only after the current frame, so the
+        ///   copies submitted or recorded in it can still read it.
         /// </param>
         /// <param name="alignment">Optional alignment requisites on the returned writeable address.</param>
         /// <returns>
@@ -805,7 +805,7 @@ namespace Stride.Graphics
             // If we have no upload buffer ready or its size is insufficient
             if (nativeUploadBuffer is null || (ulong)(nativeUploadBufferOffset + size) > nativeUploadBuffer->GetDesc().Width)
             {
-                // The replaced upload buffer is unmapped and released once its last caller is done with it
+                // The replaced upload buffer is unmapped and released once its last caller is done writing it
                 if (nativeUploadBuffer is not null)
                 {
                     nativeUploadBufferLease.Replaced = true;
@@ -865,8 +865,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   The callers that took space in one upload buffer and are not done with it yet. An upload buffer that is
-        ///   replaced stays mapped and alive until the last of them calls <see cref="ReleaseUploadBuffer"/>.
+        ///   The callers that took space in one upload buffer and are still writing it. An upload buffer that is
+        ///   replaced stays mapped until the last of them calls <see cref="ReleaseUploadBuffer"/>.
         /// </summary>
         internal sealed class UploadBufferLease
         {

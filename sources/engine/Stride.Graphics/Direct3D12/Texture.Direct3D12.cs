@@ -343,7 +343,7 @@ namespace Stride.Graphics
 
                     CopyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU();
 
-                    // The copy is done: the upload buffer can be unmapped
+                    // Done writing the upload buffer: a replaced one is released only once the GPU is done with it
                     GraphicsDevice.ReleaseUploadBuffer(uploadLease);
                 }
 
@@ -484,7 +484,7 @@ namespace Stride.Graphics
 
                         var copyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU();
 
-                        // The copy is done: the upload buffer can be unmapped
+                        // Done writing the upload buffer: a replaced one is released only once the GPU is done with it
                         if (uploadLease != null)
                             GraphicsDevice.ReleaseUploadBuffer(uploadLease);
 
