@@ -27,6 +27,7 @@ namespace Stride.Rendering
         private readonly ConcurrentPool<List<RenderNodeFeatureReference>> sortedRenderNodePool = new ConcurrentPool<List<RenderNodeFeatureReference>>(() => []);
 
         private CompiledCommandList[] commandLists;
+        private bool[] recordedBatches;
         private Texture[] renderTargets;
 
         private readonly Dictionary<Type, List<RootRenderFeature>> renderFeaturesByType = new Dictionary<Type, List<RootRenderFeature>>();
@@ -423,28 +424,33 @@ namespace Stride.Rendering
                     threadContext.CommandList.SetScissorRectangle(Scissor);
                     threadContext.CommandList.DepthStencilAccess = DepthStencilAccess;
 
-                    var currentStart = BatchSize * batchIndex;
-                    int currentEnd;
-
-                    var nodesEndExclusive = int.Min(RenderNodeCount, currentStart + BatchSize);
-
-                    if (nodesEndExclusive <= currentStart)
-                        continue;
-
-                    for (; currentStart < nodesEndExclusive; currentStart = currentEnd)
+                    // Closed also when a draw throws: a list left open would make the next Reset on this thread
+                    // keep it, and the next frame would submit what this one recorded
+                    try
                     {
-                        var currentRenderFeature = renderNodes[currentStart].RootRenderFeature;
-                        currentEnd = currentStart + 1;
-                        while (currentEnd < nodesEndExclusive && renderNodes[currentEnd].RootRenderFeature == currentRenderFeature)
+                        var currentStart = BatchSize * batchIndex;
+                        int currentEnd;
+
+                        var nodesEndExclusive = int.Min(RenderNodeCount, currentStart + BatchSize);
+
+                        for (; currentStart < nodesEndExclusive; currentStart = currentEnd)
                         {
-                            currentEnd++;
+                            var currentRenderFeature = renderNodes[currentStart].RootRenderFeature;
+                            currentEnd = currentStart + 1;
+                            while (currentEnd < nodesEndExclusive && renderNodes[currentEnd].RootRenderFeature == currentRenderFeature)
+                            {
+                                currentEnd++;
+                            }
+
+                            // Divide into task chunks for parallelism
+                            currentRenderFeature.Draw(threadContext, RenderView, RenderViewStage, currentStart, currentEnd);
                         }
-
-                        // Divide into task chunks for parallelism
-                        currentRenderFeature.Draw(threadContext, RenderView, RenderViewStage, currentStart, currentEnd);
                     }
-
-                    RenderSystem.commandLists[batchIndex + 1] = threadContext.CommandList.Close();
+                    finally
+                    {
+                        RenderSystem.commandLists[batchIndex + 1] = threadContext.CommandList.Close();
+                        RenderSystem.recordedBatches[batchIndex + 1] = true;
+                    }
                 }
             }
         }
@@ -569,23 +575,44 @@ namespace Stride.Rendering
                 if (commandLists == null || (commandLists.Length < batchCount + 1))
                 {
                     Array.Resize(ref commandLists, batchCount + 1);
+                    Array.Resize(ref recordedBatches, batchCount + 1);
                 }
+                Array.Clear(recordedBatches, 0, batchCount + 1);
                 commandLists[0] = commandList.Close();
 
-                Dispatcher.ForBatched(batchCount, new DrawJob
+                try
                 {
-                    RenderSystem = this,
-                    RenderDrawContext = renderDrawContext,
-                    RenderView = renderView,
-                    RenderViewStage = renderViewStage,
-                    BatchSize = batchSize,
-                    RenderNodeCount = renderNodeCount,
-                    DepthStencilBuffer = depthStencilBuffer,
-                    RenderTargetCount = renderTargetCount,
-                    Viewport = viewport,
-                    Scissor = scissor,
-                    DepthStencilAccess = depthStencilAccess,
-                });
+                    Dispatcher.ForBatched(batchCount, new DrawJob
+                    {
+                        RenderSystem = this,
+                        RenderDrawContext = renderDrawContext,
+                        RenderView = renderView,
+                        RenderViewStage = renderViewStage,
+                        BatchSize = batchSize,
+                        RenderNodeCount = renderNodeCount,
+                        DepthStencilBuffer = depthStencilBuffer,
+                        RenderTargetCount = renderTargetCount,
+                        Viewport = viewport,
+                        Scissor = scissor,
+                        DepthStencilAccess = depthStencilAccess,
+                    });
+                }
+                catch
+                {
+                    // ForBatched rethrows once the running jobs end, each with its list closed: submit them, so the lists go
+                    // back to their pools, and open the frame's list again, or the caller's EndDraw records on a closed list
+                    // and its error hides this one. Batches that never started recorded nothing.
+                    int recordedCount = 1;
+                    for (int i = 1; i <= batchCount; i++)
+                    {
+                        if (recordedBatches[i])
+                            commandLists[recordedCount++] = commandLists[i];
+                    }
+                    GraphicsDevice.ExecuteCommandLists(recordedCount, commandLists);
+                    commandList.Reset();
+                    commandList.ClearState();
+                    throw;
+                }
 
                 GraphicsDevice.ExecuteCommandLists(batchCount + 1, commandLists);
 
