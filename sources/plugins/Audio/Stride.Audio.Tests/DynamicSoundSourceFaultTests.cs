@@ -18,6 +18,7 @@ namespace Stride.Audio.Tests
             private int fillCount;
             private int updateCount;
             private int disposeCount;
+            private int commandAfterDispose;
 
             public ProbeSoundSource(bool throwOnFill) : base(null, 2, 4096)
             {
@@ -40,6 +41,9 @@ namespace Stride.Audio.Tests
 
             public bool Disposed => Volatile.Read(ref isDisposed);
 
+            /// <summary>Whether a Play, Pause or Stop command ran after the source was disposed.</summary>
+            public bool CommandRanAfterDispose => Volatile.Read(ref commandAfterDispose) != 0;
+
             public override int MaxNumberOfBuffers => 2;
 
             public override void SetLooped(bool looped) { }
@@ -58,6 +62,31 @@ namespace Stride.Audio.Tests
                     Blocked.Set();
                     Release.Wait(Timeout);
                 }
+            }
+
+            protected override void PlayInternal()
+            {
+                if (RecordCommandAfterDispose()) return;
+                base.PlayInternal();
+            }
+
+            protected override void PauseInternal()
+            {
+                if (RecordCommandAfterDispose()) return;
+                base.PauseInternal();
+            }
+
+            protected override void StopInternal(bool ignoreQueuedBuffer = true)
+            {
+                if (RecordCommandAfterDispose()) return;
+                base.StopInternal(ignoreQueuedBuffer);
+            }
+
+            private bool RecordCommandAfterDispose()
+            {
+                if (!Disposed) return false;
+                Volatile.Write(ref commandAfterDispose, 1);
+                return true;
             }
 
             protected override void DisposeInternal()
@@ -253,6 +282,40 @@ namespace Stride.Audio.Tests
             }
             finally
             {
+                engine.Dispose();
+            }
+        }
+
+        [SkippableFact]
+        public async Task CommandQueuedAfterDisposeDoesNotRun()
+        {
+            var engine = AudioEngineFactory.NewAudioEngine(new AudioDevice());
+            var release = new ManualResetEventSlim(true);
+            try
+            {
+                SkipWithoutAudioDevice(engine);
+                var source = new ProbeSoundSource(throwOnFill: false) { Release = release };
+                var instance = new SoundInstance(engine, engine.DefaultListener, source, 44100, mono: true);
+                source.Attach(instance);
+                instance.Play();
+                Assert.True(await WaitUntil(() => source.IsPausedOrPlaying && source.UpdateCount > 0), "The source never played.");
+
+                // The worker waits in UpdateInternal while Dispose and Stop are queued, so one pass handles both.
+                release.Reset();
+                source.Blocked.Reset();
+                Assert.True(source.Blocked.Wait(Timeout), "The worker never reached the source.");
+                source.Dispose();
+                instance.Dispose();
+                release.Set();
+
+                Assert.True(await WaitUntil(() => source.Disposed), "The source was not disposed by the worker.");
+                engine.Dispose();
+                Assert.Equal(1, source.DisposeCount);
+                Assert.False(source.CommandRanAfterDispose, "A command ran on the source after it was disposed.");
+            }
+            finally
+            {
+                release.Set();
                 engine.Dispose();
             }
         }
