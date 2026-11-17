@@ -45,6 +45,7 @@ public partial class ShaderBytecode
     /// <summary>
     ///   Initializes a new instance of the <see cref="ShaderBytecode"/> class.
     /// </summary>
+    /// <param name="stage">The shader stage.</param>
     /// <param name="id">An unique identifier for the compiled Shader bytecode data.</param>
     /// <param name="data">The compiled Shader bytecode data.</param>
     public ShaderBytecode(ShaderStage stage, ObjectId id, byte[] data)
@@ -65,7 +66,7 @@ public partial class ShaderBytecode
     }
 
     /// <summary>
-    ///   Performs an implicit conversion from <see cref="ShaderBytecode"/> to <see cref="byte[]"/>, returning
+    ///   Performs an implicit conversion from <see cref="ShaderBytecode"/> to a byte array, returning
     ///   the compiled Shader data.
     /// </summary>
     /// <param name="shaderBytecode">The compiled Shader bytecode.</param>
