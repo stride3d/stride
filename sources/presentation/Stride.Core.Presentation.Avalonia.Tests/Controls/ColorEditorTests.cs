@@ -135,6 +135,13 @@ public sealed class ColorEditorTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void EveryPropertyHasItsOwnName()
+    {
+        Assert.Equal(nameof(Color4Editor.Palette), Color4Editor.PaletteProperty.Name);
+        Assert.Equal(nameof(Color4Editor.SelectedPaletteColor), Color4Editor.SelectedPaletteColorProperty.Name);
+    }
+
     private static (Window Window, TemplatedControl Editor, TextBox TextBox, TextBox Other, ValueSource Source) Show(Type editorType, object value, IReadOnlyDictionary<string, Color4>? palette = null)
     {
         var source = new ValueSource(value);

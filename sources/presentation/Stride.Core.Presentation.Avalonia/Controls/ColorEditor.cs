@@ -20,7 +20,7 @@ public abstract class ColorEditor<T> : TemplatedControl
         AvaloniaProperty.Register<ColorEditor<T>, IReadOnlyDictionary<string, Color4>>(nameof(Palette));
 
     public static readonly StyledProperty<KeyValuePair<string, Color4>?> SelectedPaletteColorProperty =
-        AvaloniaProperty.Register<ColorEditor<T>, KeyValuePair<string, Color4>?>(nameof(Palette));
+        AvaloniaProperty.Register<ColorEditor<T>, KeyValuePair<string, Color4>?>(nameof(SelectedPaletteColor));
 
     public T Value
     {
