@@ -49,7 +49,9 @@ public static partial class Dispatcher
     /// <param name="batchJob">
     /// An object shared across all threads running this job, if TJob is a struct each threads will work off of a unique copy of it
     /// </param>
-    /// <exception cref="Exception">If any of the threads executing this job threw an exception, it will be re-thrown in the caller's scope</exception>
+    /// <exception cref="Exception">
+    /// A batch threw: no new batch starts, and the first exception is rethrown in the caller's scope once the running batches end.
+    /// </exception>
     public static unsafe void ForBatched<TJob>(int items, TJob batchJob) where TJob : IBatchJob
     {
         using var _ = Profiler.Begin(DispatcherBatched);
@@ -93,9 +95,11 @@ public static partial class Dispatcher
             while (Volatile.Read(ref batch.ItemsDone) < batch.Total && Volatile.Read(ref batch.ExceptionThrown) == null)
                 ThreadPool.Instance.TryCooperate();
 
-            var ex = Interlocked.Exchange(ref batch.ExceptionThrown, null);
-            if (ex != null)
+            if (Volatile.Read(ref batch.ExceptionThrown) is { } ex)
+            {
+                batch.WaitForHelpers();
                 ExceptionDispatchInfo.Capture(ex).Throw();
+            }
         }
         finally
         {
@@ -109,8 +113,9 @@ public static partial class Dispatcher
         Debug.Assert(batch is not null);
         try
         {
-            // Wake the next helper before this one's share, only while items are left to take
-            if (Volatile.Read(ref batch.Index) < batch.Total && Interlocked.Decrement(ref batch.HelpersLeft) >= 0)
+            // Wake the next helper before this one's share, only while items are left to take and no job threw
+            if (Volatile.Read(ref batch.Index) < batch.Total && Volatile.Read(ref batch.ExceptionThrown) == null
+                && Interlocked.Decrement(ref batch.HelpersLeft) >= 0)
             {
                 batch.AddReference();
                 ThreadPool.Instance.QueueUnsafeWorkItem(batch, &TypeAdapter<TJob>);
@@ -131,6 +136,10 @@ public static partial class Dispatcher
             uint start, end;
             do
             {
+                // A job threw: the caller rethrows once the running jobs end, so no new batch starts
+                if (Volatile.Read(ref state.ExceptionThrown) != null)
+                    break;
+
                 end = Interlocked.Add(ref state.Index, state.ItemsPerBatch);
                 start = end - state.ItemsPerBatch;
                 if (start >= state.Total)
@@ -143,9 +152,9 @@ public static partial class Dispatcher
         }
         catch (Exception e)
         {
-            Interlocked.Exchange(ref state.ExceptionThrown, e);
-            // Unblock the waiter; it rethrows via ExceptionDispatchInfo. Rethrowing here would
-            // escape the worker thread's root callback and fail-fast the process.
+            // The first one is rethrown by the caller. Rethrowing here would escape the worker thread's root callback and
+            // fail-fast the process
+            Interlocked.CompareExchange(ref state.ExceptionThrown, e, null);
         }
     }
 
@@ -378,6 +387,16 @@ public static partial class Dispatcher
         }
 
         public void AddReference() => Interlocked.Increment(ref referenceCount);
+
+        /// <summary>
+        /// Waits until only the caller holds the state, so that no job runs once <see cref="ForBatched{TJob}"/> has thrown.
+        /// </summary>
+        public void WaitForHelpers()
+        {
+            // Runs other work meanwhile, a helper still queued included
+            while (Volatile.Read(ref referenceCount) > 1)
+                ThreadPool.Instance.TryCooperate();
+        }
 
         public void Release()
         {

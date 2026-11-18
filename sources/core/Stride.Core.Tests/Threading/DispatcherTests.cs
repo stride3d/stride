@@ -67,6 +67,40 @@ public class DispatcherTests
         Assert.All(hits, hit => Assert.Equal(1, hit));
     }
 
+    [Fact]
+    public void ForBatched_Waits_For_Its_Running_Batches_Before_It_Rethrows()
+    {
+        if (Dispatcher.MaxDegreeOfParallelism <= 1)
+            return;
+
+        // [0]: batches running on helpers, [1]: batches started
+        var counts = new int[2];
+        using var helperRuns = new ManualResetEventSlim();
+        var state = (Counts: counts, HelperRuns: helperRuns, Caller: Environment.CurrentManagedThreadId);
+
+        // The caller's batch throws while a helper's batch still runs
+        Assert.Throws<InvalidOperationException>(() => Dispatcher.ForBatched(Count, state, static (state, _, _) =>
+        {
+            Interlocked.Increment(ref state.Counts[1]);
+            if (Environment.CurrentManagedThreadId == state.Caller)
+            {
+                state.HelperRuns.Wait(TimeSpan.FromSeconds(5));
+                throw new InvalidOperationException();
+            }
+
+            Interlocked.Increment(ref state.Counts[0]);
+            state.HelperRuns.Set();
+            Thread.Sleep(200);
+            Interlocked.Decrement(ref state.Counts[0]);
+        }));
+
+        // No batch runs once ForBatched has thrown, and none starts later
+        Assert.Equal(0, Volatile.Read(ref counts[0]));
+        var started = Volatile.Read(ref counts[1]);
+        Thread.Sleep(300);
+        Assert.Equal(started, Volatile.Read(ref counts[1]));
+    }
+
     public static TheoryData<string, int> SortCases() => new()
     {
         // Over 2,048 items the sort splits the list and sorts the parts on several threads
