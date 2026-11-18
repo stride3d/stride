@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Assets;
 using Stride.Core.IO;
+using Stride.Core.Mathematics;
 
 namespace Stride.GameStudio.Avalonia.Tests.Helpers;
 
@@ -46,4 +48,44 @@ public sealed class NestedPropertiesOuter
 public sealed class NestedPropertiesInner
 {
     public float Radius { get; set; }
+}
+
+/// <summary>
+/// An asset with one member per editor of the property grid that shows its value converted or rounded (hexadecimal colors,
+/// decimal places, degrees, components), each with a value the display cannot show exactly.
+/// </summary>
+[DataContract("DisplayedValuesAsset")]
+[AssetDescription(".sddisplayedvaluestest")]
+public sealed class DisplayedValuesAsset : Asset
+{
+    public Color ByteColor { get; set; }
+
+    public Color3 LightColor { get; set; }
+
+    public Color4 TintColor { get; set; }
+
+    public float Ratio { get; set; }
+
+    [DataMemberRange(0, 10, 0.1, 1, 2)]
+    public float TwoDecimals { get; set; }
+
+    public double Precise { get; set; }
+
+    public Vector2 Size { get; set; }
+
+    public Vector3 Offset { get; set; }
+
+    public Vector4 Weights { get; set; }
+
+    public Quaternion Rotation { get; set; }
+
+    public Matrix Transform { get; set; }
+
+    public RectangleF Region { get; set; }
+
+    public AngleSingle Angle { get; set; }
+
+    public TimeSpan Duration { get; set; }
+
+    public DateTime Time { get; set; }
 }

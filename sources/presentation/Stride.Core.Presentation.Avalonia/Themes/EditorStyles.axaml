@@ -169,10 +169,16 @@
               </ControlTemplate>
             </ToggleButton.Template>
           </ToggleButton>
+          <!-- The text shows one byte per channel: commit only what the user typed, on Enter or focus loss, or showing
+               a color would write it back rounded -->
           <TextBox Grid.Column="1" x:Name="TextBox"
                    Margin="2" VerticalAlignment="Center"
-                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
-                   PlaceholderText="{TemplateBinding PlaceholderText}"/>
+                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                   PlaceholderText="{TemplateBinding PlaceholderText}">
+            <Interaction.Behaviors>
+              <sd:CommitTextBehavior/>
+            </Interaction.Behaviors>
+          </TextBox>
           <Popup Grid.Column="0"
                  IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
@@ -227,10 +233,16 @@
               </ControlTemplate>
             </ToggleButton.Template>
           </ToggleButton>
+          <!-- The text shows one byte per channel: commit only what the user typed, on Enter or focus loss, or showing
+               a color would write it back rounded -->
           <TextBox Grid.Column="1" x:Name="TextBox"
                    Margin="2" VerticalAlignment="Center"
-                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
-                   PlaceholderText="{TemplateBinding PlaceholderText}"/>
+                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                   PlaceholderText="{TemplateBinding PlaceholderText}">
+            <Interaction.Behaviors>
+              <sd:CommitTextBehavior/>
+            </Interaction.Behaviors>
+          </TextBox>
           <Popup Grid.Column="0"
                  IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
@@ -285,10 +297,16 @@
               </ControlTemplate>
             </ToggleButton.Template>
           </ToggleButton>
+          <!-- The text shows one byte per channel: commit only what the user typed, on Enter or focus loss, or showing
+               a color would write it back rounded -->
           <TextBox Grid.Column="1" x:Name="TextBox"
                    Margin="2" VerticalAlignment="Center"
-                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
-                   PlaceholderText="{TemplateBinding PlaceholderText}"/>
+                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                   PlaceholderText="{TemplateBinding PlaceholderText}">
+            <Interaction.Behaviors>
+              <sd:CommitTextBehavior/>
+            </Interaction.Behaviors>
+          </TextBox>
           <Popup Grid.Column="0"
                  IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
