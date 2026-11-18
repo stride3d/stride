@@ -223,6 +223,9 @@ namespace Stride.Assets
                 MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchReleased", "IsRawTouchReleased", SyntaxKind.ProtectedKeyword),
             ]);
 
+            // 4.5.5: Vector2, Vector3, Vector4, Quaternion, Matrix and Plane are the System.Numerics types.
+            registry.Code("4.5.5.0", [MathTypesToSystemNumerics()]);
+
             // Structural csproj migrations, gated by the version each change landed at. Run against the
             // NEW-version project (after the reference bump) by UpgradeBeforeAssembliesLoaded.
             registry.Project("4.1.0.0", UpgradeProjectTo41);
