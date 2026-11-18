@@ -282,7 +282,8 @@ public class FreeCamera : AsyncScript
         }
         else
         {
-            Matrix4x4.InvertSafe(Matrix4x4.CreateFromYawPitchRoll(oldYaw, oldPitch, 0), out var inverseOldRotation);
+            // The inverse of a rotation matrix is its transpose
+            var inverseOldRotation = Matrix4x4.Transpose(Matrix4x4.CreateFromYawPitchRoll(oldYaw, oldPitch, 0));
             var deltaRotation = inverseOldRotation * rotation;
 
             var adaptationTargetOffset = position;

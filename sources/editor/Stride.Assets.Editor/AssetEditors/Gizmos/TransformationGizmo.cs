@@ -393,7 +393,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 {
                     var scene = entity.Scene;
                     inverseParent = (scene != null && scene.Offset != Vector3.Zero)
-                        ? (Matrix4x4.Invert(Matrix4x4.CreateTranslation(scene.Offset), out var inverse) ? inverse : default)
+                        ? Matrix4x4.CreateTranslation(-scene.Offset)
                         : Matrix4x4.Identity;
                 }
 

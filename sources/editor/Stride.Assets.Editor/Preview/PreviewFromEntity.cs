@@ -261,7 +261,7 @@ namespace Stride.Assets.Editor.Preview
                     var cameraPosition = target + Vector3.Transform(offset, Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0));
 
                     Entity.Transform.UseTRS = false;
-                    Matrix4x4.InvertSafe(Matrix4x4.CreateLookAt(cameraPosition, target, Vector3.UnitY), out Entity.Transform.LocalMatrix);
+                    Entity.Transform.LocalMatrix = Matrix4x4.CreateWorld(cameraPosition, target - cameraPosition, Vector3.UnitY);
                     cameraComponent.FarClipPlane = 2.5f * Math.Max(distance, previousBoundingSphere.Radius);
                     cameraComponent.NearClipPlane = cameraComponent.FarClipPlane / 1000f;
                 }

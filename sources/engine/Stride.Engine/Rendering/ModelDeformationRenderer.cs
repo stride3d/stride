@@ -816,7 +816,7 @@ internal sealed class ModelDeformationRenderer : IModelDeformer, IDisposable
             bool worldIsInvertible = Math.Abs(world.GetDeterminant()) >= MinTransformDeterminant;
             bool skinned = IsSkinned && worldIsInvertible;
             if (skinned)
-                Matrix4x4.InvertSafe(world, out inverseWorld);
+                Matrix4x4.Invert(world, out inverseWorld);
             Batch.Set(Slot, weights, pose, inverseWorld, skinned, morphed, activeCount);
         }
 
