@@ -82,6 +82,7 @@ public class EffectCodeWriter : ShaderWriter
         WriteLine("using Stride.Rendering;");
         WriteLine("using Stride.Graphics;");
         WriteLine("using Stride.Shaders;");
+        WriteLine("using System.Numerics;");
         WriteLine("using Stride.Core.Mathematics;");
         WriteLine("using Buffer = Stride.Graphics.Buffer;");
         WriteLine();
@@ -205,7 +206,7 @@ public class EffectCodeWriter : ShaderWriter
         VectorType { BaseType.Type: Scalar.Float or Scalar.Half, Size: var n } => isProcessingColor && n is 3 or 4 ? $"Color{n}" : $"Vector{n}",
         VectorType { BaseType.Type: Scalar.Double, Size: var n } => $"Double{n}",
         VectorType { BaseType.Type: Scalar.Int or Scalar.UInt, Size: var n } => $"Int{n}",
-        MatrixType { Rows: 4, Columns: 4, BaseType.Type: Scalar.Float } => "Matrix",
+        MatrixType { Rows: 4, Columns: 4, BaseType.Type: Scalar.Float } => "Matrix4x4",
         ArrayType a => $"{ToCSharpType(a.BaseType)}[]",
         BufferType or StructuredBufferType or AppendStructuredBufferType or ConsumeStructuredBufferType or ByteAddressBufferType => "Buffer",
         TextureType => "Texture",
@@ -566,7 +567,7 @@ public class EffectCodeWriter : ShaderWriter
         }
         else if (MatrixType.Types.TryGetValue(typeName.Name, out var m) && m is { Columns: 4, Rows: 4, BaseType.Type: Scalar.Float })
         {
-            Write("Matrix");
+            Write("Matrix4x4");
         }
         else if (typeName.Type is BufferType or StructuredBufferType or AppendStructuredBufferType or ConsumeStructuredBufferType or ByteAddressBufferType)
         {
