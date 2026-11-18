@@ -45,11 +45,8 @@ namespace Stride.Core.Mathematics;
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
 public struct Matrix : IEquatable<Matrix>, ISpanFormattable
 {
-    /// <summary> Are matrix row or column major </summary>
-    /// <remarks>
-    /// Dotnet's <see cref="System.Numerics.Matrix4x4"/> are row major.
-    /// </remarks>
-    public const bool LayoutIsRowMajor = false;
+    /// <summary>Whether the elements are stored row by row in memory, as in <see cref="System.Numerics.Matrix4x4"/> and in shaders.</summary>
+    public const bool LayoutIsRowMajor = true;
 
     /// <summary>
     /// The size of the <see cref="Matrix"/> type, in bytes.
@@ -72,39 +69,9 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     public float M11;
 
     /// <summary>
-    /// Value at row 2 column 1 of the matrix.
-    /// </summary>
-    public float M21;
-
-    /// <summary>
-    /// Value at row 3 column 1 of the matrix.
-    /// </summary>
-    public float M31;
-
-    /// <summary>
-    /// Value at row 4 column 1 of the matrix.
-    /// </summary>
-    public float M41;
-
-    /// <summary>
     /// Value at row 1 column 2 of the matrix.
     /// </summary>
     public float M12;
-
-    /// <summary>
-    /// Value at row 2 column 2 of the matrix.
-    /// </summary>
-    public float M22;
-
-    /// <summary>
-    /// Value at row 3 column 2 of the matrix.
-    /// </summary>
-    public float M32;
-
-    /// <summary>
-    /// Value at row 4 column 2 of the matrix.
-    /// </summary>
-    public float M42;
 
     /// <summary>
     /// Value at row 1 column 3 of the matrix.
@@ -112,24 +79,24 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     public float M13;
 
     /// <summary>
-    /// Value at row 2 column 3 of the matrix.
-    /// </summary>
-    public float M23;
-
-    /// <summary>
-    /// Value at row 3 column 3 of the matrix.
-    /// </summary>
-    public float M33;
-
-    /// <summary>
-    /// Value at row 4 column 3 of the matrix.
-    /// </summary>
-    public float M43;
-
-    /// <summary>
     /// Value at row 1 column 4 of the matrix.
     /// </summary>
     public float M14;
+
+    /// <summary>
+    /// Value at row 2 column 1 of the matrix.
+    /// </summary>
+    public float M21;
+
+    /// <summary>
+    /// Value at row 2 column 2 of the matrix.
+    /// </summary>
+    public float M22;
+
+    /// <summary>
+    /// Value at row 2 column 3 of the matrix.
+    /// </summary>
+    public float M23;
 
     /// <summary>
     /// Value at row 2 column 4 of the matrix.
@@ -137,9 +104,39 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     public float M24;
 
     /// <summary>
+    /// Value at row 3 column 1 of the matrix.
+    /// </summary>
+    public float M31;
+
+    /// <summary>
+    /// Value at row 3 column 2 of the matrix.
+    /// </summary>
+    public float M32;
+
+    /// <summary>
+    /// Value at row 3 column 3 of the matrix.
+    /// </summary>
+    public float M33;
+
+    /// <summary>
     /// Value at row 3 column 4 of the matrix.
     /// </summary>
     public float M34;
+
+    /// <summary>
+    /// Value at row 4 column 1 of the matrix.
+    /// </summary>
+    public float M41;
+
+    /// <summary>
+    /// Value at row 4 column 2 of the matrix.
+    /// </summary>
+    public float M42;
+
+    /// <summary>
+    /// Value at row 4 column 3 of the matrix.
+    /// </summary>
+    public float M43;
 
     /// <summary>
     /// Value at row 4 column 4 of the matrix.
@@ -456,8 +453,6 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     /// <param name="v">Value to cast</param>
     public static implicit operator Matrix(MatrixDotnet v)
     {
-        //Transpose the matrix due to the different row/column major layout
-        v = MatrixDotnet.Transpose(v);
         return Unsafe.As<MatrixDotnet, Matrix>(ref v);
     }
     /// <summary>
@@ -466,9 +461,7 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     /// <param name="v">Value to cast</param>
     public static implicit operator MatrixDotnet(Matrix v)
     {
-        var nm = Unsafe.As<Matrix, MatrixDotnet>(ref v);
-        //Transpose the matrix due to the different row/column major layout
-        return MatrixDotnet.Transpose(nm);
+        return Unsafe.As<Matrix, MatrixDotnet>(ref v);
     }
 
     /// <summary>
@@ -1024,7 +1017,7 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
         ref readonly MatrixDotnet l = ref UnsafeReadonlyRefAsDotNet(in left);
         ref readonly MatrixDotnet r = ref UnsafeReadonlyRefAsDotNet(in right);
         Unsafe.SkipInit(out result);
-        UnsafeRefAsDotNet(ref result) = LayoutIsRowMajor ? l * r : r * l;
+        UnsafeRefAsDotNet(ref result) = l * r;
     }
 
     /// <summary>
@@ -1040,7 +1033,7 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
         ref readonly MatrixDotnet l = ref UnsafeReadonlyRefAsDotNet(in left);
         ref readonly MatrixDotnet r = ref UnsafeReadonlyRefAsDotNet(in right);
         Unsafe.SkipInit(out result);
-        UnsafeRefAsDotNet(ref result) = LayoutIsRowMajor ? l * r : r * l;
+        UnsafeRefAsDotNet(ref result) = l * r;
     }
 
     /// <summary>
@@ -1347,7 +1340,6 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     /// <param name="result">When the method completes, contains the inverse of the specified matrix.</param>
     public static void Invert(ref readonly Matrix value, out Matrix result)
     {
-        // Invert works the same in row and column major, no need to transpose
         Unsafe.SkipInit(out result);
         if (!MatrixDotnet.Invert(UnsafeReadonlyRefAsDotNet(value), out UnsafeRefAsDotNet(ref result)))
         {
@@ -2995,17 +2987,11 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     /// <param name="rows">The number of rows.</param>
     public unsafe void CopyMatrixFrom(float* src, int columns, int rows)
     {
-        fixed (void* pDest = &this)
+        for (int i = 0; i < rows; ++i)
         {
-            var dest = (float*)pDest;
-            for (int i = 0; i < rows; ++i)
+            for (int j = 0; j < columns; ++j)
             {
-                for (int j = 0; j < columns; ++j)
-                {
-                    dest[j] = src[j];
-                }
-                dest += 4;
-                src += rows;
+                this[j, i] = src[(i * rows) + j];
             }
         }
     }
@@ -3018,18 +3004,11 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     /// <param name="rows">The rows.</param>
     public unsafe void TransposeMatrixFrom(float* src, int columns, int rows)
     {
-        fixed (void* pDest = &this)
+        for (int i = 0; i < rows; ++i)
         {
-            var dest = (float*)pDest;
-            for (int i = 0; i < rows; ++i)
+            for (int j = 0; j < columns; ++j)
             {
-                int sourceIndex = i;
-                for (int j = 0; j < columns; ++j)
-                {
-                    dest[j] = src[sourceIndex];
-                    sourceIndex += rows;
-                }
-                dest += 4;
+                this[j, i] = src[i + (j * rows)];
             }
         }
     }
@@ -3118,7 +3097,7 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     {
         ref readonly MatrixDotnet l = ref UnsafeReadonlyRefAsDotNet(in left);
         ref readonly MatrixDotnet r = ref UnsafeReadonlyRefAsDotNet(in right);
-        return UnsafeReadonlyRefFromDotNet(LayoutIsRowMajor ? l * r : r * l);
+        return UnsafeReadonlyRefFromDotNet(l * r);
     }
 
     /// <summary>

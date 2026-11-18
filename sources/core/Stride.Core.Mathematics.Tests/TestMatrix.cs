@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Stride.Core.Mathematics.Tests;
@@ -112,6 +113,25 @@ public class TestMatrix
 
         System.Numerics.Matrix4x4 numericsMatrix = matrix;
         Assert.Equal(baseNumericseMatrix, numericsMatrix);
+    }
+
+    [Fact]
+    public void TestMemoryIsRowByRow()
+    {
+        var matrix = new Matrix(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+        var numerics = new System.Numerics.Matrix4x4(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+
+        float[] expected = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+        Assert.Equal(expected, MemoryMarshal.Cast<Matrix, float>(new ReadOnlySpan<Matrix>(ref matrix)).ToArray());
+        Assert.Equal(expected, MemoryMarshal.Cast<System.Numerics.Matrix4x4, float>(new ReadOnlySpan<System.Numerics.Matrix4x4>(ref numerics)).ToArray());
     }
 
     #region Matrix Operations Tests

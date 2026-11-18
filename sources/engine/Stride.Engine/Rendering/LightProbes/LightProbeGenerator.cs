@@ -166,9 +166,9 @@ namespace Stride.Rendering.LightProbes
                 // Compute the tetrahedron matrix
                 // https://en.wikipedia.org/wiki/Barycentric_coordinate_system#Barycentric_coordinates_on_tetrahedra
                 var vertex3 = tetraResult.Vertices[tetrahedron.Vertices[3]];
-                *((Vector3*)&tetrahedronMatrix.M11) = tetraResult.Vertices[tetrahedron.Vertices[0]] - vertex3;
-                *((Vector3*)&tetrahedronMatrix.M12) = tetraResult.Vertices[tetrahedron.Vertices[1]] - vertex3;
-                *((Vector3*)&tetrahedronMatrix.M13) = tetraResult.Vertices[tetrahedron.Vertices[2]] - vertex3;
+                tetrahedronMatrix.Column1 = new Vector4(tetraResult.Vertices[tetrahedron.Vertices[0]] - vertex3, 0);
+                tetrahedronMatrix.Column2 = new Vector4(tetraResult.Vertices[tetrahedron.Vertices[1]] - vertex3, 0);
+                tetrahedronMatrix.Column3 = new Vector4(tetraResult.Vertices[tetrahedron.Vertices[2]] - vertex3, 0);
                 tetrahedronMatrix.Invert(); // TODO: Optimize 3x3 invert
 
                 tetrahedronMatrix.Transpose();

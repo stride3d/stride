@@ -417,10 +417,12 @@ namespace Stride.Shaders.Compilers.SDSL
                 VectorType v => ConvertType(context, v.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.Vector, RowCount = 1, ColumnCount = v.Size },
                 // Note: this is HLSL-style so Rows/Columns meaning is swapped
                 //       however, for type/class, both TypeModifier and EffectParameterType are following HLSL
-                MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None
-                    => ConvertType(context, m.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.MatrixColumns, RowCount = m.Columns, ColumnCount = m.Rows },
-                MatrixType m when typeModifier == TypeModifier.RowMajor
-                    => ConvertType(context, m.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.MatrixRows, RowCount = m.Columns, ColumnCount = m.Rows },
+                MatrixType m => ConvertType(context, m.BaseType, typeModifier, alignmentRules) with
+                {
+                    Class = SpirvBuilder.MatrixLayout(typeModifier) == TypeModifier.RowMajor ? EffectParameterClass.MatrixRows : EffectParameterClass.MatrixColumns,
+                    RowCount = m.Columns,
+                    ColumnCount = m.Rows,
+                },
                 _ => throw new NotSupportedException($"Unsupported symbol type: {symbolType}"),
             };
         }
@@ -504,12 +506,9 @@ namespace Stride.Shaders.Compilers.SDSL
             var matrixType = memberType switch { MatrixType m => m, ArrayType { BaseType: MatrixType m } => m, _ => null };
             if (matrixType != null)
             {
-                // HLSL row_major    => SPIR-V ColMajor
-                // HLSL column_major => SPIR-V RowMajor
-                // HLSL nothing      => SPIR-V RowMajor
                 // An explicit layout is already on the type (SpirvContext.DeclareStructuredType)
                 if (memberTypeModifier == TypeModifier.None)
-                    context.Add(new OpMemberDecorate(structTypeId, index, Decoration.RowMajor, []));
+                    context.Add(new OpMemberDecorate(structTypeId, index, SpirvBuilder.MatrixLayoutDecoration(memberTypeModifier), []));
                 // The stride the buffer size was computed with (SpirvBuilder.TypeSizeInBuffer)
                 context.Add(new OpMemberDecorate(structTypeId, index, Decoration.MatrixStride, [SpirvBuilder.MatrixStride(matrixType, memberTypeModifier, alignmentRules)]));
             }
