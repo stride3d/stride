@@ -6,6 +6,7 @@
                     xmlns:s="clr-namespace:System;assembly=mscorlib"
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:math="clr-namespace:Stride.Core.Mathematics;assembly=Stride.Core.Mathematics"
+                    xmlns:numerics="clr-namespace:System.Numerics;assembly=System.Numerics.Vectors"
                     xmlns:pvdr="clr-namespace:Stride.Core.Assets.Editor.View.TemplateProviders"
                     xmlns:cvt="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters"
                     xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors"
@@ -1039,7 +1040,7 @@
   </edvw:TypeMatchTemplateProvider>
 
   <!-- Provider for vector2 editor -->
-  <edvw:TypeMatchTemplateProvider x:Key="Vector2PropertyTemplateProvider" Type="{x:Type math:Vector2}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <edvw:TypeMatchTemplateProvider x:Key="Vector2PropertyTemplateProvider" Type="{x:Type numerics:Vector2}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
       <sd:Vector2Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
@@ -1057,7 +1058,7 @@
   </edvw:TypeMatchTemplateProvider>
 
   <!-- Provider for vector3 editor -->
-  <edvw:TypeMatchTemplateProvider x:Key="Vector3PropertyTemplateProvider" Type="{x:Type math:Vector3}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <edvw:TypeMatchTemplateProvider x:Key="Vector3PropertyTemplateProvider" Type="{x:Type numerics:Vector3}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
       <sd:Vector3Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
@@ -1076,7 +1077,7 @@
   </edvw:TypeMatchTemplateProvider>
 
   <!-- Provider for vector4 editor -->
-  <edvw:TypeMatchTemplateProvider x:Key="Vector4PropertyTemplateProvider" Type="{x:Type math:Vector4}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <edvw:TypeMatchTemplateProvider x:Key="Vector4PropertyTemplateProvider" Type="{x:Type numerics:Vector4}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
       <sd:Vector4Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
@@ -1185,7 +1186,7 @@
   </edvw:TypeMatchTemplateProvider>
 
   <!-- Provider for rotation editor -->
-  <edvw:TypeMatchTemplateProvider x:Key="RotationPropertyTemplateProvider" Type="{x:Type math:Quaternion}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <edvw:TypeMatchTemplateProvider x:Key="RotationPropertyTemplateProvider" Type="{x:Type numerics:Quaternion}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
       <sd:RotationEditor Value="{Binding NodeValue, Converter={cvt:DifferentValuesToNull}}"
                            WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" DecimalPlaces="3" x:Name="VectorEditor"/>
@@ -1198,7 +1199,7 @@
   </edvw:TypeMatchTemplateProvider>
 
   <!-- Provider for matrix editor -->
-  <edvw:TypeMatchTemplateProvider x:Key="MatrixPropertyTemplateProvider" Type="{x:Type math:Matrix}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <edvw:TypeMatchTemplateProvider x:Key="MatrixPropertyTemplateProvider" Type="{x:Type numerics:Matrix4x4}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
       <sd:MatrixEditor M11="{Binding M11.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                          M12="{Binding M12.NodeValue, Converter={cvt:DifferentValuesToNull}}"
