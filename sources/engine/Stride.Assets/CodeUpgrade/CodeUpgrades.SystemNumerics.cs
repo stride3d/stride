@@ -342,7 +342,7 @@ public static partial class CodeUpgrades
     /// <c>Double2</c>, <c>Double3</c> and <c>Double4</c> stay, with the names and the forms of these vectors.
     /// So do <c>Int2</c>, <c>Int3</c>, <c>Int4</c>, <c>UInt4</c>, <c>Half2</c>, <c>Half3</c> and <c>Half4</c>.
     /// <c>Half</c> becomes <see cref="System.Half"/>.
-    /// The double vectors compare exactly now.
+    /// The double vectors compare exactly now, as <c>BoundingBox</c>, <c>BoundingBoxExt</c>, <c>BoundingSphere</c> and <c>Ray</c> do.
     /// </summary>
     public static CodeUpgrade MathTypesToSystemNumerics() => MigrateTypes(SystemNumericsMigration());
 
@@ -578,8 +578,13 @@ public static partial class CodeUpgrades
                 .CallToExpression(type, "Equals", [type, type], "{0}.Equals({1})");
         }
 
+        // The types made of vectors stay too
+        string[] boundingTypes = [Namespace + "BoundingBox", Namespace + "BoundingBoxExt", Namespace + "BoundingSphere", Namespace + "Ray"];
+        foreach (var type in boundingTypes)
+            migration.KeepType(type);
+
         // The types that stay compare exactly now, as the types of System.Numerics do
-        foreach (var type in doubleVectors)
+        foreach (var type in (string[])[.. doubleVectors, .. boundingTypes])
         {
             migration
                 .Rename(type, "Equals", "NearEquals", type)

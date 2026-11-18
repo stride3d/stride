@@ -320,7 +320,15 @@ public struct Ray : IEquatable<Ray>, ISpanFormattable
     /// </returns>
     public readonly bool Equals(Ray value)
     {
-        return Position.NearEquals(value.Position) && Direction.NearEquals(value.Direction);
+        return Position == value.Position && Direction == value.Direction;
+    }
+
+    /// <summary>Determines whether every component of a ray differs from the same component of this one by less than a tolerance.</summary>
+    /// <param name="other">The ray to compare with this instance.</param>
+    /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+    public readonly bool NearEquals(Ray other, float tolerance = MathUtil.ZeroTolerance)
+    {
+        return Position.NearEquals(other.Position, tolerance) && Direction.NearEquals(other.Direction, tolerance);
     }
 
     /// <summary>

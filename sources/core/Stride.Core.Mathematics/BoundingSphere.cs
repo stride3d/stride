@@ -448,7 +448,15 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, ISpanFormattable, IIn
     /// </returns>
     public readonly bool Equals(BoundingSphere value)
     {
-        return Center.NearEquals(value.Center) && Radius == value.Radius;
+        return Center == value.Center && Radius == value.Radius;
+    }
+
+    /// <summary>Determines whether every component of a sphere differs from the same component of this one by less than a tolerance.</summary>
+    /// <param name="other">The sphere to compare with this instance.</param>
+    /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+    public readonly bool NearEquals(BoundingSphere other, float tolerance = MathUtil.ZeroTolerance)
+    {
+        return Center.NearEquals(other.Center, tolerance) && MathF.Abs(Radius - other.Radius) < tolerance;
     }
 
     /// <summary>

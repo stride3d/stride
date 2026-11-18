@@ -2891,4 +2891,54 @@ public class TestCodeUpgrade
         var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
         Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
     }
+
+    [Fact]
+    public async Task MathTypesToSystemNumericsKeepsTheToleranceOfBoundingComparisonsAndTheFormsOfTheirCalls()
+    {
+        const string Usage = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(BoundingBox a, BoundingBox b)
+                {
+                    // The type stays: its name and the form of its calls do too
+                    BoundingBox.Merge(ref a, ref b, out var merged);
+                    return a == b || a != merged;
+                }
+            }
+            """;
+        const string StrideMath = """
+            namespace Stride.Core.Mathematics
+            {
+                public struct BoundingBox
+                {
+                    public static BoundingBox Merge(BoundingBox value1, BoundingBox value2) => value1;
+                    public static void Merge(ref readonly BoundingBox value1, ref readonly BoundingBox value2, out BoundingBox result) { result = value1; }
+                    public static bool operator ==(BoundingBox left, BoundingBox right) => true;
+                    public static bool operator !=(BoundingBox left, BoundingBox right) => false;
+                    public override bool Equals(object other) => true;
+                    public override int GetHashCode() => 0;
+                }
+            }
+            """;
+        const string Expected = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(BoundingBox a, BoundingBox b)
+                {
+                    // The type stays: its name and the form of its calls do too
+                    BoundingBox.Merge(ref a, ref b, out var merged);
+                    return a.NearEquals(b) || !a.NearEquals(merged);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + StrideMath, MathTypesToSystemNumerics());
+
+        var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+    }
 }

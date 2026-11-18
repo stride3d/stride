@@ -421,7 +421,15 @@ public struct BoundingBox : IEquatable<BoundingBox>, ISpanFormattable, IIntersec
     /// </returns>
     public readonly bool Equals(BoundingBox value)
     {
-        return Minimum.NearEquals(value.Minimum) && Maximum.NearEquals(value.Maximum);
+        return Minimum == value.Minimum && Maximum == value.Maximum;
+    }
+
+    /// <summary>Determines whether every component of a box differs from the same component of this one by less than a tolerance.</summary>
+    /// <param name="other">The box to compare with this instance.</param>
+    /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+    public readonly bool NearEquals(BoundingBox other, float tolerance = MathUtil.ZeroTolerance)
+    {
+        return Minimum.NearEquals(other.Minimum, tolerance) && Maximum.NearEquals(other.Maximum, tolerance);
     }
 
     /// <summary>
