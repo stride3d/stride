@@ -6,12 +6,6 @@ namespace Stride.Graphics;
 /// <summary>
 /// Controls how the loader treats premultiplied vs straight alpha when decoding an image.
 /// </summary>
-/// <remarks>
-/// On iOS the underlying ImageIO decoder always premultiplies during decode; to honor the
-/// <see cref="Preserve"/> contract the loader undoes that premul, which is slightly lossy for
-/// translucent pixels. Callers that don't need the source encoding can ask for
-/// <see cref="EnsurePremultiplied"/> on iOS to avoid the lossy step.
-/// </remarks>
 public enum AlphaLoadMode
 {
     /// <summary>Return the data as the source encoded it; convert only if the platform decoder produced a different state.</summary>

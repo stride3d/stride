@@ -75,8 +75,7 @@
 // particular purpose and non-infringement.
 //--------------------------------------------------------------------
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using Stride.Core.Mathematics;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
@@ -84,7 +83,7 @@ namespace Stride.Assets.SpriteFont.Compiler
     internal class Glyph
     {
         // Constructor.
-        public Glyph(char character, Image<Rgba32> bitmap, Rectangle? subrect = null)
+        public Glyph(char character, FontBitmap bitmap, Rectangle? subrect = null)
         {
             this.Character = character;
             this.Bitmap = bitmap;
@@ -97,7 +96,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Glyph image data (may only use a portion of a larger bitmap).
-        public Image<Rgba32> Bitmap;
+        public FontBitmap Bitmap;
         public Rectangle Subrect;
 
 

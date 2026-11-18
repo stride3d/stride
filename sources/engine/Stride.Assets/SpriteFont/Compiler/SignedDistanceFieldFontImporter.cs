@@ -6,9 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Graphics.Font;
@@ -126,21 +123,21 @@ namespace Stride.Assets.SpriteFont.Compiler
             // Missing glyph: empty bitmap and no advance.
             if (rc != 0)
             {
-                return new Glyph(character, new Image<Rgba32>(1, 1)) { XOffset = 0, YOffset = 0, XAdvance = 0 };
+                return new Glyph(character, new FontBitmap(1, 1)) { XOffset = 0, YOffset = 0, XAdvance = 0 };
             }
 
             // Whitespace / outline-less glyph: empty bitmap but a valid advance.
             if (rgba == IntPtr.Zero || info.Width <= 0 || info.Height <= 0)
             {
-                return new Glyph(character, new Image<Rgba32>(1, 1)) { XOffset = 0, YOffset = 0, XAdvance = (float)info.Advance };
+                return new Glyph(character, new FontBitmap(1, 1)) { XOffset = 0, YOffset = 0, XAdvance = (float)info.Advance };
             }
 
-            Image<Rgba32> bitmap;
+            FontBitmap bitmap;
             try
             {
                 var pixels = new byte[info.Width * info.Height * 4];
                 Marshal.Copy(rgba, pixels, 0, pixels.Length);
-                bitmap = Image.LoadPixelData<Rgba32>(pixels, info.Width, info.Height);
+                bitmap = new FontBitmap(info.Width, info.Height, pixels);
             }
             finally
             {

@@ -18,8 +18,8 @@ namespace Stride.TextureConverter
 
     /// <summary>
     /// Provides method to load images or textures, to modify them and to convert them with different texture compression format.
-    /// Input supported format : png, jpg, bmp, gif, tga, tif/tiff (Every ImageSharp supported format...), dds, pvr, ktx.
-    /// Output format : png, jpg, bmp, gif, tga, tif/tiff (Every ImageSharp supported format...), dds, pvr, ktx.
+    /// Input supported format : png, jpg, bmp, gif, tga, tif/tiff, dds, pvr, ktx.
+    /// Output format : png, jpg, bmp, gif, tga, tif/tiff, dds, pvr, ktx.
     /// Compression format : DXT1-5, ETC1-2, uncompressed formats (BGRA8888, RGBA8888)
     /// Image processing : resize, flip, gamma correction
     /// Texture utilities : Mipmap generation, normal map generation
@@ -1461,7 +1461,7 @@ namespace Stride.TextureConverter
                 }
                 else if (request is RescalingRequest rescaling && rescaling.Filter != Filter.Rescaling.Bicubic)
                 {
-                    // Only ImageSharp implements this filter, and it handles 8-bit BGRA/RGBA only.
+                    // Only ImageSharpTexLib implements this filter, and it handles 8-bit BGRA/RGBA only.
                     // DxtTexLib rescales every uncompressed format, so retry with the best filter it offers.
                     Log.Warning($"No library can rescale a {image.Format} image with the {rescaling.Filter} filter, falling back to {Filter.Rescaling.Bicubic}.");
                     ExecuteRequest(image, new FixedRescalingRequest(rescaling.ComputeWidth(image), rescaling.ComputeHeight(image), Filter.Rescaling.Bicubic));
