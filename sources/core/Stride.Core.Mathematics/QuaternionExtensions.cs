@@ -295,14 +295,9 @@ public static class QuaternionExtensions
         /// Return the vector rotated by the quaternion.
         /// </summary>
         /// <remarks>
-        /// Shorthand for <see cref="Rotate"/>
+        /// Shorthand for <see cref="Vector3.Transform(Vector3, Quaternion)"/>
         /// </remarks>
-        public static Vector3 operator *(Quaternion left, Vector3 right)
-        {
-            var pureQuaternion = new Quaternion(right, 0);
-            pureQuaternion = Quaternion.Concatenate(Quaternion.Concatenate(Quaternion.Conjugate(left), pureQuaternion), left);
-            return new Vector3(pureQuaternion.X, pureQuaternion.Y, pureQuaternion.Z);
-        }
+        public static Vector3 operator *(Quaternion left, Vector3 right) => Vector3.Transform(right, left);
 
     }
 
