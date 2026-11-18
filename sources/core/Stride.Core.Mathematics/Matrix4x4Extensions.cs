@@ -798,7 +798,7 @@ public static class Matrix4x4Extensions
         /// <returns>The scaled matrix.</returns>
         public static Matrix4x4 operator *(float left, in Matrix4x4 right)
         {
-            var result = Matrix4x4.Multiply(right, left);
+            var result = right * left;
             return result;
         }
 

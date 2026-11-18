@@ -186,8 +186,8 @@ namespace Stride.Rendering.LightProbes
 
                         // Compute normal
                         Vector3 edge1, edge2, faceNormal;
-                        edge1 = Vector3.Subtract(vertices[vertex1], vertices[vertex0]);
-                        edge2 = Vector3.Subtract(vertices[vertex2], vertices[vertex0]);
+                        edge1 = vertices[vertex1] - vertices[vertex0];
+                        edge2 = vertices[vertex2] - vertices[vertex0];
                         faceNormal = Vector3.Cross(edge1, edge2);
                         faceNormal = Vector3.NormalizeSafe(faceNormal);
 
@@ -285,8 +285,8 @@ namespace Stride.Rendering.LightProbes
 
                             // Compute normal
                             Vector3 edge1, edge2, faceNormal;
-                            edge1 = Vector3.Subtract(vertices[currentFace.Vertices[1]], vertices[currentFace.Vertices[0]]);
-                            edge2 = Vector3.Subtract(vertices[currentFace.Vertices[2]], vertices[currentFace.Vertices[0]]);
+                            edge1 = vertices[currentFace.Vertices[1]] - vertices[currentFace.Vertices[0]];
+                            edge2 = vertices[currentFace.Vertices[2]] - vertices[currentFace.Vertices[0]];
                             faceNormal = Vector3.Cross(edge1, edge2);
                             faceNormal = Vector3.NormalizeSafe(faceNormal);
 

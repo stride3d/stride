@@ -71,8 +71,7 @@ namespace Stride.Rendering.Sprites
 
             var batchContext = threadContext.Value;
 
-            Matrix4x4 viewInverse;
-            Matrix4x4.InvertSafe(renderView.View, out viewInverse);
+            Matrix4x4.InvertSafe(renderView.View, out Matrix4x4 viewInverse);
 
             uint previousBatchState = uint.MaxValue;
 
@@ -101,8 +100,7 @@ namespace Stride.Rendering.Sprites
                 // TODO: This could be done in a SIMD batch, but we need to figure-out how to plugin in with RenderMesh object
                 var worldPosition = new Vector4(renderSprite.WorldMatrix.Translation, 1.0f);
 
-                Vector4 projectedPosition;
-                projectedPosition = Vector4.Transform(worldPosition, renderView.ViewProjection);
+                Vector4 projectedPosition = Vector4.Transform(worldPosition, renderView.ViewProjection);
                 var projectedZ = projectedPosition.Z / projectedPosition.W;
                 
                 BlendModes blendMode;
@@ -226,7 +224,7 @@ namespace Stride.Rendering.Sprites
                     normalizedCenter.Y = oldCenterX;
                 }
                 // apply the offset due to the center of the sprite
-                var centerOffset = Vector2.Multiply(normalizedCenter, sprite.SizeInternal);
+                var centerOffset = normalizedCenter * sprite.SizeInternal;
                 worldMatrix.M41 -= centerOffset.X * worldMatrix.M11 + centerOffset.Y * worldMatrix.M21;
                 worldMatrix.M42 -= centerOffset.X * worldMatrix.M12 + centerOffset.Y * worldMatrix.M22;
                 worldMatrix.M43 -= centerOffset.X * worldMatrix.M13 + centerOffset.Y * worldMatrix.M23;

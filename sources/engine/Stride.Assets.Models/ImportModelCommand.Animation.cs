@@ -209,7 +209,7 @@ namespace Stride.Assets.Models
                                     var transformTRS = modelNodeDefinitions[0].Transform;
                                     Matrix4x4.CreateTransformation(transformTRS.Scale, transformTRS.Rotation, transformTRS.Position,
                                         out localMatrix);
-                                    matrix = Matrix4x4.Multiply(localMatrix, matrix);
+                                    matrix = localMatrix * matrix;
                                 }
 
                                 // Done evaluating, let's decompose matrix

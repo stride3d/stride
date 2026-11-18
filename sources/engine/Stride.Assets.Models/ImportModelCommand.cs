@@ -124,7 +124,7 @@ namespace Stride.Assets.Models
             if (index != rootIndex)
             {
                 var topMatrix = CombineMatricesFromNodeIndices(nodes, rootIndex, nodes[index].ParentIndex);
-                result = Matrix4x4.Multiply(result, topMatrix);
+                result *= topMatrix;
             }
 
             return result;

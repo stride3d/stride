@@ -194,8 +194,7 @@ namespace Stride.Rendering
 
                     Matrix4x4 previousViewProjection = ViewData.PreviousViewProjection;
 
-                    Matrix4x4 previousWorldViewProjection;
-                    previousWorldViewProjection = Matrix4x4.Multiply(renderModelFrameInfo.World, previousViewProjection);
+                    Matrix4x4 previousWorldViewProjection = renderModelFrameInfo.World * previousViewProjection;
 
                     PreviousTransformationViewInfoData[renderPerViewNodeReference] = new PreviousObjectViewInfo
                     {

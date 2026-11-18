@@ -511,7 +511,7 @@ namespace Stride.Graphics
             var drawCommand = new SpriteFont.InternalDrawCommand(this, in fontSize2, in position, in color, rotation, in origin, in scale, effects, layerDepth);
 
             // snap the position the closest 'real' pixel
-            drawCommand.Position = Vector2.Multiply(drawCommand.Position, resolutionRatio);
+            drawCommand.Position *= resolutionRatio;
             drawCommand.Position.X = MathF.Round(drawCommand.Position.X);
             drawCommand.Position.Y = MathF.Round(drawCommand.Position.Y);
             drawCommand.Position.X /= resolutionRatio.X;
@@ -642,8 +642,7 @@ namespace Stride.Graphics
 
         protected override void PrepareForRendering()
         {
-            Matrix4x4 viewProjection;
-            viewProjection = Matrix4x4.Multiply(userViewMatrix, userProjectionMatrix);
+            Matrix4x4 viewProjection = userViewMatrix * userProjectionMatrix;
 
             // Setup effect states and parameters: SamplerState and MatrixTransform
             // Sets the sampler state

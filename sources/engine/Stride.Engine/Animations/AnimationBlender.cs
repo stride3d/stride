@@ -234,12 +234,12 @@ namespace Stride.Animations
                                     break;
                                 case BlendType.Float2:
                                     Vector2 rightValue2;
-                                    rightValue2 = Vector2.Add(*(Vector2*)sourceLeftData, *(Vector2*)sourceRightData);
+                                    rightValue2 = *(Vector2*)sourceLeftData + *(Vector2*)sourceRightData;
                                     *(Vector2*)resultData = Vector2.Lerp(*(Vector2*)sourceLeftData, rightValue2, blendFactor);
                                     break;
                                 case BlendType.Float3:
                                     Vector3 rightValue3;
-                                    rightValue3 = Vector3.Add(*(Vector3*)sourceLeftData, *(Vector3*)sourceRightData);
+                                    rightValue3 = *(Vector3*)sourceLeftData + *(Vector3*)sourceRightData;
                                     *(Vector3*)resultData = Vector3.Lerp(*(Vector3*)sourceLeftData, rightValue3, blendFactor);
                                     break;
                                 case BlendType.Quaternion:
@@ -262,12 +262,12 @@ namespace Stride.Animations
                                     break;
                                 case BlendType.Float2:
                                     Vector2 rightValue2;
-                                    rightValue2 = Vector2.Subtract(*(Vector2*)sourceLeftData, *(Vector2*)sourceRightData);
+                                    rightValue2 = *(Vector2*)sourceLeftData - *(Vector2*)sourceRightData;
                                     *(Vector2*)resultData = Vector2.Lerp(*(Vector2*)sourceLeftData, rightValue2, blendFactor);
                                     break;
                                 case BlendType.Float3:
                                     Vector3 rightValue3;
-                                    rightValue3 = Vector3.Subtract(*(Vector3*)sourceLeftData, *(Vector3*)sourceRightData);
+                                    rightValue3 = *(Vector3*)sourceLeftData - *(Vector3*)sourceRightData;
                                     *(Vector3*)resultData = Vector3.Lerp(*(Vector3*)sourceLeftData, rightValue3, blendFactor);
                                     break;
                                 case BlendType.Quaternion:

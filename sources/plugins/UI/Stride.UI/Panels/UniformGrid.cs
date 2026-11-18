@@ -126,7 +126,7 @@ namespace Stride.UI.Panels
                 neededForOneCell = Vector3.Max(neededForOneCell, child.DesiredSizeWithMargins / childSpans);
             }
 
-            return Vector3.Multiply(gridSize, neededForOneCell) + totalGapSize;
+            return gridSize * neededForOneCell + totalGapSize;
         }
 
         protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
@@ -154,8 +154,8 @@ namespace Stride.UI.Panels
 
                 // calculate child position accounting for gaps
                 var childGridPosition = GetElementGridPositionsAsFloat(child);
-                var childOffsetWithoutGaps = Vector3.Multiply(childGridPosition, finalForOneCell);
-                var childGapOffset = Vector3.Multiply(childGridPosition, gaps);
+                var childOffsetWithoutGaps = childGridPosition * finalForOneCell;
+                var childGapOffset = childGridPosition * gaps;
                 var childOffset = childOffsetWithoutGaps + childGapOffset;
 
                 // set the arrange matrix of the child

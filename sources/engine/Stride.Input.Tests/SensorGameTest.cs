@@ -225,7 +225,8 @@ namespace Stride.Input.Tests
                     if (Input.Orientation != null)
                     {
                         entity.Transform.Rotation = Quaternion.Inverse(Input.Orientation.Quaternion);
-                        entity2.Transform.LocalMatrix = Matrix4x4.CreateScale(0.5f)*(Matrix4x4.Invert(Input.Orientation.RotationMatrix, out var inverse) ? inverse : default);
+                        Matrix4x4.InvertSafe(Input.Orientation.RotationMatrix, out var rotationInverse);
+                        entity2.Transform.LocalMatrix = Matrix4x4.CreateScale(0.5f)*rotationInverse;
                         entity3.Transform.Rotation = Quaternion.Inverse(Quaternion.CreateFromYawPitchRoll(Input.Orientation.Yaw, Input.Orientation.Pitch, Input.Orientation.Roll));
                     }
                     break;

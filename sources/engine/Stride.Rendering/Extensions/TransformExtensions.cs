@@ -27,8 +27,7 @@ namespace Stride.Extensions
             helper.Write<PositionSemantic, Vector3, Transform>(new Transform { Matrix = matrix });
 
             // compute matrix inverse transpose
-            Matrix4x4 inverseTransposeMatrix;
-            Matrix4x4.InvertSafe(matrix, out inverseTransposeMatrix);
+            Matrix4x4.InvertSafe(matrix, out Matrix4x4 inverseTransposeMatrix);
             inverseTransposeMatrix = Matrix4x4.Transpose(inverseTransposeMatrix);
 
             // List of items that need to be transformed by the inverse transpose matrix

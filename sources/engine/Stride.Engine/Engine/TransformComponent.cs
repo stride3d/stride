@@ -277,7 +277,7 @@ namespace Stride.Engine
                 if (scene != null)
                 {
                     Matrix4x4.InvertSafe(scene.WorldMatrix, out var inverseSceneTransform);
-                    LocalMatrix = Matrix4x4.Multiply(WorldMatrix, inverseSceneTransform);
+                    LocalMatrix = WorldMatrix * inverseSceneTransform;
                 }
                 else
                 {
@@ -288,7 +288,7 @@ namespace Stride.Engine
             {
                 //We are not root so we need to derive the local matrix as well
                 Matrix4x4.InvertSafe(Parent.WorldMatrix, out var inverseParent);
-                LocalMatrix = Matrix4x4.Multiply(WorldMatrix, inverseParent);
+                LocalMatrix = WorldMatrix * inverseParent;
             }
         }
 
@@ -309,13 +309,13 @@ namespace Stride.Engine
             {
                 Matrix4x4 linkMatrix;
                 TransformLink.ComputeMatrix(recursive, out linkMatrix);
-                WorldMatrix = Matrix4x4.Multiply(LocalMatrix, linkMatrix);
+                WorldMatrix = LocalMatrix * linkMatrix;
             }
             else if (Parent != null)
             {
                 if (recursive)
                     Parent.UpdateWorldMatrix();
-                WorldMatrix = Matrix4x4.Multiply(LocalMatrix, Parent.WorldMatrix);
+                WorldMatrix = LocalMatrix * Parent.WorldMatrix;
             }
             else
             {
@@ -327,7 +327,7 @@ namespace Stride.Engine
                         scene.UpdateWorldMatrix();
                     }
 
-                    WorldMatrix = Matrix4x4.Multiply(LocalMatrix, scene.WorldMatrix);
+                    WorldMatrix = LocalMatrix * scene.WorldMatrix;
                 }
                 else
                 {

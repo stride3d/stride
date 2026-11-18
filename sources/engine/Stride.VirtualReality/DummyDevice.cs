@@ -114,7 +114,7 @@ namespace Stride.VirtualReality
             Vector3 eyeWorld;
             Matrix4x4 fullRotation;
             var headRotationMatrix = ignoreHeadRotation ? Matrix4x4.Identity : Matrix4x4.CreateFromQuaternion(headRotation);
-            fullRotation = Matrix4x4.Multiply(headRotationMatrix, cameraRotation);
+            fullRotation = headRotationMatrix * cameraRotation;
             eyeWorld = Vector3.TransformCoordinate(eyeLocal, fullRotation);
             var pos = cameraPosition + eyeWorld;
 

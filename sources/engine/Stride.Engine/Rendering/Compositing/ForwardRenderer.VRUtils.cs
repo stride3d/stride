@@ -56,7 +56,7 @@ namespace Stride.Rendering.Compositing
             commonView.Projection = Matrix4x4.CreatePerspectiveOffCenter(projectionLeftOfLeftEye * nearsRatio, projectionRightOfRightEye * nearsRatio, bottom * nearsRatio, top * nearsRatio, commonView.NearClipPlane, commonView.FarClipPlane);
 
             // update the view projection:
-            commonView.ViewProjection = Matrix4x4.Multiply(commonView.View, commonView.Projection);
+            commonView.ViewProjection = commonView.View * commonView.Projection;
         }
     }
 }

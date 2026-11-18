@@ -418,8 +418,7 @@ namespace Stride.Particles.ShapeBuilders
                 var invViewZ = Vector3.Cross(invViewX, invViewY);
                 invViewZ = Vector3.NormalizeSafe(invViewZ);
 
-                Vector4 projectedPosition;
-                projectedPosition = Vector4.Transform(positions[0], viewProj);
+                Vector4 projectedPosition = Vector4.Transform(positions[0], viewProj);
                 var projPt0 = new Vector3(projectedPosition.X / projectedPosition.W, projectedPosition.Y / projectedPosition.W, 0);
 
                 projectedPosition = Vector4.Transform(positions[1], viewProj);

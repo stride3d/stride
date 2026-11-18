@@ -325,7 +325,7 @@ namespace Stride.Rendering.Compositing
                     {
                         camera.ViewMatrix.Decompose(out cameraScale, out cameraRot, out cameraPos);
                         cameraRot = Matrix4x4.Transpose(cameraRot);
-                        cameraPos = Vector3.Negate(cameraPos);
+                        cameraPos = -cameraPos;
                         cameraPos = Vector3.TransformCoordinate(cameraPos, cameraRot);
                     }
 

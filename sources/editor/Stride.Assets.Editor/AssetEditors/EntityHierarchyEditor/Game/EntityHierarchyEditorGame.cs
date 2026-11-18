@@ -94,7 +94,8 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
             Vector3 scenePosition;
             var cameraService = EditorServices.Get<IEditorGameCameraService>();
 
-            var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, mousePosition, Matrix4x4.Invert(cameraService.ViewMatrix, out var inverse) ? inverse : default);
+            Matrix4x4.InvertSafe(cameraService.ViewMatrix, out var viewInverse);
+            var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, mousePosition, viewInverse);
             var plane = new Plane(upAxis, 0);
 
             // Ensures a ray angle with projection plane of at least 'limitAngle' to avoid the object to go to infinity.

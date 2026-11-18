@@ -94,7 +94,7 @@ namespace Stride.UI.Controls
                 {
                     contentWorldMatrix = WorldMatrixInternal;
                     var contentMatrix = Matrix4x4.CreateTranslation(-RenderSize / 2);
-                    contentWorldMatrix = Matrix4x4.Multiply(contentMatrix, WorldMatrixInternal);
+                    contentWorldMatrix = contentMatrix * WorldMatrixInternal;
                 }
 
                 ((IUIElementUpdate)Content).UpdateWorldMatrix(ref contentWorldMatrix, contentWorldMatrixChanged);

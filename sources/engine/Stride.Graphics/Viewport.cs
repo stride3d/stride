@@ -183,7 +183,7 @@ namespace Stride.Graphics
         /// <param name="world">The world matrix.</param>
         public readonly Vector3 Project(Vector3 source, Matrix4x4 projection, Matrix4x4 view, Matrix4x4 world)
         {
-            Matrix4x4 worldViewProj = Matrix4x4.Multiply(Matrix4x4.Multiply(world, view), projection);
+            Matrix4x4 worldViewProj = world * view * projection;
             Vector4 vector = Vector4.Transform(source, worldViewProj);
 
             float w = (source.X * worldViewProj.M14) + (source.Y * worldViewProj.M24) + (source.Z * worldViewProj.M34) + worldViewProj.M44;
@@ -206,7 +206,7 @@ namespace Stride.Graphics
         /// <param name="world">The world matrix.</param>
         public Vector3 Unproject(Vector3 source, Matrix4x4 projection, Matrix4x4 view, Matrix4x4 world)
         {
-            Matrix4x4 worldViewProj = Matrix4x4.Multiply(Matrix4x4.Multiply(world, view), projection);
+            Matrix4x4 worldViewProj = world * view * projection;
             return Unproject(source, in worldViewProj);
         }
 

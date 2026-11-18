@@ -357,8 +357,7 @@ namespace Stride.Rendering.UI
                 }
                 else
                 {
-                    Matrix4x4 viewInverse;
-                    Matrix4x4.InvertSafe(camera.ViewMatrix, out viewInverse);
+                    Matrix4x4.InvertSafe(camera.ViewMatrix, out Matrix4x4 viewInverse);
                     var forwardVector = viewInverse.Forward;
 
                     if (renderObject.IsBillboard)
@@ -384,8 +383,7 @@ namespace Stride.Rendering.UI
                     {
                         forwardVector = Vector3.NormalizeSafe(forwardVector);
                         var distVec = (worldMatrix.Translation - viewInverse.Translation);
-                        float distScalar;
-                        distScalar = Vector3.Dot(forwardVector, distVec);
+                        float distScalar = Vector3.Dot(forwardVector, distVec);
                         distScalar = Math.Abs(distScalar);
 
                         var worldScale = frustumHeight * distScalar * UIComponent.FixedSizeVerticalUnit; // FrustumHeight already is 2*Tan(FOV/2)
@@ -403,9 +401,8 @@ namespace Stride.Rendering.UI
                 worldMatrix.Y = -worldMatrix.Y;
                 worldMatrix.Z = -worldMatrix.Z;
 
-                Matrix4x4 worldViewMatrix;
-                worldViewMatrix = Matrix4x4.Multiply(worldMatrix, camera.ViewMatrix);
-                WorldViewProjectionMatrix = Matrix4x4.Multiply(worldViewMatrix, camera.ProjectionMatrix);
+                Matrix4x4 worldViewMatrix = worldMatrix * camera.ViewMatrix;
+                WorldViewProjectionMatrix = worldViewMatrix * camera.ProjectionMatrix;
             }
 
             public void Update(RenderUIElement renderObject, Vector3 virtualResolution)

@@ -113,8 +113,7 @@ namespace Stride.Engine
                 {
                     if (parentUIComponent.IsBillboard && camera != null)
                     {
-                        Matrix4x4 viewInverse;
-                        Matrix4x4.InvertSafe(camera.ViewMatrix, out viewInverse);
+                        Matrix4x4.InvertSafe(camera.ViewMatrix, out Matrix4x4 viewInverse);
 
                         var viewInverseRow1 = viewInverse.X;
                         var viewInverseRow2 = viewInverse.Y;

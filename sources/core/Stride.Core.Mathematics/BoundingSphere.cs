@@ -221,7 +221,7 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, ISpanFormattable, IIn
         var nextPoint = startPoint;
         for (int i = 0; i < vertexCount; ++i)
         {
-            center = Vector3.Add(*(Vector3*)nextPoint, center);
+            center = *(Vector3*)nextPoint + center;
             nextPoint += vertexStride;
         }
 

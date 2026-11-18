@@ -227,8 +227,8 @@ namespace Stride.Graphics
             var spriteEffects = parameters.SpriteEffects;
 
             var offset = new Vector2(glyphPosition.X, glyphPosition.Y + GetBaseOffsetY(fontSize.Y) + glyphPosition.Glyph.Offset.Y);
-            offset = Vector2.Multiply(offset, AxisDirectionTable[(int)spriteEffects & 3]);
-            offset = Vector2.Add(offset, parameters.Origin);
+            offset *= AxisDirectionTable[(int)spriteEffects & 3];
+            offset += parameters.Origin;
             offset.X = MathF.Round(offset.X);
             offset.Y = MathF.Round(offset.Y);
 
@@ -236,7 +236,7 @@ namespace Stride.Graphics
             {
                 // For mirrored characters, specify bottom and/or right instead of top left.
                 var glyphRect = new Vector2(glyphPosition.Glyph.Subrect.Right - glyphPosition.Glyph.Subrect.Left, glyphPosition.Glyph.Subrect.Top - glyphPosition.Glyph.Subrect.Bottom);
-                offset = Vector2.Multiply(glyphRect, AxisIsMirroredTable[(int)spriteEffects & 3]);
+                offset = glyphRect * AxisIsMirroredTable[(int)spriteEffects & 3];
             }
             var destination = new RectangleF(parameters.Position.X, parameters.Position.Y, parameters.Scale.X, parameters.Scale.Y);
             RectangleF? sourceRectangle = glyphPosition.Glyph.Subrect;

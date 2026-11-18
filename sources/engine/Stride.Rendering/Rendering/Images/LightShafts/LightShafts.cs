@@ -172,8 +172,7 @@ namespace Stride.Rendering.Images
             // Setup parameters for Z reconstruction
             lightShaftsParameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane));
 
-            Matrix4x4 projectionInverse;
-            Matrix4x4.InvertSafe(renderView.Projection, out projectionInverse);
+            Matrix4x4.InvertSafe(renderView.Projection, out Matrix4x4 projectionInverse);
             lightShaftsParameters.Set(TransformationKeys.ProjectionInverse, projectionInverse);
 
             applyLightEffectShader.SetOutput(GetSafeOutput(0));
@@ -417,7 +416,7 @@ namespace Stride.Rendering.Images
                         continue;
 
                     // Update parameters for the minmax shader
-                    Matrix4x4 worldViewProjection = Matrix4x4.Multiply(volume.World, viewProjection);
+                    Matrix4x4 worldViewProjection = volume.World * viewProjection;
                     minmaxVolumeEffectShader.Parameters.Set(VolumeMinMaxShaderKeys.WorldViewProjection, ref worldViewProjection);
 
                     foreach (var mesh in volume.Model.Meshes)

@@ -72,7 +72,7 @@ namespace Stride.SpriteStudio.Runtime
 
             if (ParentNode != null)
             {
-                ModelTransform = Matrix4x4.Multiply(LocalTransform, ParentNode.ModelTransform);
+                ModelTransform = LocalTransform * ParentNode.ModelTransform;
 
                 if (BaseNode.AlphaInheritance)
                 {

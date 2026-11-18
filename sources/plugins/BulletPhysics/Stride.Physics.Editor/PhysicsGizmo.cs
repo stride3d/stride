@@ -200,7 +200,7 @@ namespace Stride.Physics.Editor
 
                             if (skinnedElement.ColliderShape.LocalOffset != Vector3.Zero || skinnedElement.ColliderShape.LocalRotation != Quaternion.Identity)
                             {
-                                skinnedElement.BoneWorldMatrixOut = Matrix4x4.Multiply(skinnedElement.ColliderShape.PositiveCenterMatrix, skinnedElement.BoneWorldMatrixOut);
+                                skinnedElement.BoneWorldMatrixOut = skinnedElement.ColliderShape.PositiveCenterMatrix * skinnedElement.BoneWorldMatrixOut;
                             }
                         }
                     }
@@ -246,7 +246,7 @@ namespace Stride.Physics.Editor
 
                         if (skinnedElement.ColliderShape.LocalOffset != Vector3.Zero || skinnedElement.ColliderShape.LocalRotation != Quaternion.Identity)
                         {
-                            skinnedElement.BoneWorldMatrixOut = Matrix4x4.Multiply(skinnedElement.ColliderShape.PositiveCenterMatrix, skinnedElement.BoneWorldMatrixOut);
+                            skinnedElement.BoneWorldMatrixOut = skinnedElement.ColliderShape.PositiveCenterMatrix * skinnedElement.BoneWorldMatrixOut;
                         }
                     }
 

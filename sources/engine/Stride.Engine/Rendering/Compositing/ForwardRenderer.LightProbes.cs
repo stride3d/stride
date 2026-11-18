@@ -157,7 +157,7 @@ namespace Stride.Rendering.Compositing
 
                     // Compute face orientations
                     var vertex0 = lightprobePositions[face.Vertices[0]];
-                    vertex0 = Vector3.Subtract(vertex0, eye);
+                    vertex0 -= eye;
                     bool faceFrontFacing = Vector3.Dot(face.Normal, vertex0) >= 0.0f;
                     faceDirection[i] = faceFrontFacing;
 

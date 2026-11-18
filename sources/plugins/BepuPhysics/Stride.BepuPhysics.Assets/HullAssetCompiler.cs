@@ -119,7 +119,7 @@ internal class HullAssetCompiler : AssetCompilerBase
                         if (modelAsset.Skeleton.Nodes[i].ParentIndex != -1)
                         {
                             var nodeTransform = nodeTransforms[modelAsset.Skeleton.Nodes[i].ParentIndex];
-                            worldMatrix = Matrix4x4.Multiply(localMatrix, nodeTransform);
+                            worldMatrix = localMatrix * nodeTransform;
                         }
                         else
                         {
@@ -180,7 +180,7 @@ internal class HullAssetCompiler : AssetCompilerBase
 
                             Matrix4x4 rotatedMatrix;
                             var nodeTransform = nodeTransforms[i];
-                            rotatedMatrix = Matrix4x4.Multiply(posMatrix, nodeTransform);
+                            rotatedMatrix = posMatrix * nodeTransform;
 
                             combinedVerts.Add(rotatedMatrix.Translation.X);
                             combinedVerts.Add(rotatedMatrix.Translation.Y);

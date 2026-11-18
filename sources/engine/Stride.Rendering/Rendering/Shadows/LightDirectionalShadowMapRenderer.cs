@@ -243,8 +243,7 @@ namespace Stride.Rendering.Shadows
                     cascadeMaxBoundLS = new Vector3(-float.MaxValue);
                     for (int i = 0; i < cascadeFrustumCornersWS.Length; i++)
                     {
-                        Vector3 cornerViewSpace;
-                        cornerViewSpace = Vector3.TransformCoordinate(cascadeFrustumCornersWS[i], lightViewMatrix);
+                        Vector3 cornerViewSpace = Vector3.TransformCoordinate(cascadeFrustumCornersWS[i], lightViewMatrix);
 
                         cascadeMinBoundLS = Vector3.Min(cascadeMinBoundLS, cornerViewSpace);
                         cascadeMaxBoundLS = Vector3.Max(cascadeMaxBoundLS, cornerViewSpace);
@@ -258,8 +257,7 @@ namespace Stride.Rendering.Shadows
                 var nearClip = 0.0f;
                 var farClip = cascadeMaxBoundLS.Z - cascadeMinBoundLS.Z;
                 var projectionMatrix = Matrix4x4.CreateOrthographicOffCenter(cascadeMinBoundLS.X, cascadeMaxBoundLS.X, cascadeMinBoundLS.Y, cascadeMaxBoundLS.Y, nearClip, farClip); // Projection
-                Matrix4x4 viewProjectionMatrix;
-                viewProjectionMatrix = Matrix4x4.Multiply(viewMatrix, projectionMatrix);
+                Matrix4x4 viewProjectionMatrix = viewMatrix * projectionMatrix;
 
                 // Stabilize the Shadow matrix on the projection
                 if (shadow.StabilizationMode == LightShadowMapStabilizationMode.ProjectionSnapping)
@@ -271,7 +269,7 @@ namespace Stride.Rendering.Shadows
                     var shadowPixelOffset = new Vector4(shadowPixelPositionRounded - shadowPixelPosition, 0.0f);
                     shadowPixelOffset *= 2.0f / lightShadowMap.Size;
                     projectionMatrix.W += shadowPixelOffset;
-                    viewProjectionMatrix = Matrix4x4.Multiply(viewMatrix, projectionMatrix);
+                    viewProjectionMatrix = viewMatrix * projectionMatrix;
                 }
 
                 shaderData.ViewMatrix[cascadeLevel] = viewMatrix;
@@ -306,7 +304,7 @@ namespace Stride.Rendering.Shadows
                 // Compute receiver view proj matrix
                 Matrix4x4 adjustmentMatrix = Matrix4x4.CreateScale(leftX, -leftY, 1.0f) * Matrix4x4.CreateTranslation(centerX, centerY, 0.0f);
                 // Calculate View Proj matrix from World space to Cascade space
-                shaderData.WorldToShadowCascadeUV[cascadeLevel] = Matrix4x4.Multiply(viewProjectionMatrix, adjustmentMatrix);
+                shaderData.WorldToShadowCascadeUV[cascadeLevel] = viewProjectionMatrix * adjustmentMatrix;
 
                 // Allocate shadow render view
                 var shadowRenderView = CreateRenderView();

@@ -53,8 +53,8 @@ public static class PlaneExtensions
             var distance = Plane.DotCoordinate(plane, point);
 
             // compute: point - distance * plane.Normal
-            Vector3 result = Vector3.Multiply(plane.Normal, distance);
-            result = Vector3.Subtract(point, result);
+            Vector3 result = plane.Normal * distance;
+            result = point - result;
             return result;
         }
 
@@ -109,8 +109,7 @@ public static class PlaneExtensions
             if (planes == null)
                 throw new ArgumentNullException(nameof(planes));
 
-            Matrix4x4 inverse;
-            Matrix4x4.InvertSafe(transformation, out inverse);
+            Matrix4x4.InvertSafe(transformation, out Matrix4x4 inverse);
 
             for (int i = 0; i < planes.Length; ++i)
             {

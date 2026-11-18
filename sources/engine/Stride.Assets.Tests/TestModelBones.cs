@@ -151,7 +151,8 @@ public class TestModelBones : IDisposable
                 Assert.True(recorded.TryGetValue((meshName, boneName), out var expected), $"{file}: no cluster in the file for mesh {meshName}, bone {boneName}");
                 // The importer's units, then its scene root, which the importer bakes into the offsets
                 expected.Translation *= 0.01f;
-                expected = (Matrix4x4.Invert(root, out var inverse) ? inverse : default) * expected * root;
+                Matrix4x4.InvertSafe(root, out var rootInverse);
+                expected = rootInverse * expected * root;
                 var actual = bone.LinkToMeshMatrix;
                 for (var i = 0; i < 16; i++)
                     Assert.True(Math.Abs(actual[i / 4, i % 4] - expected[i / 4, i % 4]) < 1e-3f, $"{file}, {meshName}, bone {boneName}: {actual} instead of {expected}");
@@ -226,8 +227,9 @@ public class TestModelBones : IDisposable
             Line("Version: 100");
             Line($"Indexes: *{indices.Length} {{ a: {string.Join(",", indices)} }}");
             Line($"Weights: *{indices.Length} {{ a: {string.Join(",", indices.Select(_ => "1"))} }}");
+            Matrix4x4.InvertSafe(bind, out var bindInverse);
             // As the FBX SDK writes it: the mesh at bind, then into the bone's space at bind
-            Line($"Transform: *16 {{ a: {Matrix(scene.MeshAtBind.Matrix * (Matrix4x4.Invert(bind, out var inverse) ? inverse : default))} }}");
+            Line($"Transform: *16 {{ a: {Matrix(scene.MeshAtBind.Matrix * bindInverse)} }}");
             Line($"TransformLink: *16 {{ a: {Matrix(bind)} }}");
             Line("}");
         }

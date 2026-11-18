@@ -436,11 +436,9 @@ namespace Stride.UI.Editor.Services
             worldMatrix.Y = -worldMatrix.Y;
             worldMatrix.Z = -worldMatrix.Z;
 
-            Matrix4x4 matrixInv;
-            Matrix4x4.InvertSafe(worldMatrix, out matrixInv);
+            Matrix4x4.InvertSafe(worldMatrix, out Matrix4x4 matrixInv);
 
-            Vector3 result;
-            result = Vector3.TransformCoordinate(scenePosition, matrixInv);
+            Vector3 result = Vector3.TransformCoordinate(scenePosition, matrixInv);
             return result;
         }
 

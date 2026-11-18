@@ -88,7 +88,7 @@ namespace Stride.Assets.Models
                     var localMatrix = hierarchyUpdater.NodeTransformations[i].LocalMatrix;
 
                     // Combine it with local matrix, and use that instead in the new skeleton; resulting node should be same position as before optimized nodes were removed
-                    localMatrix = Matrix4x4.Multiply(localMatrix, transformMatrix);
+                    localMatrix *= transformMatrix;
                     localMatrix.Decompose(out filteredSkeleton.Nodes[filteredIndex].Transform.Scale, out filteredSkeleton.Nodes[filteredIndex].Transform.Rotation, out filteredSkeleton.Nodes[filteredIndex].Transform.Position);
                 }
             }

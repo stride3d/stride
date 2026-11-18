@@ -65,7 +65,7 @@ public static class Vector3Extensions
         /// <param name="maxTravelDistance">The rate at which the first point is going to move towards the second point.</param>
         public static Vector3 MoveTo(Vector3 from, Vector3 to, float maxTravelDistance)
         {
-            Vector3 distance = Vector3.Subtract(to, from);
+            Vector3 distance = to - from;
 
             float length = distance.Length();
 

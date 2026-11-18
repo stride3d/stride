@@ -116,8 +116,7 @@ namespace Stride.SpriteStudio.Runtime
                     // TODO: This could be done in a SIMD batch, but we need to figure-out how to plugin in with RenderMesh object
                     var worldPosition = new Vector4(spriteState.WorldMatrix.Translation, 1.0f);
 
-                    Vector4 projectedPosition;
-                    projectedPosition = Vector4.Transform(worldPosition, renderView.ViewProjection);
+                    Vector4 projectedPosition = Vector4.Transform(worldPosition, renderView.ViewProjection);
                     var projectedZ = projectedPosition.Z / projectedPosition.W;
 
                     var blendState = isPicking ? BlendStates.Default : spriteBlending;
@@ -180,7 +179,7 @@ namespace Stride.SpriteStudio.Runtime
                         }
                     }
 
-                    var worldMatrix = Matrix4x4.Multiply(node.ModelTransform, spriteState.WorldMatrix);
+                    var worldMatrix = node.ModelTransform * spriteState.WorldMatrix;
 
                     // calculate normalized position of the center of the sprite (takes into account the possible rotation of the image)
                     var normalizedCenter = new Vector2(node.Sprite.Center.X/sourceRegion.Width - 0.5f, 0.5f - node.Sprite.Center.Y/sourceRegion.Height);
@@ -192,7 +191,7 @@ namespace Stride.SpriteStudio.Runtime
                     }
                     // apply the offset due to the center of the sprite
                     var size = node.Sprite.Size;
-                    var centerOffset = Vector2.Multiply(normalizedCenter, size);
+                    var centerOffset = normalizedCenter * size;
                     worldMatrix.M41 -= centerOffset.X*worldMatrix.M11 + centerOffset.Y*worldMatrix.M21;
                     worldMatrix.M42 -= centerOffset.X*worldMatrix.M12 + centerOffset.Y*worldMatrix.M22;
 

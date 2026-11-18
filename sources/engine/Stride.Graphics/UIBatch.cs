@@ -239,8 +239,7 @@ namespace Stride.Graphics
             matrix.M32 *= elementSize.Z;
             matrix.M33 *= elementSize.Z;
 
-            Matrix4x4 worldViewProjection;
-            worldViewProjection = Matrix4x4.Multiply(matrix, viewProjectionMatrix);
+            Matrix4x4 worldViewProjection = matrix * viewProjectionMatrix;
             drawInfo.UnitXWorld = worldViewProjection.X;
             drawInfo.UnitYWorld = worldViewProjection.Y;
             drawInfo.UnitZWorld = worldViewProjection.Z;
@@ -301,8 +300,7 @@ namespace Stride.Graphics
             matrix.M32 *= elementSize.Z;
             matrix.M33 *= elementSize.Z;
 
-            Matrix4x4 worldViewProjection;
-            worldViewProjection = Matrix4x4.Multiply(matrix, viewProjectionMatrix);
+            Matrix4x4 worldViewProjection = matrix * viewProjectionMatrix;
             drawInfo.UnitXWorld = worldViewProjection.X;
             drawInfo.UnitYWorld = worldViewProjection.Y;
             drawInfo.UnitZWorld = worldViewProjection.Z;
@@ -368,8 +366,7 @@ namespace Stride.Graphics
             matrix.M32 *= elementSize.Z;
             matrix.M33 *= elementSize.Z;
 
-            Matrix4x4 worldViewProjection;
-            worldViewProjection = Matrix4x4.Multiply(matrix, viewProjectionMatrix);
+            Matrix4x4 worldViewProjection = matrix * viewProjectionMatrix;
             drawInfo.UnitXWorld = worldViewProjection.X;
             drawInfo.UnitYWorld = worldViewProjection.Y;
 
@@ -442,7 +439,7 @@ namespace Stride.Graphics
             worldMatrix.M43 -= worldMatrix.M13 * leftTopCornerOffset.X + worldMatrix.M23 * leftTopCornerOffset.Y;
 
             // transform the world matrix into the world view project matrix
-            drawCommand.Matrix = Matrix4x4.Multiply(worldMatrix, viewProjectionMatrix);
+            drawCommand.Matrix = worldMatrix * viewProjectionMatrix;
 
             font.TypeSpecificRatios(drawCommand.RequestedFontSize, ref drawCommand.SnapText, ref drawCommand.RealVirtualResolutionRatio, out var actualFontSize);
 
@@ -535,18 +532,18 @@ namespace Stride.Graphics
                         vertex++;     // Move vertex pointer position
 
                         if (c == 0)
-                            currentPosition = Vector4.Add(currentPosition, drawInfo->UnitXWorld);
+                            currentPosition += drawInfo->UnitXWorld;
                         else
-                            currentPosition = Vector4.Subtract(currentPosition, drawInfo->UnitXWorld);
+                            currentPosition -= drawInfo->UnitXWorld;
                     }
 
                     if (r == 0)
-                        currentPosition = Vector4.Add(currentPosition, drawInfo->UnitYWorld);
+                        currentPosition += drawInfo->UnitYWorld;
                     else
-                        currentPosition = Vector4.Subtract(currentPosition, drawInfo->UnitYWorld);
+                        currentPosition -= drawInfo->UnitYWorld;
                 }
 
-                currentPosition = Vector4.Add(currentPosition, drawInfo->UnitZWorld);
+                currentPosition += drawInfo->UnitZWorld;
             }
         }
 
@@ -573,13 +570,13 @@ namespace Stride.Graphics
             // Calculate the position offsets
 
             // posOffsetOuterLeft is just Vector4.Zero
-            var posOffsetLeftInner = Vector4.Multiply(drawInfo->UnitXWorld, drawInfo->VertexShift.X);
-            var posOffsetRightInner = Vector4.Multiply(drawInfo->UnitXWorld, drawInfo->VertexShift.Z);
+            var posOffsetLeftInner = drawInfo->UnitXWorld * drawInfo->VertexShift.X;
+            var posOffsetRightInner = drawInfo->UnitXWorld * drawInfo->VertexShift.Z;
             // posOffsetRightOuter is drawInfo->UnitXWorld
 
             // posOffsetOuterTop is just Vector4.Zero
-            var posOffsetTopInner = Vector4.Multiply(drawInfo->UnitYWorld, drawInfo->VertexShift.Y);
-            var posOffsetBottomInner = Vector4.Multiply(drawInfo->UnitYWorld, drawInfo->VertexShift.W);
+            var posOffsetTopInner = drawInfo->UnitYWorld * drawInfo->VertexShift.Y;
+            var posOffsetBottomInner = drawInfo->UnitYWorld * drawInfo->VertexShift.W;
             // posOffsetBottomOuter is drawInfo->UnitYWorld
 
             var posOffsetX = stackalloc Vector4[]

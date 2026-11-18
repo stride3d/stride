@@ -128,7 +128,7 @@ namespace Stride.Rendering
                 // Compute WorldMatrix
                 if (parentIndex != -1)
                 {
-                    node.WorldMatrix = Matrix4x4.Multiply(node.LocalMatrix, nodeTransformationsLocal[parentIndex].WorldMatrix);
+                    node.WorldMatrix = node.LocalMatrix * nodeTransformationsLocal[parentIndex].WorldMatrix;
                     if (nodeTransformationsLocal[parentIndex].IsScalingNegative)
                         node.IsScalingNegative = !node.IsScalingNegative;
                 }

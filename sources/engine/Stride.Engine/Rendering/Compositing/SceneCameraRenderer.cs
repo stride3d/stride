@@ -153,13 +153,13 @@ namespace Stride.Rendering.Compositing
             if (surfaceRotation != SurfaceRotation.Identity)
             {
                 var rot = GetSurfaceRotationMatrix(surfaceRotation);
-                renderView.Projection = Matrix4x4.Multiply(renderView.Projection, rot);
+                renderView.Projection *= rot;
             }
 
             // Enable frustum culling
             renderView.CullingMode = CameraCullingMode.Frustum;
 
-            renderView.ViewProjection = Matrix4x4.Multiply(renderView.View, renderView.Projection);
+            renderView.ViewProjection = renderView.View * renderView.Projection;
         }
 
         // Clip-space rotation per VK_SURFACE_TRANSFORM_*_BIT_KHR (row-major).

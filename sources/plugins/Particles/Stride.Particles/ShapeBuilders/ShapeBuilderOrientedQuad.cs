@@ -67,8 +67,7 @@ namespace Stride.Particles.ShapeBuilders
             var texAttribute = bufferState.GetAccessor(bufferState.DefaultTexCoords);
 
             // TODO Use viewProj
-            Vector3 invViewZ;
-            invViewZ = Vector3.Cross(invViewX, invViewY);
+            Vector3 invViewZ = Vector3.Cross(invViewX, invViewY);
             invViewZ = Vector3.NormalizeSafe(invViewZ);
 
             foreach (var particle in sorter)
@@ -96,16 +95,13 @@ namespace Stride.Particles.ShapeBuilders
                 {
                     var centralAxis = centralOffset;
 
-                    float dotZ;
-                    dotZ = Vector3.Dot(centralAxis, invViewZ);
+                    float dotZ = Vector3.Dot(centralAxis, invViewZ);
                     centralAxis -= invViewZ*dotZ;
                     centralAxis = Vector3.NormalizeSafe(centralAxis);
 
-                    float dotX;
-                    dotX = Vector3.Dot(centralAxis, unitX);
+                    float dotX = Vector3.Dot(centralAxis, unitX);
 
-                    float dotY;
-                    dotY = Vector3.Dot(centralAxis, unitY);
+                    float dotY = Vector3.Dot(centralAxis, unitY);
 
                     unitX = unitX*dotY - unitY*dotX;
                     unitX = Vector3.NormalizeSafe(unitX);

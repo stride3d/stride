@@ -167,14 +167,14 @@ namespace Stride.Assets.Models
                             // Update mesh part
                             var transformMatrix = CombineMatricesFromNodeIndices(hierarchyUpdater.NodeTransformations, newNodeIndex, nodeIndex);
                             Matrix4x4.InvertSafe(transformMatrix, out transformMatrix);
-                            skinning.Bones[i].LinkToMeshMatrix = Matrix4x4.Multiply(transformMatrix, skinning.Bones[i].LinkToMeshMatrix);
+                            skinning.Bones[i].LinkToMeshMatrix = transformMatrix * skinning.Bones[i].LinkToMeshMatrix;
                         }
 
                         if (newLinkNodeIndex != linkNodeIndex)
                         {
                             // Update link part
                             var transformLinkMatrix = CombineMatricesFromNodeIndices(hierarchyUpdater.NodeTransformations, newLinkNodeIndex, linkNodeIndex);
-                            skinning.Bones[i].LinkToMeshMatrix = Matrix4x4.Multiply(skinning.Bones[i].LinkToMeshMatrix, transformLinkMatrix);
+                            skinning.Bones[i].LinkToMeshMatrix *= transformLinkMatrix;
                         }
                     }
                 }

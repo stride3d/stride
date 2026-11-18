@@ -327,8 +327,7 @@ namespace Stride.Rendering.Lights
 
                     var radius = MathF.Sqrt(1.0f / spotLightData.AngleOffsetAndInvSquareRadius.Z);
 
-                    Vector3 positionVS;
-                    positionVS = Vector3.TransformCoordinate(spotLightData.PositionWS, renderView.View);
+                    Vector3 positionVS = Vector3.TransformCoordinate(spotLightData.PositionWS, renderView.View);
 
                     // TODO: culling (first do it on PointLight, then backport it to SpotLight and improve for SpotLight case)
                     // Find x/y ranges
@@ -381,8 +380,7 @@ namespace Stride.Rendering.Lights
 
                     var radius = MathF.Sqrt(1.0f / pointLightData.InvSquareRadius);
 
-                    Vector3 positionVS;
-                    positionVS = Vector3.TransformCoordinate(pointLightData.PositionWS, renderView.View);
+                    Vector3 positionVS = Vector3.TransformCoordinate(pointLightData.PositionWS, renderView.View);
 
                     //Vector3 positionScreen;
                     //Vector3.TransformCoordinate(ref pointLightData.PositionWS, ref renderView.ViewProjection, out positionScreen);

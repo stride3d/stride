@@ -29,7 +29,8 @@ namespace Stride.Rendering.Voxels.Debug
             Matrix4x4 ViewProjection = context.RenderContext.RenderView.ViewProjection;
 
             voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.view, ViewProjection);
-            voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.viewInv, Matrix4x4.Invert(ViewProjection, out var inverse) ? inverse : default);
+            Matrix4x4.InvertSafe(ViewProjection, out var viewProjectionInverse);
+            voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.viewInv, viewProjectionInverse);
             voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.background, (Vector4)Background);
 
             MarchMethod.UpdateMarchingLayout("marcher");

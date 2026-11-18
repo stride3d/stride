@@ -46,7 +46,7 @@ namespace Stride.Extensions
                     transformedPosition = Vector3.TransformCoordinate(position, Matrix);
 
                     // Prepass calculate the center of the sphere
-                    Sphere.Center = Vector3.Add(transformedPosition, Sphere.Center);
+                    Sphere.Center = transformedPosition + Sphere.Center;
                     
                     BoundingBox.Merge(ref Box, ref transformedPosition, out Box);
                 }
@@ -64,8 +64,7 @@ namespace Stride.Extensions
 
                     //We are doing a relative distance comparison to find the maximum distance
                     //from the center of our sphere.
-                    float distance;
-                    distance = Vector3.DistanceSquared(Sphere.Center, transformedPosition);
+                    float distance = Vector3.DistanceSquared(Sphere.Center, transformedPosition);
 
                     if (distance > Sphere.Radius)
                         Sphere.Radius = distance;

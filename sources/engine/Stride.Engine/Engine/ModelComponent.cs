@@ -275,7 +275,7 @@ namespace Stride.Engine
                     for (int boneIndex = 0; boneIndex < bones.Length; boneIndex++)
                     {
                         var nodeIndex = bones[boneIndex].NodeIndex;
-                        meshInfo.BlendMatrices[boneIndex] = Matrix4x4.Multiply(bones[boneIndex].LinkToMeshMatrix, skeleton.NodeTransformations[nodeIndex].WorldMatrix);
+                        meshInfo.BlendMatrices[boneIndex] = bones[boneIndex].LinkToMeshMatrix * skeleton.NodeTransformations[nodeIndex].WorldMatrix;
 
                         BoundingBox skinnedBoundingBox;
                         BoundingBox.Transform(ref mesh.BoundingBox, ref meshInfo.BlendMatrices[boneIndex], out skinnedBoundingBox);

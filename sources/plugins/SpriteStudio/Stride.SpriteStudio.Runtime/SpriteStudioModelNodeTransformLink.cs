@@ -59,7 +59,7 @@ namespace Stride.SpriteStudio.Runtime
             }
 
             // Compute using ModelTransform
-            matrix = Matrix4x4.Multiply(nodes[nodeIndex].ModelTransform, parentModelComponent.Entity.Transform.WorldMatrix);
+            matrix = nodes[nodeIndex].ModelTransform * parentModelComponent.Entity.Transform.WorldMatrix;
         }
 
         public bool NeedsRecreate(Entity parentEntity, string targetNodeName)

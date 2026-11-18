@@ -23,7 +23,9 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         /// <param name="viewMatrix">The view matrix of the camera.</param>
         internal static GizmoTransformationAxes GetBackfacingAxes(Matrix4x4 gizmoWorldMatrix, Matrix4x4 viewMatrix)
         {
-            var cameraInGizmoSpace = ((Matrix4x4.Invert(viewMatrix, out var inverse) ? inverse : default) * (Matrix4x4.Invert(gizmoWorldMatrix, out var inverse2) ? inverse2 : default)).Translation;
+            Matrix4x4.InvertSafe(viewMatrix, out var viewInverse);
+            Matrix4x4.InvertSafe(gizmoWorldMatrix, out var gizmoWorldInverse);
+            var cameraInGizmoSpace = (viewInverse * gizmoWorldInverse).Translation;
             var axes = GizmoTransformationAxes.None;
             for (var axis = 0; axis < 3; axis++)
             {
@@ -41,7 +43,8 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
             // determine the position of the start/end points of the drag in the gizmo space
             Matrix4x4.InvertSafe(StartWorldMatrix, out var gizmoWorldInverse);
-            var gizmoViewInverse = (Matrix4x4.Invert(cameraService.ViewMatrix, out var inverse) ? inverse : default) * gizmoWorldInverse;
+            Matrix4x4.InvertSafe(cameraService.ViewMatrix, out var viewInverse);
+            var gizmoViewInverse = viewInverse * gizmoWorldInverse;
             var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, Input.MousePosition, gizmoViewInverse);
             var endPointGizmo = EditorGameHelper.ProjectOnPlaneWithLimitAngle(ray, ProjectionPlane, MinimumRayAngle);
             DragTranslationWorld = endPointGizmo - StartClickPoint;

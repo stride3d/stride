@@ -506,8 +506,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 }
 
                 // calculate the gizmo to parent space matrix
-                Matrix4x4 gizmoToParentMatrix;
-                gizmoToParentMatrix = Matrix4x4.Multiply(StartWorldMatrix, initialTransfo.InverseParentMatrix);
+                Matrix4x4 gizmoToParentMatrix = StartWorldMatrix * initialTransfo.InverseParentMatrix;
                 
                 // the scale
                 entityTransfo.Scale = initialTransfo.Scale * transformation.Scale;

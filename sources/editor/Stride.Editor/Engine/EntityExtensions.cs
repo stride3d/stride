@@ -94,7 +94,7 @@ namespace Stride.Editor.Engine
                             hierarchy.Nodes[i].Transform.Rotation,
                             hierarchy.Nodes[i].Transform.Position, out localMatrix);
 
-                        nodeTransforms[i] = Matrix4x4.Multiply(localMatrix, nodeTransforms[hierarchy.Nodes[i].ParentIndex]);
+                        nodeTransforms[i] = localMatrix * nodeTransforms[hierarchy.Nodes[i].ParentIndex];
                     }
                 }
 
@@ -128,7 +128,7 @@ namespace Stride.Editor.Engine
                             Matrix4x4 boneMatrix;
 
                             // Compute bone matrix
-                            boneMatrix = Matrix4x4.Multiply(bones[index].LinkToMeshMatrix, nodeTransforms[nodeIndex]);
+                            boneMatrix = bones[index].LinkToMeshMatrix * nodeTransforms[nodeIndex];
 
                             // Fast AABB transform: http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
                             // Compute transformed AABB (by world)

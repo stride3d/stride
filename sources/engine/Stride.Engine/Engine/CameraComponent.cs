@@ -251,7 +251,7 @@ namespace Stride.Engine
             }
 
             // Update ViewProjectionMatrix
-            ViewProjectionMatrix = Matrix4x4.Multiply(ViewMatrix, ProjectionMatrix);
+            ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
 
             // Update the frustum.
             Frustum = new BoundingFrustum(ref ViewProjectionMatrix);

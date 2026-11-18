@@ -77,7 +77,7 @@ namespace Stride.Rendering.Shadows
             // Apply light position
             var translationMatrix = Matrix4x4.CreateTranslation(-shadowMapTexture.RenderLight.Position);
 
-            view = Matrix4x4.Multiply(translationMatrix, ViewFaceRotationMatrices[index]);
+            view = translationMatrix * ViewFaceRotationMatrices[index];
         }
 
         /// <returns>
@@ -131,7 +131,7 @@ namespace Stride.Rendering.Shadows
 
                 shadowRenderView.View = shaderData.View[i];
                 shadowRenderView.Projection = shaderData.Projection;
-                shadowRenderView.ViewProjection = Matrix4x4.Multiply(shadowRenderView.View, shadowRenderView.Projection);
+                shadowRenderView.ViewProjection = shadowRenderView.View * shadowRenderView.Projection;
 
                 // Create projection matrix with adjustment
                 var textureCoords = new Vector4(
@@ -145,7 +145,7 @@ namespace Stride.Rendering.Shadows
                 float centerY = 0.5f * (textureCoords.Y + textureCoords.W);
 
                 var projectionToShadow = Matrix4x4.CreateScale(leftX, -leftY, 1.0f) * Matrix4x4.CreateTranslation(centerX, centerY, 0.0f);
-                shaderData.WorldToShadow[i] = Matrix4x4.Multiply(shadowRenderView.ViewProjection, projectionToShadow);
+                shaderData.WorldToShadow[i] = shadowRenderView.ViewProjection * projectionToShadow;
 
                 shadowRenderView.VisiblityIgnoreDepthPlanes = false;
 

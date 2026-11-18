@@ -229,11 +229,9 @@ namespace Stride.Graphics.GeometricPrimitives
                     // Get two vectors perpendicular both to the face normal and to each other.
                     Vector3 basis = (i >= 4) ? Vector3.UnitZ : Vector3.UnitY;
 
-                    Vector3 side1;
-                    side1 = Vector3.Cross(normal, basis);
+                    Vector3 side1 = Vector3.Cross(normal, basis);
 
-                    Vector3 side2;
-                    side2 = Vector3.Cross(normal, side1);
+                    Vector3 side2 = Vector3.Cross(normal, side1);
 
                     // Six indices (two triangles) per grid cell.
                     int vbase = i * faceVertexCount;

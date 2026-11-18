@@ -145,9 +145,12 @@ namespace Stride.Rendering.Background
                 return; // not supported for the moment.
             }
             spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.Intensity, renderBackground.Intensity);
-            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ViewInverse, Matrix4x4.Invert(renderView.View, out var inverse) ? inverse : default);
-            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ProjectionInverse, Matrix4x4.Invert(renderView.Projection, out var inverse2) ? inverse2 : default);
-            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.SkyMatrix, Matrix4x4.Invert(Matrix4x4.CreateFromQuaternion(renderBackground.Rotation), out var inverse3) ? inverse3 : default);
+            Matrix4x4.InvertSafe(renderView.View, out var viewInverse);
+            Matrix4x4.InvertSafe(renderView.Projection, out var projectionInverse);
+            Matrix4x4.InvertSafe(Matrix4x4.CreateFromQuaternion(renderBackground.Rotation), out var skyMatrix);
+            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ViewInverse, viewInverse);
+            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ProjectionInverse, projectionInverse);
+            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.SkyMatrix, skyMatrix);
             spriteBatch.Draw(texture, destination, null, Color.White, 0, Vector2.Zero, layerDepth: -0.5f);
             spriteBatch.End();
         }

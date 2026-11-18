@@ -93,8 +93,8 @@ namespace Stride.Rendering
                     ref var renderModelFrameInfo = ref RenderModelObjectInfoData[renderPerViewNode.ObjectNode];
                     ref var renderModelViewInfo = ref RenderModelViewInfoData[renderPerViewNodeReference];
 
-                    renderModelViewInfo.WorldView = Matrix4x4.Multiply(renderModelFrameInfo.World, view.View);
-                    renderModelViewInfo.WorldViewProjection = Matrix4x4.Multiply(renderModelFrameInfo.World, view.ViewProjection);
+                    renderModelViewInfo.WorldView = renderModelFrameInfo.World * view.View;
+                    renderModelViewInfo.WorldViewProjection = renderModelFrameInfo.World * view.ViewProjection;
                 }
             }
         }

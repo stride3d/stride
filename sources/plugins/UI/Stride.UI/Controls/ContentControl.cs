@@ -136,7 +136,7 @@ namespace Stride.UI.Controls
                 if (contentMatrixChanged)
                 {
                     var contentMatrix = VisualContent.DependencyProperties.Get(ContentArrangeMatrixPropertyKey);
-                    contentWorldMatrix = Matrix4x4.Multiply(contentMatrix, WorldMatrixInternal);
+                    contentWorldMatrix = contentMatrix * WorldMatrixInternal;
                 }
 
                 ((IUIElementUpdate)VisualContent).UpdateWorldMatrix(ref contentWorldMatrix, contentMatrixChanged);

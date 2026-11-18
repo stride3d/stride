@@ -1246,8 +1246,7 @@ namespace Stride.UI
                 localMatrixCopy.Translation += RenderOffsets + RenderSize / 2;
 
                 // calculate the world matrix of UIElement
-                Matrix4x4 worldMatrix;
-                worldMatrix = Matrix4x4.Multiply(localMatrixCopy, parentWorldMatrix);
+                Matrix4x4 worldMatrix = localMatrixCopy * parentWorldMatrix;
                 WorldMatrix = worldMatrix;
 
                 // Picking (see XK-4689) - this fix relates to the inverted axis introduced in
@@ -1256,7 +1255,7 @@ namespace Stride.UI
                 localMatrixCopy.M31 *= -1;
                 localMatrixCopy.M23 *= -1;
                 localMatrixCopy.M32 *= -1;
-                worldMatrix = Matrix4x4.Multiply(localMatrixCopy, parentWorldMatrix);
+                worldMatrix = localMatrixCopy * parentWorldMatrix;
                 WorldMatrixPickingInternal = worldMatrix;
 
                 LocalMatrixChanged = false;

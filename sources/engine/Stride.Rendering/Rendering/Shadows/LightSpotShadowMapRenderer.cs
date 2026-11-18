@@ -69,7 +69,7 @@ namespace Stride.Rendering.Shadows
             // Update the shadow camera
             Matrix4x4.InvertSafe(renderLight.WorldMatrix, out var viewMatrix);
             var projectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip); // Perspective Projection for spotlights
-            var viewProjectionMatrix = Matrix4x4.Multiply(viewMatrix, projectionMatrix);
+            var viewProjectionMatrix = viewMatrix * projectionMatrix;
 
             var shadowMapRectangle = lightShadowMap.GetRectangle(0);
 
@@ -95,9 +95,9 @@ namespace Stride.Rendering.Shadows
             // Compute receiver view proj matrix
             var scaleMatrix = Matrix4x4.CreateScale(leftX, -leftY, 1.0f);
             var translationMatrix = Matrix4x4.CreateTranslation(centerX, centerY, 0.0f);
-            var adjustmentMatrix = Matrix4x4.Multiply(scaleMatrix, translationMatrix);
+            var adjustmentMatrix = scaleMatrix * translationMatrix;
             // Calculate View Proj matrix from World space to Cascade space
-            shaderData.WorldToShadowCascadeUV = Matrix4x4.Multiply(viewProjectionMatrix, adjustmentMatrix);
+            shaderData.WorldToShadowCascadeUV = viewProjectionMatrix * adjustmentMatrix;
 
             //Matrix rotationMatrix = Matrix.RotationZ(rotationZ);
             //Matrix.Multiply(ref viewProjectionMatrix, ref rotationMatrix, out shaderData.worldToShadowProjectiveTextureUV);
@@ -113,7 +113,7 @@ namespace Stride.Rendering.Shadows
             // Compute view parameters
             shadowRenderView.View = shaderData.ViewMatrix;
             shadowRenderView.Projection = shaderData.ProjectionMatrix;
-            shadowRenderView.ViewProjection = Matrix4x4.Multiply(shadowRenderView.View, shadowRenderView.Projection);
+            shadowRenderView.ViewProjection = shadowRenderView.View * shadowRenderView.Projection;
             shadowRenderView.ViewSize = new Vector2(shadowMapRectangle.Width, shadowMapRectangle.Height);
             shadowRenderView.NearClipPlane = nearClip;
             shadowRenderView.FarClipPlane = farClip;

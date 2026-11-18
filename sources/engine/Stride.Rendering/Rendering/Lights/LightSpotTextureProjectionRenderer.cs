@@ -121,8 +121,7 @@ namespace Stride.Rendering.Lights
             var nearClip = 0.01f;   // TODO: This should be configurable.
             var farClip = spotLight.Range;  // Removed the multiplication by two because I didn't see the point in it.
             var projectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip); // Perspective Projection for spotlights
-            Matrix4x4 viewProjectionMatrix;
-            viewProjectionMatrix = Matrix4x4.Multiply(viewMatrix, projectionMatrix);
+            Matrix4x4 viewProjectionMatrix = viewMatrix * projectionMatrix;
 
             // TODO: Add an offset so we don't have to do it in the shader?
 

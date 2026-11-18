@@ -167,13 +167,12 @@ namespace Stride.Engine
             Vector3 worldTranslation;
             transformComponent.WorldMatrix.Decompose(out worldScale, out worldRotation, out worldTranslation);
 
-            Matrix4x4 worldMatrixInv;
-            Matrix4x4.InvertSafe(transformComponent.WorldMatrix, out worldMatrixInv);
+            Matrix4x4.InvertSafe(transformComponent.WorldMatrix, out Matrix4x4 worldMatrixInv);
 
             position = Vector3.Transform(position, worldMatrixInv);
             worldRotation = Quaternion.Inverse(worldRotation);
             rotation = Quaternion.Concatenate(rotation, worldRotation);
-            scale = Vector3.Divide(scale, worldScale);
+            scale /= worldScale;
         }
 
         /// <summary>
@@ -184,8 +183,7 @@ namespace Stride.Engine
         /// <param name="result">Local space point.</param>
         public static void WorldToLocal(this TransformComponent transformComponent, ref Vector3 point, out Vector3 result)
         {
-            Matrix4x4 worldMatrixInv;
-            Matrix4x4.InvertSafe(transformComponent.WorldMatrix, out worldMatrixInv);
+            Matrix4x4.InvertSafe(transformComponent.WorldMatrix, out Matrix4x4 worldMatrixInv);
             result = Vector3.Transform(point, worldMatrixInv);
         }
 
@@ -198,8 +196,7 @@ namespace Stride.Engine
         public static Vector3 WorldToLocal(this TransformComponent transformComponent, Vector3 point)
         {
             Vector3 result;
-            Matrix4x4 worldMatrixInv;
-            Matrix4x4.InvertSafe(transformComponent.WorldMatrix, out worldMatrixInv);
+            Matrix4x4.InvertSafe(transformComponent.WorldMatrix, out Matrix4x4 worldMatrixInv);
             result = Vector3.Transform(point, worldMatrixInv);
             return result;
         }
@@ -220,7 +217,7 @@ namespace Stride.Engine
 
             position = Vector3.Transform(position, transformComponent.WorldMatrix);
             rotation = Quaternion.Concatenate(rotation, worldRotation);
-            scale = Vector3.Multiply(scale, worldScale);
+            scale *= worldScale;
         }
 
         /// <summary>
@@ -242,8 +239,7 @@ namespace Stride.Engine
         /// <returns>World space point.</returns>
         public static Vector3 LocalToWorld(this TransformComponent transformComponent, Vector3 point)
         {
-            Vector3 result;
-            result = Vector3.Transform(point, transformComponent.WorldMatrix);
+            Vector3 result = Vector3.Transform(point, transformComponent.WorldMatrix);
             return result;
         }
 
@@ -274,8 +270,7 @@ namespace Stride.Engine
             }
 
             ref Matrix4x4 worldMatrix = ref transformComponent.Parent.WorldMatrix;
-            Matrix4x4 worldMatrixInv;
-            Matrix4x4.InvertSafe(worldMatrix, out worldMatrixInv);
+            Matrix4x4.InvertSafe(worldMatrix, out Matrix4x4 worldMatrixInv);
             position = Vector3.Transform(position, worldMatrixInv);
             
             worldMatrix.Decompose(out _, out Quaternion parentRot, out _);
@@ -308,8 +303,7 @@ namespace Stride.Engine
                 return;
             }
 
-            Matrix4x4 worldMatrixInv;
-            Matrix4x4.InvertSafe(transformComponent.Parent.WorldMatrix, out worldMatrixInv);
+            Matrix4x4.InvertSafe(transformComponent.Parent.WorldMatrix, out Matrix4x4 worldMatrixInv);
             position = Vector3.Transform(position, worldMatrixInv);
             
             transformComponent.Position = position;

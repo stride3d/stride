@@ -177,7 +177,7 @@ namespace Stride.UI.Panels
                 var shouldUpdateChildWorldMatrix = shouldUpdateAllChridrenMatrix || childrenWithArrangeMatrixInvalidated.Contains(child);
                 {
                     var childMatrix = child.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
-                    childrenArrangeWorldMatrix[childIndex] = Matrix4x4.Multiply(childMatrix, WorldMatrixInternal);
+                    childrenArrangeWorldMatrix[childIndex] = childMatrix * WorldMatrixInternal;
                 }
 
                 ((IUIElementUpdate)child).UpdateWorldMatrix(ref childrenArrangeWorldMatrix[childIndex], shouldUpdateChildWorldMatrix);

@@ -165,7 +165,7 @@ internal class ShapeCacheSystem : IDisposable, IService
                 for (int i = 0; i < vertSlice.Length; i++)
                 {
                     Matrix4x4 posMatrix = Matrix4x4.CreateTranslation(vertSlice[i]);
-                    var finalMatrix = Matrix4x4.Multiply(posMatrix, nodeTransforms[meshData.NodeIndex]);
+                    var finalMatrix = posMatrix * nodeTransforms[meshData.NodeIndex];
                     vertSlice[i] = finalMatrix.Translation;
                 }
             }
@@ -206,7 +206,7 @@ internal class ShapeCacheSystem : IDisposable, IService
                 for (int i = 0; i < vertSlice.Length; i++)
                 {
                     Matrix4x4 posMatrix = Matrix4x4.CreateTranslation(vertSlice[i]);
-                    var finalMatrix = Matrix4x4.Multiply(posMatrix, nodeTransforms[meshData.NodeIndex]);
+                    var finalMatrix = posMatrix * nodeTransforms[meshData.NodeIndex];
                     vertSlice[i] = finalMatrix.Translation;
                 }
             }
@@ -245,7 +245,7 @@ internal class ShapeCacheSystem : IDisposable, IService
                 if (node.ParentIndex >= i)
                     throw new InvalidOperationException("Skeleton nodes are not sorted");
                 var nodeTransform = nodeTransforms[node.ParentIndex];
-                worldMatrix = Matrix4x4.Multiply(localMatrix, nodeTransform);
+                worldMatrix = localMatrix * nodeTransform;
             }
             else
             {

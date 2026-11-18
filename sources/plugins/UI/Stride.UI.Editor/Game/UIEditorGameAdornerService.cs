@@ -206,7 +206,7 @@ namespace Stride.UI.Editor.Game
                 parentCanvas.SetCanvasAbsolutePosition(parentPosition);
                 parentCanvas.SetCanvasPinOrigin(0.5f * Vector3.One); // centered on origin
 
-                var diffMatrix = Matrix4x4.Multiply(parentMatrixInv, gameSideElement.WorldMatrix);
+                var diffMatrix = parentMatrixInv * gameSideElement.WorldMatrix;
                 var position = diffMatrix.Translation + parentSize * 0.5f;
                 // canvas is sized to the associated UIElement
                 canvas.Size = gameSideElement.RenderSize;

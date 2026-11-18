@@ -311,7 +311,7 @@ namespace Stride.Particles.Rendering
                 var view = renderView;
                 var viewFeature = view.Features[Index];
 
-                view.ViewProjection = Matrix4x4.Multiply(view.View, view.Projection);
+                view.ViewProjection = view.View * view.Projection;
 
                 // Copy ViewProjection to PerFrame cbuffer
                 foreach (var viewLayout in viewFeature.Layouts)
