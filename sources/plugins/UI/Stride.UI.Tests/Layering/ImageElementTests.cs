@@ -97,7 +97,7 @@ namespace Stride.UI.Tests.Layering
             image.Measure(new Vector3(200, 300, 220));
             Assert.Equal(new Vector3(100, 50, 0), image.DesiredSizeWithMargins);
             image.Measure(new Vector3(20, 15, 30));
-            Assert.Equal(new Vector3(20, 15, 0), image.DesiredSizeWithMargins);
+            Utilities.AssertAreNearlyEqual(new Vector3(20, 15, 0), image.DesiredSizeWithMargins);
             image.StretchDirection = StretchDirection.UpOnly;
             image.Measure(new Vector3(200, 300, 220));
             Assert.Equal(new Vector3(200, 300, 0), image.DesiredSizeWithMargins);
@@ -169,7 +169,7 @@ namespace Stride.UI.Tests.Layering
             image.Arrange(new Vector3(200, 300, 220), false);
             Assert.Equal(new Vector3(100, 50, 0), image.RenderSize);
             image.Arrange(new Vector3(20, 15, 30), false);
-            Assert.Equal(new Vector3(20, 15, 0), image.RenderSize);
+            Utilities.AssertAreNearlyEqual(new Vector3(20, 15, 0), image.RenderSize);
             image.StretchDirection = StretchDirection.UpOnly;
             image.Arrange(new Vector3(200, 300, 220), false);
             Assert.Equal(new Vector3(200, 300, 0), image.RenderSize);

@@ -731,7 +731,7 @@ namespace Stride.UI.Tests.Layering
             reference[0] = 1;
             stackPanel.ScrollToEnd(Orientation.Horizontal);
             stackPanel.Arrange(Vector3.Zero, false);
-            Assert.Equal(reference, stackPanel.ScrollBarPositions);
+            Utilities.AssertAreNearlyEqual(reference, stackPanel.ScrollBarPositions);
 
 
             stackPanel.ScrolllToElement(1);

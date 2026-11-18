@@ -776,7 +776,7 @@ public class TestColorBGRA
     public void TestDeconstruct()
     {
         var c = new ColorBGRA(255, 128, 64, 32);
-        c.Deconstruct(out byte r, out byte g, out byte b, out byte a);
+        var (r, g, b, a) = c;
         
         Assert.Equal((byte)255, r);
         Assert.Equal((byte)128, g);

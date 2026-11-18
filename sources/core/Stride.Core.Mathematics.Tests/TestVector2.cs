@@ -519,7 +519,7 @@ public class TestVector2
     public void TestVector2Deconstruct()
     {
         var v = new Vector2(1, 2);
-        v.Deconstruct(out float x, out float y);
+        var (x, y) = v;
 
         Assert.Equal(1.0f, x);
         Assert.Equal(2.0f, y);

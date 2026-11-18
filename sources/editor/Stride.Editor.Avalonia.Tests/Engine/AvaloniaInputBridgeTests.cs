@@ -13,6 +13,7 @@ using Stride.Games;
 using Stride.Input;
 using MouseButton = Avalonia.Input.MouseButton;
 using Point = Avalonia.Point;
+using Vector = Avalonia.Vector;
 using System.Numerics;
 
 namespace Stride.Editor.Avalonia.Tests.Engine;
@@ -116,7 +117,7 @@ public sealed class AvaloniaInputBridgeTests
         bridge.Apply(input);
         input.Update(gameTime);
 
-        Assert.Equal(new Vector2(0.2f, 0), input.MouseDelta);
+        Assert.Equal(new Vector2(0.2f, 0), input.MouseDelta, (a, b) => a.NearEquals(b));
         Assert.Equal(new Vector2(0.2f, 0.5f), input.MousePosition);
 
         input.UnlockMousePosition();

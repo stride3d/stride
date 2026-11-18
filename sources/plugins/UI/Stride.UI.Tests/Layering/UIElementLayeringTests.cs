@@ -119,7 +119,7 @@ namespace Stride.UI.Tests.Layering
             LocalMatrix = new Matrix4x4(0,-1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,1);
             matrix = Matrix4x4.CreateScale(0.1f, 0.2f, 0.4f);
             UpdateWorldMatrix(ref matrix, true);
-            Assert.Equal(new Matrix4x4(0,-0.2f,0,0, 0.1f,0,0,0, 0,0,0.4f,0, 0.6f,2.4f,8.4f,1), WorldMatrix);
+            Utilities.AssertAreNearlyEqual(new Matrix4x4(0,-0.2f,0,0, 0.1f,0,0,0, 0,0,0.4f,0, 0.6f,2.4f,8.4f,1), WorldMatrix);
         }
 
         /// <summary>

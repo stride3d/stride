@@ -475,7 +475,7 @@ public class TestDouble4
     public void TestDouble4Deconstruct()
     {
         var v = new Double4(1, 2, 3, 4);
-        v.Deconstruct(out double x, out double y, out double z, out double w);
+        var (x, y, z, w) = v;
 
         Assert.Equal(1.0, x);
         Assert.Equal(2.0, y);

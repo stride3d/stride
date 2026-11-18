@@ -22,6 +22,11 @@ namespace Stride.UI.Tests.Layering
             Assert.True((reference - value).Length() < 0.001f);
         }
 
+        public static void AssertAreNearlyEqual(Vector3 reference, Vector3 value)
+        {
+            Assert.True((reference - value).Length() < 0.001f);
+        }
+
         public static void AssertAreNearlyEqual(Matrix4x4 reference, Matrix4x4 value)
         {
             var diffMat = reference - value;

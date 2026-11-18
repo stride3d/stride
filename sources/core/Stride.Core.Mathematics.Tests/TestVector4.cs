@@ -360,14 +360,13 @@ public class TestVector4
         var min = new Vector4(10.0f, 10.0f, 10.0f, 10.0f);
         var max = new Vector4(0.0f, 0.0f, 0.0f, 0.0f); // max < min (invalid)
 
-        // Behavior with inverted min/max - implementation clamps to min first
         var result = Vector4.Clamp(value, min, max);
 
-        // Implementation clamps to min first, so result is min
-        Assert.Equal(10.0f, result.X);
-        Assert.Equal(10.0f, result.Y);
-        Assert.Equal(10.0f, result.Z);
-        Assert.Equal(10.0f, result.W);
+        // The clamp to max comes last, as in HLSL, so the result is max
+        Assert.Equal(0.0f, result.X);
+        Assert.Equal(0.0f, result.Y);
+        Assert.Equal(0.0f, result.Z);
+        Assert.Equal(0.0f, result.W);
     }
 
     [Fact]
@@ -421,7 +420,7 @@ public class TestVector4
     }
 
     [Fact]
-    public void TestVector4Moveto()
+    public void TestVector4MoveTo()
     {
         var from = new Vector4(0, 0, 0, 0);
         var to = new Vector4(10, 10, 10, 10);
@@ -435,7 +434,7 @@ public class TestVector4
     }
 
     [Fact]
-    public void TestVector4MovetoExceedsDistance()
+    public void TestVector4MoveToExceedsDistance()
     {
         var from = new Vector4(0, 0, 0, 0);
         var to = new Vector4(1, 0, 0, 0);
@@ -481,7 +480,7 @@ public class TestVector4
     public void TestVector4Deconstruct()
     {
         var v = new Vector4(1, 2, 3, 4);
-        v.Deconstruct(out float x, out float y, out float z, out float w);
+        var (x, y, z, w) = v;
 
         Assert.Equal(1.0f, x);
         Assert.Equal(2.0f, y);

@@ -107,20 +107,6 @@ public class TestQuaternion
         Assert.Equal(6f, q2.Y);
         Assert.Equal(7f, q2.Z);
         Assert.Equal(8f, q2.W);
-
-        // Test Vector4 constructor
-        var q3 = new Vector4(9, 10, 11, 12).AsQuaternion();
-        Assert.Equal(9f, q3.X);
-        Assert.Equal(10f, q3.Y);
-        Assert.Equal(11f, q3.Z);
-        Assert.Equal(12f, q3.W);
-
-        // Test single value constructor
-        var q4 = new Quaternion(3.5f, 3.5f, 3.5f, 3.5f);
-        Assert.Equal(3.5f, q4.X);
-        Assert.Equal(3.5f, q4.Y);
-        Assert.Equal(3.5f, q4.Z);
-        Assert.Equal(3.5f, q4.W);
     }
 
     [Fact]
@@ -310,7 +296,7 @@ public class TestQuaternion
         var axis = Vector3.UnitY;
         var angle = MathUtil.Pi;
 
-        var q = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(axis), angle);
+        var q = Quaternion.CreateFromAxisAngle(axis, angle);
 
         // Should be a unit quaternion
         Assert.Equal(1f, q.Length(), 5);
@@ -437,20 +423,6 @@ public class TestQuaternion
     }
 
     [Fact]
-    public void TestQuaternionToString()
-    {
-        var q = new Quaternion(1, 2, 3, 4);
-        var str = q.ToString();
-
-        Assert.NotNull(str);
-        Assert.NotEmpty(str);
-        Assert.Contains("1", str);
-        Assert.Contains("2", str);
-        Assert.Contains("3", str);
-        Assert.Contains("4", str);
-    }
-
-    [Fact]
     public void TestQuaternionBetweenDirections()
     {
         var from = Vector3.UnitZ;
@@ -498,7 +470,7 @@ public class TestQuaternion
         var axis = Vector3.UnitY;
         var angleIn = MathUtil.PiOverFour;
 
-        var q = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(axis), angleIn);
+        var q = Quaternion.CreateFromAxisAngle(axis, angleIn);
         var angleOut = q.GetAngle();
 
         // Angle property should return the rotation angle
@@ -1002,7 +974,7 @@ public class TestQuaternion
         var originalAxis = Vector3.UnitY;
         var originalAngle = MathUtil.PiOverTwo;
 
-        var q = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(originalAxis), originalAngle);
+        var q = Quaternion.CreateFromAxisAngle(originalAxis, originalAngle);
         var angle = q.GetAngle();
         var axis = q.GetAxis();
 

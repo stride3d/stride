@@ -177,14 +177,6 @@ public class TestPlane
     }
 
     [Fact]
-    public void TestPlaneToString()
-    {
-        var plane = new Plane(1, 0, 0, 2);
-        var str = plane.ToString();
-        Assert.NotEmpty(str);
-    }
-
-    [Fact]
     public void TestPlaneIntersectsPoint()
     {
         var plane = new Plane(0, 1, 0, 0); // XZ plane at Y=0

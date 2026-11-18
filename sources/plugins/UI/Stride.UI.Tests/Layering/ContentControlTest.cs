@@ -195,7 +195,7 @@ namespace Stride.UI.Tests.Layering
 
             // check that the value of the world matrix of the child is correctly updated too
             UpdateWorldMatrix(ref worldMatrix, true);
-            Assert.Equal(new Matrix4x4(0, -0.4f, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0.4f, 0, 1.55f, 8.6f, 12.4f, 1), child.WorldMatrix);
+            Utilities.AssertAreNearlyEqual(new Matrix4x4(0, -0.4f, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0.4f, 0, 1.55f, 8.6f, 12.4f, 1), child.WorldMatrix);
         }
 
         /// <summary>

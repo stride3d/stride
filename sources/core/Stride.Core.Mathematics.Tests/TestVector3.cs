@@ -759,7 +759,7 @@ public class TestVector3
     public void TestVector3Deconstruct()
     {
         var v = new Vector3(1, 2, 3);
-        v.Deconstruct(out float x, out float y, out float z);
+        var (x, y, z) = v;
 
         Assert.Equal(1.0f, x);
         Assert.Equal(2.0f, y);
