@@ -47,6 +47,38 @@ public sealed class DisplayedValueTests
     }
 
     [AvaloniaFact]
+    public async Task VisitingEveryBoxWritesNothingBack()
+    {
+        using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, NewAsset()));
+        var window = new MainWindow { DataContext = fixture.Main };
+        await window.ShowAsync();
+        try
+        {
+            var asset = fixture.Asset(AssetLocation);
+            var original = ValuesOf(asset);
+            var grid = await ShowAsync(fixture, window, [asset]);
+            // Every text box of the editors, the numeric ones included (a box in a numeric box), as the Tab key would
+            var boxes = grid.GetVisualDescendants().OfType<TextBox>()
+                .Where(x => x.IsEffectivelyVisible && x.GetVisualAncestors().OfType<Border>().Any(b => b.Name == "PART_Editor"))
+                .ToList();
+            Assert.NotEmpty(boxes);
+            foreach (var box in boxes)
+            {
+                box.Focus();
+                await WindowTestHelper.PumpAsync();
+            }
+            MoveFocusAway(window, boxes[^1]);
+            await WindowTestHelper.PumpAsync();
+
+            Assert.Empty(Problems(fixture, (asset, original)));
+        }
+        finally
+        {
+            await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
     public async Task ShowingAssetsWithDifferentValuesWritesNothingBack()
     {
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, NewAsset()), (OtherAssetLocation, OtherAsset()));
