@@ -22,7 +22,6 @@ public sealed class NumericTextBox : TemplatedControl
     private bool hasPendingEdit;
     private bool isSyncingTextAndValueProperties;
     private bool isTextChangedFromUI;
-    private IDisposable? textBoxTextChangedSubscription;
 
     static NumericTextBox()
     {
@@ -150,14 +149,16 @@ public sealed class NumericTextBox : TemplatedControl
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
+        // The part's own changes only: a class handler would run for every text box of the application and, being
+        // static, would keep every numeric box alive
         if (TextBox is not null)
         {
-            textBoxTextChangedSubscription?.Dispose();
+            TextBox.PropertyChanged -= OnTextBoxPropertyChanged;
         }
         TextBox = e.NameScope.Find<TextBox>("PART_TextBox");
         if (TextBox is not null)
         {
-            textBoxTextChangedSubscription = TextBox.TextProperty.Changed.AddClassHandler<TextBox>((_, _) => TextBox_OnTextPropertyChanged());
+            TextBox.PropertyChanged += OnTextBoxPropertyChanged;
         }
     }
 
@@ -319,6 +320,12 @@ public sealed class NumericTextBox : TemplatedControl
                 internalValueSet = false;
             }
         }
+    }
+
+    private void OnTextBoxPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == TextBox.TextProperty)
+            TextBox_OnTextPropertyChanged();
     }
 
     private void TextBox_OnTextPropertyChanged()

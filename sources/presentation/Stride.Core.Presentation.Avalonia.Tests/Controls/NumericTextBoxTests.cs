@@ -214,6 +214,44 @@ public sealed class NumericTextBoxTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void AClosedBoxCanBeCollected()
+    {
+        var box = ShowAndClose();
+        // Other text boxes keep changing: the closed box must not be kept alive to hear about them
+        var (window, other) = ShowTextBox();
+        other.Text = "changed";
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+
+        for (var i = 0; i < 3 && box.IsAlive; ++i)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        Assert.False(box.IsAlive);
+    }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static WeakReference ShowAndClose()
+    {
+        var (window, box) = Show(new NumericTextBox { Value = 1 });
+        window.Content = null;
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+        return new WeakReference(box);
+    }
+
+    private static (Window Window, TextBox TextBox) ShowTextBox()
+    {
+        var textBox = new TextBox();
+        var window = new Window { Content = textBox };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        return (window, textBox);
+    }
+
     private static (Window Window, NumericTextBox Box, Source Source) ShowBound(double value)
     {
         var source = new Source(value);
