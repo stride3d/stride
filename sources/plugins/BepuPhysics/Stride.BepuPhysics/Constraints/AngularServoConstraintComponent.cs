@@ -27,11 +27,11 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
     {
         get
         {
-            return BepuConstraint.TargetRelativeRotationLocalA.ToStride();
+            return BepuConstraint.TargetRelativeRotationLocalA;
         }
         set
         {
-            BepuConstraint.TargetRelativeRotationLocalA = value.ToNumeric();
+            BepuConstraint.TargetRelativeRotationLocalA = value;
             TryUpdateDescription();
         }
     }

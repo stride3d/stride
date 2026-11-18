@@ -221,8 +221,8 @@ public sealed class BepuSimulation : IDisposable
     [Display(7, "Gravity", CategoryForces)]
     public Vector3 PoseGravity
     {
-        get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.Gravity.ToStride();
-        set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.Gravity = value.ToNumeric();
+        get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.Gravity;
+        set => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.Gravity = value;
     }
 
     /// <summary>
@@ -444,7 +444,7 @@ public sealed class BepuSimulation : IDisposable
     public bool RayCast(in Vector3 origin, in Vector3 dir, float maxDistance, out HitInfo result, CollisionMask collisionMask = CollisionMask.Everything)
     {
         var handler = new RayClosestHitHandler(this, collisionMask);
-        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, BufferPool, ref handler);
+        Simulation.RayCast(origin, dir, maxDistance, BufferPool, ref handler);
         if (handler.HitInformation.HasValue)
         {
             result = handler.HitInformation.Value;
@@ -475,7 +475,7 @@ public sealed class BepuSimulation : IDisposable
         fixed (HitInfoStack* ptr = &buffer[0])
         {
             var handler = new RayHitsStackHandler(ptr, buffer.Length, this, collisionMask);
-            Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, BufferPool, ref handler);
+            Simulation.RayCast(origin, dir, maxDistance, BufferPool, ref handler);
             return new (buffer[..handler.Head], new ManagedConverter(this));
         }
     }
@@ -492,7 +492,7 @@ public sealed class BepuSimulation : IDisposable
     public void RayCastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything)
     {
         var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
-        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, BufferPool, ref handler);
+        Simulation.RayCast(origin, dir, maxDistance, BufferPool, ref handler);
     }
 
     /// <summary>
@@ -922,9 +922,9 @@ public sealed class BepuSimulation : IDisposable
             if (body.InterpolationMode == InterpolationMode.Extrapolated)
                 interpolationFactor += 1f;
 
-            var interpolatedPosition = System.Numerics.Vector3.Lerp(body.PreviousPose.Position, body.CurrentPose.Position, interpolationFactor).ToStride();
+            var interpolatedPosition = System.Numerics.Vector3.Lerp(body.PreviousPose.Position, body.CurrentPose.Position, interpolationFactor);
             // We may be able to get away with just a Lerp instead of Slerp, not sure if it needs to be normalized though at which point it may not be that much faster
-            var interpolatedRotation = System.Numerics.Quaternion.Slerp(body.PreviousPose.Orientation, body.CurrentPose.Orientation, interpolationFactor).ToStride();
+            var interpolatedRotation = System.Numerics.Quaternion.Slerp(body.PreviousPose.Orientation, body.CurrentPose.Orientation, interpolationFactor);
 
             body.UpdateTransformationComponent(interpolatedPosition, interpolatedRotation);
         }
@@ -954,8 +954,8 @@ public sealed class BepuSimulation : IDisposable
                 component.Parent.Entity.Transform.UpdateWorldMatrix();
             }
 
-            var worldPos = body.Pose.Position.ToStride();
-            var worldRot = body.Pose.Orientation.ToStride();
+            var worldPos = body.Pose.Position;
+            var worldRot = body.Pose.Orientation;
 
             component.UpdateTransformationComponent(worldPos, worldRot);
         }

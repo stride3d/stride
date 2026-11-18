@@ -179,8 +179,8 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
                 case SynchronizationMode.Physics:
                     if (collidable.Pose is { } pose)
                     {
-                        var worldPosition = pose.Position.ToStride();
-                        var worldRotation = pose.Orientation.ToStride();
+                        var worldPosition = pose.Position;
+                        var worldRotation = pose.Orientation;
                         var scale = Vector3.One;
                         worldPosition -= Vector3.Transform(collidable.CenterOfMass, worldRotation);
                         Matrix4x4.CreateTransformation(scale, worldRotation, worldPosition, out matrix);

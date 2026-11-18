@@ -33,11 +33,11 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalOffsetA.ToStride();
+            return BepuConstraint.LocalOffsetA;
         }
         set
         {
-            BepuConstraint.LocalOffsetA = value.ToNumeric();
+            BepuConstraint.LocalOffsetA = value;
             TryUpdateDescription();
         }
     }
@@ -47,11 +47,11 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalOffsetB.ToStride();
+            return BepuConstraint.LocalOffsetB;
         }
         set
         {
-            BepuConstraint.LocalOffsetB = value.ToNumeric();
+            BepuConstraint.LocalOffsetB = value;
             TryUpdateDescription();
         }
     }
@@ -66,11 +66,11 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalPlaneNormal.ToStride();
+            return BepuConstraint.LocalPlaneNormal;
         }
         set
         {
-            BepuConstraint.LocalPlaneNormal = value.ToNumeric();
+            BepuConstraint.LocalPlaneNormal = value;
             TryUpdateDescription();
         }
     }

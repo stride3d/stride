@@ -45,7 +45,7 @@ internal sealed class ContactRecorder : IDisposable
                 continue;
 
             var pose = _simulation.Bodies[contact.Body].Pose;
-            var point = (pose.Position + NVector3.Transform(contact.LocalOffset, pose.Orientation)).ToStride();
+            var point = pose.Position + NVector3.Transform(contact.LocalOffset, pose.Orientation);
             if (pointColor is { } p)
             {
                 lines.AddLine(point - new Vector3(markerSize, 0, 0), point + new Vector3(markerSize, 0, 0), p);
@@ -54,7 +54,7 @@ internal sealed class ContactRecorder : IDisposable
             }
 
             if (normalColor is { } n)
-                lines.AddLine(point, point + NVector3.Transform(contact.LocalNormal, pose.Orientation).ToStride() * size, n);
+                lines.AddLine(point, point + NVector3.Transform(contact.LocalNormal, pose.Orientation) * size, n);
         }
     }
 

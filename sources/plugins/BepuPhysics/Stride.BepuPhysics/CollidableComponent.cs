@@ -307,7 +307,7 @@ public abstract class CollidableComponent : EntityComponent
         // ReSharper disable once ExplicitCallerInfoArgument
         collidableWorldRotation.ValidateRange(Entity, "World Rotation");
 
-        var pose = new NRigidPose((collidableWorldTranslation + collidableWorldRotation * CenterOfMass).ToNumeric(), collidableWorldRotation.ToNumeric());
+        var pose = new NRigidPose(collidableWorldTranslation + collidableWorldRotation * CenterOfMass, collidableWorldRotation);
 
         AttachInner(pose, shapeInertia, ShapeIndex);
 

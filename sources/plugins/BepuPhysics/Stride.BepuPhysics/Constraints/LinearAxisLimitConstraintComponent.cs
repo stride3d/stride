@@ -26,11 +26,11 @@ public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalOffsetA.ToStride();
+            return BepuConstraint.LocalOffsetA;
         }
         set
         {
-            BepuConstraint.LocalOffsetA = value.ToNumeric();
+            BepuConstraint.LocalOffsetA = value;
             TryUpdateDescription();
         }
     }
@@ -40,11 +40,11 @@ public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalOffsetB.ToStride();
+            return BepuConstraint.LocalOffsetB;
         }
         set
         {
-            BepuConstraint.LocalOffsetB = value.ToNumeric();
+            BepuConstraint.LocalOffsetB = value;
             TryUpdateDescription();
         }
     }
@@ -53,11 +53,11 @@ public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalAxis.ToStride();
+            return BepuConstraint.LocalAxis;
         }
         set
         {
-            BepuConstraint.LocalAxis = value.ToNumeric();
+            BepuConstraint.LocalAxis = value;
             TryUpdateDescription();
         }
     }

@@ -1,18 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using NVector3 = System.Numerics.Vector3;
-using SVector3 = System.Numerics.Vector3;
-
-using NQuaternion = System.Numerics.Quaternion;
-using SQuaternion = System.Numerics.Quaternion;
-
 using BRigidPose = BepuPhysics.RigidPose;
 using SRigidPose = Stride.BepuPhysics.Definitions.RigidPose;
 
 using BBodyVelocity = BepuPhysics.BodyVelocity;
 using SBodyVelocity = Stride.BepuPhysics.Definitions.BodyVelocity;
 
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Stride.Core.Mathematics;
 
@@ -27,24 +22,16 @@ internal static class BepuAndStrideExtensions
     public static BBodyVelocity ToBepu(this SBodyVelocity pose) => Unsafe.As<SBodyVelocity, BBodyVelocity>(ref pose);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SBodyVelocity ToStride(this BBodyVelocity pose) => Unsafe.As<BBodyVelocity, SBodyVelocity>(ref pose);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NVector3 ToNumeric(this SVector3 vec) => Unsafe.As<SVector3, NVector3>(ref vec);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SVector3 ToStride(this NVector3 vec) => Unsafe.As<NVector3, SVector3>(ref vec);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NQuaternion ToNumeric(this SQuaternion qua) => Unsafe.As<SQuaternion, NQuaternion>(ref qua);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SQuaternion ToStride(this NQuaternion qua) => Unsafe.As<NQuaternion, SQuaternion>(ref qua);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ValidateRange<T>(this SVector3 vec, T owner, [CallerMemberName] string? fieldName = null)
+    public static void ValidateRange<T>(this Vector3 vec, T owner, [CallerMemberName] string? fieldName = null)
     {
-        if (NVector3.AllWhereAllBitsSet(NVector3.IsFinite(vec)) == false)
+        if (Vector3.AllWhereAllBitsSet(Vector3.IsFinite(vec)) == false)
             throw new ArgumentOutOfRangeException($"{owner}'s {fieldName} must be finite");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ValidateRange<T>(this SQuaternion quat, T owner, [CallerMemberName] string? fieldName = null)
+    public static void ValidateRange<T>(this Quaternion quat, T owner, [CallerMemberName] string? fieldName = null)
     {
         if (quat.IsNormalized == false)
             throw new ArgumentOutOfRangeException($"{owner}'s {fieldName} must be normalized");

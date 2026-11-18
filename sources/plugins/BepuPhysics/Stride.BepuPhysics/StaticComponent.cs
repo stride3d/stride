@@ -38,7 +38,7 @@ public class StaticComponent : CollidableComponent
     [DataMemberIgnore]
     public Vector3 Position
     {
-        get => StaticReference?.Pose.Position.ToStride() ?? default;
+        get => StaticReference?.Pose.Position ?? default;
         set => Teleport(value, Orientation);
     }
 
@@ -57,7 +57,7 @@ public class StaticComponent : CollidableComponent
     [DataMemberIgnore]
     public Quaternion Orientation
     {
-        get => StaticReference?.Pose.Orientation.ToStride() ?? default;
+        get => StaticReference?.Pose.Orientation ?? default;
         set => Teleport(Position, value);
     }
 
@@ -152,7 +152,7 @@ public class StaticComponent : CollidableComponent
 
         if (StaticReference is { } staticRef)
         {
-            staticRef.Pose.Orientation = orientation.ToNumeric();
+            staticRef.Pose.Orientation = orientation;
             staticRef.Pose.Position = position + CenterOfMass;
             staticRef.UpdateBounds();
         }

@@ -73,7 +73,7 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static HitInfoStack GenerateHitInfo(Vector3 location, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim, int childIndex) => new(new(collidable, sim.GetComponent(collidable).Versioning), location.ToStride(), normal.ToStride(), t, childIndex);
+    private static HitInfoStack GenerateHitInfo(Vector3 location, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim, int childIndex) => new(new(collidable, sim.GetComponent(collidable).Versioning), location, normal, t, childIndex);
 
     public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
     {

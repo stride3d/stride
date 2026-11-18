@@ -22,11 +22,11 @@ public sealed class AngularAxisGearMotorConstraintComponent : TwoBodyConstraintC
     {
         get
         {
-            return BepuConstraint.LocalAxisA.ToStride();
+            return BepuConstraint.LocalAxisA;
         }
         set
         {
-            BepuConstraint.LocalAxisA = value.ToNumeric();
+            BepuConstraint.LocalAxisA = value;
             TryUpdateDescription();
         }
     }

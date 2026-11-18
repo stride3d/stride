@@ -22,11 +22,11 @@ public sealed class AngularMotorConstraintComponent : TwoBodyConstraintComponent
     {
         get
         {
-            return BepuConstraint.TargetVelocityLocalA.ToStride();
+            return BepuConstraint.TargetVelocityLocalA;
         }
         set
         {
-            BepuConstraint.TargetVelocityLocalA = value.ToNumeric();
+            BepuConstraint.TargetVelocityLocalA = value;
             TryUpdateDescription();
         }
     }

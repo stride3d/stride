@@ -22,11 +22,11 @@ public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<S
     {
         get
         {
-            return BepuConstraint.AxisLocalA.ToStride();
+            return BepuConstraint.AxisLocalA;
         }
         set
         {
-            BepuConstraint.AxisLocalA = value.ToNumeric();
+            BepuConstraint.AxisLocalA = value;
             TryUpdateDescription();
         }
     }
@@ -35,11 +35,11 @@ public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<S
     {
         get
         {
-            return BepuConstraint.AxisLocalB.ToStride();
+            return BepuConstraint.AxisLocalB;
         }
         set
         {
-            BepuConstraint.AxisLocalB = value.ToNumeric();
+            BepuConstraint.AxisLocalB = value;
             TryUpdateDescription();
         }
     }
