@@ -56,8 +56,8 @@ namespace Stride.Physics
             return MathF.Abs(other.Height - Height) < float.Epsilon &&
                    MathF.Abs(other.Radius - Radius) < float.Epsilon &&
                    other.Orientation == Orientation &&
-                   other.LocalOffset.NearEquals(LocalOffset) &&
-                   other.LocalRotation.NearEquals(LocalRotation);
+                   other.LocalOffset == LocalOffset &&
+                   other.LocalRotation == LocalRotation;
         }
 
         public ColliderShape CreateShape(IServiceRegistry services)

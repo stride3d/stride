@@ -137,7 +137,7 @@ namespace Stride.Graphics
             get { return BordersInternal; }
             set
             {
-                if (value.NearEquals(BordersInternal))
+                if (value == BordersInternal)
                     return;
 
                 BordersInternal = value;
@@ -170,7 +170,7 @@ namespace Stride.Graphics
             get { return sizeInPixels; }
             private set
             {
-                if (value.NearEquals(sizeInPixels))
+                if (value == sizeInPixels)
                     return;
 
                 sizeInPixels = value;
@@ -188,7 +188,7 @@ namespace Stride.Graphics
             get { return pixelsPerUnit; }
             set
             {
-                if (pixelsPerUnit.NearEquals(value))
+                if (pixelsPerUnit == value)
                     return;
 
                 pixelsPerUnit = value;

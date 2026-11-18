@@ -406,11 +406,11 @@ public class TestQuaternion
         var q2 = new Quaternion(1, 2, 3, 4);
         var q3 = new Quaternion(1, 2, 3, 5);
 
-        Assert.True(q1.NearEquals(q2));
-        Assert.False(q1.NearEquals(q3));
-        Assert.True(!q1.NearEquals(q3));
-        Assert.True(q1.NearEquals(q2));
-        Assert.False(q1.NearEquals(q3));
+        Assert.True(q1 == q2);
+        Assert.False(q1 == q3);
+        Assert.True(q1 != q3);
+        Assert.True(q1.Equals(q2));
+        Assert.False(q1.Equals(q3));
     }
 
     [Fact]
@@ -879,13 +879,13 @@ public class TestQuaternion
         var q2 = new Quaternion(1.0f, 2.0f, 3.0f, 4.0f);
         var q3 = Quaternion.Identity;
 
-        Assert.True(q1.NearEquals(q2));
-        Assert.False(q1.NearEquals(q3));
-        Assert.False(!q1.NearEquals(q2));
-        Assert.True(!q1.NearEquals(q3));
+        Assert.True(q1 == q2);
+        Assert.False(q1 == q3);
+        Assert.False(q1 != q2);
+        Assert.True(q1 != q3);
 
-        Assert.True(q1.NearEquals(q2));
-        Assert.False(q1.NearEquals(q3));
+        Assert.True(q1.Equals(q2));
+        Assert.False(q1.Equals(q3));
     }
 
     [Fact]

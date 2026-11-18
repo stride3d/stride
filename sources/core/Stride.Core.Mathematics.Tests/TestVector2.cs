@@ -212,13 +212,13 @@ public class TestVector2
         var v2 = new Vector2(3.5f, 4.2f);
         var v3 = new Vector2(5.1f, 6.3f);
 
-        Assert.True(v1.NearEquals(v2));
-        Assert.False(v1.NearEquals(v3));
-        Assert.False(!v1.NearEquals(v2));
-        Assert.True(!v1.NearEquals(v3));
+        Assert.True(v1 == v2);
+        Assert.False(v1 == v3);
+        Assert.False(v1 != v2);
+        Assert.True(v1 != v3);
 
-        Assert.True(v1.NearEquals(v2));
-        Assert.False(v1.NearEquals(v3));
+        Assert.True(v1.Equals(v2));
+        Assert.False(v1.Equals(v3));
         Assert.False(v1.Equals(null));
         Assert.False(v1.Equals(new object()));
     }
@@ -451,7 +451,7 @@ public class TestVector2
 
         // Should be exactly equal due to same calculation
         Assert.Equal(v1, v2);
-        Assert.True(v1.NearEquals(v2));
+        Assert.True(v1 == v2);
     }
 
     [Fact]

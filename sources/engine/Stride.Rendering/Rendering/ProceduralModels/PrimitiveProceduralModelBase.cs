@@ -104,7 +104,7 @@ namespace Stride.Rendering.ProceduralModels
                 throw new InvalidOperationException("Invalid GeometricPrimitive [{0}]. Expecting non-zero Vertices array");
             }
 
-            if (!LocalOffset.NearEquals(Vector3.Zero))
+            if (LocalOffset != Vector3.Zero)
             {
                 for (var index = 0; index < data.Vertices.Length; index++)
                 {
@@ -113,7 +113,7 @@ namespace Stride.Rendering.ProceduralModels
             }
 
             //Scale if necessary
-            if (!Scale.NearEquals(Vector3.One))
+            if (Scale != Vector3.One)
             {
                 var inverseMatrix = Matrix4x4.CreateScale(Scale);
                 Matrix4x4.InvertSafe(inverseMatrix, out inverseMatrix);

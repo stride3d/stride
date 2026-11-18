@@ -93,7 +93,7 @@ namespace Stride.Graphics.Font
 
             return Character == other.Character
                 && FontName == other.FontName
-                && Size.NearEquals(other.Size)
+                && Size == other.Size
                 && Style == other.Style
                 && AntiAlias == other.AntiAlias;
         }

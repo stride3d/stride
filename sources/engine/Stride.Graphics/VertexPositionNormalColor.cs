@@ -59,7 +59,7 @@ namespace Stride.Graphics
 
         public bool Equals(VertexPositionNormalColor other)
         {
-            return Position.NearEquals(other.Position) && Normal.NearEquals(other.Normal) && Color.Equals(other.Color);
+            return Position == other.Position && Normal == other.Normal && Color.Equals(other.Color);
         }
 
         public override bool Equals(object obj)

@@ -54,7 +54,7 @@ namespace Stride.Physics
                 return false;
             }
 
-            if (!LocalOffset.NearEquals(other.LocalOffset) || !LocalRotation.NearEquals(other.LocalRotation))
+            if (LocalOffset != other.LocalOffset || LocalRotation != other.LocalRotation)
             {
                 return false;
             }

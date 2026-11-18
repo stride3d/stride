@@ -454,7 +454,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             return;
 
         var node = Session.AssetNodeContainer.GetNode(entity.AssetSideEntity.Transform);
-        // Update properties only when they actually changed
+        // Update properties only when they actually changed (with a tolerance: the game computes these values)
         if (!((Vector3)node[nameof(TransformComponent.Position)].Retrieve()!).NearEquals(transformation.Position))
             node[nameof(TransformComponent.Position)].Update(transformation.Position);
         if (!((Quaternion)node[nameof(TransformComponent.Rotation)].Retrieve()!).NearEquals(transformation.Rotation))

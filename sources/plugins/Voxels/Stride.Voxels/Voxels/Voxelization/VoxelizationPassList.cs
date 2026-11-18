@@ -16,7 +16,7 @@ namespace Stride.Rendering.Voxels
             bool toAdd = true;
             foreach (VoxelizationPass pass in passes)
             {
-                if (pass.storer.Equals(storer) && pass.method.Equals(method) && pass.view.ViewProjection.NearEquals(view.ViewProjection))
+                if (pass.storer.Equals(storer) && pass.method.Equals(method) && pass.view.ViewProjection == view.ViewProjection)
                 {
                     pass.Add(attr, stage, output, shadows);
                     toAdd = false;

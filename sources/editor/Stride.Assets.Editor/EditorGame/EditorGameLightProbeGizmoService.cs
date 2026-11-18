@@ -263,7 +263,7 @@ public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IE
                 if (lightProbeRuntimeData.LightProbes[lightProbeIndex] is not LightProbeComponent lightProbe)
                     continue;
 
-                if (!lightProbe.Entity.Transform.WorldMatrix.Translation.NearEquals(lightProbeRuntimeData.Vertices[lightProbeIndex]))
+                if (lightProbe.Entity.Transform.WorldMatrix.Translation != lightProbeRuntimeData.Vertices[lightProbeIndex])
                 {
                     needPositionRefresh = true;
                     needWireframeRefresh = true;

@@ -30,7 +30,7 @@ namespace Stride.Physics
         {
             var other = obj as StaticPlaneColliderShapeDesc;
             if (other == null) return false;
-            return other.Normal.NearEquals(Normal) && Math.Abs(other.Offset - Offset) < float.Epsilon;
+            return other.Normal == Normal && Math.Abs(other.Offset - Offset) < float.Epsilon;
         }
 
         public ColliderShape CreateShape(IServiceRegistry services)

@@ -77,7 +77,7 @@ namespace Stride.Graphics
 
         public bool Equals(VertexPositionNormalTexture other)
         {
-            return Position.NearEquals(other.Position) && Normal.NearEquals(other.Normal) && TextureCoordinate.NearEquals(other.TextureCoordinate);
+            return Position == other.Position && Normal == other.Normal && TextureCoordinate == other.TextureCoordinate;
         }
 
         public override bool Equals(object obj)

@@ -198,7 +198,7 @@ namespace Stride.Physics.Editor
 
                             skinnedElement.BoneWorldMatrixOut = skeleton.NodeTransformations[boneIndex].WorldMatrix;
 
-                            if (!skinnedElement.ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !skinnedElement.ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
+                            if (skinnedElement.ColliderShape.LocalOffset != Vector3.Zero || skinnedElement.ColliderShape.LocalRotation != Quaternion.Identity)
                             {
                                 skinnedElement.BoneWorldMatrixOut = Matrix4x4.Multiply(skinnedElement.ColliderShape.PositiveCenterMatrix, skinnedElement.BoneWorldMatrixOut);
                             }
@@ -244,7 +244,7 @@ namespace Stride.Physics.Editor
 
                         skinnedElement.BoneWorldMatrixOut = skeleton.NodeTransformations[skinnedElement.BoneIndex].WorldMatrix;
 
-                        if (!skinnedElement.ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !skinnedElement.ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
+                        if (skinnedElement.ColliderShape.LocalOffset != Vector3.Zero || skinnedElement.ColliderShape.LocalRotation != Quaternion.Identity)
                         {
                             skinnedElement.BoneWorldMatrixOut = Matrix4x4.Multiply(skinnedElement.ColliderShape.PositiveCenterMatrix, skinnedElement.BoneWorldMatrixOut);
                         }
@@ -254,7 +254,7 @@ namespace Stride.Physics.Editor
                     Component.DebugEntity.Transform.Position = pos;
                     Component.DebugEntity.Transform.Rotation = rot;
 
-                    if (Component.CanScaleShape && !Component.DebugEntity.Transform.Scale.NearEquals(scale))
+                    if (Component.CanScaleShape)
                     {
                         Component.DebugEntity.Transform.Scale = scale;
                     }
@@ -267,7 +267,7 @@ namespace Stride.Physics.Editor
                     Component.DebugEntity.Transform.Position = pos;
                     Component.DebugEntity.Transform.Rotation = rot;
 
-                    if (Component.CanScaleShape && !Component.DebugEntity.Transform.Scale.NearEquals(scale))
+                    if (Component.CanScaleShape)
                     {
                         Component.DebugEntity.Transform.Scale = scale;
                     }

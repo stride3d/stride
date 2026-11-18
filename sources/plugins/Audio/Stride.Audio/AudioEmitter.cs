@@ -49,10 +49,11 @@ namespace Stride.Audio
             }
             set
             {
-                if (value.NearEquals(Vector3.Zero))
+                var length = value.Length();
+                if (length == 0)
                     throw new InvalidOperationException("The value of the Up vector can not be (0,0,0)");
 
-                up = Vector3.NormalizeSafe(value);
+                up = value / length;
             }
         }
 
@@ -77,10 +78,11 @@ namespace Stride.Audio
             }
             set
             {
-                if (value.NearEquals(Vector3.Zero))
+                var length = value.Length();
+                if (length == 0)
                     throw new InvalidOperationException("The value of the Forward vector can not be (0,0,0)");
 
-                forward = Vector3.NormalizeSafe(value);
+                forward = value / length;
             }
         }
 

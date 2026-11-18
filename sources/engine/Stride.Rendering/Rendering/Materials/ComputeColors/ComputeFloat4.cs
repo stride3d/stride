@@ -43,7 +43,7 @@ namespace Stride.Rendering.Materials.ComputeColors
         {
             get
             {
-                if (!hasChanged && cachedValue.NearEquals(Value))
+                if (!hasChanged && cachedValue == Value)
                     return false;
 
                 hasChanged = false;

@@ -40,7 +40,7 @@ namespace Stride.Physics
         public bool Match(object obj)
         {
             var other = obj as BoxColliderShapeDesc;
-            return other?.Is2D == Is2D && other.Size.NearEquals(Size) && other.LocalOffset.NearEquals(LocalOffset) && other.LocalRotation.NearEquals(LocalRotation);
+            return other?.Is2D == Is2D && other.Size == Size && other.LocalOffset == LocalOffset && other.LocalRotation == LocalRotation;
         }
 
         public ColliderShape CreateShape(IServiceRegistry services)

@@ -427,7 +427,7 @@ namespace Stride.Rendering.Images
                         Matrix4x4 world = volume.World;
                         BoundingBox.Transform(ref mesh.BoundingBox, ref world, out meshBoundingBox);
                         var boundingBoxExt = new BoundingBoxExt(meshBoundingBox);
-                        if (!boundingBoxExt.Extent.NearEquals(Vector3.Zero)
+                        if (boundingBoxExt.Extent != Vector3.Zero
                             && !VisibilityGroup.FrustumContainsBox(ref frustum, ref boundingBoxExt, true))
                             continue;
 

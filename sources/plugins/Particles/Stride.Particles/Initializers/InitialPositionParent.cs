@@ -88,7 +88,7 @@ namespace Stride.Particles.Initializers
             var yAxis = new Vector3(0, PositionMax.Y * WorldScale.Y - leftCorner.Y, 0);
             var zAxis = new Vector3(0, 0, PositionMax.Z * WorldScale.Z - leftCorner.Z);
 
-            if (!WorldRotation.NearEquals(Quaternion.Identity))
+            if (!WorldRotation.IsIdentity)
             {
                 leftCorner = Vector3.Transform(leftCorner, WorldRotation);
                 xAxis = Vector3.Transform(xAxis, WorldRotation);

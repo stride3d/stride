@@ -108,7 +108,7 @@ public sealed class SceneEditorViewModel : EntityHierarchyEditorViewModel, IAsse
     {
         if (element is SceneRootViewModel root)
         {
-            // Update the offset only when it actually changed
+            // Update the offset only when it actually changed (with a tolerance: the game computes it)
             if (!root.Offset.NearEquals(transformation.Position))
                 root.Offset = transformation.Position;
             return;

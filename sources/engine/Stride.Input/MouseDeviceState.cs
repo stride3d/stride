@@ -88,7 +88,7 @@ namespace Stride.Input
         /// <param name="delta">The movement delta</param>
         public void HandleMouseDelta(Vector2 delta)
         {
-            if (delta.NearEquals(Vector2.Zero))
+            if (delta == Vector2.Zero)
                 return;
 
             // Normalize delta
@@ -173,7 +173,7 @@ namespace Stride.Input
             // Normalize position
             newPosition *= PointerState.InverseSurfaceSize;
 
-            if (!newPosition.NearEquals(Position))
+            if (newPosition != Position)
             {
                 nextDelta += newPosition - Position;
                 Position = newPosition;

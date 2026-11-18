@@ -90,8 +90,8 @@ namespace Stride.UI.Editor.Game
                 // compare some properties involved in layout with their previous "seen" values
                 if (prevMargin == gameSideElement.Margin &&
                     prevParentId == gameSideElement.VisualParent?.Id &&
-                    prevRenderSize.NearEquals(gameSideElement.RenderSize) &&
-                    prevWorldMatrix.NearEquals(gameSideElement.WorldMatrix))
+                    prevRenderSize == gameSideElement.RenderSize &&
+                    prevWorldMatrix == gameSideElement.WorldMatrix)
                 {
                     // still valid
                     return true;

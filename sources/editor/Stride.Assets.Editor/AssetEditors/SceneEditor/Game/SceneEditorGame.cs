@@ -272,7 +272,7 @@ namespace Stride.Assets.Editor.AssetEditors.SceneEditor.Game
                 while (Game.IsRunning)
                 {
                     var newPosition = Entity.Transform.Position;
-                    if (!newPosition.NearEquals(oldPositon))
+                    if (newPosition != oldPositon)
                     {
                         // Note: anchor id is equal to the corresponding scene id
                         var scene = Game.GetScene(Entity.Id);

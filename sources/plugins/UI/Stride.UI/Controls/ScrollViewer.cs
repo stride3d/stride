@@ -425,7 +425,7 @@ namespace Stride.UI.Controls
                 CurrentScrollingSpeed[index] = Math.Sign(CurrentScrollingSpeed[index]) * Math.Max(0, Math.Abs(CurrentScrollingSpeed[index]) - elapsedSeconds * Deceleration);
 
             // update the scrolling position
-            if (!lastFrameTranslation.NearEquals(Vector3.Zero))
+            if (lastFrameTranslation != Vector3.Zero)
                 ScrollOfInternal(ref lastFrameTranslation, false);
 
             // Smoothly hide the scroll bars if the no movements

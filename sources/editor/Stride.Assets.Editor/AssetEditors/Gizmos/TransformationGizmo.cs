@@ -42,7 +42,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
             public bool IsIdentity()
             {
-                return Translation.NearEquals(Vector3.Zero) && Rotation.NearEquals(Quaternion.Identity) && Scale.NearEquals(Vector3.One);
+                return Translation == Vector3.Zero && Rotation == Quaternion.Identity && Scale == Vector3.One;
             }
         }
 
@@ -210,7 +210,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                     {
                         // Root entity in subscene — use Scene.Offset as parent matrix
                         var scene = AnchorEntity.Scene;
-                        parentMatrix = (scene != null && !scene.Offset.NearEquals(Vector3.Zero))
+                        parentMatrix = (scene != null && scene.Offset != Vector3.Zero)
                             ? Matrix4x4.CreateTranslation(scene.Offset)
                             : Matrix4x4.Identity;
                     }
@@ -392,7 +392,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 else
                 {
                     var scene = entity.Scene;
-                    inverseParent = (scene != null && !scene.Offset.NearEquals(Vector3.Zero))
+                    inverseParent = (scene != null && scene.Offset != Vector3.Zero)
                         ? (Matrix4x4.Invert(Matrix4x4.CreateTranslation(scene.Offset), out var inverse) ? inverse : default)
                         : Matrix4x4.Identity;
                 }
@@ -489,7 +489,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 var initialTransfo = InitialTransformations[entity];
                 var entityTransfo = entity.Transform;
                 
-                if (initialTransfo.InverseParentMatrix.NearEquals(default(Matrix4x4)))
+                if (initialTransfo.InverseParentMatrix == default)
                 {
                     // This usually occurs when at least one axis is scaled to zero (because the matrix inversion
                     // function returns Matrix.Zero if the determinant is too small).
@@ -516,7 +516,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 entityTransfo.Position = initialTransfo.Translation + Vector3.TransformNormal(transformation.Translation, gizmoToParentMatrix);
 
                 // the rotation
-                if (!transformation.Rotation.NearEquals(Quaternion.Identity))
+                if (transformation.Rotation != Quaternion.Identity)
                 {
                     Matrix4x4.InvertSafe(gizmoToParentMatrix * Matrix4x4.CreateTranslation(-initialTransfo.Translation), out var entityToGizmoMatrix);
                     var entityToRotatedGizmoMatrix = entityToGizmoMatrix * Matrix4x4.CreateFromQuaternion(transformation.Rotation);

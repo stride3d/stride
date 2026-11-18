@@ -72,7 +72,7 @@ namespace Stride.Rendering.Sprites
             var halfSpriteSize = Sprite?.Size / 2 ?? Vector2.Zero;
 
             // Only calculate if we've changed...
-            if (!lastWorldMatrix.NearEquals(WorldMatrix) || !lastHalfSpriteSize.NearEquals(halfSpriteSize) || lastSpriteType != SpriteType)
+            if (lastWorldMatrix != WorldMatrix || lastHalfSpriteSize != halfSpriteSize || lastSpriteType != SpriteType)
             {
                 Vector3 halfBoxSize;
                 var boxWorldPosition = WorldMatrix.Translation;

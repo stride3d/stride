@@ -356,7 +356,7 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
     private bool HasCameraMoved()
     {
         var position = Context.Camera.Position;
-        var moved = !position.NearEquals(lastCameraPosition);
+        var moved = position != lastCameraPosition;
         lastCameraPosition = position;
         return moved;
     }

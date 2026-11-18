@@ -892,13 +892,13 @@ public class TestMatrix
         var m2 = new Matrix4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
         var m3 = Matrix4x4.Identity;
 
-        Assert.True(m1.NearEquals(m2));
-        Assert.False(m1.NearEquals(m3));
-        Assert.False(!m1.NearEquals(m2));
-        Assert.True(!m1.NearEquals(m3));
+        Assert.True(m1 == m2);
+        Assert.False(m1 == m3);
+        Assert.False(m1 != m2);
+        Assert.True(m1 != m3);
 
-        Assert.True(m1.NearEquals(m2));
-        Assert.False(m1.NearEquals(m3));
+        Assert.True(m1.Equals(m2));
+        Assert.False(m1.Equals(m3));
     }
 
     [Fact]

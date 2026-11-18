@@ -190,13 +190,13 @@ public class TestVector4
         var v2 = new Vector4(3.5f, 4.2f, 5.1f, 6.3f);
         var v3 = new Vector4(5.1f, 6.3f, 7.2f, 8.4f);
 
-        Assert.True(v1.NearEquals(v2));
-        Assert.False(v1.NearEquals(v3));
-        Assert.False(!v1.NearEquals(v2));
-        Assert.True(!v1.NearEquals(v3));
+        Assert.True(v1 == v2);
+        Assert.False(v1 == v3);
+        Assert.False(v1 != v2);
+        Assert.True(v1 != v3);
 
-        Assert.True(v1.NearEquals(v2));
-        Assert.False(v1.NearEquals(v3));
+        Assert.True(v1.Equals(v2));
+        Assert.False(v1.Equals(v3));
         Assert.False(v1.Equals(null));
         Assert.False(v1.Equals(new object()));
     }

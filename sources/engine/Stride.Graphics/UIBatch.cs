@@ -350,7 +350,7 @@ namespace Stride.Graphics
                 ColorAdd = Color.Zero,
                 Swizzle = swizzle,
                 SnapImage = snapImage,
-                Primitive = borderSize.NearEquals(Vector4.Zero) ? PrimitiveType.Rectangle : PrimitiveType.BorderRectangle,
+                Primitive = borderSize == Vector4.Zero ? PrimitiveType.Rectangle : PrimitiveType.BorderRectangle,
                 BorderSize = new Vector4(borderSize.X / sourceRectangle.Width, borderSize.Y / sourceRectangle.Height, borderSize.Z / sourceRectangle.Width, borderSize.W / sourceRectangle.Height),
             };
 

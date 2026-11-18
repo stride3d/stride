@@ -160,7 +160,7 @@ namespace Stride.Graphics.Regression
             }
 
             // Change rotation only if changed at least once (try to keep original one)
-            if (!rotationDelta.NearEquals(Vector2.Zero))
+            if (rotationDelta != Vector2.Zero)
             {
                 applyRotation = true;
             }

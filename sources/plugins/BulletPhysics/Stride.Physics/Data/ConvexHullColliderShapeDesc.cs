@@ -70,11 +70,11 @@ namespace Stride.Physics
             if (other == null)
                 return false;
 
-            if (!other.LocalOffset.NearEquals(LocalOffset) || !other.LocalRotation.NearEquals(LocalRotation))
+            if (other.LocalOffset != LocalOffset || other.LocalRotation != LocalRotation)
                 return false;
 
             return other.Model == Model &&
-                   other.Scaling.NearEquals(Scaling) &&
+                   other.Scaling == Scaling &&
                    other.Decomposition.Match(Decomposition);
         }
 

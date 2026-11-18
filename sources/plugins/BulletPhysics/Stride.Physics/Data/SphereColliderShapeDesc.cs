@@ -37,7 +37,7 @@ namespace Stride.Physics
         public bool Match(object obj)
         {
             var other = obj as SphereColliderShapeDesc;
-            return other?.Is2D == Is2D && Math.Abs(other.Radius - Radius) < float.Epsilon && other.LocalOffset.NearEquals(LocalOffset);
+            return other?.Is2D == Is2D && Math.Abs(other.Radius - Radius) < float.Epsilon && other.LocalOffset == LocalOffset;
         }
 
         public ColliderShape CreateShape(IServiceRegistry services)

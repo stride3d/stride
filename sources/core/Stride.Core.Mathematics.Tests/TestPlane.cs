@@ -156,13 +156,13 @@ public class TestPlane
         var plane2 = new Plane(1, 0, 0, 2);
         var plane3 = new Plane(0, 1, 0, 2);
 
-        Assert.True(plane1.NearEquals(plane2));
-        Assert.False(plane1.NearEquals(plane3));
-        Assert.False(!plane1.NearEquals(plane2));
-        Assert.True(!plane1.NearEquals(plane3));
+        Assert.True(plane1 == plane2);
+        Assert.False(plane1 == plane3);
+        Assert.False(plane1 != plane2);
+        Assert.True(plane1 != plane3);
 
-        Assert.True(plane1.NearEquals(plane2));
-        Assert.False(plane1.NearEquals(plane3));
+        Assert.True(plane1.Equals(plane2));
+        Assert.False(plane1.Equals(plane3));
     }
 
     [Fact]

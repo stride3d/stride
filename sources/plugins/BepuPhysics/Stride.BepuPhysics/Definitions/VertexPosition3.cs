@@ -43,7 +43,7 @@ internal struct VertexPosition3 : IEquatable<VertexPosition3>, IVertexStructure
 
     public bool Equals(VertexPosition3 other)
     {
-        return Position.NearEquals(other.Position);
+        return Position == other.Position;
     }
 
     public override bool Equals(object? obj)

@@ -204,13 +204,15 @@ namespace Stride.Rendering.LightProbes
                 }
             }
 
-            // Normalize and generate extrapolated probe
+            // Generate an extrapolated probe along the normal of each outer vertex
             for (int i = 0; i < outerVertexNormals.Length; ++i)
             {
-                outerVertexNormals[i] = Vector3.NormalizeSafe(outerVertexNormals[i]);
-                if (!outerVertexNormals[i].NearEquals(Vector3.Zero))
+                // The normals of the faces around a vertex inside the hull cancel out
+                var length = outerVertexNormals[i].Length();
+                if (length > MathUtil.ZeroTolerance)
                 {
-                    extraVertices.Add(vertices[i] + outerVertexNormals[i] * ExtrapolationDistance);
+                    var normal = outerVertexNormals[i] * (1.0f / length);
+                    extraVertices.Add(vertices[i] + normal * ExtrapolationDistance);
                 }
             }
 

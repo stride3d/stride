@@ -56,7 +56,7 @@ namespace Stride.Physics
             }
 
             return other.HeightStickSize == HeightStickSize &&
-                other.HeightRange.NearEquals(HeightRange) &&
+                other.HeightRange == HeightRange &&
                 Math.Abs(other.InitialHeight - InitialHeight) < float.Epsilon;
         }
     }

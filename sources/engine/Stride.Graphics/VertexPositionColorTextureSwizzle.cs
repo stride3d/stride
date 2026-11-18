@@ -74,7 +74,7 @@ namespace Stride.Graphics
 
         public bool Equals(VertexPositionColorTextureSwizzle other)
         {
-            return Position.NearEquals(other.Position) && ColorScale.Equals(other.ColorScale) && ColorAdd.Equals(other.ColorAdd) && TextureCoordinate.NearEquals(other.TextureCoordinate);
+            return Position == other.Position && ColorScale.Equals(other.ColorScale) && ColorAdd.Equals(other.ColorAdd) && TextureCoordinate == other.TextureCoordinate;
         }
 
         public override bool Equals(object obj)

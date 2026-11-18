@@ -194,13 +194,8 @@ namespace Stride.Rendering.UI
                 var virtualOrigin = uiElementState.WorldViewProjectionMatrix.W;
                 var virtualWidth = new Vector4(virtualResolution.X / 2, 0, 0, 1);
                 var virtualHeight = new Vector4(0, virtualResolution.Y / 2, 0, 1);
-                var transformedVirtualWidth = Vector4.Zero;
-                var transformedVirtualHeight = Vector4.Zero;
-                for (var i = 0; i < 4; i++)
-                {
-                    transformedVirtualWidth[i] = virtualWidth[0] * uiElementState.WorldViewProjectionMatrix[(0 + i) / 4, (0 + i) % 4] + uiElementState.WorldViewProjectionMatrix[(12 + i) / 4, (12 + i) % 4];
-                    transformedVirtualHeight[i] = virtualHeight[1] * uiElementState.WorldViewProjectionMatrix[(4 + i) / 4, (4 + i) % 4] + uiElementState.WorldViewProjectionMatrix[(12 + i) / 4, (12 + i) % 4];
-                }
+                var transformedVirtualWidth = Vector4.Transform(virtualWidth, uiElementState.WorldViewProjectionMatrix);
+                var transformedVirtualHeight = Vector4.Transform(virtualHeight, uiElementState.WorldViewProjectionMatrix);
 
                 var viewportSize = context.CommandList.Viewport.Size;
                 var projectedOrigin = virtualOrigin.XY() / virtualOrigin.W;
@@ -224,7 +219,7 @@ namespace Stride.Rendering.UI
 
                 // update the UI element hierarchical properties
                 var rootMatrix = Matrix4x4.CreateTranslation(-virtualResolution / 2); // UI world is translated by a half resolution compared to its quad, which is centered around the origin
-                updatableRootElement.UpdateWorldMatrix(ref rootMatrix, !rootMatrix.NearEquals(uiElementState.RenderObject.LastRootMatrix));
+                updatableRootElement.UpdateWorldMatrix(ref rootMatrix, rootMatrix != uiElementState.RenderObject.LastRootMatrix);
                 updatableRootElement.UpdateElementState(0);
                 uiElementState.RenderObject.LastRootMatrix = rootMatrix;
 

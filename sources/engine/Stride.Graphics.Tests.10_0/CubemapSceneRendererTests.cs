@@ -95,7 +95,7 @@ public class CubemapSceneRendererTests : EmissiveBoxCaptureTestBase
     /// </summary>
     private static Color3 QuadrantColor(Vector3 axis, float first, float second)
     {
-        var wall = Array.FindIndex(WallAxes, a => a.NearEquals(axis));
+        var wall = Array.FindIndex(WallAxes, a => a == axis);
 
         return new Color3(
             (wall + 1) / 6.0f,

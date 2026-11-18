@@ -480,6 +480,7 @@ namespace Stride.Engine
             //handle dynamic scaling if allowed (aka not using assets)
             if (CanScaleShape)
             {
+                // With a tolerance: the scale is read back from a matrix, and setting it updates the shape
                 if (!ColliderShape.Scaling.NearEquals(scale))
                 {
                     ColliderShape.Scaling = scale;
@@ -487,7 +488,7 @@ namespace Stride.Engine
             }
 
             //Handle collider shape offset
-            if (!ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
+            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
             {
                 derivedTransformation = Matrix4x4.Multiply(ColliderShape.PositiveCenterMatrix, derivedTransformation);
             }
@@ -501,7 +502,7 @@ namespace Stride.Engine
         {
             var entity = Entity;
 
-            if (!ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
+            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
             {
                 physicsTransform = Matrix4x4.Multiply(ColliderShape.NegativeCenterMatrix, physicsTransform);
             }
@@ -523,7 +524,7 @@ namespace Stride.Engine
 
             if (DebugEntity == null) return;
 
-            if (!ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
+            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
             {
                 physicsTransform = Matrix4x4.Multiply(ColliderShape.PositiveCenterMatrix, physicsTransform);
             }
@@ -539,7 +540,7 @@ namespace Stride.Engine
         /// <param name="physicsTransform"></param>
         internal void UpdateBoneTransformation(ref Matrix4x4 physicsTransform)
         {
-            if (!ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
+            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
             {
                 physicsTransform = Matrix4x4.Multiply(ColliderShape.NegativeCenterMatrix, physicsTransform);
             }
@@ -556,7 +557,7 @@ namespace Stride.Engine
 
             if (DebugEntity == null) return;
 
-            if (!ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
+            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
             {
                 physicsTransform = Matrix4x4.Multiply(ColliderShape.PositiveCenterMatrix, physicsTransform);
             }

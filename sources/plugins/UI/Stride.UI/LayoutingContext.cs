@@ -35,7 +35,7 @@ namespace Stride.UI
         /// <returns><value>True</value> if the two contexts are equals</returns>
         public bool Equals(LayoutingContext other)
         {
-            return RealResolution.NearEquals(other.RealResolution) && VirtualResolution.NearEquals(other.VirtualResolution);
+            return RealResolution == other.RealResolution && VirtualResolution == other.VirtualResolution;
         }
     }
 }

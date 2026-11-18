@@ -226,7 +226,7 @@ namespace Stride.Assets.Editor.Preview
         {
             SpriteOffsets = Vector2.Zero;
 
-            if (SpriteSize.NearEquals(Vector2.Zero))
+            if (SpriteSize == Vector2.Zero)
             {
                 SpriteScale = 1;
                 return;
@@ -239,7 +239,7 @@ namespace Stride.Assets.Editor.Preview
         private void ApplyInitialScale(Vector2? viewSize)
         {
             SpriteOffsets = Vector2.Zero;
-            if (SpriteSize.NearEquals(Vector2.Zero))
+            if (SpriteSize == Vector2.Zero)
             {
                 SpriteScale = 1;
                 return;

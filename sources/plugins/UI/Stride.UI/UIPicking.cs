@@ -237,7 +237,7 @@ namespace Stride.UI
                 var currentTouchedElement = lastTouchedElement;
 
                 // re-calculate the element under cursor if click position changed.
-                if (!lastTouchPosition.NearEquals(currentTouchPosition))
+                if (lastTouchPosition != currentTouchPosition)
                 {
                     if (!GetTouchPosition(target, ref worldViewProj, currentTouchPosition, out var uiRay))
                         continue;
@@ -347,7 +347,7 @@ namespace Stride.UI
                     continue;
 
                 var lastMouseOverElement = state.LastMouseOverElement;
-                var retest = !mousePosition.NearEquals(state.LastMousePosition)
+                var retest = mousePosition != state.LastMousePosition
                     || target.Frame != state.LastMouseOverFrame
                     || (lastMouseOverElement?.RequiresMouseOverUpdate ?? false);
 

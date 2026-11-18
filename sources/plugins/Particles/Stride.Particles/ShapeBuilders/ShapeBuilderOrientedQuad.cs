@@ -57,8 +57,8 @@ namespace Stride.Particles.ShapeBuilders
 
             // Check if the draw space is identity - in this case we don't need to transform the position, scale and rotation vectors
             var trsIdentity = (spaceScale == 1f);
-            trsIdentity = trsIdentity && (spaceTranslation.NearEquals(Vector3.Zero));
-            trsIdentity = trsIdentity && (spaceRotation.NearEquals(Quaternion.Identity));
+            trsIdentity = trsIdentity && (spaceTranslation == Vector3.Zero);
+            trsIdentity = trsIdentity && (spaceRotation == Quaternion.Identity);
 
 
             var renderedParticles = 0;

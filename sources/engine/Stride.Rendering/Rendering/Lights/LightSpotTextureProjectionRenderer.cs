@@ -50,8 +50,8 @@ namespace Stride.Rendering.Lights
         {
             return Equals(ProjectionTexture, other.ProjectionTexture) &&
                 FlipMode == other.FlipMode &&
-                UVScale.NearEquals(other.UVScale) &&
-                UVOffset.NearEquals(other.UVOffset);
+                UVScale == other.UVScale &&
+                UVOffset == other.UVOffset;
         }
 
         public bool Equals(SpotLightTextureParameters other)

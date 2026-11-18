@@ -155,7 +155,7 @@ namespace Stride.Audio
                 emitter.Position = pos;
 
                 // TODO: if the entity has just been added, part of the Transform update is done at the Draw and the world matrix might still be uninitialized
-                if (emitter.WorldTransform.NearEquals(default(Matrix4x4)))
+                if (emitter.WorldTransform == default)
                     continue;
 
                 emitter.Forward = Vector3.NormalizeSafe(emitter.WorldTransform.Z.AsVector3());

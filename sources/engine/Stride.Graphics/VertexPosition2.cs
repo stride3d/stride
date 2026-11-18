@@ -41,7 +41,7 @@ namespace Stride.Graphics
 
         public bool Equals(VertexPosition2 other)
         {
-            return Position.NearEquals(other.Position);
+            return Position == other.Position;
         }
 
         public override bool Equals(object obj)
