@@ -454,10 +454,8 @@ namespace Stride.Audio
 
                         var seekRequested = false;
 
-                        while (!source.Commands.IsEmpty)
+                        while (!source.isDisposed && source.Commands.TryDequeue(out var command))
                         {
-                            AsyncCommand command;
-                            if (!source.Commands.TryDequeue(out command)) continue;
                             switch (command)
                             {
                                 case AsyncCommand.Play:
