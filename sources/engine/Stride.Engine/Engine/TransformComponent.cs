@@ -123,16 +123,14 @@ namespace Stride.Engine
         [DataMemberIgnore]
         public Vector3 RotationEulerXYZ
         {
-            // Unfortunately it is not possible to factorize the following code with Quaternion.RotationYawPitchRoll because Z axis direction is inversed
+            // Unfortunately it is not possible to factorize the following code with Quaternion.GetYawPitchRoll because Z axis direction is inversed
             get
             {
                 var rotation = Rotation;
                 Vector3 rotationEuler;
 
                 // Equivalent to:
-                //  Matrix rotationMatrix;
-                //  Matrix.Rotation(ref cachedRotation, out rotationMatrix);
-                //  rotationMatrix.DecomposeXYZ(out rotationEuler);
+                //  Matrix4x4.CreateFromQuaternion(rotation).DecomposeXYZ(out rotationEuler);
 
                 float xx = rotation.X * rotation.X;
                 float yy = rotation.Y * rotation.Y;
@@ -154,7 +152,7 @@ namespace Stride.Engine
                 float M32 = 2.0f * (yz - xw);
                 float M33 = 1.0f - (2.0f * (yy + xx));
 
-                /*** Refer to Matrix.DecomposeXYZ(out Vector3 rotation) for code and license ***/
+                /*** Refer to Matrix4x4.DecomposeXYZ(out Vector3 rotation) for code and license ***/
                 if (MathUtil.IsOne(Math.Abs(M13)))
                 {
                     if (M13 >= 0)
@@ -184,13 +182,11 @@ namespace Stride.Engine
             set
             {
                 // Equivalent to:
-                //  Quaternion quatX, quatY, quatZ;
+                //  var quatX = Quaternion.CreateRotationX(value.X);
+                //  var quatY = Quaternion.CreateRotationY(value.Y);
+                //  var quatZ = Quaternion.CreateRotationZ(value.Z);
                 //
-                //  Quaternion.RotationX(value.X, out quatX);
-                //  Quaternion.RotationY(value.Y, out quatY);
-                //  Quaternion.RotationZ(value.Z, out quatZ);
-                //
-                //  rotation = quatX * quatY * quatZ;
+                //  rotation = Quaternion.Concatenate(Quaternion.Concatenate(quatX, quatY), quatZ);
 
                 var halfAngles = value * 0.5f;
 

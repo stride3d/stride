@@ -473,7 +473,7 @@ public class TestQuaternion
         var q = Quaternion.CreateFromAxisAngle(axis, angleIn);
         var angleOut = q.GetAngle();
 
-        // Angle property should return the rotation angle
+        // GetAngle should return the rotation angle
         Assert.Equal(angleIn, angleOut, 4);
     }
 

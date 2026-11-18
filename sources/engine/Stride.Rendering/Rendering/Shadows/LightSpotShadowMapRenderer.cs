@@ -99,8 +99,8 @@ namespace Stride.Rendering.Shadows
             // Calculate View Proj matrix from World space to Cascade space
             shaderData.WorldToShadowCascadeUV = viewProjectionMatrix * adjustmentMatrix;
 
-            //Matrix rotationMatrix = Matrix.RotationZ(rotationZ);
-            //Matrix.Multiply(ref viewProjectionMatrix, ref rotationMatrix, out shaderData.worldToShadowProjectiveTextureUV);
+            //Matrix4x4 rotationMatrix = Matrix4x4.CreateRotationZ(rotationZ);
+            //shaderData.worldToShadowProjectiveTextureUV = viewProjectionMatrix * rotationMatrix;
 
             shaderData.ViewMatrix = viewMatrix;
             shaderData.ProjectionMatrix = projectionMatrix;

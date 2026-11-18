@@ -382,8 +382,7 @@ namespace Stride.Rendering.Lights
 
                     Vector3 positionVS = Vector3.TransformCoordinate(pointLightData.PositionWS, renderView.View);
 
-                    //Vector3 positionScreen;
-                    //Vector3.TransformCoordinate(ref pointLightData.PositionWS, ref renderView.ViewProjection, out positionScreen);
+                    //Vector3 positionScreen = Vector3.TransformCoordinate(pointLightData.PositionWS, renderView.ViewProjection);
 
                     // Find x/y ranges
                     Vector2 clipMin, clipMax;

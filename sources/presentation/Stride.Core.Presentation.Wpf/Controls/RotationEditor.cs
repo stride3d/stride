@@ -104,7 +104,7 @@ namespace Stride.Core.Presentation.Controls
             var degrees = MathUtil.RadiansToDegrees(angleRadians);
             if (degrees == 0 && float.IsNegative(degrees))
             {
-                // Matrix.DecomposeXYZ can give -0 when MathF.Asin(-0) == -0,
+                // Matrix4x4.DecomposeXYZ can give -0 when MathF.Asin(-0) == -0,
                 // whereas previously Math.Asin(-0) == +0 (ie. did not respect the sign value at zero).
                 // This shows up in the editor but we don't want to see this.
                 degrees = 0;

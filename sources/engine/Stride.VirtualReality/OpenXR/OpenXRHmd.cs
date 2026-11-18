@@ -787,7 +787,7 @@ namespace Stride.VirtualReality
                 adjustedHeadMatrix.Z = new Vector4(0, 0, adjustedHeadMatrix.Z.Length(), 0);
             }
 
-            eyeMat = adjustedHeadMatrix * /*Matrix.Scaling(BodyScaling) */ cameraRotation * Matrix4x4.CreateTranslation(cameraPosition);
+            eyeMat = adjustedHeadMatrix * /*Matrix4x4.CreateScale(BodyScaling) */ cameraRotation * Matrix4x4.CreateTranslation(cameraPosition);
             eyeMat.Decompose(out scale, out rot, out pos);
             var finalUp = Vector3.TransformCoordinate(new Vector3(0, 1, 0), rot);
             var finalForward = Vector3.TransformCoordinate(new Vector3(0, 0, -1), rot);

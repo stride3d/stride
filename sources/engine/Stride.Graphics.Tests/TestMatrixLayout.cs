@@ -11,7 +11,7 @@ using System.Numerics;
 namespace Stride.Graphics.Tests;
 
 /// <summary>
-///   A <see cref="Matrix"/> copied as it is into a constant buffer or a structured buffer is read by a shader with the same
+///   A <see cref="Matrix4x4"/> copied as it is into a constant buffer or a structured buffer is read by a shader with the same
 ///   elements: <c>M23</c> is <c>matrix[1][2]</c>.
 /// </summary>
 public class TestMatrixLayout : GraphicTestGameBase

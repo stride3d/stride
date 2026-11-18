@@ -854,12 +854,12 @@ namespace Stride.Importer.ThreeD
 
                 if (isTranslation)
                 {
-                    // Change of basis: key.Value = (rootTransformInverse * Matrix::Translation(key.Value) * rootTransform).TranslationVector;
+                    // Change of basis: key.Value = (rootTransformInverse * Matrix4x4.CreateTranslation(key.Value) * rootTransform).Translation;
                     key.Value = Vector3.TransformCoordinate(key.Value, rootTransform);
                 }
                 else
                 {
-                    // Change of basis: key.Value = (rootTransformInverse * Matrix::Scaling(key.Value) * rootTransform).ScaleVector;
+                    // Change of basis: key.Value = the diagonal of rootTransformInverse * Matrix4x4.CreateScale(key.Value) * rootTransform
                     var scale = Vector3.One;
                     scale = Vector3.TransformNormal(scale, rootTransformInverse);
                     scale *= key.Value;

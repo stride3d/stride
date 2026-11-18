@@ -75,7 +75,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         /// <summary>
         /// The projection matrix used to render the space marker.
         /// </summary>
-        //private Matrix projectionMatrix;
+        //private Matrix4x4 projectionMatrix;
 
         private CameraComponent cameraComponent;
 

@@ -140,7 +140,7 @@ namespace Stride.Engine
                     parentInverseMatrix.Y = -parentInverseMatrix.Y;
                     parentInverseMatrix.Z = -parentInverseMatrix.Z;
                     parentInverseMatrix = Matrix4x4.CreateScale(parentUIComponent.Size / parentUIComponent.Resolution) * parentInverseMatrix;
-                   // Matrix.Invert(ref parentWorldMatrix, out parentInverseMatrix);
+                   // Matrix4x4.InvertSafe(parentWorldMatrix, out parentInverseMatrix);
 
                     matrix = parentWorldMatrix * followedElement.WorldMatrix * parentInverseMatrix;
                 }

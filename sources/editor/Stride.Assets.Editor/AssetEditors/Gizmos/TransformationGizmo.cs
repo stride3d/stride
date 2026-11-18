@@ -492,7 +492,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 if (initialTransfo.InverseParentMatrix == default)
                 {
                     // This usually occurs when at least one axis is scaled to zero (because the matrix inversion
-                    // function returns Matrix.Zero if the determinant is too small).
+                    // function returns the zero matrix if the determinant is too small).
 
                     // TODO: I added this fix because I didn't know how else to make this case work.
                     // It might break in some cases, which I haven't come across yet.

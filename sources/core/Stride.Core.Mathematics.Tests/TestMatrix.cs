@@ -460,7 +460,7 @@ public class TestMatrix
         Assert.Equal(30f, matrix.M43);
         Assert.Equal(1f, matrix.M44);
 
-        // Test TranslationVector property
+        // Test Translation property
         Assert.Equal(translation, matrix.Translation);
 
         // Test transforming a point

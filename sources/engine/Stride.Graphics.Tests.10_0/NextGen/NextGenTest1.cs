@@ -130,7 +130,7 @@ namespace Stride.Engine.NextGen
 
             //var directionalLight2 = new Entity { new LightComponent { Type = new LightSpot { Range = 25, Color = new ColorRgbProvider(Color.White), Shadow = { Enabled = false } }, Intensity = 20 }, };
             //directionalLight2.Transform.Position = Vector3.UnitX * 40;
-            //directionalLight2.Transform.Rotation = Quaternion.RotationY(MathUtil.PiOverTwo);
+            //directionalLight2.Transform.Rotation = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
             //Scene.Entities.Add(directionalLight2);
 
             var rand = new Random();

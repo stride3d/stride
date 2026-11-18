@@ -56,7 +56,7 @@ using System.Numerics;
 namespace Stride.Core.TypeConverters;
 
 /// <summary>
-/// Defines a type converter for <see cref="Matrix"/>.
+/// Defines a type converter for <see cref="Matrix4x4"/>.
 /// </summary>
 public class MatrixConverter : BaseConverter
 {

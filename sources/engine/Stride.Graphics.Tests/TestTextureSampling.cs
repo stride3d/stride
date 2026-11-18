@@ -93,7 +93,7 @@ namespace Stride.Graphics.Tests
             myDraws[2] = new DrawOptions { Sampler = SamplerState.New(GraphicsDevice, new SamplerStateDescription(TextureFilter.Linear, TextureAddressMode.Mirror)), Transform = Matrix4x4.Multiply(Matrix4x4.CreateScale(0.4f), Matrix4x4.CreateTranslation(0.5f, -0.5f, 0f)) };
             //var borderDescription = new SamplerStateDescription(TextureFilter.Linear, TextureAddressMode.Border) { BorderColor = Color.Purple };
             //var border = SamplerState.New(GraphicsDevice, borderDescription);
-            //myDraws[3] = new DrawOptions { Sampler = border, Transform = Matrix.Multiply(Matrix.Scale(0.3f), Matrix.Translation(-0.5f, -0.5f, 0f)) };
+            //myDraws[3] = new DrawOptions { Sampler = border, Transform = Matrix4x4.Multiply(Matrix4x4.CreateScale(0.3f), Matrix4x4.CreateTranslation(-0.5f, -0.5f, 0f)) };
         }
 
         protected override void Draw(GameTime gameTime)

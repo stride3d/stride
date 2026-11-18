@@ -635,12 +635,7 @@ public static class Matrix4x4Extensions
         public static void CreateTransformation(in Vector3 scaling, in Quaternion rotation, in Vector3 translation, out Matrix4x4 result)
         {
             // Equivalent to:
-            //result =
-            //    Matrix.Scaling(scaling)
-            //    *Matrix.RotationX(rotation.X)
-            //    *Matrix.RotationY(rotation.Y)
-            //    *Matrix.RotationZ(rotation.Z)
-            //    *Matrix.Position(translation);
+            //  result = Matrix4x4.CreateScale(scaling) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(translation);
 
             // Rotation
             float xx = rotation.X * rotation.X;
@@ -974,7 +969,7 @@ public static class Matrix4x4Extensions
         /// This rotation matrix can be represented by <b>intrinsic</b> rotations in the order <paramref name="yaw"/>, <paramref name="pitch"/>, then <paramref name="roll"/>.
         /// <br/>
         /// Therefore, the <b>extrinsic</b> rotations to achieve this matrix is the reversed order of operations,
-        /// i.e. Matrix.RotationZ(roll) * Matrix.RotationX(pitch) * Matrix.RotationY(yaw)
+        /// i.e. Matrix4x4.CreateRotationZ(roll) * Matrix4x4.CreateRotationX(pitch) * Matrix4x4.CreateRotationY(yaw)
         /// </remarks>
         public void Decompose(out float yaw, out float pitch, out float roll)
         {
@@ -1013,7 +1008,7 @@ public static class Matrix4x4Extensions
 
         /// <summary>
         /// Decomposes a rotation matrix with the specified X, Y and Z euler angles in radians.
-        /// Matrix.RotationX(rotation.X) * Matrix.RotationY(rotation.Y) * Matrix.RotationZ(rotation.Z) should represent the same rotation.
+        /// Matrix4x4.CreateRotationX(rotation.X) * Matrix4x4.CreateRotationY(rotation.Y) * Matrix4x4.CreateRotationZ(rotation.Z) should represent the same rotation.
         /// </summary>
         /// <param name="rotation">The vector containing the 3 rotations angles to be applied in order.</param>
         public void DecomposeXYZ(out Vector3 rotation)

@@ -206,7 +206,7 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
         }
 
         /// <summary>
-        /// This method should have better precision than <see cref="Matrix.DecomposeXYZ(out Vector3)"/>, especially on the y-axis.
+        /// This method should have better precision than <c>Matrix4x4.DecomposeXYZ</c>, especially on the y-axis.
         /// </summary>
         /// <param name="matrix"></param>
         /// <param name="rotation"></param>
