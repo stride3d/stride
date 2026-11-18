@@ -3,8 +3,7 @@ using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
 using Silk.NET.SPIRV;
 using Silk.NET.SPIRV.Cross;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using System.Buffers.Binary;
 using Stride.Shaders.Compilers;
 using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Parsing;
@@ -344,18 +343,9 @@ public partial class RenderingTests
             renderer.RenderFrame(frameBuffer.Span);
             // Present is useful for RenderDoc and other graphics capture programs
             renderer.PresentAndFinish();
-            var pixels = Image.LoadPixelData<Rgba32>(frameBuffer.Span, width, height);
-            Assert.Equal(width, pixels.Width);
-            Assert.Equal(height, pixels.Height);
-
             // Check output color value against expected result
             var expectedColor = StringToRgba(parameters["ExpectedResult"]);
-            var pixel = pixels[0, 0].PackedValue;
-            // Swap endianess
-            pixel = ((pixel & 0x000000FF) << 24)
-               | (pixel & 0x0000FF00) << 8
-               | ((pixel & 0x00FF0000) >> 8)
-               | (pixel & 0xFF000000) >> 24;
+            var pixel = BinaryPrimitives.ReadUInt32BigEndian(frameBuffer.Span);
 
             Assert.Equal(expectedColor.ToString("X8"), pixel.ToString("X8"));
         }

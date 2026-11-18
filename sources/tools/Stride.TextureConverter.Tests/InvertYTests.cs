@@ -4,8 +4,6 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Stride.TextureConverter.TexLibraries;
@@ -63,8 +61,17 @@ namespace Stride.TextureConverter.Tests
             var path = Path.Combine(Path.GetTempPath(), $"stride-inverty-{Guid.NewGuid():N}.png");
             try
             {
-                using (var source = new Image<Rgba64>(1, 1, new Rgba64(0x1111, 0x1234, 0x3333, 0xFFFF)))
-                    source.SaveAsPng(path);
+                byte[] png = [
+                    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+                    0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+                    0x10, 0x06, 0x00, 0x00, 0x00, 0x4F, 0x85, 0x18, 0xCA, 0x00, 0x00, 0x00,
+                    0x09, 0x70, 0x48, 0x59, 0x73, 0x00, 0x00, 0x0E, 0xC4, 0x00, 0x00, 0x0E,
+                    0xC4, 0x01, 0x95, 0x2B, 0x0E, 0x1B, 0x00, 0x00, 0x00, 0x11, 0x49, 0x44,
+                    0x41, 0x54, 0x78, 0x9C, 0x63, 0x11, 0x14, 0x14, 0x32, 0x31, 0x36, 0xFE,
+                    0xFF, 0x1F, 0x00, 0x06, 0xFE, 0x02, 0xD1, 0x44, 0x2E, 0x68, 0x90, 0x00,
+                    0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+                ];
+                File.WriteAllBytes(path, png);
 
                 using var textureTool = new TextureTool();
                 using var image = textureTool.Load(path, false);
@@ -89,18 +96,14 @@ namespace Stride.TextureConverter.Tests
             }
         }
 
-        private static byte[] InvertY(PixelFormat format, byte[] pixel)
+        private static unsafe byte[] InvertY(PixelFormat format, ReadOnlySpan<byte> pixel)
         {
-            var data = (byte[])pixel.Clone();
-            var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            try
+            var data = pixel.ToArray();
+            fixed (byte* pointer = data)
             {
                 using var library = new StrideTexLibrary();
-                library.InvertY(new TexImage(handle.AddrOfPinnedObject(), data.Length, 1, 1, 1, format, 1, 1, TexImage.TextureDimension.Texture2D));
-            }
-            finally
-            {
-                handle.Free();
+                using var image = new TexImage((IntPtr)pointer, data.Length, 1, 1, 1, format, 1, 1, TexImage.TextureDimension.Texture2D);
+                library.InvertY(image);
             }
             return data;
         }

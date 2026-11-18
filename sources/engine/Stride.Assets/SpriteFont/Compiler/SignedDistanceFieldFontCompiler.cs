@@ -81,9 +81,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 using Stride.Graphics;
 using Stride.Graphics.Font;
 
@@ -111,7 +108,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
             var glyphs = ImportFont(fontAsset, out lineSpacing, out baseLine);
 
-            Image<Rgba32> bitmap = GlyphPacker.ArrangeGlyphs(glyphs);
+            FontBitmap bitmap = GlyphPacker.ArrangeGlyphs(glyphs);
 
             return SignedDistanceFieldFontWriter.CreateSpriteFontData(fontFactory, fontAsset, glyphs, lineSpacing, baseLine, bitmap);
         }

@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
@@ -37,7 +37,6 @@
     <PackageReference Include="Silk.NET.SPIRV.Cross" />
     <!-- Native spirv-cross.dll comes from Stride.Dependencies.SpirvCross (via Stride.Shaders.Compilers), not Silk -->
     <PackageReference Include="Silk.NET.SPIRV.Cross.Native" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="SixLabors.ImageSharp" />
     <!-- Software Vulkan for GPU-less CI runners and reproducible rasterization (see Module) -->
     <PackageReference Include="Stride.Dependencies.Lavapipe" />
     <!-- Pin WARP to a fixed version side-loaded next to the test host, for reproducible

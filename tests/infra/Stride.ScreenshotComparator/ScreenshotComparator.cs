@@ -4,9 +4,7 @@
 using System.Text.Json;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using StbImageNext;
 
 namespace Stride.Tests.ScreenshotComparator;
 
@@ -165,13 +163,8 @@ public static class ScreenshotComparator
 
     private static float ComputeLpips(InferenceSession session, string pathA, string pathB)
     {
-        using var imgA = Image.Load<Rgb24>(pathA);
-        using var imgB = Image.Load<Rgb24>(pathB);
-        imgA.Mutate(c => c.Resize(InputSize, InputSize));
-        imgB.Mutate(c => c.Resize(InputSize, InputSize));
-
-        var tensorA = ToTensor(imgA);
-        var tensorB = ToTensor(imgB);
+        var tensorA = ToTensor(pathA);
+        var tensorB = ToTensor(pathB);
 
         var inputs = new List<NamedOnnxValue>
         {
@@ -186,27 +179,13 @@ public static class ScreenshotComparator
         return distance;
     }
 
-    /// <summary>PNG bytes → NCHW float32 in [-1, 1], matching the preprocessing the lpips Python lib does.</summary>
-    private static DenseTensor<float> ToTensor(Image<Rgb24> img)
+    /// <summary>PNG image → NCHW float32 in [-1, 1], matching the preprocessing the lpips Python lib does.</summary>
+    private static DenseTensor<float> ToTensor(string path)
     {
-        int w = img.Width, h = img.Height;
-        var data = new float[3 * h * w];
-        img.ProcessPixelRows(rows =>
-        {
-            for (int y = 0; y < h; y++)
-            {
-                var row = rows.GetRowSpan(y);
-                for (int x = 0; x < w; x++)
-                {
-                    var p = row[x];
-                    var idx = y * w + x;
-                    data[0 * h * w + idx] = p.R / 127.5f - 1f;
-                    data[1 * h * w + idx] = p.G / 127.5f - 1f;
-                    data[2 * h * w + idx] = p.B / 127.5f - 1f;
-                }
-            }
-        });
-        return new DenseTensor<float>(data, new[] { 1, 3, h, w });
+        using var stream = File.OpenRead(path);
+        var image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlue);
+        var data = BicubicResize.Rgb24ToTensorData(image.Data, image.Width, image.Height, InputSize, InputSize);
+        return new DenseTensor<float>(data, [1, 3, InputSize, InputSize]);
     }
 
     /// <summary>
