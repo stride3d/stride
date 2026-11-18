@@ -427,7 +427,8 @@ namespace Stride.Rendering.UI
                     AspectRatio = aspectRatio,
                     VerticalFieldOfView = MathUtil.RadiansToDegrees(verticalFov),
                     ViewMatrix = Matrix4x4.CreateLookAt(new Vector3(0, 0, zOffset), Vector3.Zero, Vector3.UnitY),
-                    ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(verticalFov, aspectRatio, nearPlane, farPlane),
+                    // The camera sees the whole resolution at the distance zOffset: half of it at the near plane, which is half as far
+                    ProjectionMatrix = Matrix4x4.CreatePerspective(virtualResolution.X / 2, virtualResolution.Y / 2, nearPlane, farPlane),
                 };
 
                 Update(renderObject, cameraComponent);

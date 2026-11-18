@@ -222,7 +222,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
                 // Determine the intersection point of the center of the vieport with the grid plane
                 var ray = EditorGameHelper.CalculateRayFromMousePosition(view.Component, new Vector2(0.5f), viewInvert);
-                var plane = new Plane(upVector, Vector3.Dot(upVector, Vector3.Zero));
+                var plane = new Plane(upVector, 0);
                 var intersection = EditorGameHelper.ProjectOnPlaneWithLimitAngle(ray, plane, MaximumViewAngle);
 
                 // Detemine the scale of the grid depending of the distance of the camera to the grid plane

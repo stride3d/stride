@@ -95,7 +95,7 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
             var cameraService = EditorServices.Get<IEditorGameCameraService>();
 
             var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, mousePosition, Matrix4x4.Invert(cameraService.ViewMatrix, out var inverse) ? inverse : default);
-            var plane = new Plane(upAxis, Vector3.Dot(upAxis, Vector3.Zero));
+            var plane = new Plane(upAxis, 0);
 
             // Ensures a ray angle with projection plane of at least 'limitAngle' to avoid the object to go to infinity.
             var dotProductValue = Vector3.Dot(ray.Direction, plane.Normal);

@@ -736,7 +736,8 @@ public static class CollisionHelper
         var rectanglePosition = new Vector3(rectangleWorldMatrix.M41, rectangleWorldMatrix.M42, rectangleWorldMatrix.M43);
 
         var normalRowStart = normalAxis << 2;
-        var plane = ((rectanglePosition, new Vector3(rectangleWorldMatrix[normalRowStart / 4, normalRowStart % 4], rectangleWorldMatrix[(normalRowStart + 1) / 4, (normalRowStart + 1) % 4], rectangleWorldMatrix[(normalRowStart + 2) / 4, (normalRowStart + 2) % 4])) is var (point, normal) ? new Plane(normal, Vector3.Dot(normal, point)) : default);
+        var normal = new Vector3(rectangleWorldMatrix[normalRowStart / 4, normalRowStart % 4], rectangleWorldMatrix[(normalRowStart + 1) / 4, (normalRowStart + 1) % 4], rectangleWorldMatrix[(normalRowStart + 2) / 4, (normalRowStart + 2) % 4]);
+        var plane = new Plane(normal, Vector3.Dot(normal, rectanglePosition));
 
         // early exist the planes were parallels 
         if (!plane.Intersects(ray, out intersectionPoint))

@@ -366,7 +366,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                     planeNormal = axisVector;
                 }
             }
-            ProjectionPlane = new Plane(planeNormal, Vector3.Dot(planeNormal, Vector3.Zero));
+            ProjectionPlane = new Plane(planeNormal, 0);
 
             // determine the position of the start click in the world space
             var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, StartMousePosition, gizmoViewInverse);

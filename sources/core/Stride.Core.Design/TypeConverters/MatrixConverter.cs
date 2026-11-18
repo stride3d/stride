@@ -99,7 +99,7 @@ public class MatrixConverter : BaseConverter
         if (value is Matrix4x4 matrix)
         {
             if (destinationType == typeof(string))
-                return matrix.ToString();
+                return FieldsToString(matrix, culture);
 
             if (destinationType == typeof(InstanceDescriptor))
             {
@@ -119,6 +119,7 @@ public class MatrixConverter : BaseConverter
         if (string.IsNullOrEmpty(str))
             return null;
 
+        // Text written by Stride's Matrix has brackets around each row
         str = str.Replace("[", string.Empty).Replace("]", string.Empty);
         return ConvertFromString<Matrix4x4, float>(context, culture, str);
     }

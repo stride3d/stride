@@ -87,7 +87,7 @@ public class QuaternionConverter : BaseConverter
         if (value is Quaternion quaternion)
         {
             if (destinationType == typeof(string))
-                return quaternion.ToString();
+                return FieldsToString(quaternion, culture);
 
             if (destinationType == typeof(InstanceDescriptor))
             {

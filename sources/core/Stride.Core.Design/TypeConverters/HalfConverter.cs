@@ -45,7 +45,6 @@
 // THE SOFTWARE.
 
 using System.ComponentModel;
-using System.ComponentModel.Design.Serialization;
 using System.Globalization;
 using Half = System.Half;
 
@@ -78,11 +77,7 @@ public class HalfConverter : ExpandableObjectConverter
     /// <c>true</c> if this converter can perform the conversion; otherwise, <c>false</c>.</returns>
     public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
     {
-        if ((destinationType != typeof(string)) && (destinationType != typeof(InstanceDescriptor)))
-        {
-            return base.CanConvertTo(context, destinationType);
-        }
-        return true;
+        return (destinationType == typeof(string)) || base.CanConvertTo(context, destinationType);
     }
 
     //TODO: Verify that converter is properly updated to match other converters
@@ -107,8 +102,7 @@ public class HalfConverter : ExpandableObjectConverter
         {
             throw new ArgumentException("Invalid half format.");
         }
-        float h = (float)TypeDescriptor.GetConverter(typeof(float)).ConvertFromString(context, culture, stringArray[0])!;
-        return (Half)h;
+        return Half.Parse(stringArray[0], culture);
     }
 
     /// <summary>
@@ -129,16 +123,7 @@ public class HalfConverter : ExpandableObjectConverter
         culture ??= CultureInfo.CurrentCulture;
         if ((destinationType == typeof(string)) && value is Half half)
         {
-            TypeConverter converter = TypeDescriptor.GetConverter(typeof(float));
-            return string.Join(culture.TextInfo.ListSeparator + " ", [converter.ConvertToString(context, culture, (float)half)]);
-        }
-        if ((destinationType == typeof(InstanceDescriptor)) && value is Half half1)
-        {
-            var constructor = typeof(Half).GetConstructor([typeof(float)]);
-            if (constructor != null)
-            {
-                return new InstanceDescriptor(constructor, new object[] { (float)half1 });
-            }
+            return half.ToString(culture);
         }
         return base.ConvertTo(context, culture, value, destinationType);
     }
