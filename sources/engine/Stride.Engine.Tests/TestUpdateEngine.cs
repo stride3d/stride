@@ -250,6 +250,24 @@ namespace Stride.Engine.Tests
         }
 
         [Fact]
+        public void TestLastFieldOfStructProperty()
+        {
+            var test = new TestClass { BlittableStructProperty = new BlittableStruct { IntField = 1, IntProperty = 2 } };
+
+            var updateMemberInfo = new List<UpdateMemberInfo>
+            {
+                new UpdateMemberInfo("BlittableStructProperty.LastIntField", 0),
+            };
+
+            var blittableData = new TestData[] { 123 };
+            var objectData = new UpdateObjectData[0];
+
+            RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
+
+            Assert.Equal(new BlittableStruct { IntField = 1, IntProperty = 2, LastIntField = 123 }, test.BlittableStructProperty);
+        }
+
+        [Fact]
         public void TestNonBlittableStruct()
         {
             var test = new TestClass();
@@ -599,6 +617,7 @@ namespace Stride.Engine.Tests
     {
         public int IntField;
         public int IntProperty { get; set; }
+        public int LastIntField;
     }
 
     [DataContract]

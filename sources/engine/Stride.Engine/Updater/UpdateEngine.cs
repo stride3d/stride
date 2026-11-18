@@ -340,6 +340,8 @@ namespace Stride.Updater
                     {
                         Type = stackPathPart.LeaveOperation,
                         Member = stackPathPart.Member,
+                        // Back to the start of the object: a struct is copied from there to its property
+                        AdjustOffset = stackPathPart.ObjectStartOffset - state.PreviousOffset,
                     });
 
                     // We execute a leave operation, previous stack will be restored
