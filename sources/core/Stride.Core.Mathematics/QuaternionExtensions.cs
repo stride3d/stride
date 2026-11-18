@@ -391,19 +391,15 @@ public static class QuaternionExtensions
             return [quaternion.X, quaternion.Y, quaternion.Z, quaternion.W];
         }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="System.Numerics.Quaternion"/> is within <see cref="MathUtil.ZeroTolerance"/> for equality to this instance.
-        /// </summary>
-        /// <param name="other">The <see cref="System.Numerics.Quaternion"/> to compare with this instance.</param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Numerics.Quaternion"/> is equal or almost equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public bool NearEquals(Quaternion other)
+        /// <summary>Determines whether every component of a quaternion differs from the same component of this one by less than a tolerance.</summary>
+        /// <param name="other">The quaternion to compare with this instance.</param>
+        /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+        public bool NearEquals(Quaternion other, float tolerance = MathUtil.ZeroTolerance)
         {
-            return (Abs(other.X - quaternion.X) < MathUtil.ZeroTolerance &&
-                Abs(other.Y - quaternion.Y) < MathUtil.ZeroTolerance &&
-                Abs(other.Z - quaternion.Z) < MathUtil.ZeroTolerance &&
-                Abs(other.W - quaternion.W) < MathUtil.ZeroTolerance);
+            return (Abs(other.X - quaternion.X) < tolerance &&
+                Abs(other.Y - quaternion.Y) < tolerance &&
+                Abs(other.Z - quaternion.Z) < tolerance &&
+                Abs(other.W - quaternion.W) < tolerance);
         }
 
     }

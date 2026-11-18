@@ -274,16 +274,12 @@ public static class PlaneExtensions
             return CollisionHelper.PlaneIntersectsSphere(in self, in sphere);
         }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="System.Numerics.Vector4"/> is equal to this instance.
-        /// </summary>
-        /// <param name="value">The <see cref="System.Numerics.Vector4"/> to compare with this instance.</param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Numerics.Vector4"/> is equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public bool NearEquals(Plane value)
+        /// <summary>Determines whether every component of a plane differs from the same component of this one by less than a tolerance.</summary>
+        /// <param name="value">The plane to compare with this instance.</param>
+        /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+        public bool NearEquals(Plane value, float tolerance = MathUtil.ZeroTolerance)
         {
-            return self.Normal.NearEquals(value.Normal) && self.D == value.D;
+            return self.Normal.NearEquals(value.Normal, tolerance) && MathF.Abs(self.D - value.D) < tolerance;
         }
 
     }

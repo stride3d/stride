@@ -432,17 +432,13 @@ public static class Vector2Extensions
             return [vector2.X, vector2.Y];
         }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="System.Numerics.Vector2"/> is within <see cref="MathUtil.ZeroTolerance"/> for equality to this instance.
-        /// </summary>
-        /// <param name="other">The <see cref="System.Numerics.Vector2"/> to compare with this instance.</param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Numerics.Vector2"/> is equal or almost equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public bool NearEquals(Vector2 other)
+        /// <summary>Determines whether every component of a vector differs from the same component of this one by less than a tolerance.</summary>
+        /// <param name="other">The vector to compare with this instance.</param>
+        /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+        public bool NearEquals(Vector2 other, float tolerance = MathUtil.ZeroTolerance)
         {
-            return MathF.Abs(other.X - vector2.X) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.Y - vector2.Y) < MathUtil.ZeroTolerance;
+            return MathF.Abs(other.X - vector2.X) < tolerance &&
+                MathF.Abs(other.Y - vector2.Y) < tolerance;
         }
 
         /// <summary>

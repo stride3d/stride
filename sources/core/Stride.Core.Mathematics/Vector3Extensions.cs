@@ -564,18 +564,14 @@ public static class Vector3Extensions
             return [vector3.X, vector3.Y, vector3.Z];
         }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="System.Numerics.Vector3"/> is within <see cref="MathUtil.ZeroTolerance"/> for equality to this instance.
-        /// </summary>
-        /// <param name="other">The <see cref="System.Numerics.Vector3"/> to compare with this instance.</param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Numerics.Vector3"/> is equal or almost equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public bool NearEquals(Vector3 other)
+        /// <summary>Determines whether every component of a vector differs from the same component of this one by less than a tolerance.</summary>
+        /// <param name="other">The vector to compare with this instance.</param>
+        /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+        public bool NearEquals(Vector3 other, float tolerance = MathUtil.ZeroTolerance)
         {
-            return MathF.Abs(other.X - vector3.X) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.Y - vector3.Y) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.Z - vector3.Z) < MathUtil.ZeroTolerance;
+            return MathF.Abs(other.X - vector3.X) < tolerance &&
+                MathF.Abs(other.Y - vector3.Y) < tolerance &&
+                MathF.Abs(other.Z - vector3.Z) < tolerance;
         }
 
         /// <summary>

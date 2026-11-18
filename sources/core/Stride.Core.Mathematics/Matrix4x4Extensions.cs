@@ -1157,34 +1157,30 @@ public static class Matrix4x4Extensions
             return [matrix.M11, matrix.M12, matrix.M13, matrix.M14, matrix.M21, matrix.M22, matrix.M23, matrix.M24, matrix.M31, matrix.M32, matrix.M33, matrix.M34, matrix.M41, matrix.M42, matrix.M43, matrix.M44];
         }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="Matrix4x4"/> is equal to this instance.
-        /// </summary>
-        /// <param name="other">The <see cref="Matrix4x4"/> to compare with this instance.</param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="Matrix4x4"/> is equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public bool NearEquals(in Matrix4x4 other)
+        /// <summary>Determines whether every element of a matrix differs from the same element of this one by less than a tolerance.</summary>
+        /// <param name="other">The matrix to compare with this instance.</param>
+        /// <param name="tolerance">The difference of an element from which the two are not near.</param>
+        public bool NearEquals(in Matrix4x4 other, float tolerance = MathUtil.ZeroTolerance)
         {
-            return MathF.Abs(other.M11 - matrix.M11) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M12 - matrix.M12) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M13 - matrix.M13) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M14 - matrix.M14) < MathUtil.ZeroTolerance &&
+            return MathF.Abs(other.M11 - matrix.M11) < tolerance &&
+                MathF.Abs(other.M12 - matrix.M12) < tolerance &&
+                MathF.Abs(other.M13 - matrix.M13) < tolerance &&
+                MathF.Abs(other.M14 - matrix.M14) < tolerance &&
 
-                MathF.Abs(other.M21 - matrix.M21) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M22 - matrix.M22) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M23 - matrix.M23) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M24 - matrix.M24) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M21 - matrix.M21) < tolerance &&
+                MathF.Abs(other.M22 - matrix.M22) < tolerance &&
+                MathF.Abs(other.M23 - matrix.M23) < tolerance &&
+                MathF.Abs(other.M24 - matrix.M24) < tolerance &&
 
-                MathF.Abs(other.M31 - matrix.M31) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M32 - matrix.M32) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M33 - matrix.M33) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M34 - matrix.M34) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M31 - matrix.M31) < tolerance &&
+                MathF.Abs(other.M32 - matrix.M32) < tolerance &&
+                MathF.Abs(other.M33 - matrix.M33) < tolerance &&
+                MathF.Abs(other.M34 - matrix.M34) < tolerance &&
 
-                MathF.Abs(other.M41 - matrix.M41) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M42 - matrix.M42) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M43 - matrix.M43) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.M44 - matrix.M44) < MathUtil.ZeroTolerance;
+                MathF.Abs(other.M41 - matrix.M41) < tolerance &&
+                MathF.Abs(other.M42 - matrix.M42) < tolerance &&
+                MathF.Abs(other.M43 - matrix.M43) < tolerance &&
+                MathF.Abs(other.M44 - matrix.M44) < tolerance;
         }
 
     }

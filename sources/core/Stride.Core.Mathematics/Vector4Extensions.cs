@@ -362,19 +362,15 @@ public static class Vector4Extensions
             return [vector4.X, vector4.Y, vector4.Z, vector4.W];
         }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="Vector4"/> is within <see cref="MathUtil.ZeroTolerance"/> for equality to this instance.
-        /// </summary>
-        /// <param name="other">The <see cref="Vector4"/> to compare with this instance.</param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="Vector4"/> is equal or almost equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public bool NearEquals(Vector4 other)
+        /// <summary>Determines whether every component of a vector differs from the same component of this one by less than a tolerance.</summary>
+        /// <param name="other">The vector to compare with this instance.</param>
+        /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+        public bool NearEquals(Vector4 other, float tolerance = MathUtil.ZeroTolerance)
         {
-            return MathF.Abs(other.X - vector4.X) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.Y - vector4.Y) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.Z - vector4.Z) < MathUtil.ZeroTolerance &&
-                MathF.Abs(other.W - vector4.W) < MathUtil.ZeroTolerance;
+            return MathF.Abs(other.X - vector4.X) < tolerance &&
+                MathF.Abs(other.Y - vector4.Y) < tolerance &&
+                MathF.Abs(other.Z - vector4.Z) < tolerance &&
+                MathF.Abs(other.W - vector4.W) < tolerance;
         }
 
         /// <summary>
