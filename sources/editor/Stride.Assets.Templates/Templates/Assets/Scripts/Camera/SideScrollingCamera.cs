@@ -107,7 +107,7 @@ public class ##Scriptname## : AsyncScript
 
         // Compute base vectors for camera movement
         var rotation = Matrix4x4.CreateFromYawPitchRoll(Yaw, Pitch, 0);
-        var direction = Vector3.NormalizeSafe(Vector3.TransformNormal(ForwardVector, rotation));
+        var direction = Vector3.Normalize(Vector3.TransformNormal(ForwardVector, rotation));
 
         if (Math.Abs(Input.MouseWheelDelta) > MathUtil.ZeroTolerance)
         {

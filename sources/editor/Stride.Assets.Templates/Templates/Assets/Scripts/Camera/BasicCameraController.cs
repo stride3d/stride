@@ -146,7 +146,7 @@ public class ##Scriptname## : SyncScript
                 // a stick not entirely pushed forward should make the entity move slower.
                 if (dir.Length() > 1f)
                 {
-                    dir = Vector3.NormalizeSafe(dir);
+                    dir = Vector3.Normalize(dir);
                 }
             }
 
@@ -189,7 +189,7 @@ public class ##Scriptname## : SyncScript
                 // See Keyboard & Gamepad translation's Normalize() usage
                 if (rotation.Length() > 1f)
                 {
-                    rotation = Vector2.NormalizeSafe(rotation);
+                    rotation = Vector2.Normalize(rotation);
                 }
             }
 

@@ -127,7 +127,7 @@ public class ##Scriptname## : SyncScript
         var move = new Vector3();
 
         var forward = Vector3.Transform(ForwardVector, Entity.Transform.Rotation);
-        var projectedForward = Vector3.NormalizeSafe(new Vector3(forward.X, 0, forward.Z));
+        var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z));
         var up = Vector3.TransformNormal(UpVector, Matrix4x4.CreateFromQuaternion(Entity.Transform.Rotation));
         var right = Vector3.Cross(forward, up);
 

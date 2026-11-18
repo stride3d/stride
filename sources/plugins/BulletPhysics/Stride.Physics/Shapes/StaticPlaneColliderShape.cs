@@ -43,7 +43,7 @@ namespace Stride.Physics
             var oZ = Vector3.Cross(Vector3.UnitX, oY);
             if (oZ.LengthSquared() > MathUtil.ZeroTolerance)
             {
-                oZ = Vector3.NormalizeSafe(oZ);
+                oZ = Vector3.Normalize(oZ);
                 var oX = Vector3.Cross(oY, oZ);
                 rotationMatrix = new Matrix4x4(
                     oX.X, oX.Y, oX.Z, 0,

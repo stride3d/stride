@@ -266,7 +266,7 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
             }
             revolutionRadius = Math.Max(10f, sceneBounds.Radius * 2f);
 
-            position = targetPos - Vector3.NormalizeSafe(Vector3.Transform(ForwardVector, rotation)) * revolutionRadius;
+            position = targetPos - Vector3.Normalize(Vector3.Transform(ForwardVector, rotation)) * revolutionRadius;
         }
 
         // Dolly (WASD model/arrow keys)

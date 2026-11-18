@@ -236,7 +236,7 @@ namespace Stride.Input.Tests
                     var vectorStrength = vector.Length();
                     if (vectorStrength > MathUtil.ZeroTolerance)
                     {
-                        var newY = -Vector3.NormalizeSafe(vector);
+                        var newY = -Vector3.Normalize(vector);
                         var newX = Vector3.NormalizeSafe(Vector3.Cross(Vector3.UnitY, newY));
                         var newZ = Vector3.Cross(newX, newY);
                         var transformation = Matrix4x4.Identity;

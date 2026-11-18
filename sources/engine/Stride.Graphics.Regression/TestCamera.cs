@@ -345,7 +345,7 @@ namespace Stride.Graphics.Regression
                 if (upVector.Length() < MathUtil.ZeroTolerance)
                     throw new ArgumentException("upVector cannot have a length of 0");
 
-                UpVector = Vector3.NormalizeSafe(upVector);
+                UpVector = Vector3.Normalize(upVector);
             }
         }
 
@@ -359,7 +359,7 @@ namespace Stride.Graphics.Regression
         /// <returns>Appropriate view parameters that can be used to display the entity</returns>
         public static ViewParameters CalculateViewParameters(Entity entity, Vector3 up, Vector3 front, CameraComponent cameraComponent)
         {
-            var upAxis = up.Length() < MathUtil.ZeroTolerance ? Vector3.UnitY : Vector3.NormalizeSafe(up);
+            var upAxis = up.Length() < MathUtil.ZeroTolerance ? Vector3.UnitY : Vector3.Normalize(up);
 
             // if we ensure that the whole object bounding box seen under the view vector in the frustum,
             // most of the time it results in object occupying only ~ 1/4 * 1/4 of the screen space.

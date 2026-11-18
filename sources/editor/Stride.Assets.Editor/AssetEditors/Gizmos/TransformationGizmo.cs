@@ -523,7 +523,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                     entityTransfo.Position = initialTransfo.Translation + Vector3.TransformNormal(elementTranslationGizmo, gizmoToParentMatrix);
 
                     var rotationAxisParent = Vector3.NormalizeSafe(Vector3.TransformNormal(transformation.Rotation.GetAxis(), gizmoToParentMatrix));
-                    entityTransfo.Rotation = Quaternion.Concatenate(initialTransfo.Rotation, Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(rotationAxisParent), transformation.Rotation.GetAngle()));
+                    entityTransfo.Rotation = Quaternion.Concatenate(initialTransfo.Rotation, Quaternion.CreateFromAxisAngle(rotationAxisParent, transformation.Rotation.GetAngle()));
                 }
             }
         }

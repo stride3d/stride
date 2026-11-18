@@ -86,8 +86,8 @@ namespace Stride.Audio
                     : Vector3.Zero;
                 listenersWithPosition.Add(listenerData);
                 listener.Position = newPosition;
-                listener.Forward = Vector3.NormalizeSafe(listener.WorldTransform.Z.AsVector3());
-                listener.Up = Vector3.NormalizeSafe(listener.WorldTransform.Y.AsVector3());
+                listener.Forward = listener.WorldTransform.Z.AsVector3();
+                listener.Up = listener.WorldTransform.Y.AsVector3();
 
                 listener.Update();
             }

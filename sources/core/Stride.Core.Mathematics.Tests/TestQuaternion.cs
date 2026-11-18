@@ -995,8 +995,8 @@ public class TestQuaternion
     public void TestQuaternionRotationBetweenParallelVectors()
     {
         // Test rotating from one vector to a parallel vector
-        var v1 = Vector3.NormalizeSafe(new Vector3(1.0f, 0.0f, 0.0f));
-        var v2 = Vector3.NormalizeSafe(new Vector3(2.0f, 0.0f, 0.0f)); // Parallel to v1
+        var v1 = Vector3.Normalize(new Vector3(1.0f, 0.0f, 0.0f));
+        var v2 = Vector3.Normalize(new Vector3(2.0f, 0.0f, 0.0f)); // Parallel to v1
 
         // Create rotation manually using axis-angle
         var axis = Vector3.Cross(v1, v2);

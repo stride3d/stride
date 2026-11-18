@@ -137,8 +137,7 @@ public class TestRay
     {
         // Intersecting rays
         var ray1 = new Ray(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
-        var direction = new Vector3(1, -1, 0);
-        direction = Vector3.NormalizeSafe(direction);
+        var direction = Vector3.Normalize(new Vector3(1, -1, 0));
         var ray2 = new Ray(new Vector3(0, 1, 0), direction);
 
         Assert.True(ray1.Intersects(ref ray2));

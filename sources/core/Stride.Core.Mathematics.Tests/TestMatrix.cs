@@ -1203,7 +1203,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixRotationAxis()
     {
-        var axis = Vector3.NormalizeSafe(new Vector3(1, 1, 0));
+        var axis = Vector3.Normalize(new Vector3(1, 1, 0));
         var angle = MathUtil.PiOverFour;
 
         var rotation = Matrix4x4.CreateFromAxisAngle(axis, angle);

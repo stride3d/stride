@@ -262,7 +262,7 @@ namespace Stride.Particles.ShapeBuilders
                 // Camera-oriented
                 var unitX = axis0 + axis1;
                 unitX -= Vector3.Dot(invViewZ, unitX) * invViewZ;
-                var rotationQuaternion = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(invViewZ), -MathUtil.PiOverTwo);
+                var rotationQuaternion = Quaternion.CreateFromAxisAngle(invViewZ, -MathUtil.PiOverTwo);
                 unitX = Vector3.Transform(unitX, rotationQuaternion);
                 unitX = Vector3.NormalizeSafe(unitX);
 

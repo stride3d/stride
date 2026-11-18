@@ -1507,7 +1507,7 @@ namespace Stride.Importer.ThreeD
             if (!float.IsFinite(target.X) || !float.IsFinite(target.Y) || !float.IsFinite(target.Z) || !float.IsFinite(target.LengthSquared()) || target.LengthSquared() <= 0 ||
                 !float.IsFinite(basis.X) || !float.IsFinite(basis.Y) || !float.IsFinite(basis.Z) || !float.IsFinite(basis.LengthSquared()) || basis.LengthSquared() <= 0)
                 throw new InvalidOperationException("Morph direction attributes must be finite and nonzero.");
-            return Vector3.NormalizeSafe(target) - Vector3.NormalizeSafe(basis);
+            return Vector3.Normalize(target) - Vector3.Normalize(basis);
         }
 
         /// <summary>

@@ -702,7 +702,7 @@ namespace Stride.BepuPhysics.Tests
                 simulation.PoseAngularDamping = 0f;
 
                 var start = Quaternion.CreateFromYawPitchRoll(0.3f, 0.2f, 0.1f);
-                var target = Quaternion.Concatenate(start, Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(new Vector3(axisX, axisY, axisZ)), angle));
+                var target = Quaternion.Concatenate(start, Quaternion.CreateFromAxisAngle(Vector3.Normalize(new Vector3(axisX, axisY, axisZ)), angle));
                 body.Teleport(Vector3.Zero, start);
 
                 body.SetTargetPose(target);

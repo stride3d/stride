@@ -48,8 +48,7 @@ public class RecastPhysicsNavigationComponent : RecastNavigationComponent
         // When the distance between the character and the next waypoint is large enough, move closer to the waypoint
         if (distanceToWaypoint > 0.5)
         {
-            var direction = nextWaypointPosition - position;
-            direction = Vector3.NormalizeSafe(direction);
+            var direction = Vector3.Normalize(nextWaypointPosition - position);
 
             PhysicsComponent.Move(direction);
         }

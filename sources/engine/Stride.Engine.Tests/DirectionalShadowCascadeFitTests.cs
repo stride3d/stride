@@ -84,7 +84,7 @@ public class DirectionalShadowCascadeFitTests : IDisposable
         shadow.DepthRange.ManualMaxDistance = 60.0f;
         var light = new LightDirectional { Shadow = shadow };
 
-        var renderLight = new RenderLight { Type = light, Direction = Vector3.NormalizeSafe(new Vector3(0.3f, -1.0f, 0.5f)) };
+        var renderLight = new RenderLight { Type = light, Direction = Vector3.Normalize(new Vector3(0.3f, -1.0f, 0.5f)) };
 
         var sourceView = new RenderView
         {

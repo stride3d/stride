@@ -336,7 +336,7 @@ public sealed class EditorViewToolTests
 
         // Two clicks on the ground, 3 units apart
         tools.Click(new EditorViewClick { Button = MouseButton.Left, Position = new Vector2(0.4f, 0.5f), Ray = new Ray(new Vector3(1, 5, 2), -Vector3.UnitY) });
-        tools.Click(new EditorViewClick { Button = MouseButton.Left, Position = new Vector2(0.6f, 0.5f), Ray = new Ray(new Vector3(4, 5, 2), Vector3.NormalizeSafe(new Vector3(0, -1, 0))) });
+        tools.Click(new EditorViewClick { Button = MouseButton.Left, Position = new Vector2(0.6f, 0.5f), Ray = new Ray(new Vector3(4, 5, 2), Vector3.Normalize(new Vector3(0, -1, 0))) });
         Assert.Equal(3, measure.Distance, 3);
     }
 
@@ -353,7 +353,7 @@ public sealed class EditorViewToolTests
         Assert.Equal(new Vector3(0, 0, 10), center.Position);
         AssertNearEqual(-Vector3.UnitZ, center.Direction);
         // With a vertical field of view of 90 degrees and an aspect ratio of 2, the top right corner is at (2, 1) one unit away
-        AssertNearEqual(Vector3.NormalizeSafe(new Vector3(2, 1, -1)), topRight.Direction);
+        AssertNearEqual(Vector3.Normalize(new Vector3(2, 1, -1)), topRight.Direction);
     }
 
     private static void AssertNearEqual(Vector3 expected, Vector3 actual)

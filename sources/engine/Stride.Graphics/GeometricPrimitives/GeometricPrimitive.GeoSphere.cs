@@ -259,8 +259,7 @@ namespace Stride.Graphics.GeometricPrimitives
                     {
                         var vertexValue = vertexPositions[i];
 
-                        var normal = vertexValue;
-                        normal = Vector3.NormalizeSafe(normal);
+                        var normal = Vector3.Normalize(vertexValue);
 
                         var pos = normal * radius;
 

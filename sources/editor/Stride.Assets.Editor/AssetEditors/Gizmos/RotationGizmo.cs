@@ -88,7 +88,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             else
             {
                 var halfFov = MathUtil.DegreesToRadians(cameraService.VerticalFieldOfView/2f);
-                rayDirectionView = Vector3.NormalizeSafe(new Vector3(cameraService.AspectRatio*screenPosition.X, screenPosition.Y, -1/MathF.Tan(halfFov)));
+                rayDirectionView = Vector3.Normalize(new Vector3(cameraService.AspectRatio*screenPosition.X, screenPosition.Y, -1/MathF.Tan(halfFov)));
             }
 
             // calculate the view to gizmo space matrix 
@@ -207,7 +207,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             var cameraToAnchorEntity = AnchorEntity.Transform.WorldMatrix.Translation - Game.EditorServices.Get<IEditorGameCameraService>().Position;
             var rotationAxis = new Vector3(0) { [(int)TransformationAxes / 2] = MathF.Sign(Vector3.Dot(cameraToAnchorEntity, rotationAxisWorldUp)) };
 
-            return Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(rotationAxis), rotationAngle);
+            return Quaternion.CreateFromAxisAngle(rotationAxis, rotationAngle);
         }
 
         private Quaternion GetRotationFromLinearMovement()
@@ -227,7 +227,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             // determine the rotation axis
             var rotationAxis = new Vector3(0) { [(int)TransformationAxes / 2] = 1 };
 
-            return Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(rotationAxis), rotationAngle);
+            return Quaternion.CreateFromAxisAngle(rotationAxis, rotationAngle);
         }
 
         protected override void OnTransformationFinished()

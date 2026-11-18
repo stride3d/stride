@@ -158,8 +158,8 @@ namespace Stride.Audio
                 if (emitter.WorldTransform == default)
                     continue;
 
-                emitter.Forward = Vector3.NormalizeSafe(emitter.WorldTransform.Z.AsVector3());
-                emitter.Up = Vector3.NormalizeSafe(emitter.WorldTransform.Y.AsVector3());
+                emitter.Forward = emitter.WorldTransform.Z.AsVector3();
+                emitter.Up = emitter.WorldTransform.Y.AsVector3();
 
                 // Then apply 3D localization
                 foreach (var controller in associatedData.AudioEmitterComponent.SoundToController.Values)

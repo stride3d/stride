@@ -398,7 +398,7 @@ namespace Stride.Graphics.GeometricPrimitives
 
                         if (!normal.NearEquals(Vector3.Zero, new Vector3(1e-7f)))
                         {
-                            normal = Vector3.NormalizeSafe(normal);
+                            normal = Vector3.Normalize(normal);
 
                             // If this patch is mirrored, we must invert the normal.
                             if (isMirrored)

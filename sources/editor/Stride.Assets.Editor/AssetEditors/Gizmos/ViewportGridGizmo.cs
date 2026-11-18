@@ -113,7 +113,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
             axisEntity.TransformValue.Scale = new Vector3(GridSize, 1f / GridBase, 1f / GridBase);
             if (axis != 0)
-                axisEntity.TransformValue.Rotation = Quaternion.Concatenate(Quaternion.CreateRotationX(MathUtil.PiOverTwo), Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(new Vector3 { [1 + (axis % 2)] = 1f }), MathUtil.PiOverTwo));
+                axisEntity.TransformValue.Rotation = Quaternion.Concatenate(Quaternion.CreateRotationX(MathUtil.PiOverTwo), Quaternion.CreateFromAxisAngle(new Vector3 { [1 + (axis % 2)] = 1f }, MathUtil.PiOverTwo));
             var axisEntityRoot = new Entity("Scene grid origin axis root");
             axisEntityRoot.AddChild(axisEntity);
 

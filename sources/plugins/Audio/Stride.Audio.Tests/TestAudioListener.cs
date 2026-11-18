@@ -60,7 +60,7 @@ namespace Stride.Audio.Tests
 
             ///////////////////////////////////////////
             // 2. Check for no crash and correct value
-            var newVal = Vector3.NormalizeSafe(Vector3.One);
+            var newVal = Vector3.Normalize(Vector3.One);
             defaultListener.Forward = newVal;
             Assert.True(newVal.NearEquals(defaultListener.Forward), "AudioListener.Forward value is not what it is supposed to be.");
 
@@ -86,7 +86,7 @@ namespace Stride.Audio.Tests
 
             ///////////////////////////////////////////
             // 2. Check for no crash and correct value
-            var newVal = Vector3.NormalizeSafe(Vector3.One);
+            var newVal = Vector3.Normalize(Vector3.One);
             defaultListener.Up = newVal;
             Assert.True(newVal.NearEquals(defaultListener.Up), "AudioListener.Up value is not what it is supposed to be.");
 
