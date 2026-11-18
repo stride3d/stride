@@ -106,6 +106,10 @@ public partial class App : Application
         MarkdownViewerDefaults.Extensions.AddTextMateHighlighting();
         MarkdownViewerDefaults.Extensions.AddSvg();
         MarkdownViewerDefaults.Extensions.AddMermaid();
+#if DEBUG
+        // The release notes previewed from a local file (/previewreleasenotes) have local images; the published ones come over https
+        MarkdownViewerDefaults.Extensions.Add(new LocalImages());
+#endif
 
         // Global link handler — handles external links for every MarkdownViewer in the app
         MarkdownViewer.LinkClickedEvent.AddClassHandler<MarkdownViewer>(OnLinkClicked);
