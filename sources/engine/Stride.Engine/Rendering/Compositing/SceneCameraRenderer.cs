@@ -1,11 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using Stride.Rendering.Lights;
 
 namespace Stride.Rendering.Compositing
 {
@@ -31,6 +33,13 @@ namespace Stride.Rendering.Compositing
         public ISceneRenderer Child { get; set; }
 
         public RenderGroupMask RenderMask { get; set; } = RenderGroupMask.All;
+
+        /// <summary>
+        /// Gets or sets the light layers this renderer is lit by.
+        /// </summary>
+        /// <userdoc>The lights that are in one of these layers light what this renderer draws. Light probes are not lights, so this mask does not affect them.</userdoc>
+        [DefaultValue(LightLayerMask.All)]
+        public LightLayerMask LightMask { get; set; } = LightLayerMask.All;
 
         [DataMemberIgnore]
         public Logger Logger = GlobalLogger.GetLogger(nameof(SceneCameraRenderer));
@@ -100,6 +109,7 @@ namespace Stride.Rendering.Compositing
             using var _ = Profiler.Begin(CollectInnerKey);
 
             RenderView.CullingMask = RenderMask;
+            RenderView.LightMask = LightMask;
 
             Child?.Collect(renderContext);
         }

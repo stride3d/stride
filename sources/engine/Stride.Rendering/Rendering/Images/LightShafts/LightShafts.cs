@@ -177,16 +177,20 @@ namespace Stride.Rendering.Images
 
             applyLightEffectShader.SetOutput(GetSafeOutput(0));
 
+            var lightingView = renderView.LightingView ?? renderView;
             foreach (var lightShaft in lightShafts)
             {
                 if (lightShaft.Light == null)
                     continue; // Skip entities without a light component
 
+                if ((lightShaft.Light.LightLayers & lightingView.LightMask) == 0)
+                    continue; // Skip lights this view does not take
+
                 // Set sample count for this light
                 lightShaftsParameters.Set(LightShaftsEffectKeys.SampleCount, lightShaft.SampleCount);
 
                 // Setup the shader group used for sampling shadows
-                var shadowMapTexture = shadowMapRenderer.FindShadowMap(renderView.LightingView ?? renderView, lightShaft.Light);
+                var shadowMapTexture = shadowMapRenderer.FindShadowMap(lightingView, lightShaft.Light);
                 SetupLight(context, lightShaft, shadowMapTexture, lightShaftsParameters);
 
                 // Check if we can pack bounding volumes together or need to draw them one by one

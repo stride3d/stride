@@ -8,6 +8,7 @@ using Stride.Core.Threading;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
+using Stride.Rendering.Lights;
 
 namespace Stride.Rendering
 {
@@ -97,6 +98,12 @@ namespace Stride.Rendering
         /// The culling mask.
         /// </summary>
         public RenderGroupMask CullingMask { get; set; } = RenderGroupMask.All;
+
+        /// <summary>
+        /// The light layers this view takes.
+        /// </summary>
+        /// <remarks>The view takes a light when one of the light's <see cref="RenderLight.LightLayers"/> is in this mask.</remarks>
+        public LightLayerMask LightMask { get; set; } = LightLayerMask.All;
 
         /// <summary>
         /// The culling mode.
