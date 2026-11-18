@@ -1054,10 +1054,18 @@ public struct Double4 : IEquatable<Double4>, ISpanFormattable
     /// </returns>
     public readonly bool Equals(Double4 other)
     {
-        return (double)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-            (double)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
-            (double)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
-            (double)Math.Abs(other.W - W) < MathUtil.ZeroTolerance;
+        return X == other.X && Y == other.Y && Z == other.Z && W == other.W;
+    }
+
+    /// <summary>Determines whether every component of a vector differs from the same component of this one by less than a tolerance.</summary>
+    /// <param name="other">The vector to compare with this instance.</param>
+    /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+    public readonly bool NearEquals(Double4 other, double tolerance = MathUtil.ZeroTolerance)
+    {
+        return Math.Abs(other.X - X) < tolerance &&
+            Math.Abs(other.Y - Y) < tolerance &&
+            Math.Abs(other.Z - Z) < tolerance &&
+            Math.Abs(other.W - W) < tolerance;
     }
 
     /// <summary>

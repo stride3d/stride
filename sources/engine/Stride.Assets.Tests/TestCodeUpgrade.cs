@@ -2843,4 +2843,52 @@ public class TestCodeUpgrade
         var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
         Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
     }
+
+    [Fact]
+    public async Task MathTypesToSystemNumericsKeepsTheToleranceOfDoubleVectorComparisons()
+    {
+        const string Usage = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(Double3 a, Double3 b)
+                {
+                    var sum = a;
+                    return a == b || a != sum || a.Equals(b);
+                }
+            }
+            """;
+        const string StrideMath = """
+            namespace Stride.Core.Mathematics
+            {
+                public struct Double3
+                {
+                    public double X, Y, Z;
+                    public static bool operator ==(Double3 left, Double3 right) => true;
+                    public static bool operator !=(Double3 left, Double3 right) => false;
+                    public bool Equals(Double3 other) => true;
+                    public override bool Equals(object other) => true;
+                    public override int GetHashCode() => 0;
+                }
+            }
+            """;
+        const string Expected = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(Double3 a, Double3 b)
+                {
+                    var sum = a;
+                    return a.NearEquals(b) || !a.NearEquals(sum) || a.NearEquals(b);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + StrideMath, MathTypesToSystemNumerics());
+
+        var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+    }
 }

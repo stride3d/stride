@@ -342,6 +342,7 @@ public static partial class CodeUpgrades
     /// <c>Double2</c>, <c>Double3</c> and <c>Double4</c> stay, with the names and the forms of these vectors.
     /// So do <c>Int2</c>, <c>Int3</c>, <c>Int4</c>, <c>UInt4</c>, <c>Half2</c>, <c>Half3</c> and <c>Half4</c>.
     /// <c>Half</c> becomes <see cref="System.Half"/>.
+    /// The double vectors compare exactly now.
     /// </summary>
     public static CodeUpgrade MathTypesToSystemNumerics() => MigrateTypes(SystemNumericsMigration());
 
@@ -575,6 +576,15 @@ public static partial class CodeUpgrades
                 .NewForms(type)
                 // One comparison of two values is left
                 .CallToExpression(type, "Equals", [type, type], "{0}.Equals({1})");
+        }
+
+        // The types that stay compare exactly now, as the types of System.Numerics do
+        foreach (var type in doubleVectors)
+        {
+            migration
+                .Rename(type, "Equals", "NearEquals", type)
+                .OperatorToInstanceCall(type, "op_Equality", "NearEquals")
+                .OperatorToInstanceCall(type, "op_Inequality", "NearEquals", negate: true);
         }
 
         migration

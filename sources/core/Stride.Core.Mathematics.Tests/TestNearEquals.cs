@@ -43,4 +43,20 @@ public class TestNearEquals
         Assert.True(new Plane(0, 1, 0, 2).NearEquals(new Plane(0, 1, 0, 2.05f), 0.1f));
         Assert.False(new Plane(0, 1, 0, 2).NearEquals(new Plane(0, 1, 0, 2.2f), 0.1f));
     }
+
+    [Fact]
+    public void DoubleVectorsCompareExactlyAndHaveNearEquals()
+    {
+        Assert.False(new Double2(1, 2) == new Double2(1, 2 + 1e-9));
+        Assert.True(new Double2(1, 2).NearEquals(new Double2(1, 2 + 1e-9)));
+        Assert.False(new Double2(1, 2).NearEquals(new Double2(1, 2 + 1e-9), 1e-12));
+
+        Assert.True(new Double3(1, 2, 3) != new Double3(1, 2, 3 + 1e-9));
+        Assert.True(new Double3(1, 2, 3).NearEquals(new Double3(1, 2, 3 + 1e-9)));
+        Assert.False(new Double3(1, 2, 3).NearEquals(new Double3(1, 2, 3.2), 0.1));
+
+        Assert.False(new Double4(1, 2, 3, 4).Equals(new Double4(1, 2, 3, 4 + 1e-9)));
+        Assert.True(new Double4(1, 2, 3, 4).NearEquals(new Double4(1, 2, 3, 4 + 1e-9)));
+        Assert.False(new Double4(1, 2, 3, 4).NearEquals(new Double4(1, 2, 3, 4.2), 0.1));
+    }
 }
