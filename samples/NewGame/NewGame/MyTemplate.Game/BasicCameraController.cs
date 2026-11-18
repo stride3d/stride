@@ -2,6 +2,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
+using System.Numerics;
 
 namespace MyTemplate;
 
@@ -213,13 +214,13 @@ public class BasicCameraController : SyncScript
 
     private void UpdateTransform()
     {
-        var rotation = Matrix.RotationQuaternion(Entity.Transform.Rotation);
+        var rotation = Matrix4x4.CreateFromQuaternion(Entity.Transform.Rotation);
 
         var right = Vector3.Cross(rotation.Forward, upVector);
         var up = Vector3.Cross(right, rotation.Forward);
 
-        right.Normalize();
-        up.Normalize();
+        right = Vector3.NormalizeSafe(right);
+        up = Vector3.NormalizeSafe(up);
 
         var currentPitch = MathUtil.PiOverTwo - MathF.Acos(Vector3.Dot(rotation.Forward, upVector));
         pitch = MathUtil.Clamp(currentPitch + pitch, -MaximumPitch, MaximumPitch) - currentPitch;
@@ -230,6 +231,6 @@ public class BasicCameraController : SyncScript
 
         Entity.Transform.Position += finalTranslation;
 
-        Entity.Transform.Rotation *= Quaternion.RotationAxis(right, pitch) * Quaternion.RotationAxis(upVector, yaw);
+        Entity.Transform.Rotation = Quaternion.Concatenate(Entity.Transform.Rotation, Quaternion.Concatenate(Quaternion.CreateFromAxisAngle(right, pitch), Quaternion.CreateFromAxisAngle(upVector, yaw)));
     }
 }

@@ -4,6 +4,7 @@
 using Stride.BepuPhysics.Components;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.BepuPhysics._2D;
 
@@ -34,10 +35,10 @@ public class Simulation2DComponent : SyncScript, ISimulationUpdate
                 body.LinearVelocity *= new Vector3(1, 1, 0);
 
             var bodyRot = body.Orientation;
-            Quaternion.RotationYawPitchRoll(ref bodyRot, out var yaw, out var pitch, out var roll);
+            var (yaw, pitch, roll) = bodyRot.GetYawPitchRoll();
             //if (yaw > MaxZLiberty || pitch > MaxZLiberty || yaw < -MaxZLiberty || pitch < -MaxZLiberty)
             if (yaw != 0 || pitch != 0)
-                body.Orientation = Quaternion.RotationYawPitchRoll(0, 0, roll);
+                body.Orientation = Quaternion.CreateFromYawPitchRoll(0, 0, roll);
             //if (body.AngularVelocity.X > MaxZLiberty || body.AngularVelocity.Y > MaxZLiberty || body.AngularVelocity.X < -MaxZLiberty || body.AngularVelocity.Y < -MaxZLiberty)
             if (body.AngularVelocity.X != 0 || body.AngularVelocity.Y != 0)
                 body.AngularVelocity *= new Vector3(0, 0, 1);

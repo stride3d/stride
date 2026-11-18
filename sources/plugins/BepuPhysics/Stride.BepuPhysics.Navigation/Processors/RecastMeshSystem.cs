@@ -18,6 +18,7 @@ using System.Diagnostics;
 using Stride.BepuPhysics.Navigation.Extensions;
 using Stride.BepuPhysics.Navigation.Definitions;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
 
@@ -141,13 +142,13 @@ public class RecastMeshSystem : GameSystemBase
         for (int collidableI = 0, shapeI = 0; collidableI < input.Matrices.Count; collidableI++)
         {
             var (collidableMatrix, shapeCount) = input.Matrices[collidableI];
-            collidableMatrix.Decompose(out _, out Matrix worldMatrix, out var translation);
-            worldMatrix.TranslationVector = translation;
+            collidableMatrix.Decompose(out _, out Matrix4x4 worldMatrix, out var translation);
+            worldMatrix.Translation = translation;
 
             for (int j = 0; j < shapeCount; j++, shapeI++)
             {
                 var transform = input.TransformsOut[shapeI];
-                Matrix.Transformation(ref transform.Scale, ref transform.RotationLocal, ref transform.PositionLocal, out var localMatrix);
+                Matrix4x4.CreateTransformation(transform.Scale, transform.RotationLocal, transform.PositionLocal, out var localMatrix);
                 var finalMatrix = localMatrix * worldMatrix;
 
                 var shape = input.ShapeData[shapeI];
@@ -172,7 +173,7 @@ public class RecastMeshSystem : GameSystemBase
                 for (int l = 0; l < shape.Vertices.Length; l++)
                 {
                     var vertex = shape.Vertices[l].Position;
-                    Vector3.Transform(ref vertex, ref finalMatrix, out Vector3 transformedVertex);
+                    var transformedVertex = Vector3.Transform(vertex, finalMatrix);
                     verts.Add(new(transformedVertex));
                 }
             }
@@ -490,6 +491,6 @@ public class RecastMeshSystem : GameSystemBase
     {
         public readonly List<BasicMeshBuffers> ShapeData = [];
         public readonly List<ShapeTransform> TransformsOut = [];
-        public readonly List<(Matrix entity, int count)> Matrices = [];
+        public readonly List<(Matrix4x4 entity, int count)> Matrices = [];
     }
 }

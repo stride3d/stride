@@ -13,6 +13,7 @@ using Stride.Engine;
 using Stride.EntityModel;
 using Stride.Extensions;
 using Stride.Input;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {
@@ -155,7 +156,7 @@ namespace Stride.Graphics.Tests
                     var rotationPrim = (float) (2*Math.PI*UpdateTime.Total.TotalMilliseconds/15000);
                     for (var i = 0; i < primitiveEntities.Length; ++i)
                     {
-                        primitiveEntities[i].Transform.Rotation = Quaternion.RotationAxis(rotationAxis[i], rotationPrim);
+                        primitiveEntities[i].Transform.Rotation = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(rotationAxis[i]), rotationPrim);
                     }
                 }
 
@@ -171,7 +172,7 @@ namespace Stride.Graphics.Tests
                     rotationUpFactor = 0.45f;
                 else if (rotationUpFactor < -0.45f)
                     rotationUpFactor = -0.45f;
-                mainCamera.Transform.Translation = Vector3.Transform(cameraInitPos, Quaternion.RotationZ((float)(Math.PI * rotationUpFactor)) * Quaternion.RotationY((float)(2 * Math.PI * rotationFactor)));
+                mainCamera.Transform.Translation = Vector3.Transform(cameraInitPos, Quaternion.Concatenate(Quaternion.CreateRotationZ((float)(Math.PI * rotationUpFactor)), Quaternion.CreateRotationY((float)(2 * Math.PI * rotationFactor))));
             }
         }
 

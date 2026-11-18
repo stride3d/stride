@@ -3,6 +3,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
+using System.Numerics;
 
 namespace ##Namespace##;
 
@@ -145,7 +146,7 @@ public class ##Scriptname## : SyncScript
                 // a stick not entirely pushed forward should make the entity move slower.
                 if (dir.Length() > 1f)
                 {
-                    dir = Vector3.Normalize(dir);
+                    dir = Vector3.NormalizeSafe(dir);
                 }
             }
 
@@ -188,7 +189,7 @@ public class ##Scriptname## : SyncScript
                 // See Keyboard & Gamepad translation's Normalize() usage
                 if (rotation.Length() > 1f)
                 {
-                    rotation = Vector2.Normalize(rotation);
+                    rotation = Vector2.NormalizeSafe(rotation);
                 }
             }
 
@@ -253,15 +254,15 @@ public class ##Scriptname## : SyncScript
     private void UpdateTransform()
     {
         // Get the local coordinate system
-        var rotation = Matrix.RotationQuaternion(Entity.Transform.Rotation);
+        var rotation = Matrix4x4.CreateFromQuaternion(Entity.Transform.Rotation);
 
         // Enforce the global up-vector by adjusting the local x-axis
         var right = Vector3.Cross(rotation.Forward, upVector);
         var up = Vector3.Cross(right, rotation.Forward);
 
         // Stabilize
-        right.Normalize();
-        up.Normalize();
+        right = Vector3.NormalizeSafe(right);
+        up = Vector3.NormalizeSafe(up);
 
         // Adjust pitch. Prevent it from exceeding up and down facing. Stabilize edge cases.
         var currentPitch = MathUtil.PiOverTwo - MathF.Acos(Vector3.Dot(rotation.Forward, upVector));
@@ -275,6 +276,6 @@ public class ##Scriptname## : SyncScript
         Entity.Transform.Position += finalTranslation;
 
         // Yaw around global up-vector, pitch and roll in local space
-        Entity.Transform.Rotation *= Quaternion.RotationAxis(right, pitch) * Quaternion.RotationAxis(upVector, yaw);
+        Entity.Transform.Rotation = Quaternion.Concatenate(Entity.Transform.Rotation, Quaternion.Concatenate(Quaternion.CreateFromAxisAngle(right, pitch), Quaternion.CreateFromAxisAngle(upVector, yaw)));
     }
 }

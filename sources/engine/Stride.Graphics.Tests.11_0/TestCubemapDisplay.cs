@@ -11,6 +11,7 @@ using Stride.Effects;
 using Stride.Engine;
 using Stride.EntityModel;
 using Stride.Extensions;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

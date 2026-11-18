@@ -1,5 +1,6 @@
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace MyTemplate;
 
@@ -16,6 +17,6 @@ public class MyTemplateComponent : SyncScript
     public override void Update()
     {
         var speed = Data?.Speed ?? Speed;
-        Entity.Transform.Rotation *= Quaternion.RotationY(speed * (float)Game.UpdateTime.Elapsed.TotalSeconds);
+        Entity.Transform.Rotation = Quaternion.Concatenate(Entity.Transform.Rotation, Quaternion.CreateRotationY(speed * (float)Game.UpdateTime.Elapsed.TotalSeconds));
     }
 }

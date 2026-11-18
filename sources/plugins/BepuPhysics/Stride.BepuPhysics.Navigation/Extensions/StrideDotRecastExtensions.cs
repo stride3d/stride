@@ -1,5 +1,6 @@
 ﻿using DotRecast.Core.Numerics;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Navigation.Extensions;
 public static class StrideDotRecastExtensions

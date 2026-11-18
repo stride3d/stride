@@ -4,6 +4,7 @@ using Stride.Input;
 using System;
 using System.Threading.Tasks;
 using Stride.Core;
+using System.Numerics;
 
 namespace Stride.Scripts;
 
@@ -169,8 +170,8 @@ public class OrbitCamera : AsyncScript
         }
 
         // Compute base vectors for camera movement
-        var rotation = Matrix.RotationYawPitchRoll(Yaw, Pitch, 0);
-        var direction = Vector3.Normalize(Vector3.TransformNormal(ForwardVector, rotation));
+        var rotation = Matrix4x4.CreateFromYawPitchRoll(Yaw, Pitch, 0);
+        var direction = Vector3.NormalizeSafe(Vector3.TransformNormal(ForwardVector, rotation));
 
         if (Math.Abs(Input.MouseWheelDelta) > MathUtil.ZeroTolerance)
         {
@@ -181,7 +182,7 @@ public class OrbitCamera : AsyncScript
             }
         }
 
-        targetPos = Target.Transform.WorldMatrix.TranslationVector;
+        targetPos = Target.Transform.WorldMatrix.Translation;
         targetPos += OffsetFromTarget;
         position = targetPos - direction * DistanceFromTarget;
         (targetPos - position).Length();
@@ -195,8 +196,8 @@ public class OrbitCamera : AsyncScript
         var camera = Component;
         if (camera == null) return;
 
-        var rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-        var viewMatrix = Matrix.Translation(-position) * Matrix.RotationQuaternion(rotation);
+        var rotation = Quaternion.Inverse(Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0));
+        var viewMatrix = Matrix4x4.CreateTranslation(-position) * Matrix4x4.CreateFromQuaternion(rotation);
         camera.ViewMatrix = viewMatrix;
     }
 }

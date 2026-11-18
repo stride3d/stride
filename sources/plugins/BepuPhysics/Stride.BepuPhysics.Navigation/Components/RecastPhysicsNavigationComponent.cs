@@ -2,6 +2,7 @@
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Core.Annotations;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Navigation.Components;
 [DataContract(nameof(RecastPhysicsNavigationComponent))]
@@ -39,7 +40,7 @@ public class RecastPhysicsNavigationComponent : RecastNavigationComponent
             return;
         }
 
-        var position = Entity.Transform.WorldMatrix.TranslationVector;
+        var position = Entity.Transform.WorldMatrix.Translation;
 
         var nextWaypointPosition = Path[0];
         var distanceToWaypoint = Vector3.Distance(position, nextWaypointPosition);
@@ -48,7 +49,7 @@ public class RecastPhysicsNavigationComponent : RecastNavigationComponent
         if (distanceToWaypoint > 0.5)
         {
             var direction = nextWaypointPosition - position;
-            direction.Normalize();
+            direction = Vector3.NormalizeSafe(direction);
 
             PhysicsComponent.Move(direction);
         }
@@ -68,12 +69,12 @@ public class RecastPhysicsNavigationComponent : RecastNavigationComponent
         {
             return;
         }
-        var position = Entity.Transform.WorldMatrix.TranslationVector;
+        var position = Entity.Transform.WorldMatrix.Translation;
 
         float angle = (float)Math.Atan2(Path[0].Z - position.Z,
             Path[0].X - position.X);
 
-        Entity.Transform.Rotation = Quaternion.RotationY(-angle);
+        Entity.Transform.Rotation = Quaternion.CreateRotationY(-angle);
         PhysicsComponent.Orientation = Entity.Transform.Rotation;
     }
 }
