@@ -43,11 +43,13 @@ public static class QuaternionExtensions
     extension(Quaternion)
     {
         /// <summary>Scales a quaternion to a length of one; a quaternion too short to be a rotation is returned as it is.</summary>
+        /// <param name="value">The quaternion to scale.</param>
+        /// <param name="tolerance">The length up to which a quaternion is too short.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Quaternion NormalizeSafe(Quaternion value)
+        public static Quaternion NormalizeSafe(Quaternion value, float tolerance = MathUtil.ZeroTolerance)
         {
             float length = value.Length();
-            return length > MathUtil.ZeroTolerance ? value * (1.0f / length) : value;
+            return length > tolerance ? value * (1.0f / length) : value;
         }
 
         /// <summary>

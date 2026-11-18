@@ -42,11 +42,13 @@ public static class Vector3Extensions
     extension(Vector3)
     {
         /// <summary>Scales a vector to a length of one; a vector too short to have a direction is returned as it is.</summary>
+        /// <param name="value">The vector to scale.</param>
+        /// <param name="tolerance">The length up to which a vector is too short.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 NormalizeSafe(Vector3 value)
+        public static Vector3 NormalizeSafe(Vector3 value, float tolerance = MathUtil.ZeroTolerance)
         {
             float length = value.Length();
-            return length > MathUtil.ZeroTolerance ? value * (1.0f / length) : value;
+            return length > tolerance ? value * (1.0f / length) : value;
         }
 
         /// <summary>Raises each component of a vector to a power.</summary>
