@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Stride.Core.AssemblyProcessor.Serializers;
 
@@ -24,8 +25,16 @@ internal class DataContractAliasProcessor : ICecilSerializerProcessor
                 var alias = (string)dataContractAttribute.ConstructorArguments[0].Value;
 
                 // Third parameter is IsAlias (differentiate DataAlias from DataContract)
-                context.DataContractAliases.Add(Tuple.Create(alias, type, dataContractAttribute.AttributeType.FullName == "Stride.Core.DataAliasAttribute"));
+                context.DataContractAliases.Add(Tuple.Create(alias, (TypeReference)type, dataContractAttribute.AttributeType.FullName == "Stride.Core.DataAliasAttribute"));
             }
+        }
+
+        // [assembly: DataContractAlias("alias", typeof(T))] gives the alias of a type of another library
+        foreach (var attribute in context.Assembly.CustomAttributes.Where(x => x.AttributeType.FullName == "Stride.Core.DataContractAliasAttribute"))
+        {
+            var alias = (string)attribute.ConstructorArguments[0].Value;
+            var type = ((TypeReference)attribute.ConstructorArguments[1].Value).FixupValueType();
+            context.DataContractAliases.Add(Tuple.Create(alias, type, false));
         }
     }
 }

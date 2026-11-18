@@ -64,7 +64,7 @@ internal class CecilSerializerContext
 
     public List<TypeReference> ReferencedAssemblySerializerFactoryTypes { get; } = [];
 
-    public List<Tuple<string, TypeDefinition, bool>> DataContractAliases { get; } = [];
+    public List<Tuple<string, TypeReference, bool>> DataContractAliases { get; } = [];
 
     /// <summary>
     /// Gets the list of serializable type grouped by profile.
