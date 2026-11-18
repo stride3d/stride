@@ -175,12 +175,15 @@ jobs:
           fi
 
       # Runs even when the step above failed, so the merger sees every rule that failed. Only checks what the change
-      # adds, so a bypassed PR never fails later ones. A PR into another branch is a level of a stack, which takes one
-      # bump at its last rebase. On a push nothing can be blocked anymore, so it only warns.
+      # adds, so a bypassed PR never fails later ones. A stack of PRs takes one bump for the whole stack: in a native
+      # stack, base_ref is the branch the stack lands on while base.sha is the PR below, which may hold that bump
+      # already, so the version is compared with the landing branch. On a push nothing can be blocked anymore, so it
+      # only warns.
       - name: Check that upgraders move the version
         if: ${{ !cancelled() && (github.event_name == 'push' || github.base_ref == 'master' || startsWith(github.base_ref, 'master-')) }}
         env:
           EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BEFORE_SHA: ${{ github.event.before }}
@@ -197,7 +200,11 @@ jobs:
             fi
           else
             level=error
-            base=$(git merge-base "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || echo "$BASE_SHA")
+            landing="$BASE_SHA"
+            if git fetch --no-tags --quiet origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"; then
+              landing="refs/remotes/origin/$BASE_REF"
+            fi
+            base=$(git merge-base "$landing" "$HEAD_SHA" 2>/dev/null || echo "$BASE_SHA")
           fi
 
           version_file=sources/shared/SharedAssemblyInfo.cs
