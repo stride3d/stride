@@ -381,6 +381,108 @@ public sealed class EditorViewToolSetTests
         Assert.Equal(["Initialize", "Dispose"], select.Calls);
     }
 
+    [Fact]
+    public async Task ALeftDragDrawsASelectionRectangleThatSelectsOnRelease()
+    {
+        using var tools = CreateToolSet();
+        tools.IsRectangleSelectionEnabled = true;
+
+        await tools.Update(Frame(pressed: [MouseButton.Left], down: [MouseButton.Left], at: new(0.6f, 0.2f)));
+        // Under the click threshold: still a click to come
+        await tools.Update(Frame(down: [MouseButton.Left], move: 3, at: new(0.58f, 0.21f)));
+        Assert.Null(tools.SelectionRectangle);
+        // Past it: the rectangle goes from the press to the cursor, whichever way the drag goes
+        await tools.Update(Frame(down: [MouseButton.Left], move: 30, at: new(0.2f, 0.5f)));
+        Assert.Equal(new RectangleF(0.2f, 0.2f, 0.4f, 0.3f), tools.SelectionRectangle);
+        // The camera stays where it is, and the selection doesn't take the drag as a click
+        var click = Assert.Single(await tools.Update(Frame(released: [MouseButton.Left], at: new(0.1f, 0.6f))));
+
+        Assert.Equal(new EditorViewToolClick(MouseButton.Left, ToSelection: true) { ToTool = false, Rectangle = new RectangleF(0.1f, 0.2f, 0.5f, 0.4f) }, click);
+        Assert.Null(tools.SelectionRectangle);
+    }
+
+    [Fact]
+    public async Task TheRectangleStartsWhereTheButtonWasPressedEvenInALateFrame()
+    {
+        using var tools = CreateToolSet();
+        tools.IsRectangleSelectionEnabled = true;
+
+        // A slow frame: the mouse moved on after the press, which its event places
+        await tools.Update(Frame(pressed: [MouseButton.Left], down: [MouseButton.Left], at: new(0.5f, 0.5f)) with { PressPosition = new(0.3f, 0.2f) });
+        await tools.Update(Frame(down: [MouseButton.Left], move: 30, at: new(0.6f, 0.6f)));
+
+        Assert.Equal(new RectangleF(0.3f, 0.2f, 0.3f, 0.4f), tools.SelectionRectangle);
+    }
+
+    [Fact]
+    public async Task AShortDragIsStillAClickWithTheRectangleSelectionOn()
+    {
+        using var tools = CreateToolSet();
+        tools.IsRectangleSelectionEnabled = true;
+
+        await tools.Update(Frame(pressed: [MouseButton.Left], down: [MouseButton.Left], at: new(0.5f)));
+        await tools.Update(Frame(down: [MouseButton.Left], move: 3, at: new(0.51f)));
+        var click = Assert.Single(await tools.Update(Frame(released: [MouseButton.Left], at: new(0.51f))));
+
+        Assert.Equal(new EditorViewToolClick(MouseButton.Left, ToSelection: true), click);
+    }
+
+    [Fact]
+    public async Task NoRectangleWithoutTheUserInterfaceThatDrawsIt()
+    {
+        using var tools = CreateToolSet();
+
+        await tools.Update(Frame(pressed: [MouseButton.Left], down: [MouseButton.Left], at: new(0.2f)));
+        await tools.Update(Frame(down: [MouseButton.Left], move: 30, at: new(0.6f)));
+
+        Assert.Null(tools.SelectionRectangle);
+        Assert.Empty(await tools.Update(Frame(released: [MouseButton.Left], at: new(0.6f))));
+    }
+
+    [Fact]
+    public async Task TheGizmoAltAndTheCameraKeepTheirDrags()
+    {
+        var paint = new FakeTool("Paint", Keys.None, EditorViewDefaultInputs.CameraMiddleDrag | EditorViewDefaultInputs.CameraRightDrag);
+        using var tools = CreateToolSet(paint);
+        tools.IsRectangleSelectionEnabled = true;
+
+        // A drag of the gizmo (Ctrl+drag duplicates there)
+        translate.IsUsingMouse = true;
+        Assert.Empty(await Drag(tools));
+        translate.IsUsingMouse = false;
+        // Alt and a left drag orbit the camera
+        Assert.Empty(await Drag(tools, alt: true));
+        // Another service (the view cube) has the mouse at the press
+        Assert.Empty(await Drag(tools, mouseAvailable: false));
+        // The selection is off with the active tool
+        Assert.True(tools.Activate(paint));
+        Assert.Empty(await Drag(tools));
+    }
+
+    [Fact]
+    public async Task TheRightButtonCancelsTheRectangle()
+    {
+        using var tools = CreateToolSet();
+        tools.IsRectangleSelectionEnabled = true;
+
+        await tools.Update(Frame(pressed: [MouseButton.Left], down: [MouseButton.Left], at: new(0.2f)));
+        await tools.Update(Frame(down: [MouseButton.Left], move: 30, at: new(0.6f)));
+        Assert.NotNull(tools.SelectionRectangle);
+        await tools.Update(Frame(pressed: [MouseButton.Right], down: [MouseButton.Left, MouseButton.Right], at: new(0.6f)));
+        await tools.Update(Frame(down: [MouseButton.Left, MouseButton.Right], move: 5, at: new(0.7f)));
+
+        Assert.Null(tools.SelectionRectangle);
+        Assert.Empty(await tools.Update(Frame(released: [MouseButton.Left], down: [MouseButton.Right], at: new(0.7f))));
+    }
+
+    private static async Task<IReadOnlyList<EditorViewToolClick>> Drag(EditorViewToolSet tools, bool alt = false, bool mouseAvailable = true)
+    {
+        await tools.Update(Frame(pressed: [MouseButton.Left], down: [MouseButton.Left], at: new(0.2f), alt: alt, mouseAvailable: mouseAvailable));
+        await tools.Update(Frame(down: [MouseButton.Left], move: 30, at: new(0.6f), alt: alt, mouseAvailable: mouseAvailable));
+        Assert.Null(tools.SelectionRectangle);
+        return await tools.Update(Frame(released: [MouseButton.Left], at: new(0.6f), alt: alt, mouseAvailable: mouseAvailable));
+    }
+
     private static EditorViewClick RightClick => new() { Button = MouseButton.Right, Position = new(0.5f), Ray = new(Vector3.Zero, -Vector3.UnitZ) };
 
     private EditorViewToolSet CreateToolSet(params FakeTool[] pluginTools)
@@ -399,7 +501,7 @@ public sealed class EditorViewToolSetTests
     }
 
     private static EditorViewInputFrame Frame(MouseButton[]? pressed = null, MouseButton[]? released = null, MouseButton[]? down = null, Keys[]? keys = null, float move = 0, bool mouseAvailable = true,
-        bool? mouseToContextMenu = null, bool cameraMoved = false)
+        bool? mouseToContextMenu = null, bool cameraMoved = false, Vector2 at = default, bool alt = false)
     {
         return new EditorViewInputFrame
         {
@@ -412,6 +514,9 @@ public sealed class EditorViewToolSetTests
             // Only the camera may have the mouse without keeping the context menu closed
             IsMouseAvailableToContextMenu = mouseToContextMenu ?? mouseAvailable,
             HasCameraMoved = cameraMoved,
+            MousePosition = at,
+            PressPosition = pressed is { Length: > 0 } ? at : null,
+            IsAltDown = alt,
         };
     }
 

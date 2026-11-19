@@ -40,6 +40,7 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     private readonly EditorGameMaterialHighlightService? materialHighlight;
     private readonly IEditorGameCameraViewModelService? camera;
     private readonly IEditorGameCameraPreviewViewModelService? cameraPreview;
+    private readonly IEditorGameSelectionRectangleService? selectionRectangle;
     private readonly Func<AbsoluteId, EntityViewModel?> findEntity;
     private readonly ObservableCollection<EditorViewToolViewModel> tools;
     private EditorViewToolViewModel? activeTool;
@@ -50,7 +51,8 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
         EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, IEditorGameLightProbeService? lightProbes = null,
         IEditorGameCameraViewModelService? camera = null, Func<AbsoluteId, EntityViewModel?>? findEntity = null, EditorCameraViewModel? cameraOptions = null,
         EditorGridViewModel? grid = null, EditorRenderingViewModel? rendering = null, EditorLightingViewModel? lighting = null,
-        IEditorGameCameraPreviewViewModelService? cameraPreview = null, EditorViewLayoutViewModel? views = null)
+        IEditorGameCameraPreviewViewModelService? cameraPreview = null, EditorViewLayoutViewModel? views = null,
+        IEditorGameSelectionRectangleService? selectionRectangle = null)
         : base(serviceProvider)
     {
         Views = views;
@@ -89,6 +91,13 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
         service.ToolFailed += ServiceToolFailed;
         service.ToolsChanged += ServiceToolsChanged;
         service.ContextMenuRequested += ServiceContextMenuRequested;
+        // The toolbar's view draws the selection rectangle over the game: a left drag selects with a rectangle
+        this.selectionRectangle = selectionRectangle;
+        if (selectionRectangle is not null)
+        {
+            selectionRectangle.SelectionRectangleChanged += ServiceSelectionRectangleChanged;
+            selectionRectangle.IsRectangleSelectionEnabled = true;
+        }
     }
 
     /// <summary>
@@ -96,6 +105,12 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     /// </summary>
     [Experimental("STREXP004")]
     public event EventHandler<EditorViewContextMenuViewModel>? ContextMenuRequested;
+
+    /// <summary>
+    /// Gets the selection rectangle that a left drag draws in the active view, in normalized view coordinates ((0, 0) top
+    /// left, (1, 1) bottom right), or <c>null</c> while none is drawn.
+    /// </summary>
+    public RectangleF? SelectionRectangle { get; private set => SetValue(ref field, value); }
 
     /// <summary>
     /// Gets the tools of the view, in toolbar order: tools come and go as the plugins that register them join and leave.
@@ -229,6 +244,11 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
         service.ToolFailed -= ServiceToolFailed;
         service.ToolsChanged -= ServiceToolsChanged;
         service.ContextMenuRequested -= ServiceContextMenuRequested;
+        if (selectionRectangle is not null)
+        {
+            selectionRectangle.SelectionRectangleChanged -= ServiceSelectionRectangleChanged;
+            selectionRectangle.IsRectangleSelectionEnabled = false;
+        }
         if (camera is EditorGameEntityCameraService entityCamera && Camera is not null && entityCamera.Options == Camera)
             entityCamera.Options = null;
         Overlays.Destroy();
@@ -421,6 +441,15 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
             }
             return -1;
         }
+    }
+
+    private void ServiceSelectionRectangleChanged(object? sender, RectangleF? rectangle)
+    {
+        Dispatcher.InvokeAsync(() =>
+        {
+            if (!IsDestroyed)
+                SelectionRectangle = rectangle;
+        });
     }
 
     private void ServiceContextMenuRequested(object? sender, EditorViewContextMenuRequest request)
@@ -629,7 +658,8 @@ internal sealed class EditorViewToolbarFactory : IEditorViewOptionsFactory
             controller.GetService<IEditorGameRenderModeViewModelService>() is not null ? new EditorRenderingViewModel(serviceProvider, controller) : null,
             lightProbes is not null ? new EditorLightingViewModel(serviceProvider, controller, editor) : null,
             controller.GetService<IEditorGameCameraPreviewViewModelService>(),
-            controller.GetService<IEditorGameMultiViewViewModelService>() is { IsAvailable: true } multiView ? new EditorViewLayoutViewModel(serviceProvider, multiView, cameraOptions) : null);
+            controller.GetService<IEditorGameMultiViewViewModelService>() is { IsAvailable: true } multiView ? new EditorViewLayoutViewModel(serviceProvider, multiView, cameraOptions) : null,
+            controller.GetService<IEditorGameSelectionRectangleService>());
     }
 }
 

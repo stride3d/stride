@@ -694,6 +694,10 @@
                                        Viewport="{Binding GameHost.Controller.Viewport, FallbackValue={x:Null}}"
                                        Layout="{Binding ((vm:EditorViewToolbarViewModel)ViewOptions).Views, FallbackValue={x:Null}}"/>
         </ContentControl>
+        <!-- The selection rectangle of a left drag, over the active view; the pointer goes through it to the game -->
+        <Canvas x:Name="SelectionRectangleLayer" IsHitTestVisible="False" ClipToBounds="True">
+          <Border x:Name="SelectionRectangleBox" IsVisible="False" BorderThickness="1" BorderBrush="#FF3399FF" Background="#333399FF"/>
+        </Canvas>
         <!-- The widgets of the plugins, on the edges of the view over the game; the panels have no background, so the pointer
              reaches the game everywhere but on a widget -->
         <DockPanel x:Name="WidgetLayer" IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNull}}">
