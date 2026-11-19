@@ -143,8 +143,8 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
 
     /// <summary>
     /// Selects the entities that a rectangle drawn in the view holds (game thread), as one change of the selection of the
-    /// hierarchy: an entity with a model when its whole bounding box is in the rectangle, any other entity when its
-    /// position is. Only the entities that can be selected count.
+    /// hierarchy: an entity with models (its own or its descendants') when their whole bounding box is in the rectangle,
+    /// any other entity when its position is. Only the entities that can be selected count.
     /// </summary>
     /// <param name="rectangle">The rectangle, in normalized view coordinates.</param>
     /// <param name="mode">How the rectangle changes the selection.</param>
@@ -169,12 +169,12 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
     }
 
     /// <summary>
-    /// Indicates whether a rectangle of the view holds an entity: the world bounding box of its model, or its position
-    /// when it has no model (a light, a camera, an empty entity).
+    /// Indicates whether a rectangle of the view holds an entity: the world bounding box of its models and of the models of
+    /// its descendants, or its position when none of them has a model (a light, a camera, an empty entity).
     /// </summary>
     internal static bool IsInRectangle(Entity entity, RectangleF rectangle, Matrix viewProjection)
     {
-        if (entity.Get<ModelComponent>() is { Enabled: true, Model: not null, BoundingBox: var bounds } && bounds.Minimum.X <= bounds.Maximum.X)
+        if (SceneEditingGeometry.GetModelBounds(entity) is { } bounds)
             return RectangleSelection.Contains(rectangle, bounds, viewProjection);
         return RectangleSelection.Contains(rectangle, entity.Transform.WorldMatrix.TranslationVector, viewProjection);
     }
@@ -183,7 +183,7 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
     /// The entities of the edited scene and of its loaded child scenes, or of the edited prefab (game thread), without the
     /// anchors the game adds for the child scenes.
     /// </summary>
-    private IEnumerable<Entity> ContentEntities()
+    internal IEnumerable<Entity> ContentEntities()
     {
         if (Game.ContentScene is not { } contentScene)
             return [];

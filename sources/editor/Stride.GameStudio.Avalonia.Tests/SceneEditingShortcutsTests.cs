@@ -51,6 +51,7 @@ public sealed class SceneEditingShortcutsTests
         Assert.Contains(SceneEditorCommands.AlignWithViewId, ids);
         Assert.Contains(SceneEditorCommands.AlignViewToSelectionId, ids);
         Assert.Contains(SceneEditorCommands.GroupUnderNewParentId, ids);
+        Assert.Contains(SceneEditorCommands.SnapToFloorId, ids);
     }
 
     private static void Press(TopLevel topLevel, PhysicalKey key, RawInputModifiers modifiers)
