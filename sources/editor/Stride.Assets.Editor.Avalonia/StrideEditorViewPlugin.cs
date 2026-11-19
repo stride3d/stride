@@ -2,9 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Media;
 using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.Avalonia.Views.CurveEditor;
 using Stride.Assets.Editor.Avalonia.Views.Preview;
+using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Assets.Editor.ViewModels.CurveEditor;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Services;
@@ -35,6 +37,7 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
         base.Initialize(context);
 
         RegisterResourceDictionary(context, new EntityPropertyTemplateProviders());
+        RegisterResourceDictionary(context, new AssetPropertyTemplateProviders());
         RegisterResourceDictionary(context, new CurvePropertyTemplateProviders());
 
         // The component images, registered as type images, give the icons of the entities in the scene hierarchy
@@ -60,6 +63,9 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
 
         // The Pick buttons of the entity and component properties show the entity picker
         context.Services.Register(new AvaloniaEntityPickerService());
+
+        // The font list of the sprite fonts: the fonts that Avalonia finds on the system
+        context.NodePresenterUpdaters.Register(new SpriteFontAssetNodeUpdater(() => FontManager.Current.SystemFonts.Select(x => x.Name)));
 
         if (GameStudioPreviewService.DisablePreview)
             return;
