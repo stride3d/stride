@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Form = System.Windows.Forms.Form;
@@ -19,6 +20,9 @@ namespace Stride.Games
     /// </summary>
     internal class GameWindowWinforms : GameWindow<Control>
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GameWindowWinforms));
+        private static bool hasWarnedDisplayModeChangeFailed;
+
         private bool isMouseVisible;
 
         private bool isMouseCurrentlyHidden;
@@ -31,6 +35,9 @@ namespace Stride.Games
 
         private bool isFullScreenMaximized;
         private FormBorderStyle savedFormBorderStyle;
+        private System.Drawing.Rectangle windowedFormBounds;
+        private bool isDisplayCoveredByForm;
+        private string changedDisplayModeDeviceName;
         private bool oldVisible;
         private bool deviceChangeChangedVisible;
         private bool? deviceChangeWillBeFullScreen;
@@ -55,6 +62,7 @@ namespace Stride.Games
             if (willBeFullScreen && !isFullScreenMaximized && form != null)
             {
                 savedFormBorderStyle = form.FormBorderStyle;
+                windowedFormBounds = form.Bounds;
             }
 
             if (willBeFullScreen != isFullScreenMaximized)
@@ -93,6 +101,7 @@ namespace Stride.Games
             }
             else if (isFullScreenMaximized)
             {
+                RestoreDisplayMode();
                 if (form != null)
                 {
                     form.BringToFront();
@@ -105,12 +114,24 @@ namespace Stride.Games
             if (deviceChangeChangedVisible)
                 Visible = oldVisible;
 
-            if (form != null
-                && form.WindowState != FormWindowState.Minimized
-                && clientWidth > 0
-                && clientHeight > 0)
+            if (form != null && form.WindowState != FormWindowState.Minimized)
             {
-                form.ClientSize = new Size(clientWidth, clientHeight);
+                // A DXGI swapchain takes exclusive full screen itself and resizes the form; otherwise the form covers the display
+                if (isFullScreenMaximized && !SwapChainTakesExclusiveFullScreen)
+                {
+                    CoverDisplay(clientWidth, clientHeight);
+                }
+                else
+                {
+                    if (!isFullScreenMaximized && isDisplayCoveredByForm)
+                    {
+                        form.Bounds = windowedFormBounds;
+                        isDisplayCoveredByForm = false;
+                    }
+
+                    if (clientWidth > 0 && clientHeight > 0)
+                        form.ClientSize = new Size(clientWidth, clientHeight);
+                }
             }
 
             // Notifies the GameForm about the fullscreen state
@@ -121,6 +142,67 @@ namespace Stride.Games
             }
 
             deviceChangeWillBeFullScreen = null;
+        }
+
+        /// <summary>
+        /// Leaves an exclusive full screen when the app loses focus, as it holds the display mode.
+        /// A borderless full screen stays, so switching apps is cheap, as with SDL.
+        /// </summary>
+        private void OnAppDeactivatedInFullScreen(object source, EventArgs e)
+        {
+            if (UsesExclusiveFullscreen)
+                OnDisableFullScreen(source, e);
+        }
+
+        private bool SwapChainTakesExclusiveFullScreen
+            => UsesExclusiveFullscreen && GraphicsDevice.Platform is GraphicsPlatform.Direct3D11 or GraphicsPlatform.Direct3D12;
+
+        /// <summary>
+        /// Makes the form cover the display it is on: at the desktop resolution when the full screen is borderless,
+        /// or after changing the display mode to the requested client size and refresh rate when it is exclusive.
+        /// </summary>
+        private void CoverDisplay(int clientWidth, int clientHeight)
+        {
+            // A borderless full screen keeps the desktop resolution, even if an exclusive one changed it before
+            if (!UsesExclusiveFullscreen)
+                RestoreDisplayMode();
+
+            var screen = Screen.FromControl(form);
+            var displayBounds = screen.Bounds;
+
+            if (UsesExclusiveFullscreen && clientWidth > 0 && clientHeight > 0
+                && (clientWidth != displayBounds.Width || clientHeight != displayBounds.Height))
+            {
+                // Windows takes whole hertz; without a match at the requested rate, the size alone is better than nothing
+                var refreshRate = FullscreenRefreshRate;
+                var refreshRateHertz = refreshRate.Denominator > 0 ? (int)Math.Round((double)refreshRate.Numerator / refreshRate.Denominator) : 0;
+                if (WindowsDisplayProvider.ChangeDisplayMode(screen.DeviceName, clientWidth, clientHeight, refreshRateHertz)
+                    || (refreshRateHertz > 0 && WindowsDisplayProvider.ChangeDisplayMode(screen.DeviceName, clientWidth, clientHeight, refreshRate: 0)))
+                {
+                    changedDisplayModeDeviceName = screen.DeviceName;
+                    displayBounds = new System.Drawing.Rectangle(displayBounds.Location, new Size(clientWidth, clientHeight));
+                }
+                else if (!hasWarnedDisplayModeChangeFailed)
+                {
+                    hasWarnedDisplayModeChangeFailed = true;
+                    Log.Warning($"The display mode {clientWidth}x{clientHeight} could not be set on {screen.DeviceName}: full screen keeps the desktop resolution");
+                }
+            }
+
+            form.Bounds = displayBounds;
+            isDisplayCoveredByForm = true;
+        }
+
+        /// <summary>
+        /// Restores the desktop display mode if exclusive full screen changed it.
+        /// </summary>
+        private void RestoreDisplayMode()
+        {
+            if (changedDisplayModeDeviceName is null)
+                return;
+
+            WindowsDisplayProvider.RestoreDisplayMode(changedDisplayModeDeviceName);
+            changedDisplayModeDeviceName = null;
         }
 
         protected internal override void SetSupportedOrientations(DisplayOrientation orientations)
@@ -160,7 +242,7 @@ namespace Stride.Games
                 //gameForm.AppDeactivated += OnDeactivated;
                 gameForm.UserResized += OnClientSizeChanged;
                 gameForm.FullscreenToggle += OnFullscreenToggle;
-                gameForm.DisableFullScreen += OnDisableFullScreen;
+                gameForm.DisableFullScreen += OnAppDeactivatedInFullScreen;
                 gameForm.FormClosing += OnClosing;
             }
             else
@@ -427,6 +509,8 @@ namespace Stride.Games
 
         protected override void Destroy()
         {
+            RestoreDisplayMode();
+
             if (Control != null)
             {
                 Control.Dispose();

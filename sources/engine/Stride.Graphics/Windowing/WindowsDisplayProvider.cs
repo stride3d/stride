@@ -196,6 +196,44 @@ internal static unsafe class WindowsDisplayProvider
         return result;
     }
 
+    /// <summary>
+    ///   Changes the display mode of a monitor for an exclusive full-screen window, temporarily: the desktop mode
+    ///   comes back with <see cref="RestoreDisplayMode"/> or when the process ends.
+    /// </summary>
+    /// <param name="deviceName">The GDI name of the monitor, such as <c>\\.\DISPLAY1</c>.</param>
+    /// <returns><see langword="true"/> if the monitor is now in the requested mode.</returns>
+    internal static bool ChangeDisplayMode(string deviceName, int width, int height, int refreshRate)
+    {
+        var settings = new DeviceMode
+        {
+            Size = (ushort)sizeof(DeviceMode),
+            Fields = DisplayModeWidthField | DisplayModeHeightField,
+            Width = (uint)width,
+            Height = (uint)height,
+        };
+        if (refreshRate > 0)
+        {
+            settings.Fields |= DisplayModeFrequencyField;
+            settings.Frequency = (uint)refreshRate;
+        }
+
+        return ChangeDisplaySettingsExW(deviceName, &settings, IntPtr.Zero, ChangeDisplaySettingsFullScreen, IntPtr.Zero) == DisplayChangeSuccessful;
+    }
+
+    /// <summary>
+    ///   Restores the desktop display mode of a monitor after <see cref="ChangeDisplayMode"/>.
+    /// </summary>
+    internal static void RestoreDisplayMode(string deviceName)
+    {
+        ChangeDisplaySettingsExW(deviceName, null, IntPtr.Zero, 0, IntPtr.Zero);
+    }
+
+    private const uint DisplayModeWidthField = 0x00080000;     // DM_PELSWIDTH
+    private const uint DisplayModeHeightField = 0x00100000;    // DM_PELSHEIGHT
+    private const uint DisplayModeFrequencyField = 0x00400000; // DM_DISPLAYFREQUENCY
+    private const uint ChangeDisplaySettingsFullScreen = 0x4;  // CDS_FULLSCREEN: temporary, not saved
+    private const int DisplayChangeSuccessful = 0;              // DISP_CHANGE_SUCCESSFUL
+
     // Native DISPLAYCONFIG layouts. Only the fields needed for active timing
     // and GDI source identity are declared; the mode union is an opaque buffer.
     [StructLayout(LayoutKind.Explicit, Size = 72)]
@@ -225,6 +263,7 @@ internal static unsafe class WindowsDisplayProvider
     private struct DeviceMode
     {
         [FieldOffset(68)] public ushort Size;
+        [FieldOffset(72)] public uint Fields;
         [FieldOffset(168)] public uint BitsPerPixel;
         [FieldOffset(172)] public uint Width;
         [FieldOffset(176)] public uint Height;
@@ -246,6 +285,9 @@ internal static unsafe class WindowsDisplayProvider
     [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
     [return: MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
     private static extern bool EnumDisplaySettingsW(string deviceName, int mode, DeviceMode* settings);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
+    private static extern int ChangeDisplaySettingsExW(string deviceName, DeviceMode* settings, IntPtr window, uint flags, IntPtr parameter);
 
     [DllImport("user32.dll", ExactSpelling = true)]
     [return: MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
