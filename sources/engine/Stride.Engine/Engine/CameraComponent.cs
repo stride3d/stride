@@ -246,7 +246,7 @@ namespace Stride.Engine
             {
                 // Calculates the projection matrix
                 ProjectionMatrix = Projection == CameraProjectionMode.Perspective ?
-                    Matrix4x4.CreatePerspectiveFieldOfView(MathUtil.DegreesToRadians(VerticalFieldOfView), ActuallyUsedAspectRatio, NearClipPlane, FarClipPlane) :
+                    PerspectiveProjection(VerticalFieldOfView, ActuallyUsedAspectRatio, NearClipPlane, FarClipPlane) :
                     Matrix4x4.CreateOrthographic(ActuallyUsedAspectRatio * OrthographicSize, OrthographicSize, NearClipPlane, FarClipPlane);
             }
 
@@ -255,6 +255,16 @@ namespace Stride.Engine
 
             // Update the frustum.
             Frustum = new BoundingFrustum(ref ViewProjectionMatrix);
+        }
+
+        // A scene, the editor or a script can give planes and an angle that have no projection, for which
+        // CreatePerspectiveFieldOfView throws: the camera then takes the nearest ones that have one
+        private static Matrix4x4 PerspectiveProjection(float verticalFieldOfView, float aspectRatio, float nearClipPlane, float farClipPlane)
+        {
+            var fieldOfView = Math.Clamp(MathUtil.DegreesToRadians(verticalFieldOfView), MathUtil.ZeroTolerance, MathF.PI - MathUtil.ZeroTolerance);
+            nearClipPlane = MathF.Max(nearClipPlane, MathUtil.ZeroTolerance);
+            farClipPlane = MathF.Max(farClipPlane, MathF.BitIncrement(nearClipPlane));
+            return Matrix4x4.CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, nearClipPlane, farClipPlane);
         }
 
         private class Factory : IObjectFactory

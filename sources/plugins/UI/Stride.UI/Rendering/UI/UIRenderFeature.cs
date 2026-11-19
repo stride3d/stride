@@ -407,9 +407,12 @@ namespace Stride.Rendering.UI
 
             public void Update(RenderUIElement renderObject, Vector3 virtualResolution)
             {
-                var nearPlane = virtualResolution.Z / 2;
-                var farPlane = nearPlane + virtualResolution.Z;
-                var zOffset = nearPlane + virtualResolution.Z / 2;
+                // A resolution without depth has no planes, and CreatePerspective throws for them: the nearest depth that has some is taken
+                var depth = MathF.Max(virtualResolution.Z, MathUtil.ZeroTolerance);
+
+                var nearPlane = depth / 2;
+                var farPlane = nearPlane + depth;
+                var zOffset = nearPlane + depth / 2;
                 var aspectRatio = virtualResolution.X / virtualResolution.Y;
                 var verticalFov = MathF.Atan2(virtualResolution.Y / 2, zOffset) * 2;
 

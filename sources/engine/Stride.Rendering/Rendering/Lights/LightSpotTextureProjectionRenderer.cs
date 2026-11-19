@@ -119,7 +119,9 @@ namespace Stride.Rendering.Lights
 
             // TODO: Calculation of near and far is hardcoded/approximated. We should find a better way to calculate it.
             var nearClip = 0.01f;   // TODO: This should be configurable.
-            var farClip = spotLight.Range;  // Removed the multiplication by two because I didn't see the point in it.
+            // Removed the multiplication by two because I didn't see the point in it.
+            // A range near zero still needs a far plane behind the near one: CreatePerspectiveFieldOfView throws when it is not
+            var farClip = MathF.Max(spotLight.Range, 2.0f * nearClip);
             var projectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip); // Perspective Projection for spotlights
             Matrix4x4 viewProjectionMatrix = viewMatrix * projectionMatrix;
 

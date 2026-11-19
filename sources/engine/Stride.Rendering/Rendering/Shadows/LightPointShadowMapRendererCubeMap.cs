@@ -69,7 +69,9 @@ namespace Stride.Rendering.Shadows
         private static Vector2 GetLightClippingPlanes(LightPoint pointLight)
         {
             // Note: we don't take exactly the required depth range since this will result in a very poor resolution in most of the light's range
-            return new Vector2(0.1f, pointLight.Radius * 2);
+            // A radius near zero still needs a far plane behind the near one: CreatePerspectiveFieldOfView throws when it is not
+            const float NearClip = 0.1f;
+            return new Vector2(NearClip, MathF.Max(pointLight.Radius * 2, 2 * NearClip));
         }
 
         private static void GetViewParameters(LightShadowMapTexture shadowMapTexture, int index, out Matrix4x4 view)

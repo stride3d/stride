@@ -63,7 +63,9 @@ namespace Stride.Rendering.Shadows
             
             // TODO: Calculation of near and far is hardcoded/approximated. We should find a better way to calculate it.
             var nearClip = 0.01f;   // TODO: This should be configurable.
-            var farClip = spotLight.Range * 2.0f;  // TODO: For some reason this multiplication by two is required. This should be investigated and fixed properly.
+            // TODO: For some reason this multiplication by two is required. This should be investigated and fixed properly.
+            // A range near zero still needs a far plane behind the near one: CreatePerspectiveFieldOfView throws when it is not
+            var farClip = MathF.Max(spotLight.Range * 2.0f, 2.0f * nearClip);
             shaderData.DepthRange = new Vector2(nearClip, farClip); //////////////////////////////////////////
 
             // Update the shadow camera
