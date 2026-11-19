@@ -76,6 +76,11 @@
         <MenuItem Command="{cmd:Command Stride.Scene.BreakLinkToPrefab}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.CreatePrefabFromSelection}"/>
         <Separator/>
+        <!-- Placing the selection from the camera of the view, and the camera from the selection -->
+        <MenuItem Command="{cmd:Command Stride.Scene.MoveToView}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.AlignWithView}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.AlignViewToSelection}"/>
+        <Separator/>
         <MenuItem Command="{cmd:Command Stride.Scene.Duplicate}"/>
         <MenuItem Command="{cmd:Command Stride.Edit.Cut}">
           <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>

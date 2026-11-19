@@ -170,8 +170,17 @@ public sealed class SceneViewContextMenuTests
             Assert.True(menu.IsOpen);
             var items = Describe(menu);
             Assert.Equal(["Create", "Empty entity"], items.Take(2));
-            Assert.Equal(["Actions", "Open prefab in editor", "Select prefab in asset view", "Break link to prefab", "Create prefab from selection", "-", "Duplicate", "Cut", "Copy", "Delete", "-", "Rename"],
+            Assert.Equal(["Actions", "Open prefab in editor", "Select prefab in asset view", "Break link to prefab", "Create prefab from selection", "-", "Move to view", "Align with view",
+                    "Align view to selection", "-", "Duplicate", "Cut", "Copy", "Delete", "-", "Rename"],
                 items.SkipWhile(x => x != "Actions"));
+            // The commands that place the selection from the camera show their shortcuts, and need the game, which the
+            // headless editor doesn't have
+            foreach (var (id, gesture) in new[] { (SceneEditorCommands.MoveToViewId, "Ctrl+Alt+F"), (SceneEditorCommands.AlignWithViewId, "Ctrl+Shift+F"), (SceneEditorCommands.AlignViewToSelectionId, "Shift+F") })
+            {
+                var item = menu.Items.OfType<MenuItem>().Single(x => x.Command is CommandReference reference && reference.Id == id);
+                Assert.Equal(global::Avalonia.Input.KeyGesture.Parse(gesture), item.InputGesture);
+                Assert.False(item.IsEffectivelyEnabled, id);
+            }
             // The entity is created at the cursor, by the editor's command bound by its identifier
             var createEntity = Assert.IsType<CommandReference>(menu.Items.OfType<MenuItem>().Single(x => Equals(x.Header, "Empty entity")).Command);
             Assert.Equal(SceneEditorCommands.NewEntityAtCursorId, createEntity.Id);

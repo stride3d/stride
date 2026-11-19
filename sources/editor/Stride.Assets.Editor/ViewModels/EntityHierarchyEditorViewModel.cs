@@ -41,7 +41,7 @@ namespace Stride.Assets.Editor.ViewModels;
 /// <summary>
 /// The editor of a scene or a prefab: the hierarchy of its entities and the game that shows them.
 /// </summary>
-public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEditorViewModel<EntityDesign, Entity, EntityHierarchyViewModel, EntityViewModel>,
+public abstract partial class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEditorViewModel<EntityDesign, Entity, EntityHierarchyViewModel, EntityViewModel>,
     IEntityHierarchyEditorViewModel, IGameEditorViewModel, IAddChildViewModel
 {
     private static readonly Logger Log = GlobalLogger.GetLogger("EntityHierarchyEditor");
