@@ -152,6 +152,165 @@
     </Setter>
   </Style>
 
+  <!-- Style for ColorPicker -->
+  <Style Selector="sd|ColorPicker">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:ColorPicker">
+        <Grid ColumnDefinitions="Auto,120" VerticalAlignment="Top">
+          <StackPanel Grid.Column="0" Margin="2">
+            <!-- Hue, from 0 to 360 degrees -->
+            <Canvas x:Name="PART_HueSurface" Width="160" Height="22" Margin="2" Cursor="Hand">
+              <Canvas.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                  <GradientStop Color="#FF0000" Offset="0"/>
+                  <GradientStop Color="#FFFF00" Offset="0.166666667"/>
+                  <GradientStop Color="#00FF00" Offset="0.333333333"/>
+                  <GradientStop Color="#00FFFF" Offset="0.5"/>
+                  <GradientStop Color="#0000FF" Offset="0.666666667"/>
+                  <GradientStop Color="#FF00FF" Offset="0.833333333"/>
+                  <GradientStop Color="#FF0000" Offset="1"/>
+                </LinearGradientBrush>
+              </Canvas.Background>
+              <Rectangle x:Name="PART_HueSelector" Width="2" Height="22" IsHitTestVisible="False">
+                <Rectangle.Fill>
+                  <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="Black" Offset="0"/>
+                    <GradientStop Color="White" Offset="1"/>
+                  </LinearGradientBrush>
+                </Rectangle.Fill>
+              </Rectangle>
+            </Canvas>
+            <!-- Saturation from left to right, brightness from top to bottom; the background is the hue, set in code -->
+            <Canvas x:Name="PART_ColorSurface" Width="160" Height="160" Margin="2" Cursor="Hand" ClipToBounds="True">
+              <Rectangle Width="160" Height="160" IsHitTestVisible="False">
+                <Rectangle.Fill>
+                  <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="#FF000000" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                  </LinearGradientBrush>
+                </Rectangle.Fill>
+              </Rectangle>
+              <Canvas x:Name="PART_ColorSelector" Width="0" Height="0" IsHitTestVisible="False">
+                <Ellipse Canvas.Left="-5" Canvas.Top="-5" Width="10" Height="10" StrokeThickness="2">
+                  <Ellipse.Stroke>
+                    <LinearGradientBrush StartPoint="100%,100%" EndPoint="0%,0%">
+                      <GradientStop Color="Black" Offset="0"/>
+                      <GradientStop Color="White" Offset="1"/>
+                    </LinearGradientBrush>
+                  </Ellipse.Stroke>
+                </Ellipse>
+              </Canvas>
+            </Canvas>
+            <!-- The shown color, over a checkerboard for its alpha -->
+            <Panel Width="160" Height="21" Margin="2">
+              <Rectangle>
+                <Rectangle.Fill>
+                  <DrawingBrush TileMode="Tile" DestinationRect="0,0,14,14">
+                    <DrawingBrush.Drawing>
+                      <DrawingGroup>
+                        <GeometryDrawing Brush="White">
+                          <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,2,2"/>
+                          </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing Brush="Black">
+                          <GeometryDrawing.Geometry>
+                            <GeometryGroup>
+                              <RectangleGeometry Rect="0,0,1,1"/>
+                              <RectangleGeometry Rect="1,1,1,1"/>
+                            </GeometryGroup>
+                          </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                      </DrawingGroup>
+                    </DrawingBrush.Drawing>
+                  </DrawingBrush>
+                </Rectangle.Fill>
+              </Rectangle>
+              <Rectangle x:Name="PART_Preview"/>
+            </Panel>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="2">
+            <TextBlock Margin="2" FontWeight="Bold" Text="RGBA"/>
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="2">
+              <TextBlock Grid.Row="0" Grid.Column="0" Margin="4,0" VerticalAlignment="Center"
+                         Text="R" ToolTip.Tip="{sd:LocalizeString Red, Context=ToolTip}"/>
+              <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,2">
+                <sd:NumericTextBox x:Name="RedTextBox" Minimum="0" Maximum="255" DecimalPlaces="0"
+                                   Value="{Binding Red, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"/>
+                <ProgressBar Minimum="0" Maximum="255" Foreground="{DynamicResource RedBrush}"
+                             Value="{Binding Red, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+              </StackPanel>
+              <TextBlock Grid.Row="1" Grid.Column="0" Margin="4,0" VerticalAlignment="Center"
+                         Text="G" ToolTip.Tip="{sd:LocalizeString Green, Context=ToolTip}"/>
+              <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,2">
+                <sd:NumericTextBox x:Name="GreenTextBox" Minimum="0" Maximum="255" DecimalPlaces="0"
+                                   Value="{Binding Green, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"/>
+                <ProgressBar Minimum="0" Maximum="255" Foreground="{DynamicResource GreenBrush}"
+                             Value="{Binding Green, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+              </StackPanel>
+              <TextBlock Grid.Row="2" Grid.Column="0" Margin="4,0" VerticalAlignment="Center"
+                         Text="B" ToolTip.Tip="{sd:LocalizeString Blue, Context=ToolTip}"/>
+              <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,2">
+                <sd:NumericTextBox x:Name="BlueTextBox" Minimum="0" Maximum="255" DecimalPlaces="0"
+                                   Value="{Binding Blue, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"/>
+                <ProgressBar Minimum="0" Maximum="255" Foreground="{DynamicResource BlueBrush}"
+                             Value="{Binding Blue, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+              </StackPanel>
+              <TextBlock Grid.Row="3" Grid.Column="0" IsVisible="{TemplateBinding ShowAlpha}" Margin="4,0" VerticalAlignment="Center"
+                         Text="A" ToolTip.Tip="{sd:LocalizeString Alpha, Context=ToolTip}"/>
+              <StackPanel Grid.Row="3" Grid.Column="1" IsVisible="{TemplateBinding ShowAlpha}" Margin="0,2">
+                <sd:NumericTextBox x:Name="AlphaTextBox" Minimum="0" Maximum="255" DecimalPlaces="0"
+                                   Value="{Binding Alpha, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"/>
+                <ProgressBar Minimum="0" Maximum="255" Foreground="{DynamicResource AlphaBrush}"
+                             Value="{Binding Alpha, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+              </StackPanel>
+            </Grid>
+            <TextBlock Margin="2,6,2,2" FontWeight="Bold" Text="HSB"/>
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="2">
+              <TextBlock Grid.Row="0" Grid.Column="0" Margin="4,0" VerticalAlignment="Center"
+                         Text="H" ToolTip.Tip="{sd:LocalizeString Hue, Context=ToolTip}"/>
+              <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,2">
+                <sd:NumericTextBox x:Name="HueTextBox" Minimum="0" Maximum="360" DecimalPlaces="0"
+                                   Value="{Binding Hue, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"/>
+                <ProgressBar Minimum="0" Maximum="360" Foreground="{DynamicResource AlphaBrush}"
+                             Value="{Binding Hue, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+              </StackPanel>
+              <TextBlock Grid.Row="1" Grid.Column="0" Margin="4,0" VerticalAlignment="Center"
+                         Text="S" ToolTip.Tip="{sd:LocalizeString Saturation, Context=ToolTip}"/>
+              <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,2">
+                <sd:NumericTextBox x:Name="SaturationTextBox" Minimum="0" Maximum="100" DecimalPlaces="0"
+                                   Value="{Binding Saturation, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"/>
+                <ProgressBar Minimum="0" Maximum="100" Foreground="{DynamicResource AlphaBrush}"
+                             Value="{Binding Saturation, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+              </StackPanel>
+              <TextBlock Grid.Row="2" Grid.Column="0" Margin="4,0" VerticalAlignment="Center"
+                         Text="B" ToolTip.Tip="{sd:LocalizeString Brightness, Context=ToolTip}"/>
+              <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,2">
+                <sd:NumericTextBox x:Name="BrightnessTextBox" Minimum="0" Maximum="100" DecimalPlaces="0"
+                                   Value="{Binding Brightness, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"/>
+                <ProgressBar Minimum="0" Maximum="100" Foreground="{DynamicResource AlphaBrush}"
+                             Value="{Binding Brightness, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <!-- The bar under each component of the color picker: its part of the component's range -->
+  <Style Selector="sd|ColorPicker /template/ ProgressBar:horizontal">
+    <Setter Property="Height" Value="3"/>
+    <Setter Property="MinHeight" Value="0"/>
+    <Setter Property="MinWidth" Value="0"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ProgressBar">
+        <Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}"/>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
   <!-- Style for Color editor -->
   <Style Selector="sd|ColorEditor">
     <Setter Property="Focusable" Value="False"/>
@@ -185,7 +344,7 @@
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
                 <TabItem Header="{sd:LocalizeString Color picker, Context=Header}">
-                  <TextBlock Text="Color picker placeholder"/>
+                  <sd:ColorPicker Color="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"/>
                 </TabItem>
                 <TabItem Header="{sd:LocalizeString Palette, Context=Header}">
                   <ListBox ItemsSource="{TemplateBinding Palette}"
@@ -249,7 +408,8 @@
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
                 <TabItem Header="{sd:LocalizeString Color picker, Context=Header}">
-                  <TextBlock Text="Color picker placeholder"/>
+                  <sd:ColorPicker Color="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
+                                  ShowAlpha="False"/>
                 </TabItem>
                 <TabItem Header="{sd:LocalizeString Palette, Context=Header}">
                   <ListBox ItemsSource="{TemplateBinding Palette}"
@@ -313,9 +473,7 @@
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
                 <TabItem Header="{sd:LocalizeString Color picker, Context=Header}">
-                  <Grid>
-                    <TextBlock Text="Color picker placeholder"/>
-                  </Grid>
+                  <sd:ColorPicker Color="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"/>
                 </TabItem>
                 <TabItem Header="{sd:LocalizeString Palette, Context=Header}">
                   <ListBox ItemsSource="{TemplateBinding Palette}"
