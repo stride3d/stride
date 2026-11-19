@@ -31,6 +31,7 @@ param(
     [int]$BootTimeoutSeconds = 300,                        # max wait for sys.boot_completed (only relevant when we cold-boot)
     [int]$StartupTimeoutSeconds = 120,                     # fast-fail: if `am start` never produces a visible pid (broken emulator/GPU), abort before the full TimeoutSeconds wait
     [int]$InactivityTimeoutSeconds = 300,                  # fast-fail: kill if the logcat capture sees no new bytes for this long (test hung — GPU lockup, native crash with no exit, etc.)
+    [int]$AdbTimeoutSeconds = 300,                         # max time of one adb call (an APK install is the longest); a hung emulator otherwise blocks adb forever
     [switch]$KeepEmulator,                                 # don't kill the emulator we started
     [switch]$StreamLogcat,                                 # also tee Stride-tag logcat to console (local interactive use)
     [string]$Filter,                                       # optional vstest --filter expr passed on to the on-device runner
@@ -165,7 +166,48 @@ if (-not $haveSerial) {
 }
 Write-Host "Target serial: $Serial"
 
-function Invoke-Adb { & $adb -s $Serial @args }
+# Runs adb against $Serial like a native command: stdout lines are the output, stderr lines go to the
+# error stream and $LASTEXITCODE is set. An emulator that hangs without exiting stays 'device' for the
+# adb server and keeps every call waiting, so each call has a deadline. After one call misses it, the
+# device counts as lost and the next calls fail at once.
+$script:adbLost = $false
+function Invoke-Adb {
+    $command = "adb $($args -join ' ')"
+    if ($script:adbLost) {
+        $global:LASTEXITCODE = -1
+        Write-Error "$command`: skipped, the device stopped answering"
+        return
+    }
+    $psi = New-Object Diagnostics.ProcessStartInfo $adb
+    # Windows quoting rules, which .NET also uses to split Arguments on Linux and macOS.
+    $psi.Arguments = (@('-s', $Serial) + $args | ForEach-Object {
+        $a = "$_"
+        if ($a -and $a -notmatch '[\s"]') { $a }
+        else { '"' + (($a -replace '(\\*)"', '$1$1\"') -replace '(\\+)$', '$1$1') + '"' }
+    }) -join ' '
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardInput = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $p = [Diagnostics.Process]::Start($psi)
+    $p.StandardInput.Close()
+    $stdout = $p.StandardOutput.ReadToEndAsync()
+    $stderr = $p.StandardError.ReadToEndAsync()
+    if (-not $p.WaitForExit($AdbTimeoutSeconds * 1000)) {
+        try { $p.Kill() } catch { }
+        $script:adbLost = $true
+        $global:LASTEXITCODE = -1
+        Write-Warning "$command did not finish within $AdbTimeoutSeconds seconds: the device stopped answering (emulator hung?). The next adb calls are skipped."
+        return
+    }
+    $global:LASTEXITCODE = $p.ExitCode
+    # Bounded: a process adb started (its server) could still hold the pipes.
+    if ($stdout.Wait(5000) -and $stdout.Result) { $stdout.Result.TrimEnd("`r", "`n") -split '\r?\n' }
+    if ($stderr.Wait(5000) -and $stderr.Result) {
+        $stderr.Result.TrimEnd("`r", "`n") -split '\r?\n' | ForEach-Object { Write-Error $_ }
+    }
+}
 
 # Copies between the host and a folder of the app's internal storage (a path relative to its data dir,
 # such as files/cache). targetSdk 30+ scoped storage blocks app writes through the FUSE-bound external
@@ -174,7 +216,7 @@ function Copy-ToApp([string]$Source, [string]$Target) {
     $localTar = [IO.Path]::GetTempFileName()
     try {
         & $tar c -C $Source -f $localTar . 2>$null
-        Invoke-Adb push $localTar "/data/local/tmp/$Package-push.tar" | Out-Null
+        Invoke-Adb push $localTar "/data/local/tmp/$Package-push.tar" 2>$null | Out-Null
         Invoke-Adb shell "run-as $Package mkdir -p $Target" 2>$null | Out-Null
         Invoke-Adb shell "cat /data/local/tmp/$Package-push.tar | run-as $Package tar x -C $Target" 2>$null | Out-Null
         Invoke-Adb shell "rm /data/local/tmp/$Package-push.tar" 2>$null | Out-Null
@@ -182,15 +224,22 @@ function Copy-ToApp([string]$Source, [string]$Target) {
         Remove-Item $localTar -ErrorAction SilentlyContinue
     }
 }
+# Throws when a step fails, with what adb said.
 function Copy-FromApp([string]$Source, [string]$Target) {
     $localTar = [IO.Path]::GetTempFileName()
     try {
         # The inner run-as streams the tarball through stdout; a missing folder gives an empty
         # tarball, so the pipe doesn't break.
-        Invoke-Adb shell "run-as $Package sh -c 'cd $Source 2>/dev/null && tar c . || tar c -T /dev/null' > /data/local/tmp/$Package-pull.tar" 2>$null | Out-Null
-        Invoke-Adb pull "/data/local/tmp/$Package-pull.tar" $localTar 2>$null | Out-Null
-        Invoke-Adb shell "rm /data/local/tmp/$Package-pull.tar" 2>$null | Out-Null
-        & $tar x -C $Target -f $localTar 2>$null
+        $steps = @(
+            @('shell', "run-as $Package sh -c 'cd $Source 2>/dev/null && tar c . || tar c -T /dev/null' > /data/local/tmp/$Package-pull.tar"),
+            @('pull', "/data/local/tmp/$Package-pull.tar", $localTar),
+            @('shell', "rm /data/local/tmp/$Package-pull.tar"))
+        foreach ($step in $steps) {
+            $out = Invoke-Adb @step 2>&1
+            if ($LASTEXITCODE -ne 0) { throw "adb $($step -join ' ') failed ($LASTEXITCODE): $out" }
+        }
+        $out = & $tar x -C $Target -f $localTar 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "tar x of $Source failed ($LASTEXITCODE): $out" }
     } finally {
         Remove-Item $localTar -ErrorAction SilentlyContinue
     }
@@ -260,7 +309,7 @@ foreach ($s in $innerSuites) {
            else { $null }
     if (-not $src -or -not (Test-Path $src)) { continue }
     Write-Host "Pushing gold $src/* -> files/tests/baselines/$s/ on device (cleared first)"
-    & $adb shell "run-as $Package rm -rf files/tests/baselines/$s" 2>$null | Out-Null
+    Invoke-Adb shell "run-as $Package rm -rf files/tests/baselines/$s" 2>$null | Out-Null
     Copy-ToApp $src "files/tests/baselines/$s"
 }
 
@@ -398,6 +447,11 @@ if ($pidLogcatProc -and -not $pidLogcatProc.HasExited) { try { $pidLogcatProc.Ki
 if ((Get-Date) -ge $deadline) {
     Write-Warning "Timed out waiting for $Package to exit; pulling whatever is available."
 }
+# pidof also comes back empty when the emulator died or stopped answering: then nothing can be pulled.
+$state = if ($script:adbLost) { 'not answering' } else { "$(Invoke-Adb get-state 2>$null)".Trim() }
+if ($state -ne 'device') {
+    throw "Device $Serial is gone after the run ($(if ($state) { $state } else { 'not found' })): the emulator crashed or hung, and its output above may say why."
+}
 
 # 9. Pull TRX + generated images from device's files/tests/local/ into $ResultsDir.
 # Each inner suite writes files/tests/local/<SuiteName>/<SuiteName>.trx (+ generated images);
@@ -408,13 +462,16 @@ if ((Get-Date) -ge $deadline) {
 Write-Host "Pulling results -> $ResultsDir (cleared first)"
 if (Test-Path $ResultsDir) { Remove-Item -Recurse -Force (Join-Path $ResultsDir '*') }
 else { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
-Copy-FromApp 'files/tests/local' $ResultsDir
+try { Copy-FromApp 'files/tests/local' $ResultsDir }
+catch { Write-Warning "Pulling the results failed: $_" }
 
 # The device's cache holds the pushed one, so pulling it over the host copy adds what this run compiled.
+# The cache only saves time, so a failed pull doesn't fail the run.
 if ($CacheDir) {
     Write-Host "Pulling effect cache files/cache -> $CacheDir"
     New-Item -ItemType Directory -Force -Path $CacheDir | Out-Null
-    Copy-FromApp 'files/cache' $CacheDir
+    try { Copy-FromApp 'files/cache' $CacheDir }
+    catch { Write-Warning "Pulling the effect cache failed, so the next run compiles this run's new effects again: $_" }
 }
 
 # Native crashes: the crash log buffer has the abort message and the crashing thread's backtrace;
@@ -477,9 +534,12 @@ exit 0
     # Now that the pre-pull wipe is past, move the logcat into ResultsDir so it ships with
     # the test artifact rather than orphaned alongside it. (It had to live outside ResultsDir
     # during the run — see step 6's comment — otherwise the wipe would unlink the file out
-    # from under the still-writing adb-logcat child.)
-    if ($logcatPath -and (Test-Path $logcatPath) -and (Test-Path $ResultsDir)) {
-        try { Move-Item -Force $logcatPath (Join-Path $ResultsDir (Split-Path -Leaf $logcatPath)) } catch { }
+    # from under the still-writing adb-logcat child.) A run that fails before the pull has no ResultsDir yet.
+    if ($logcatPath -and (Test-Path $logcatPath)) {
+        try {
+            New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null
+            Move-Item -Force $logcatPath (Join-Path $ResultsDir (Split-Path -Leaf $logcatPath))
+        } catch { }
     }
     # On a normal run the on-device runner has already called Environment.Exit; force-stop
     # is idempotent there and stops the APK on cancellation paths (Ctrl-C / workflow cancel).
