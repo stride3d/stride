@@ -109,11 +109,13 @@ public sealed class AssetPropertyTemplateTests
     [AvaloniaFact]
     public void TheStartOfAClipIsEditedInFramesWithASliderOverTheAnimation()
     {
+        // An animation length that is not a whole number of frames
+        var length = TimeSpan.FromSeconds(0.533);
         var asset = new AnimationAsset
         {
             AnimationTimeMinimum = TimeSpan.Zero,
-            AnimationTimeMaximum = TimeSpan.FromSeconds(2),
-            ClipDuration = new AnimationAssetDuration { Enabled = true, StartAnimationTime = TimeSpan.FromSeconds(0.5), EndAnimationTime = TimeSpan.FromSeconds(1) },
+            AnimationTimeMaximum = length,
+            ClipDuration = new AnimationAssetDuration { Enabled = true, StartAnimationTime = TimeSpan.FromSeconds(0.2), EndAnimationTime = length },
         };
         var node = new NodeViewModelContext().RootOf(asset).GetChild(nameof(AnimationAsset.ClipDuration))!.GetChild(nameof(AnimationAssetDuration.StartAnimationTime))!;
 
@@ -121,24 +123,27 @@ public sealed class AssetPropertyTemplateTests
         var slider = content.GetVisualDescendants().OfType<Slider>().Single();
         var box = content.GetVisualDescendants().OfType<NumericTextBox>().Single();
         // 30 frames per second without a session
-        Assert.Equal(60, slider.Maximum);
-        Assert.Equal(15.0, box.Value);
-        Assert.Equal(15.0, slider.Value);
+        Assert.Equal(16, slider.Maximum);
+        Assert.Equal(16, box.Maximum);
+        Assert.Equal(6.0, box.Value);
+        Assert.Equal(6.0, slider.Value);
 
         slider.Focus();
         window.KeyPressQwerty(PhysicalKey.ArrowRight, RawInputModifiers.None);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(TimeSpan.FromSeconds(16 / 30.0), asset.ClipDuration.StartAnimationTime);
-        Assert.Equal(16.0, box.Value);
+        Assert.Equal(TimeSpan.FromSeconds(7 / 30.0), asset.ClipDuration.StartAnimationTime);
+        Assert.Equal(7.0, box.Value);
 
         var textBox = box.GetVisualDescendants().OfType<TextBox>().Single();
         textBox.Focus();
         textBox.SelectAll();
-        window.KeyTextInput("45");
+        window.KeyTextInput("12");
         window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(TimeSpan.FromSeconds(1.5), asset.ClipDuration.StartAnimationTime);
-        Assert.Equal(45.0, slider.Value);
+        Assert.Equal(TimeSpan.FromSeconds(0.4), asset.ClipDuration.StartAnimationTime);
+        Assert.Equal(12.0, slider.Value);
+        // The bounds come from the source: showing them in frames does not round the length of the animation
+        Assert.Equal(length, asset.AnimationTimeMaximum);
         window.Close();
     }
 
