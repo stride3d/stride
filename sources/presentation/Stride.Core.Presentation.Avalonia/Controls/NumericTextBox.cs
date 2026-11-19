@@ -546,7 +546,7 @@ public sealed class NumericTextBox : TemplatedControl
     /// <summary>
     /// Writes the value to the source of the binding, for the changes made with the mouse.
     /// </summary>
-    private void UpdateValueSource()
+    internal void UpdateValueSource()
     {
         BindingOperations.GetBindingExpressionBase(this, ValueProperty)?.UpdateSource();
     }
