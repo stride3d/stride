@@ -134,7 +134,6 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
 
                     case RotationDisplayMode.AxisAngle:
                         vector = sample.GetAxis();
-                        vector = Vector3.NormalizeSafe(vector);
                         sampleData.Add(new RotationData(ft, vector.X, vector.Y, vector.Z, MathUtil.RadiansToDegrees(sample.GetAngle())));
                         break;
 

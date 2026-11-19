@@ -320,15 +320,15 @@ public static class QuaternionExtensions
         }
 
         /// <summary>
-        /// Computes the axis of the rotation; a quaternion that has no rotation gives the X axis.
+        /// Computes the axis of the rotation, as a vector of length one; a quaternion that has no rotation gives the X axis.
         /// </summary>
         public Vector3 GetAxis()
         {
-            float length = (quaternion.X * quaternion.X) + (quaternion.Y * quaternion.Y) + (quaternion.Z * quaternion.Z);
-            if (length < MathUtil.ZeroTolerance)
+            float lengthSquared = (quaternion.X * quaternion.X) + (quaternion.Y * quaternion.Y) + (quaternion.Z * quaternion.Z);
+            if (lengthSquared < MathUtil.ZeroTolerance)
                 return Vector3.UnitX;
 
-            float inv = 1.0f / length;
+            float inv = 1.0f / MathF.Sqrt(lengthSquared);
             return new Vector3(quaternion.X * inv, quaternion.Y * inv, quaternion.Z * inv);
         }
 

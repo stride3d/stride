@@ -968,27 +968,29 @@ public class TestQuaternion
         Assert.Equal(MathF.Abs(q.W), MathF.Abs(qBack.W), 4); // Sign may differ
     }
 
-    [Fact]
-    public void TestQuaternionAxisAngleExtraction()
+    [Theory]
+    [InlineData(0f, 1f, 0f, MathUtil.PiOverTwo)]
+    [InlineData(1f, 2f, 3f, 1f)]
+    [InlineData(-1f, 0f, 1f, 2.5f)]
+    [InlineData(0f, 0f, 1f, 0.01f)]
+    public void TestQuaternionAxisAngleExtraction(float x, float y, float z, float originalAngle)
     {
-        var originalAxis = Vector3.UnitY;
-        var originalAngle = MathUtil.PiOverTwo;
+        var originalAxis = Vector3.Normalize(new Vector3(x, y, z));
 
         var q = Quaternion.CreateFromAxisAngle(originalAxis, originalAngle);
-        var angle = q.GetAngle();
         var axis = q.GetAxis();
 
-        // The angle returned is the magnitude of the quaternion's rotation
-        // which is calculated as 2 * acos(w), not necessarily the original angle
-        // Just verify the extracted axis and angle produce a valid rotation
-        Assert.False(float.IsNaN(angle));
-        Assert.False(float.IsNaN(axis.X));
-        Assert.False(float.IsNaN(axis.Y));
-        Assert.False(float.IsNaN(axis.Z));
+        Assert.Equal(originalAngle, q.GetAngle(), 4);
+        Assert.Equal(originalAxis.X, axis.X, 4);
+        Assert.Equal(originalAxis.Y, axis.Y, 4);
+        Assert.Equal(originalAxis.Z, axis.Z, 4);
+    }
 
-        // Verify axis length is approximately 1 (allowing for non-normalized in some cases)
-        var axisLength = axis.Length();
-        Assert.InRange(axisLength, 0.9f, 1.5f); // Allow some tolerance
+    [Fact]
+    public void TestQuaternionAxisWithoutRotation()
+    {
+        Assert.Equal(Vector3.UnitX, Quaternion.Identity.GetAxis());
+        Assert.Equal(0f, Quaternion.Identity.GetAngle());
     }
 
     [Fact]
