@@ -72,6 +72,9 @@ public static class SceneEditorCommands
     /// <summary>Moves the camera of the view to the selected entity, looking where it looks (Shift+F).</summary>
     public const string AlignViewToSelectionId = "Stride.Scene.AlignViewToSelection";
 
+    /// <summary>Makes a new empty entity the parent of the selected entities, without moving them (Ctrl+G).</summary>
+    public const string GroupUnderNewParentId = "Stride.Scene.GroupUnderNewParent";
+
     /// <summary>
     /// Creates the commands, each time new descriptors (a descriptor is registered once).
     /// </summary>
@@ -93,6 +96,7 @@ public static class SceneEditorCommands
         Wrap(MoveToViewId, () => Tr._p("Menu", "Move to view"), "Ctrl+Alt+F", x => x.MoveToViewCommand, null, true, "camera", "place", "entity"),
         Wrap(AlignWithViewId, () => Tr._p("Menu", "Align with view"), "Ctrl+Shift+F", x => x.AlignWithViewCommand, null, true, "camera", "rotation", "entity"),
         Wrap(AlignViewToSelectionId, () => Tr._p("Menu", "Align view to selection"), "Shift+F", x => x.AlignViewToSelectionCommand, null, true, "camera", "look", "entity"),
+        Wrap(GroupUnderNewParentId, () => Tr._p("Menu", "Group under a new parent"), "Ctrl+G", x => x.GroupUnderNewParentCommand, null, true, "parent", "empty", "reparent", "entity"),
     ];
 
     // A command of the editor it was invoked in, run with the parameter its menu item or key gave it; it is in the command

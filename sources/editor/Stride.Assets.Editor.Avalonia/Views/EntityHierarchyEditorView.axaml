@@ -75,6 +75,7 @@
         <MenuItem Command="{cmd:Command Stride.Scene.SelectPrefab}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.BreakLinkToPrefab}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.CreatePrefabFromSelection}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.GroupUnderNewParent}"/>
         <Separator/>
         <!-- Placing the selection from the camera of the view, and the camera from the selection -->
         <MenuItem Command="{cmd:Command Stride.Scene.MoveToView}"/>
@@ -117,6 +118,7 @@
         <MenuItem Command="{cmd:Command Stride.Scene.SelectPrefab}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.BreakLinkToPrefab}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.CreatePrefabFromSelection}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.GroupUnderNewParent}"/>
         <Separator/>
         <MenuItem Command="{cmd:Command Stride.Scene.Duplicate}"/>
         <MenuItem Command="{cmd:Command Stride.Edit.Cut}">

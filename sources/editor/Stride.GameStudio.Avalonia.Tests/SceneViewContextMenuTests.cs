@@ -170,7 +170,7 @@ public sealed class SceneViewContextMenuTests
             Assert.True(menu.IsOpen);
             var items = Describe(menu);
             Assert.Equal(["Create", "Empty entity"], items.Take(2));
-            Assert.Equal(["Actions", "Open prefab in editor", "Select prefab in asset view", "Break link to prefab", "Create prefab from selection", "-", "Move to view", "Align with view",
+            Assert.Equal(["Actions", "Open prefab in editor", "Select prefab in asset view", "Break link to prefab", "Create prefab from selection", "Group under a new parent", "-", "Move to view", "Align with view",
                     "Align view to selection", "-", "Duplicate", "Cut", "Copy", "Delete", "-", "Rename"],
                 items.SkipWhile(x => x != "Actions"));
             // The commands that place the selection from the camera show their shortcuts, and need the game, which the

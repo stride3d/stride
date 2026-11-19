@@ -97,6 +97,7 @@ Commands:
   Stride.Scene.MoveToView []
   Stride.Scene.AlignWithView []
   Stride.Scene.AlignViewToSelection []
+  Stride.Scene.GroupUnderNewParent []
   Stride.SpriteSheet.PreviousSprite []
   Stride.SpriteSheet.NextSprite []
   Stride.SpriteSheet.AddImage []
