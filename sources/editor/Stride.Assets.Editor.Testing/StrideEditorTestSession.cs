@@ -4,6 +4,7 @@
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Testing;
+using Stride.Core.Presentation.Services;
 
 namespace Stride.Assets.Editor.Testing;
 
@@ -56,6 +57,7 @@ public static class StrideEditorTestSession
             Plugins = host,
             Services = options.Services,
             PackageName = options.PackageName,
+            Dispatcher = options.Dispatcher,
             SessionOpened = options.InitializeSession ? host.InitializeSession : null,
         }, assets);
     }
@@ -97,4 +99,10 @@ public sealed class StrideEditorTestSessionOptions
     /// The name of the package; <see cref="EditorTestSession.DefaultPackageName"/> when <c>null</c>.
     /// </summary>
     public string? PackageName { get; init; }
+
+    /// <summary>
+    /// The UI thread of the session (<see cref="EditorTestSessionOptions.Dispatcher"/>): the dispatcher of the toolkit's UI thread for
+    /// a test of views; a new <see cref="ExclusiveDispatcherService"/> when <c>null</c>.
+    /// </summary>
+    public IDispatcherService? Dispatcher { get; init; }
 }

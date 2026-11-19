@@ -50,9 +50,13 @@
     <StrideCompilerSkipAndroidInnerBuild Condition="'$(_ComputeFilesToPublishForRuntimeIdentifiers)' == 'true' And '$(AndroidApplication)' == 'true'">true</StrideCompilerSkipAndroidInnerBuild>
     <StrideCompilerSkipBuild Condition="'$(StrideCompilerSkipAndroidInnerBuild)' != ''">$(StrideCompilerSkipAndroidInnerBuild)</StrideCompilerSkipBuild>
 
+    <!-- A test program (a test framework such as xunit.v3 makes it an Exe) is not a game, unless it has a Stride package
+         of its own or names one (StrideCurrentPackagePath). A test that runs a game with its assets sets
+         StrideIsExecutable to true. Stride's own test projects set it. -->
+    <_StrideIsTestWithoutPackage Condition="'$(IsTestProject)' == 'true' And '$(StrideCurrentPackagePath)' == '' And !Exists('$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg')">true</_StrideIsTestWithoutPackage>
     <!--This variable can be overriden by a platform specific targets (in case the executable is located into an assembly dll )-->
-    <StrideIsExecutable Condition=" '$(OutputType)' == 'Exe'">true</StrideIsExecutable>
-    <StrideIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</StrideIsExecutable>
+    <StrideIsExecutable Condition=" '$(OutputType)' == 'Exe' And '$(_StrideIsTestWithoutPackage)' != 'true'">true</StrideIsExecutable>
+    <StrideIsExecutable Condition=" '$(OutputType)' == 'WinExe' And '$(_StrideIsTestWithoutPackage)' != 'true'">true</StrideIsExecutable>
     <StrideIsExecutable Condition=" '$(OutputType)' == 'AppContainerExe'">true</StrideIsExecutable>
     <StrideIsExecutable Condition=" '$(AndroidApplication)' == 'true'">true</StrideIsExecutable>
 
@@ -148,8 +152,11 @@
     <PropertyGroup>
       <!-- $(StrideRoot) anchors both in-tree consumers (set by sources/Directory.Build.props)
            and dev-redirect consumers (seeded from $(StrideDevRoot) by the build/<PkgId>.props
-           stub written by build/redirect-packages.cs). -->
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And '$(StrideRoot)' != ''">$(StrideRoot)sources\assets\Stride.AssetCompiler\bin\$(Configuration)\net10.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
+           stub written by build/redirect-packages.cs). A dev-redirect consumer takes the compiler from the
+           configuration the engine was built in, as the stubs take every other engine assembly. -->
+      <_StrideAssetCompilerConfiguration>$(StrideDevConfiguration)</_StrideAssetCompilerConfiguration>
+      <_StrideAssetCompilerConfiguration Condition="'$(_StrideAssetCompilerConfiguration)' == ''">$(Configuration)</_StrideAssetCompilerConfiguration>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And '$(StrideRoot)' != ''">$(StrideRoot)sources\assets\Stride.AssetCompiler\bin\$(_StrideAssetCompilerConfiguration)\net10.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
       <!-- NuGet consumer: the runnable app ships under tools/<TFM>/ (lib/ holds only the reference
            assembly), relative to this targets file's package root. -->
       <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\tools\net10.0-windows7.0\') And $(TargetFramework.Contains('-windows'))">$(MSBuildThisFileDirectory)..\tools\net10.0-windows7.0\Stride.AssetCompiler.dll</StrideCompileAssetCommand>
@@ -443,6 +450,8 @@
       <_StridePackCompanionArg>@(_StrideCompanion->' --pack-companion=&quot;%(Kind):%(PackageId):%(PackageVersion):%(Replaces):%(Toolkit)&quot;', '')</_StridePackCompanionArg>
       <_StridePackKindArg Condition="'$(StridePackageKind)' != ''"> --pack-kind=&quot;$(StridePackageKind)&quot;</_StridePackKindArg>
       <_StridePackKindArg Condition="'$(StrideEditorToolkit)' != ''">$(_StridePackKindArg) --pack-toolkit=&quot;$(StrideEditorToolkit)&quot;</_StridePackKindArg>
+      <!-- The packed sdpkg carries the version of its NuGet package, which a project without a version in its sdpkg has nowhere else -->
+      <_StridePackKindArg Condition="'$(PackageVersion)' != ''">$(_StridePackKindArg) --pack-version=&quot;$(PackageVersion)&quot;</_StridePackKindArg>
     </PropertyGroup>
     <Error Condition="'$(StrideContainsAssetTypes)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
            Text="StrideContainsAssetTypes=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />

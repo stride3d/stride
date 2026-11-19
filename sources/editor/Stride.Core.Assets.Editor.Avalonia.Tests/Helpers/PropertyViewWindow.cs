@@ -14,10 +14,15 @@ namespace Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 /// </summary>
 internal static class PropertyViewWindow
 {
-    public static (Window Window, PropertyView PropertyView) Show(object instance)
+    public static (Window Window, PropertyView PropertyView) Show(object instance) => Show(instance, new NodeViewModelContext());
+
+    /// <summary>
+    /// Shows the properties of an object, with the node commands of the given context.
+    /// </summary>
+    public static (Window Window, PropertyView PropertyView) Show(object instance, NodeViewModelContext context)
     {
         DefaultProviders.Register();
-        var root = new NodeViewModelContext().RootOf(instance);
+        var root = context.RootOf(instance);
         var propertyView = new PropertyView { ItemsSource = root.Children };
         var window = new Window { Width = 600, Height = 400 };
         // The theme of the property grid, before the content: a window is a root, its content takes its theme at once

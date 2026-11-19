@@ -76,6 +76,26 @@ public sealed class AssetTemplateGeneratorTests
         Assert.Equal(AssetsSessionFixture.Url("Material_2"), second.Url);
     }
 
+    [Theory]
+    [InlineData("Material")]
+    [InlineData("Mat")]
+    [InlineData("Textures/Material")]
+    public async Task ANewAssetGoesInTheSelectedFolderWhenTheFolderNameStartsTheAssetName(string folder)
+    {
+        await using var fixture = await OpenAsync();
+        var session = fixture.Session;
+        session.Dispatcher.Invoke(() =>
+        {
+            var directory = fixture.Package.GetOrCreateAssetDirectory(folder, false);
+            session.AssetCollection.SelectedLocations.Clear();
+            session.AssetCollection.SelectedLocations.Add(directory);
+        });
+
+        var material = Assert.Single(await RunAsync(fixture, MaterialId));
+
+        Assert.Equal(AssetsSessionFixture.Url(folder + "/Material"), material.Url);
+    }
+
     [Fact]
     public async Task TheCubeTemplateCreatesAProceduralModelWithTheCubeFactory()
     {
@@ -299,7 +319,7 @@ public sealed class AssetTemplateGeneratorTests
         return assets;
     }
 
-    private static FakeEditorDialogService Dialogs(AssetsSessionFixture fixture) => (FakeEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
+    private static TestEditorDialogService Dialogs(AssetsSessionFixture fixture) => (TestEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
 
     /// <summary>
     /// Registers the generators with the fake prompts, and a package of descriptions written like the ones of the Stride package

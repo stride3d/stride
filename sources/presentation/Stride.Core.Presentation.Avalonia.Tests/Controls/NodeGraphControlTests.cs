@@ -12,6 +12,8 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -536,6 +538,109 @@ public sealed class NodeGraphControlTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void ALinkTakesItsStyleAndKeepsItsThicknessAndDashesWhenSelected()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 2);
+        var b = graph.AddNode("B", 2, 0);
+        var plain = graph.Link(a.Outputs[0], b.Inputs[0]);
+        var dashed = graph.Link(a.Outputs[1], b.Inputs[1]);
+        var dashes = new ImmutableDashStyle([3, 2], 0);
+        graph.Styles[dashed] = new NodeGraphLinkStyle { Brush = Brushes.Orange, Thickness = 5, DashStyle = dashes };
+        var selectedLinks = new ObservableCollection<object>();
+        var (window, control) = Show(graph, x => x.SelectedLinks = selectedLinks);
+
+        // A link without a style is drawn as before
+        var pens = LinkPens(control);
+        Assert.Equal(2, pens.Count);
+        Assert.Contains(pens, x => x.Brush == control.LinkBrush && x.Thickness == control.LinkThickness && x.DashStyle is null);
+        Assert.Contains(pens, x => x.Brush == Brushes.Orange && x.Thickness == 5 && x.DashStyle == dashes);
+
+        selectedLinks.Add(dashed);
+        Assert.Contains(LinkPens(control), x => x.Brush == control.SelectedLinkBrush && x.Thickness == 5 && x.DashStyle == dashes);
+        Assert.DoesNotContain(LinkPens(control), x => x.Brush == Brushes.Orange);
+        Assert.NotNull(plain);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void ALabelShowsAtTheMiddleOfALinkAsLongAsItsMinimum()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 1);
+        var b = graph.AddNode("B", 1, 0);
+        var link = graph.Link(a.Outputs[0], b.Inputs[0]);
+        graph.Styles[link] = new NodeGraphLinkStyle { Label = "Ask about the pier" };
+        var background = new ImmutableSolidColorBrush(Colors.Navy);
+        var (window, control) = Show(graph, x => x.LinkLabelBackground = background);
+
+        // The label is drawn over its background, at the middle of the link
+        var start = control.ConnectorFromSlot(a.Outputs[0], NodeGraphSlotDirection.Output)!;
+        var end = control.ConnectorFromSlot(b.Inputs[0], NodeGraphSlotDirection.Input)!;
+        var drawings = LinkDrawings(control);
+        var box = Assert.Single(drawings.OfType<GeometryDrawing>(), x => x.Brush == background);
+        Assert.Contains(drawings, x => x is GlyphRunDrawing);
+        // (a link ends at the edge of its node, a little before the center of the connector)
+        var (from, to) = (ConnectorCenter(window, start), ConnectorCenter(window, end));
+        Assert.InRange(box.Geometry!.Bounds.Center.X, (from.X + to.X) / 2 - 10, (from.X + to.X) / 2 + 10);
+        Assert.InRange(box.Geometry.Bounds.Center.Y, Math.Min(from.Y, to.Y) - 2, Math.Max(from.Y, to.Y) + 2);
+
+        // A shorter link than the minimum shows none
+        control.LinkLabelMinLength = 100000;
+        Assert.DoesNotContain(LinkDrawings(control), x => x is GeometryDrawing { Brush: var brush } && brush == background);
+        Assert.DoesNotContain(LinkDrawings(control), x => x is GlyphRunDrawing);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void AThickerLinkIsHitFartherFromItsMiddle()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 1);
+        var b = graph.AddNode("B", 1, 0);
+        var link = graph.Link(a.Outputs[0], b.Inputs[0]);
+        var selectedLinks = new ObservableCollection<object>();
+        var (window, control) = Show(graph, x => x.SelectedLinks = selectedLinks);
+        var start = ConnectorCenter(window, control.ConnectorFromSlot(a.Outputs[0], NodeGraphSlotDirection.Output)!);
+        var end = ConnectorCenter(window, control.ConnectorFromSlot(b.Inputs[0], NodeGraphSlotDirection.Input)!);
+        var beside = new Point((start.X + end.X) / 2, (start.Y + end.Y) / 2 + 8);
+
+        Click(window, beside);
+        Assert.Empty(selectedLinks);
+
+        graph.Styles[link] = new NodeGraphLinkStyle { Thickness = 12 };
+        control.InvalidateLinks();
+        Click(window, beside);
+        Assert.Equal([link], selectedLinks);
+        window.Close();
+    }
+
+    // What the layer of the links draws, its groups flattened
+    private static List<global::Avalonia.Media.Drawing> LinkDrawings(NodeGraphControl control)
+    {
+        var layer = control.GetVisualDescendants().First(x => x.GetType().Name == "NodeGraphLinksLayer");
+        var group = new DrawingGroup();
+        using (var context = group.Open())
+            layer.Render(context);
+
+        var drawings = new List<global::Avalonia.Media.Drawing>();
+        void Flatten(global::Avalonia.Media.Drawing drawing)
+        {
+            if (drawing is DrawingGroup inner)
+                foreach (var child in inner.Children)
+                    Flatten(child);
+            else
+                drawings.Add(drawing);
+        }
+        Flatten(group);
+        return drawings;
+    }
+
+    // The pens of the curves of the links (their arrows are filled, without a pen)
+    private static List<IPen> LinkPens(NodeGraphControl control)
+        => [.. LinkDrawings(control).OfType<GeometryDrawing>().Select(x => x.Pen).OfType<IPen>()];
+
     private static (Window Window, NodeGraphControl Control) Show(TestGraph graph, Action<NodeGraphControl>? setup = null)
     {
         var control = new NodeGraphControl
@@ -711,6 +816,10 @@ public sealed class NodeGraphControlTests
         public object? GetSourceSlot(object link) => ((TestLink)link).Source;
 
         public object? GetTargetSlot(object link) => ((TestLink)link).Target;
+
+        public Dictionary<TestLink, NodeGraphLinkStyle> Styles { get; } = [];
+
+        public NodeGraphLinkStyle? GetStyle(object link) => Styles.GetValueOrDefault((TestLink)link);
     }
 
     private sealed class TestCommand(Func<object?, bool> canExecute, Action<object?> execute) : ICommand

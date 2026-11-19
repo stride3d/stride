@@ -70,7 +70,7 @@ public sealed class FakeSession : ISessionViewModel, ISessionInternals
 
     public FakePluginService Plugins { get; } = new();
 
-    public FakeProgressWindowService ProgressWindows { get; } = new();
+    public TestProgressWindowService ProgressWindows { get; } = new();
 
     public FakeThumbnailDataFactory Thumbnails { get; } = new();
 
@@ -261,13 +261,6 @@ public sealed class FakePluginService : IAssetsPluginService
             plugin.InitializeSession(session);
 #pragma warning restore STRPLUGIN003
     }
-}
-
-public sealed class FakeProgressWindowService : IProgressWindowService
-{
-    public List<(WorkProgressViewModel WorkProgress, int MinDelay)> Shown { get; } = [];
-
-    public void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay) => Shown.Add((workProgress, minDelay));
 }
 
 public sealed class FakeThumbnailDataFactory : IThumbnailDataFactory

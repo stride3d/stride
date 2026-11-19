@@ -26,7 +26,8 @@ namespace Stride.AssetCompiler.Tasks
         /// <param name="companionPackages">Companion declarations as <c>Kind:Name:Version[:Replaces[:Toolkit]]</c>, Replaces being ';'-separated.</param>
         /// <param name="packageKind">What the package carries (StridePackageKind); null or empty for a runtime package.</param>
         /// <param name="packageToolkit">The UI toolkit of an Editor package's views (StrideEditorToolkit); null or empty for a neutral one.</param>
-        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> hostAssemblies = null, string assetNamespace = null, IReadOnlyList<string> companionPackages = null, string packageKind = null, string packageToolkit = null)
+        /// <param name="packageVersion">The version of the NuGet package (PackageVersion); null or empty to keep the version the package loads with.</param>
+        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> hostAssemblies = null, string assetNamespace = null, IReadOnlyList<string> companionPackages = null, string packageKind = null, string packageToolkit = null, string packageVersion = null)
         {
             var package = Package.Load(logger, projectFile, new PackageLoadParameters()
             {
@@ -34,6 +35,16 @@ namespace Stride.AssetCompiler.Tasks
                 LoadAssemblyReferences = false,
                 AutoLoadTemporaryAssets = false,
             });
+
+            // The packed sdpkg carries the version of the NuGet package it goes in. Without it, a project with no
+            // version of its own (no sdpkg, or one that states none) would get the engine's version, or 1.0.0.
+            if (!string.IsNullOrWhiteSpace(packageVersion))
+            {
+                if (PackageVersion.TryParse(packageVersion.Trim(), out var version))
+                    package.Meta.Version = version;
+                else
+                    logger.Error($"Package version [{packageVersion}] is not a valid version.");
+            }
 
             var outputPath = new UDirectory(new FileInfo(intermediatePackagePath).FullName);
             var newPackage = new Package

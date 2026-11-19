@@ -62,6 +62,11 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
 
     public bool ShowOverridesOnly { get => showOverridesOnly; set => SetValue(ref showOverridesOnly, value); }
 
+    /// <summary>
+    /// Gets whether the selection is empty or made of assets only, the selection the asset controls of the header (tags, open in editor) act on.
+    /// </summary>
+    public bool IsAssetSelection => Selection?.All(x => x is AssetViewModel) ?? true;
+
     protected sealed override string EmptySelectionFallbackMessage => "Select an object to display its properties.";
 
     public IEnumerable<AssetViewModel> GetRelatedAssets()
@@ -127,6 +132,9 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
     protected override void OnPropertyChanged(params string[] propertyNames)
     {
         base.OnPropertyChanged(propertyNames);
+        if (propertyNames.Contains(nameof(Selection)))
+            base.OnPropertyChanged(nameof(IsAssetSelection));
+
         // Do this only when the property has changed from the UI thread
         if (!Dispatcher.CheckAccess())
             return;

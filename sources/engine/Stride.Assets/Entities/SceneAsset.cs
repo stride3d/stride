@@ -26,8 +26,12 @@ namespace Stride.Assets.Entities
         public const string FileSceneExtension = ".sdscene";
 
         /// <summary>
-        /// A collection of identifier of all the children of this scene..
+        /// A collection of identifier of all the children of this scene.
         /// </summary>
+        /// <remarks>
+        /// Each child scene names this scene in its <see cref="Parent"/>. When it does not, or when no scene has the identifier, the editor
+        /// removes the identifier from this list when it loads the scene, and logs a warning.
+        /// </remarks>
         [DataMember(10)]
         [Display(Browsable = false)]
         [NonIdentifiableCollectionItems]
@@ -37,6 +41,10 @@ namespace Stride.Assets.Entities
         /// <summary>
         /// The parent scene.
         /// </summary>
+        /// <remarks>
+        /// The parent scene lists this scene in its <see cref="ChildrenIds"/>. When it does not, the editor adds this scene to that list
+        /// when it loads the scenes.
+        /// </remarks>
         /// <userdoc>The parent scene.</userdoc>
         [DataMember(20)]
         [Display(Browsable = false)] // TODO: make it visible in the property grid, but readonly.

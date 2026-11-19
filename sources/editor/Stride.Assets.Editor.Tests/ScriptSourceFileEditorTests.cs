@@ -333,5 +333,5 @@ public sealed class ScriptSourceFileEditorTests
 
     private static string PathOf(ScriptSourceFileEditorViewModel editor) => editor.Asset.AssetItem.FullPath.ToOSPath();
 
-    private static FakeEditorDialogService Dialogs(AssetsSessionFixture fixture) => (FakeEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
+    private static TestEditorDialogService Dialogs(AssetsSessionFixture fixture) => (TestEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
 }

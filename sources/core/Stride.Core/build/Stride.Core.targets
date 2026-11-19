@@ -42,6 +42,10 @@
     <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetPlatformIdentifier)' == 'iOS'">iOS</StridePlatform>
     <StridePlatform Condition="'$(StridePlatform)' == '' And $(RuntimeIdentifier.StartsWith('osx'))">macOS</StridePlatform>
     <StridePlatform Condition="'$(StridePlatform)' == '' And $(RuntimeIdentifier.StartsWith('linux'))">Linux</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And $(RuntimeIdentifier.StartsWith('win'))">Windows</StridePlatform>
+    <!-- No platform in the target framework or the runtime identifier: the host's, as Stride's own build does -->
+    <StridePlatform Condition="'$(StridePlatform)' == '' And $([MSBuild]::IsOSPlatform('Linux'))">Linux</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And $([MSBuild]::IsOSPlatform('OSX'))">macOS</StridePlatform>
     <StridePlatform Condition="'$(StridePlatform)' == ''">Windows</StridePlatform>
   </PropertyGroup>
 

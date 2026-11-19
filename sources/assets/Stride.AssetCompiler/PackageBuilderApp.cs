@@ -133,6 +133,7 @@ namespace Stride.AssetCompiler
                 { "pack-companion=", "Companion package to declare in the packed sdpkg, as Kind:Name:Version[:Replaces[:Toolkit]] (Kind = Assets or Editor; Replaces = ';'-separated package ids; Toolkit = the UI toolkit of an Editor companion's views); repeat for each", v => options.PackCompanionPackages.Add(v) },
                 { "pack-kind=", "What the packed package carries (Assets or Editor); a companion package states it", v => options.PackPackageKind = v },
                 { "pack-toolkit=", "The UI toolkit of an Editor package's views (e.g. Wpf); a view package states it", v => options.PackPackageToolkit = v },
+                { "pack-version=", "The version of the NuGet package the packed sdpkg goes in (PackageVersion)", v => options.PackPackageVersion = v },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "no-backup", "Upgrade verb only: skip backing up the files the upgrade overwrites (backup is on by default).", v => options.NoBackup = v != null },
@@ -431,7 +432,7 @@ namespace Stride.AssetCompiler
                     var intermediatePackagePath = options.BuildDirectory;
                     var generatedItems = new List<(string SourcePath, string PackagePath)>();
                     var logger = new LoggerResult();
-                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, options.PackHostAssemblies, options.PackAssetNamespace, options.PackCompanionPackages, options.PackPackageKind, options.PackPackageToolkit))
+                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, options.PackHostAssemblies, options.PackAssetNamespace, options.PackCompanionPackages, options.PackPackageKind, options.PackPackageToolkit, options.PackPackageVersion))
                     {
                         foreach (var message in logger.Messages)
                         {

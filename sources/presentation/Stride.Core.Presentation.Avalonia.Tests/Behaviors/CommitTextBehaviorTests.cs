@@ -83,6 +83,40 @@ public sealed class CommitTextBehaviorTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void ASourceChangeWhileTheBoxHasTheFocusIsNotAnEdit()
+    {
+        var (window, textBox, other, source) = Show();
+
+        // An undo while the box has the focus: the binding shows the restored value
+        textBox.Focus();
+        source.SetFromCode("restored");
+        Dispatcher.UIThread.RunJobs();
+        other.Focus();
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal("restored", textBox.Text);
+        Assert.Equal(0, source.Writes);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void AnEditAfterASourceChangeWhileTheBoxHasTheFocusIsCommitted()
+    {
+        var (window, textBox, other, source) = Show();
+
+        textBox.Focus();
+        source.SetFromCode("restored");
+        Dispatcher.UIThread.RunJobs();
+        textBox.SelectAll();
+        window.KeyTextInput("edited");
+        other.Focus();
+
+        Assert.Equal("edited", source.Value.Url);
+        Assert.Equal(1, source.Writes);
+        window.Close();
+    }
+
     private static (Window Window, TextBox TextBox, TextBox Other, Source Source) Show()
     {
         var source = new Source();

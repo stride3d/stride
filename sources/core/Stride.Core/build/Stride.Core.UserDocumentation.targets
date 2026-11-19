@@ -108,4 +108,17 @@
     </Copy>
   </Target>
 
+  <!-- The package carries the .usrdoc file beside the assembly, where the editor reads it. Not keyed on
+       StrideUserDocumentationFile: the pack task reads the allowed extensions in the outer build of a multi-targeted
+       project, which has no DocumentationFile. -->
+  <PropertyGroup Condition="'$(GenerateDocumentationFile)' == 'true'">
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.usrdoc</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StrideRegisterUserDocOutputs</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="_StrideRegisterUserDocOutputs">
+    <ItemGroup Condition="Exists('$(OutputPath)$(AssemblyName).usrdoc')">
+      <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).usrdoc"/>
+    </ItemGroup>
+  </Target>
+
 </Project>

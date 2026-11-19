@@ -3,6 +3,8 @@
 
 using System.Reflection;
 
+using Stride.Core.Assets.Diagnostics;
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
 
@@ -19,6 +21,7 @@ public static class AssetCollision
     /// <param name="assetResolver">The asset resolver.</param>
     /// <param name="cloneInput">if set to <c>true</c> [clone input].</param>
     /// <param name="removeUnloadableObjects">If set to <c>true</c>, assets will be cloned with <see cref="AssetClonerFlags.RemoveUnloadableObjects"/>.</param>
+    /// <param name="log">The log that gets a warning for each asset given another URL because its URL was taken; <c>null</c> for none.</param>
     /// <exception cref="ArgumentNullException">
     /// inputItems
     /// or
@@ -27,7 +30,7 @@ public static class AssetCollision
     /// assetResolver
     /// </exception>
     /// <exception cref="System.ArgumentException">List cannot contain null items;inputItems</exception>
-    public static void Clean(Package package, ICollection<AssetItem> inputItems, ICollection<AssetItem> outputItems, AssetResolver assetResolver, bool cloneInput, bool removeUnloadableObjects)
+    public static void Clean(Package? package, ICollection<AssetItem> inputItems, ICollection<AssetItem> outputItems, AssetResolver assetResolver, bool cloneInput, bool removeUnloadableObjects, ILogger? log = null)
     {
         ArgumentNullException.ThrowIfNull(inputItems);
         ArgumentNullException.ThrowIfNull(outputItems);
@@ -48,6 +51,8 @@ public static class AssetCollision
         // idRemap should contain only assets that have either 1) their id remapped or 2) their location remapped
         var idRemap = new Dictionary<AssetId, Tuple<AssetId, UFile>>();
         var itemRemap = new Dictionary<AssetItem, Tuple<AssetId, UFile>>();
+        // The first item registered at each location, to name it when another one has the same location
+        var itemsByLocation = new Dictionary<string, AssetItem>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in items)
         {
             if (outputItems.Contains(item))
@@ -73,6 +78,18 @@ public static class AssetCollision
             }
 
             var tuple = new Tuple<AssetId, UFile>(newId != AssetId.Empty ? newId : item.Id, newLocation ?? item.Location);
+            if (referenceable)
+            {
+                if (newLocation is not null && newLocation != item.Location)
+                {
+                    // The other asset is one of the items, or an asset of the package or of its dependencies
+                    var other = itemsByLocation.GetValueOrDefault(item.Location.FullPath)
+                        ?? package?.FindDependencies(true).Select(x => x.Assets.Find(item.Location.FullPath)).FirstOrDefault(x => x is not null);
+                    log?.Warning(package, new AssetReference(tuple.Item1, newLocation), AssetMessageCode.AssetUrlCollision,
+                        item.Location, FileName(item), other is not null ? FileName(other) : item.Location, newLocation);
+                }
+                itemsByLocation.TryAdd((newLocation ?? item.Location).FullPath, item);
+            }
             if (changed)
             {
                 itemRemap.TryAdd(item, tuple);
@@ -145,6 +162,9 @@ public static class AssetCollision
             }
         }
     }
+
+    // The name of the file of an asset, which tells apart two assets of the same URL (the extension of their type)
+    private static string FileName(AssetItem item) => item.FullPath.GetFileName() ?? item.Location.ToString();
 
     private static bool IsNewReference(Tuple<AssetId, UFile> newReference, IReference previousReference)
     {

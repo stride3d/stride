@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.ComponentModel;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
@@ -156,5 +158,139 @@ public sealed class NumericTextBoxTests
 
         window.KeyPressQwerty(PhysicalKey.PageDown, RawInputModifiers.None);
         Assert.Equal(0.0, box.Value);
+    }
+
+    [AvaloniaFact]
+    public void LeavingTheBoxWithoutTypingWritesNothing()
+    {
+        var (window, box, source) = ShowBound(0.123456);
+        var textBox = box.GetVisualDescendants().OfType<TextBox>().Single();
+
+        textBox.Focus();
+        window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+        ((StackPanel)window.Content!).Children.OfType<TextBox>().Single().Focus();
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(0, source.Writes);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void TypingThenLeavingTheBoxWritesOnce()
+    {
+        var (window, box, source) = ShowBound(0.123456);
+        var textBox = box.GetVisualDescendants().OfType<TextBox>().Single();
+
+        textBox.Focus();
+        textBox.SelectAll();
+        window.KeyTextInput("2.5");
+        window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+        ((StackPanel)window.Content!).Children.OfType<TextBox>().Single().Focus();
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(2.5, source.Value);
+        Assert.Equal(1, source.Writes);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void AValueFromTheSourceIsNotAnEdit()
+    {
+        var (window, box, source) = ShowBound(1);
+        var textBox = box.GetVisualDescendants().OfType<TextBox>().Single();
+
+        textBox.Focus();
+        textBox.SelectAll();
+        window.KeyTextInput("2.5");
+        // An undo while the box has the focus: the source gets an older value, which replaces what was typed
+        source.SetFromCode(3);
+        Dispatcher.UIThread.RunJobs();
+        ((StackPanel)window.Content!).Children.OfType<TextBox>().Single().Focus();
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(3.0, source.Value);
+        Assert.Equal("3", box.Text);
+        Assert.Equal(0, source.Writes);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void AClosedBoxCanBeCollected()
+    {
+        var box = ShowAndClose();
+        // Other text boxes keep changing: the closed box must not be kept alive to hear about them
+        var (window, other) = ShowTextBox();
+        other.Text = "changed";
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+
+        for (var i = 0; i < 3 && box.IsAlive; ++i)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        Assert.False(box.IsAlive);
+    }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static WeakReference ShowAndClose()
+    {
+        var (window, box) = Show(new NumericTextBox { Value = 1 });
+        window.Content = null;
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+        return new WeakReference(box);
+    }
+
+    private static (Window Window, TextBox TextBox) ShowTextBox()
+    {
+        var textBox = new TextBox();
+        var window = new Window { Content = textBox };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        return (window, textBox);
+    }
+
+    private static (Window Window, NumericTextBox Box, Source Source) ShowBound(double value)
+    {
+        var source = new Source(value);
+        var box = new NumericTextBox { DecimalPlaces = 3 };
+        // The binding of the property grid: written only when the box commits
+        box.Bind(NumericTextBox.ValueProperty, new Binding(nameof(Source.Value)) { Source = source, Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.Explicit });
+        var window = new Window { Content = new StackPanel { Children = { box, new TextBox() } } };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        return (window, box, source);
+    }
+
+    private sealed class Source(double value) : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
+        /// The number of times the binding wrote the value back, with a different value or not.
+        /// </summary>
+        public int Writes { get; private set; }
+
+        public double? Value
+        {
+            get;
+            set
+            {
+                Writes++;
+                field = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
+            }
+        } = value;
+
+        /// <summary>
+        /// Changes the value the way a view model does, which the binding then displays.
+        /// </summary>
+        public void SetFromCode(double value)
+        {
+            Value = value;
+            Writes--;
+        }
     }
 }

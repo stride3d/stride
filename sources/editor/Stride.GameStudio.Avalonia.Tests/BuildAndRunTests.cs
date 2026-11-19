@@ -11,6 +11,7 @@ using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 using Stride.Core;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Avalonia.Controls;
@@ -62,11 +63,83 @@ public sealed class BuildAndRunTests
     }
 
     [AvaloniaFact]
-    public async Task NoPlatformHasADeployStep()
+    public async Task OnlyTheAndroidGamesHaveADeployStep()
     {
-        // The games of the editor's platform start on this machine; the others are only built
+        // The games of the editor's platform start on this machine; the iOS, Linux and macOS ones of another editor are only built
         using var fixture = await ShellSessionFixture.OpenExecutableAsync(Platform.Type);
-        Assert.Empty(fixture.Main.Build.Deployers);
+        var (platform, deployer) = Assert.Single(fixture.Main.Build.Deployers);
+        Assert.Equal(PlatformType.Android, platform);
+        Assert.IsType<AndroidGameDeployer>(deployer);
+    }
+
+    [AvaloniaFact]
+    public async Task F5OnAnAndroidGameWithoutADeviceDoesNotBuild()
+    {
+        using var fixture = await ShellSessionFixture.OpenExecutableAsync(PlatformType.Android);
+        var (builder, launcher) = fixture.ReplaceGameBuilder();
+        fixture.ReplaceDialogService();
+        var adb = new FakeAdb();
+        fixture.Main.Build.RegisterDeployer(PlatformType.Android, adb.CreateDeployer());
+        var window = new MainWindow { DataContext = fixture.Main };
+        await window.ShowAsync();
+        try
+        {
+            window.KeyPress(Key.F5, RawInputModifiers.None, PhysicalKey.F5, null);
+            window.KeyRelease(Key.F5, RawInputModifiers.None, PhysicalKey.F5, null);
+            var log = fixture.Main.Build.BuildLog;
+            await WindowTestHelper.WaitUntilAsync(() => !fixture.Main.Build.BuildInProgress && log.Messages.Any(x => x.Text == "No Android device found for execution."), "the end of the start");
+
+            Assert.Equal(LogMessageType.Error, log.Messages.Single(x => x.Text == "No Android device found for execution.").Type);
+            Assert.Empty(builder.Requests);
+            Assert.Empty(adb.Runs);
+            Assert.Empty(launcher.Games);
+            Assert.Equal("Build failed", fixture.Main.Status.CurrentStatus);
+        }
+        finally
+        {
+            await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task F5InstallsAnAndroidGameAndStartsItOnTheDeviceAndF6OnlyInstallsIt()
+    {
+        const string packageName = "com.stride.testgame";
+        using var fixture = await ShellSessionFixture.OpenExecutableAsync(PlatformType.Android);
+        var (builder, launcher) = fixture.ReplaceGameBuilder();
+        builder.TargetOutputs[AndroidGameDeployer.PackageTarget] = [packageName];
+        fixture.ReplaceDialogService();
+        var adb = new FakeAdb("emulator-5554", "R58M123");
+        fixture.Main.Build.RegisterDeployer(PlatformType.Android, adb.CreateDeployer());
+        var window = new MainWindow { DataContext = fixture.Main };
+        await window.ShowAsync();
+        try
+        {
+            window.KeyPress(Key.F5, RawInputModifiers.None, PhysicalKey.F5, null);
+            window.KeyRelease(Key.F5, RawInputModifiers.None, PhysicalKey.F5, null);
+            await WindowTestHelper.WaitUntilAsync(() => adb.Runs.Count == 1 && !fixture.Main.Build.BuildInProgress, "the start of the game on the device");
+
+            // Installed on the first device by the build, and started there
+            var request = Assert.Single(builder.Requests);
+            Assert.Equal("GetAndroidPackage;Install", request.Target);
+            Assert.Equal("-s emulator-5554", request.Properties["AdbTarget"]);
+            Assert.Equal($"-s emulator-5554 shell monkey -p {packageName} -c android.intent.category.LAUNCHER 1", adb.Runs[0].Arguments);
+            Assert.Empty(launcher.Games);
+            Assert.Equal("Build successful", fixture.Main.Status.CurrentStatus);
+            await WindowTestHelper.WaitUntilAsync(() => fixture.Main.Build.BuildLog.Messages.Any(x => x.Text == $"Deployment of {ShellSessionFixture.PackageName} successful."), "the log of the deployment");
+
+            // F6 installs the game without starting it
+            window.KeyPress(Key.F6, RawInputModifiers.None, PhysicalKey.F6, null);
+            window.KeyRelease(Key.F6, RawInputModifiers.None, PhysicalKey.F6, null);
+            await WindowTestHelper.WaitUntilAsync(() => builder.Requests.Count == 2 && !fixture.Main.Build.BuildInProgress, "the second build");
+            Assert.Equal("GetAndroidPackage;Install", builder.Requests[1].Target);
+            Assert.Single(adb.Runs);
+            Assert.Empty(launcher.Games);
+        }
+        finally
+        {
+            await window.CloseAsync();
+        }
     }
 
     [AvaloniaFact]

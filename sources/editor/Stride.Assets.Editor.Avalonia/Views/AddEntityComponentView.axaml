@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+             xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
+             xmlns:caeqnpc="using:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="40"
+             x:Class="Stride.Assets.Editor.Avalonia.Views.AddEntityComponentView">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+      <!-- The default flyout is capped in size and padded: the list sets its own size -->
+      <ControlTheme x:Key="AddComponentFlyoutPresenter" TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+        <Setter Property="MaxWidth" Value="900"/>
+        <Setter Property="MaxHeight" Value="640"/>
+        <Setter Property="Padding" Value="0"/>
+      </ControlTheme>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <!-- The button drops down the components that can be added: the search box and the categories on the left, the components
+       of the category under the pointer (or matching the search) on the right. A click or Enter on a component adds it. -->
+  <ToggleButton x:Name="AddButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+    <DockPanel Margin="4">
+      <Image DockPanel.Dock="Left" Source="{StaticResource ImageAdd}" Width="16" Height="16" Margin="4,0"/>
+      <TextBlock Margin="4,0" Text="{sd:LocalizeString Add component}"/>
+    </DockPanel>
+    <ToggleButton.Flyout>
+      <Flyout Placement="BottomEdgeAlignedLeft" FlyoutPresenterTheme="{StaticResource AddComponentFlyoutPresenter}"
+              Opened="OnFlyoutOpened" Closed="OnFlyoutClosed">
+        <!-- The column of the components keeps its width while none is listed: the list does not move when they show -->
+        <Grid x:Name="PickerRoot" x:DataType="caevm:NodeTypePickerViewModel" Margin="6" MaxHeight="380"
+              ColumnDefinitions="Auto,1,258" IsVisible="{Binding HasTypes}">
+          <Grid.Styles>
+            <!-- Compact rows, as in a menu -->
+            <Style Selector="ListBoxItem">
+              <Setter Property="Padding" Value="4,2"/>
+              <Setter Property="MinHeight" Value="0"/>
+            </Style>
+          </Grid.Styles>
+          <DockPanel x:Name="LeftPanel" Grid.Column="0" Margin="4" VerticalAlignment="Top">
+            <TextBox x:Name="SearchBox" DockPanel.Dock="Top" Margin="0,4" VerticalAlignment="Center" MinWidth="160"
+                     PlaceholderText="{sd:LocalizeString Search, Context=Watermark}"
+                     Text="{Binding SearchToken, Mode=TwoWay}"/>
+            <!-- The categories cannot be picked while a search narrows the list -->
+            <ListBox x:Name="Groups" MinWidth="160" VerticalAlignment="Top"
+                     ItemsSource="{Binding Groups}"
+                     IsEnabled="{Binding !IsSearching}">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="caeqnpc:AbstractNodeTypeGroup">
+                  <DockPanel Background="Transparent">
+                    <!-- The arrow of the category whose components are shown -->
+                    <Path DockPanel.Dock="Right" VerticalAlignment="Center" Margin="10,2,4,2"
+                          Fill="{Binding $parent[ListBoxItem].Foreground}" Data="M0,0 L0,8 L4,4 z"
+                          IsVisible="{sd:MultiBinding {Binding}, {Binding $parent[ListBox].((caevm:NodeTypePickerViewModel)DataContext).SelectedGroup},
+                                                      Converter={sd:AllEqualMulti}}"/>
+                    <TextBlock Text="{Binding DisplayValue}" Margin="10,2"/>
+                  </DockPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+          <Border Grid.Column="1" Width="1" Margin="0,4" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                  IsVisible="{Binding ShownTypes.Count, Converter={sd:NumericToBool}}"/>
+          <ListBox x:Name="TypeList" Grid.Column="2" Width="250" Margin="4" Height="{Binding #LeftPanel.Bounds.Height}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   ItemsSource="{Binding ShownTypes}"
+                   SelectedItem="{Binding SelectedType, Mode=TwoWay}"
+                   IsVisible="{Binding ShownTypes.Count, Converter={sd:NumericToBool}}">
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="caeqnpc:AbstractNodeType">
+                <StackPanel Orientation="Horizontal" Margin="2" Background="Transparent">
+                  <Image Source="{Binding Type, Converter={caec:TypeToResource}}" Width="16" Height="16" Margin="0,0,4,0"
+                         RenderOptions.BitmapInterpolationMode="None"/>
+                  <TextBlock Text="{Binding DisplayValue}" VerticalAlignment="Center"/>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Flyout>
+    </ToggleButton.Flyout>
+  </ToggleButton>
+</UserControl>

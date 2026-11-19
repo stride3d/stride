@@ -18,9 +18,10 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 public sealed class NumericTextBox : TemplatedControl
 {
     private bool internalValueSet;
+    // The value comes from text the user typed and is not written to the source yet
+    private bool hasPendingEdit;
     private bool isSyncingTextAndValueProperties;
     private bool isTextChangedFromUI;
-    private IDisposable? textBoxTextChangedSubscription;
 
     static NumericTextBox()
     {
@@ -148,14 +149,16 @@ public sealed class NumericTextBox : TemplatedControl
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
+        // The part's own changes only: a class handler would run for every text box of the application and, being
+        // static, would keep every numeric box alive
         if (TextBox is not null)
         {
-            textBoxTextChangedSubscription?.Dispose();
+            TextBox.PropertyChanged -= OnTextBoxPropertyChanged;
         }
         TextBox = e.NameScope.Find<TextBox>("PART_TextBox");
         if (TextBox is not null)
         {
-            textBoxTextChangedSubscription = TextBox.TextProperty.Changed.AddClassHandler<TextBox>((_, _) => TextBox_OnTextPropertyChanged());
+            TextBox.PropertyChanged += OnTextBoxPropertyChanged;
         }
     }
 
@@ -200,7 +203,13 @@ public sealed class NumericTextBox : TemplatedControl
     {
         if (SyncTextAndValueProperties(true, Text, forceTextUpdate))
         {
-            BindingOperations.GetBindingExpressionBase(this, ValueProperty)?.UpdateSource();
+            // Only a value the user typed: writing back a value that was only shown would change one the source converts
+            // (an angle shown in degrees comes back in radians with a float error)
+            if (hasPendingEdit)
+            {
+                hasPendingEdit = false;
+                BindingOperations.GetBindingExpressionBase(this, ValueProperty)?.UpdateSource();
+            }
             return true;
         }
 
@@ -243,9 +252,12 @@ public sealed class NumericTextBox : TemplatedControl
 
     private void OnValuePropertyChanged(double? oldValue, double? newValue)
     {
-        if (!internalValueSet && IsInitialized)
+        if (!internalValueSet)
         {
-            SyncTextAndValueProperties(false, null, true);
+            // A value from the source (or set in code) replaces what the user typed
+            hasPendingEdit = false;
+            if (IsInitialized)
+                SyncTextAndValueProperties(false, null, true);
         }
 
         RaiseEvent(new NumericTextBoxValueChangedEventArgs(ValueChangedEvent, oldValue, newValue));
@@ -301,12 +313,19 @@ public sealed class NumericTextBox : TemplatedControl
             try
             {
                 SetCurrentValue(ValueProperty, value);
+                hasPendingEdit = true;
             }
             finally
             {
                 internalValueSet = false;
             }
         }
+    }
+
+    private void OnTextBoxPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == TextBox.TextProperty)
+            TextBox_OnTextPropertyChanged();
     }
 
     private void TextBox_OnTextPropertyChanged()

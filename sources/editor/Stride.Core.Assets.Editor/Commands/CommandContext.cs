@@ -27,8 +27,12 @@ public sealed class CommandContext
     /// <summary>
     /// The selection of the place the command was invoked from: the assets of the asset view, the items of the solution
     /// explorer, the property of the property grid that the menu opened on, the entities of the entity tree. Empty for the
-    /// main menu, the toolbar and a shortcut; the current selection of the session for the command palette.
+    /// main menu, the toolbar and a shortcut; the selected assets and folders of the asset view for the command palette.
     /// </summary>
+    /// <remarks>
+    /// From the command palette, the selection is the asset view's even when an editor has the focus: a command that acts on
+    /// the selection of an editor (its entities, its nodes) reads it from <see cref="Editor"/>.
+    /// </remarks>
     public IReadOnlyList<object> Selection { get; init; } = [];
 
     /// <summary>
@@ -45,12 +49,12 @@ public sealed class CommandContext
     public IAssetEditorViewModel? Editor { get; init; }
 
     /// <summary>
-    /// The context of a command that the command palette runs: the location <see cref="CommandLocations.Palette"/>, and the
-    /// current selection of the session, which is the selection of the asset view unless the shell gives another one (the
-    /// selection of the panel that had the focus).
+    /// The context of a command that the command palette runs: the location <see cref="CommandLocations.Palette"/>, the
+    /// selected assets and folders of the asset view, and the editor that had the focus.
     /// </summary>
     /// <param name="session">The open session.</param>
-    /// <param name="selection">The selection, or null for the selected assets and folders of the asset view.</param>
+    /// <param name="selection">The selection, or null for the selected assets and folders of the asset view (what Game Studio
+    /// gives).</param>
     /// <param name="source">The element of the editor's toolkit the palette was opened from (its window, or the control that last
     /// had the focus there), or null.</param>
     /// <param name="editor">The asset editor that had the focus when the palette was opened, or null.</param>

@@ -282,7 +282,7 @@ public sealed class GameCodeReloadViewModelTests
 
         public EditorSessionFixture Fixture { get; }
 
-        public FakeEditorDialogService Dialogs => Fixture.Dialogs;
+        public TestEditorDialogService Dialogs => Fixture.Dialogs;
 
         public FakeGameProjectBuilder Builder { get; }
 

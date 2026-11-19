@@ -124,6 +124,15 @@ namespace Stride.Core.Assets.Diagnostics {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [{1}] has the same URL as [{2}], [{0}]: it gets the URL [{3}]. Rename one of the two files to choose their URLs..
+        /// </summary>
+        internal static string AssetUrlCollision {
+            get {
+                return ResourceManager.GetString("AssetUrlCollision", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Original asset not found. A new asset with the same location was found [{0}].
         /// </summary>
         internal static string BaseChanged {

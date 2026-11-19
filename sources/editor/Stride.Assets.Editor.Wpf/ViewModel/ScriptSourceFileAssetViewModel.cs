@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.AvalonEdit.Document;
@@ -56,9 +55,9 @@ namespace Stride.Assets.Presentation.ViewModel
 
         public TextDocument TextDocument => TextContainer.Document;
 
-        protected override void Initialize()
+        protected override void Initialize(ILogger log)
         {
-            base.Initialize();
+            base.Initialize(log);
 
             // Duplicate the text so it is more easily accessible from a different thread
             mirroredText = new Rope<char>(Asset.TextAccessor.Get());
@@ -71,7 +70,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 textDocument.UndoStack.PropertyChanged += UndoStackOnPropertyChanged;
 
                 // Replace the text accessor with one using custom save logic
-                Asset.TextAccessor = new ScriptTextAccessor(this);
+                Asset.TextAccessor = new ScriptTextAccessor(this, Asset.TextAccessor);
 
                 textDocument.Changed += TextDocumentOnChanged;
 
@@ -462,10 +461,13 @@ namespace Stride.Assets.Presentation.ViewModel
         private class ScriptTextAccessor : ITextAccessor
         {
             private readonly ScriptSourceFileAssetViewModel asset;
+            // The accessor this one replaces: it writes the text in the encoding of the file.
+            private readonly ITextAccessor fileAccessor;
 
-            public ScriptTextAccessor(ScriptSourceFileAssetViewModel asset)
+            public ScriptTextAccessor(ScriptSourceFileAssetViewModel asset, ITextAccessor fileAccessor)
             {
                 this.asset = asset;
+                this.fileAccessor = fileAccessor;
             }
 
             [NotNull]
@@ -493,10 +495,8 @@ namespace Stride.Assets.Presentation.ViewModel
             {
                 await asset.Session.Dispatcher.InvokeTask(async () =>
                 {
-                    using (var streamWriter = new StreamWriter(stream, Encoding.UTF8, 1024, true))
-                    {
-                        await streamWriter.WriteAsync(Get());
-                    }
+                    fileAccessor.Set(Get());
+                    await fileAccessor.Save(stream);
                 });
             }
 

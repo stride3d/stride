@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Text;
 using Stride.Core.Assets.TextAccessors;
 using Stride.Core.Assets.Yaml;
 using Stride.Core.Diagnostics;
@@ -30,8 +29,9 @@ internal class SourceCodeAssetSerializer : IAssetSerializer, IAssetSerializerFac
             // TODO: Propagate dirtiness?
             if (stream is MemoryStream)
             {
-                var reader = new StreamReader(stream, Encoding.UTF8);
-                textAccessor.Set(reader.ReadToEnd());
+                var content = new byte[stream.Length - stream.Position];
+                stream.ReadExactly(content);
+                textAccessor.Load(content);
             }
         }
 

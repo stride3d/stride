@@ -36,12 +36,16 @@
     <Compile Include="TestUpgraderGates.cs" />
     <Compile Include="TestAudioProjectUpgrade.cs" />
     <Compile Include="TestAssetConstantsTargets.cs" />
+    <Compile Include="TestAssetCompilerPathTargets.cs" />
+    <Compile Include="TestUserDocumentationTargets.cs" />
     <Compile Include="TestFFmpegTool.cs" />
     <Compile Include="TestRawMediaImporters.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
+    <Compile Include="TestAssetCompilerExecutableTargets.cs" />
     <Compile Include="TestCodeUpgrade.cs" />
     <Compile Include="TestContentTemplateResolver.cs" />
     <Compile Include="TestDotNetNewTemplateGenerator.cs" />
+    <Compile Include="TestStrideCorePlatformTargets.cs" />
     <Compile Include="TestRenderFeatureProviders.cs" />
     <Compile Include="TestMemberRequiredComponentChecks.cs" />
     <Compile Include="XunitAttributes.cs" />

@@ -36,7 +36,7 @@ public sealed class EditorSessionFixture : IAsyncDisposable
     private bool destroyed;
     private bool ownsDirectory = true;
 
-    private EditorSessionFixture(string directory, Action<UFile, PackageSessionResult, PackageLoadParameters> load, IViewModelServiceProvider serviceProvider, FakeEditorDialogService dialogs, FakeClipboardService clipboard, FakePluginService plugins)
+    private EditorSessionFixture(string directory, Action<UFile, PackageSessionResult, PackageLoadParameters> load, IViewModelServiceProvider serviceProvider, TestEditorDialogService dialogs, FakeClipboardService clipboard, FakePluginService plugins)
     {
         Directory = directory;
         this.load = load;
@@ -53,7 +53,7 @@ public sealed class EditorSessionFixture : IAsyncDisposable
 
     public IViewModelServiceProvider ServiceProvider { get; }
 
-    public FakeEditorDialogService Dialogs { get; }
+    public TestEditorDialogService Dialogs { get; }
 
     public FakeClipboardService Clipboard { get; }
 
@@ -122,6 +122,21 @@ public sealed class EditorSessionFixture : IAsyncDisposable
     public static DispatcherTask<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets) => DispatcherTask.InDispatcher(() => OpenCoreAsync(null, assets, WithoutMSBuild(null)));
 
     /// <summary>
+    /// Saves a package with the given assets (location relative to the package, value) and opens it as <see cref="OpenAsync(ValueTuple{string, string}[])"/>
+    /// does, then runs the given action at the end of the load, with what the load gave and its parameters: the action can ask
+    /// the upgrade question of the editor, or change the packages as an upgrade does.
+    /// </summary>
+    public static DispatcherTask<EditorSessionFixture> OpenAsync(Action<PackageSessionResult, PackageLoadParameters> afterLoad, params (string Location, string Value)[] assets)
+    {
+        var load = WithoutMSBuild(null);
+        return DispatcherTask.InDispatcher(() => OpenCoreAsync(null, assets, (path, result, loadParameters) =>
+        {
+            load(path, result, loadParameters);
+            afterLoad(result, loadParameters);
+        }));
+    }
+
+    /// <summary>
     /// Saves a package with the given assets (location relative to the package, value) and opens it as the editor does, with
     /// the NuGet restore and the MSBuild evaluation of its project: for the tests of that load.
     /// </summary>
@@ -177,7 +192,7 @@ public sealed class EditorSessionFixture : IAsyncDisposable
 
     private static EditorSessionFixture CreateFixture(string directory, Action<UFile, PackageSessionResult, PackageLoadParameters> load)
     {
-        var dialogs = new FakeEditorDialogService();
+        var dialogs = new TestEditorDialogService();
         var clipboard = new FakeClipboardService();
         var plugins = new FakePluginService();
         var serviceProvider = new ViewModelServiceProvider(
@@ -220,6 +235,15 @@ public sealed class EditorSessionFixture : IAsyncDisposable
         var path = heads is null ? fixture.PackagePath : fixture.WriteSolution(heads);
         await fixture.OpenSessionAsync(path);
         return fixture;
+    }
+
+    /// <summary>
+    /// Gets the files of the package's asset folder, relative to it, sorted.
+    /// </summary>
+    public IReadOnlyList<string> AssetFiles()
+    {
+        var assets = Path.Combine(Directory, PackageName, "Assets");
+        return [.. System.IO.Directory.EnumerateFiles(assets, "*", SearchOption.AllDirectories).Select(x => Path.GetRelativePath(assets, x).Replace('\\', '/')).Order(StringComparer.Ordinal)];
     }
 
     /// <summary>

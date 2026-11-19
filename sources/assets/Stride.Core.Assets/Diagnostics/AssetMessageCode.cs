@@ -158,5 +158,9 @@ public enum AssetMessageCode
     /// Occurs when a asset templating instance is duplicated.
     /// </summary>
     InvalidBasePartInstance,
+    /// <summary>
+    /// Two assets of a package have the same URL: the one loaded second gets another URL.
+    /// </summary>
+    AssetUrlCollision,
 
 }

@@ -24,6 +24,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Assets.Editor.Avalonia\Stride.Assets.Editor.Avalonia.csproj" />
+    <!-- The editor test kit, whose sessions on the UI thread are tested with a view -->
+    <ProjectReference Include="..\Stride.Assets.Editor.Testing\Stride.Assets.Editor.Testing.csproj" />
     <!-- The node view model helpers of the Core.Assets.Editor.Avalonia tests are reused -->
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Avalonia.Tests\Stride.Core.Assets.Editor.Avalonia.Tests.csproj" />
     <!-- The Avalonia companions of the plugins: their views are tested here with the editor's -->

@@ -166,7 +166,7 @@ public sealed class EntityHierarchyEditCommandsTests
     {
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
-        var dialogs = (FakeEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
+        var dialogs = (TestEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
         editor.SelectedContent.Add(FindEntity(editor, "Parent"));
         await editor.PropertiesRefreshCompletion;
         var names = RecordUndoNames(fixture);

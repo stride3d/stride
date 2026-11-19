@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.Annotations;
@@ -23,9 +24,9 @@ public abstract class SourceCodeViewModel<TSourceCodeAsset> : AssetViewModel<TSo
     public UFile FullPath => AssetItem.FullPath;
 
     /// <inheritdoc/>
-    protected internal override void Initialize()
+    protected internal override void Initialize(ILogger log)
     {
-        base.Initialize();
+        base.Initialize(log);
 
         // Keeps the text of a project file in memory: an undo writes it back if the file is deleted
         if (Asset is IProjectAsset && !Directory.Package.Package.IsReadOnly)

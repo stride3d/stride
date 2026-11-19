@@ -1,28 +1,34 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
 namespace Stride
 {
-    public static class AndroidDeviceEnumerator
+    /// <summary>
+    /// Finds <c>adb</c>, the Android Debug Bridge, and lists the Android devices it sees.
+    /// </summary>
+    internal static class AndroidDeviceEnumerator
     {
-        private static string adbPath;
+        private static string? adbPath;
 
-        private static string LocateAdb()
+        private static string? LocateAdb()
         {
-            // First, look for adb.exe process (if daemon is started)
+            // First, look for a running adb (if the daemon is started)
             var processes = Process.GetProcessesByName("adb");
             foreach (var process in processes)
             {
                 try
                 {
-                    return process.MainModule.FileName;
+                    var fileName = process.MainModule?.FileName;
+                    if (fileName != null)
+                        return fileName;
                 }
                 catch (Exception)
                 {
@@ -30,38 +36,70 @@ namespace Stride
                 }
             }
 
-            // Second, look in registry
-            try
+            // Second, look in the registry, where the Android SDK installer of Windows writes its path
+            if (OperatingSystem.IsWindows())
             {
-                var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-                using (var androidSdkToolsKey = localMachine32.OpenSubKey(@"Software\Android SDK Tools\", false))
+                try
                 {
-                    if (androidSdkToolsKey != null)
+                    var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+                    using (var androidSdkToolsKey = localMachine32.OpenSubKey(@"Software\Android SDK Tools\", false))
                     {
-                        var path = androidSdkToolsKey.GetValue("Path") as string;
-                        if (path != null)
+                        if (androidSdkToolsKey != null)
                         {
-                            path = Path.Combine(path, @"platform-tools\adb.exe");
-                            if (File.Exists(path))
-                                return path;
+                            var path = androidSdkToolsKey.GetValue("Path") as string;
+                            if (path != null)
+                            {
+                                path = Path.Combine(path, "platform-tools", "adb.exe");
+                                if (File.Exists(path))
+                                    return path;
+                            }
                         }
                     }
                 }
-            }
-            catch (Exception)
-            {
-                // Mute errors (permission, security)
+                catch (Exception)
+                {
+                    // Mute errors (permission, security)
+                }
             }
 
-            // Otherwise, check if it is available on the PATH
-            if (ProcessHelper.FindExecutableOnPath("adb"))
-                return "adb";
+            // Then on the PATH
+            var pathAdb = FindOnPath();
+            if (pathAdb != null)
+                return pathAdb;
+
+            // Last, in the Android SDK that the environment names, as the Android build tools do
+            foreach (var variable in new[] { "ANDROID_HOME", "ANDROID_SDK_ROOT" })
+            {
+                var sdk = Environment.GetEnvironmentVariable(variable);
+                if (string.IsNullOrEmpty(sdk))
+                    continue;
+                var path = Path.Combine(sdk, "platform-tools", AdbFileName);
+                if (File.Exists(path))
+                    return path;
+            }
 
             // Nothing found
             return null;
         }
 
-        public static string GetAdbPath()
+        private static string AdbFileName => OperatingSystem.IsWindows() ? "adb.exe" : "adb";
+
+        private static string? FindOnPath()
+        {
+            var path = Environment.GetEnvironmentVariable("PATH");
+            if (string.IsNullOrEmpty(path))
+                return null;
+
+            foreach (var directory in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var candidate = Path.Combine(directory.Trim('"'), AdbFileName);
+                if (File.Exists(candidate))
+                    return candidate;
+            }
+            return null;
+        }
+
+        public static string? GetAdbPath()
         {
             return adbPath ?? (adbPath = LocateAdb());
         }
@@ -138,101 +176,6 @@ namespace Stride
         {
             public string Serial;
             public string Name;
-        }
-
-        static class ProcessHelper
-        {
-            public static bool FindExecutableOnPath(string executablePath)
-            {
-                try
-                {
-                    PROCESS_INFORMATION pInfo;
-                    var lpStartupInfo = new STARTUPINFOEX();
-                    lpStartupInfo.StartupInfo.cb = Marshal.SizeOf<STARTUPINFO>();
-                    bool result = CreateProcessW(null, executablePath, IntPtr.Zero, IntPtr.Zero, false, ProcessCreationFlags.CREATE_SUSPENDED, IntPtr.Zero, null, ref lpStartupInfo, out pInfo);
-                    if (result)
-                    {
-                        var process = Process.GetProcessById(pInfo.dwProcessId);
-                        process.Kill();
-                        return true;
-                    }
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-
-                return false;
-            }
-
-            [DllImport("kernel32.dll", EntryPoint = "CreateProcessW", CharSet = CharSet.Unicode)]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            private static extern bool CreateProcessW(
-                string lpApplicationName, string lpCommandLine, IntPtr lpProcessAttributes,
-                IntPtr lpThreadAttributes, bool bInheritHandles, ProcessCreationFlags dwCreationFlags,
-                IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFOEX lpStartupInfo,
-                out PROCESS_INFORMATION lpProcessInformation);
-
-            [Flags]
-            public enum ProcessCreationFlags : uint
-            {
-                ZERO_FLAG = 0x00000000,
-                CREATE_BREAKAWAY_FROM_JOB = 0x01000000,
-                CREATE_DEFAULT_ERROR_MODE = 0x04000000,
-                CREATE_NEW_CONSOLE = 0x00000010,
-                CREATE_NEW_PROCESS_GROUP = 0x00000200,
-                CREATE_NO_WINDOW = 0x08000000,
-                CREATE_PROTECTED_PROCESS = 0x00040000,
-                CREATE_PRESERVE_CODE_AUTHZ_LEVEL = 0x02000000,
-                CREATE_SEPARATE_WOW_VDM = 0x00001000,
-                CREATE_SHARED_WOW_VDM = 0x00001000,
-                CREATE_SUSPENDED = 0x00000004,
-                CREATE_UNICODE_ENVIRONMENT = 0x00000400,
-                DEBUG_ONLY_THIS_PROCESS = 0x00000002,
-                DEBUG_PROCESS = 0x00000001,
-                DETACHED_PROCESS = 0x00000008,
-                EXTENDED_STARTUPINFO_PRESENT = 0x00080000,
-                INHERIT_PARENT_AFFINITY = 0x00010000
-            }
-
-            [StructLayout(LayoutKind.Sequential)]
-            private struct PROCESS_INFORMATION
-            {
-                public IntPtr hProcess;
-                public IntPtr hThread;
-                public int dwProcessId;
-                public int dwThreadId;
-            }
-
-            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-            private struct STARTUPINFOEX
-            {
-                public STARTUPINFO StartupInfo;
-                public IntPtr lpAttributeList;
-            }
-
-            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-            private struct STARTUPINFO
-            {
-                public Int32 cb;
-                public string lpReserved;
-                public string lpDesktop;
-                public string lpTitle;
-                public Int32 dwX;
-                public Int32 dwY;
-                public Int32 dwXSize;
-                public Int32 dwYSize;
-                public Int32 dwXCountChars;
-                public Int32 dwYCountChars;
-                public Int32 dwFillAttribute;
-                public Int32 dwFlags;
-                public Int16 wShowWindow;
-                public Int16 cbReserved2;
-                public IntPtr lpReserved2;
-                public IntPtr hStdInput;
-                public IntPtr hStdOutput;
-                public IntPtr hStdError;
-            }
         }
     }
 }

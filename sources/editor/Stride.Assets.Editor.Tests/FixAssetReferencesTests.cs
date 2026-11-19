@@ -152,7 +152,7 @@ public sealed class FixAssetReferencesTests
         return await AssetsSessionFixture.OpenAsync(false, (SkeletonLocation, skeleton), (OtherSkeletonLocation, new SkeletonAsset()), (ModelLocation, model));
     }
 
-    private static FakeEditorDialogService Dialogs(AssetsSessionFixture fixture) => (FakeEditorDialogService)fixture.ServiceProvider.Get<Core.Assets.Editor.Services.IEditorDialogService>();
+    private static TestEditorDialogService Dialogs(AssetsSessionFixture fixture) => (TestEditorDialogService)fixture.ServiceProvider.Get<Core.Assets.Editor.Services.IEditorDialogService>();
 
     private static AssetId? SkeletonOf(AssetViewModel model)
     {

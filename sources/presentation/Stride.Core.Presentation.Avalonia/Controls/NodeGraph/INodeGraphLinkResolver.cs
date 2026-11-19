@@ -26,4 +26,12 @@ public interface INodeGraphLinkResolver
     /// <param name="link">A link of <see cref="NodeGraphControl.Links"/>.</param>
     /// <returns>The slot, or <c>null</c> if the link has none.</returns>
     object? GetTargetSlot(object link);
+
+    /// <summary>
+    /// Gets how the link differs from the others: its brush, its thickness, its dashes, its label.
+    /// </summary>
+    /// <param name="link">A link of <see cref="NodeGraphControl.Links"/>.</param>
+    /// <returns>The style, or <c>null</c> for a link drawn as the control draws every link.</returns>
+    /// <remarks>The control asks at each drawing of the links: call <see cref="NodeGraphControl.InvalidateLinks"/> when a style changes.</remarks>
+    NodeGraphLinkStyle? GetStyle(object link) => null;
 }

@@ -10,7 +10,9 @@ using Avalonia.Input;
 using Avalonia.VisualTree;
 using Stride.Assets.Models;
 using Stride.Core.Presentation.Avalonia.Controls;
+using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Quantum;
 using Stride.Core.Serialization;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
@@ -21,7 +23,8 @@ namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
 /// The header and the footer of the property grid: the navigation in the selection history, the
-/// description of the selection, the tags, the search, and the description of the property under the mouse.
+/// description of the selection, the tags and the button that opens the asset in its editor (for a selection of assets only), the search,
+/// and the description of the property under the mouse.
 /// </summary>
 public sealed class PropertyGridHeaderTests
 {
@@ -155,6 +158,44 @@ public sealed class PropertyGridHeaderTests
     }
 
     [AvaloniaFact]
+    public async Task TheAssetControlsShowOnlyForASelectionOfAssets()
+    {
+        using var fixture = await OpenModelWithSkeletonAsync();
+        var window = new MainWindow { DataContext = fixture.Main };
+        await window.ShowAsync();
+        try
+        {
+            var grid = Grid(window);
+            var model = fixture.Asset(ModelLocation);
+            await SelectAsync(fixture, grid, model);
+            var tagBox = grid.FindControl<TextBox>("NewTagTextBox")!;
+            var openInEditor = grid.FindControl<Button>("EditSelectedContentButton")!;
+            fixture.Session.EditSelectedContentCommand.IsEnabled = true;
+            await WindowTestHelper.PumpAsync();
+            Assert.True(tagBox.IsEffectivelyVisible);
+            Assert.True(openInEditor.IsEffectivelyVisible);
+
+            // A plugin shows a selection of its own in the grid while the asset stays selected in the asset view
+            var pluginSelection = new PluginSelection(fixture.Session.AssetNodeContainer.GetOrCreateNode(new PluginNode()));
+            await fixture.Session.ActiveProperties.GenerateSelectionPropertiesAsync([pluginSelection]);
+            await WindowTestHelper.PumpAsync();
+            Assert.Equal([model], fixture.Session.AssetCollection.SelectedAssets);
+            Assert.True(fixture.Session.EditSelectedContentCommand.IsEnabled);
+            Assert.False(tagBox.IsVisible);
+            Assert.False(openInEditor.IsVisible);
+
+            await fixture.Session.ActiveProperties.GenerateSelectionPropertiesAsync([model]);
+            await WindowTestHelper.PumpAsync();
+            Assert.True(tagBox.IsEffectivelyVisible);
+            Assert.True(openInEditor.IsEffectivelyVisible);
+        }
+        finally
+        {
+            await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
     public async Task TheFooterDescribesThePropertyUnderTheMouse()
     {
         using var fixture = await OpenModelWithSkeletonAsync();
@@ -189,6 +230,25 @@ public sealed class PropertyGridHeaderTests
         var skeleton = new SkeletonAsset();
         var model = new ModelAsset { Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(skeleton.Id, SkeletonLocation) };
         return await ShellSessionFixture.OpenAsync((SkeletonLocation, skeleton), (ModelLocation, model));
+    }
+
+    /// <summary>
+    /// What a plugin shows in the property grid, a node of a graph for example: neither an asset nor a part of one.
+    /// </summary>
+    private sealed class PluginNode
+    {
+        public string Title { get; set; } = "Start";
+    }
+
+    private sealed class PluginSelection(IObjectNode rootNode) : IPropertyProviderViewModel
+    {
+        public bool CanProvidePropertiesViewModel => true;
+
+        public IObjectNode GetRootNode() => rootNode;
+
+        public bool ShouldConstructMember(IMemberNode member) => true;
+
+        public bool ShouldConstructItem(IObjectNode collection, NodeIndex index) => true;
     }
 
     private static PropertyGridView Grid(MainWindow window) => window.GetVisualDescendants().OfType<PropertyGridView>().Single();

@@ -264,7 +264,11 @@ partial class PackageSession
             }
             if (loaded is null)
             {
-                log.Error($"{kind} package [{companionName}] version [{version}], declared by [{package.Meta.Name}], was not found; assets of that package cannot be compiled or edited.");
+                // The declaring package comes from a project that names the companion's project: that project was left out of the solution
+                if (declaration.Project is { } project)
+                    log.Error($"The {kind} package [{companionName}] of [{package.Meta.Name}] is the project [{project.ToOSPath()}], which is not in the solution: add it to the solution.");
+                else
+                    log.Error($"{kind} package [{companionName}] version [{version}], declared by [{package.Meta.Name}], was not found; assets of that package cannot be compiled or edited.");
                 return;
             }
             loaded.IsCompanionPackage = true;

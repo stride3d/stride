@@ -138,6 +138,9 @@
   <data name="AssetUpToDate" xml:space="preserve">
     <value>Asset [{0}] already up-to-date</value>
   </data>
+  <data name="AssetUrlCollision" xml:space="preserve">
+    <value>[{1}] has the same URL as [{2}], [{0}]: it gets the URL [{3}]. Rename one of the two files to choose their URLs.</value>
+  </data>
   <data name="BaseChanged" xml:space="preserve">
     <value>Original asset not found. A new asset with the same location was found [{0}]</value>
   </data>

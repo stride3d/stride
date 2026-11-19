@@ -12,14 +12,20 @@ namespace Stride.Core.Assets.Editor.Testing;
 
 /// <summary>
 /// A session over a package written for the test in a temporary folder, opened the way the editor opens one, with an
-/// <see cref="ExclusiveDispatcherService"/> as the UI thread.
+/// <see cref="ExclusiveDispatcherService"/> as the UI thread, or the dispatcher of the test's UI thread
+/// (<see cref="EditorTestSessionOptions.Dispatcher"/>).
 /// </summary>
 /// <remarks>
 /// <para>The session opens in the dispatcher, and a test that awaits <see cref="OpenAsync"/> goes on there
 /// (<see cref="DispatcherTask{TResult}"/>): it changes the session and disposes it there, as the editor does on its UI thread.
-/// Disposing destroys the session, waits for its background work and deletes the folder.</para>
+/// A session on the test's UI thread opens from that thread, and the test stays there.
+/// Disposing destroys the session, disposes its plugin host when the host is disposable (the plugins leave the session and their
+/// close actions run, as when the editor closes a session), waits for its background work and deletes the folder.</para>
 /// <para>The package loads without the NuGet restore and the MSBuild evaluation of its project, which have nothing to give for it
 /// (<see cref="TestPackageLoad"/>).</para>
+/// <para>The sessions share one dispatcher and the editor's process-wide registries: tests that open them don't run in parallel.
+/// A session that opens while another test has one open fails at once, with a message that says so. A test can open several
+/// sessions, one after the other or together.</para>
 /// </remarks>
 public sealed class EditorTestSession : IAsyncDisposable
 {
@@ -29,9 +35,11 @@ public sealed class EditorTestSession : IAsyncDisposable
     public const string DefaultPackageName = "TestGame";
 
     private bool disposed;
+    private IDisposable? registration;
 
-    private EditorTestSession(string directory, string packageName, UFile packagePath, IViewModelServiceProvider serviceProvider)
+    private EditorTestSession(string directory, string packageName, UFile packagePath, IViewModelServiceProvider serviceProvider, IAssetsPluginService plugins)
     {
+        Plugins = plugins;
         Directory = directory;
         PackageName = packageName;
         PackagePath = packagePath;
@@ -52,6 +60,11 @@ public sealed class EditorTestSession : IAsyncDisposable
     /// The path of the package file.
     /// </summary>
     public UFile PackagePath { get; }
+
+    /// <summary>
+    /// The plugin host of the session, which disposing the session disposes when it is disposable.
+    /// </summary>
+    public IAssetsPluginService Plugins { get; }
 
     /// <summary>
     /// The services the session was opened with.
@@ -88,13 +101,29 @@ public sealed class EditorTestSession : IAsyncDisposable
     /// <param name="options">The plugin host, the services and the name of the package.</param>
     /// <param name="assets">The assets, each with its location in the package, without extension.</param>
     /// <returns>The open session, which continues its caller in the dispatcher.</returns>
-    /// <exception cref="InvalidOperationException">The session could not be opened; the message has the log of the loading.</exception>
+    /// <exception cref="InvalidOperationException">The session could not be opened; the message has the log of the loading. Or
+    /// another test has a session open: the sessions of the kit share one dispatcher, so tests that open them can't run in parallel.</exception>
     public static DispatcherTask<EditorTestSession> OpenAsync(EditorTestSessionOptions options, params (string Location, Asset Asset)[] assets)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(options.Plugins);
         ArgumentNullException.ThrowIfNull(assets);
-        return DispatcherTask.InDispatcher(() => OpenCoreAsync(options, assets));
+        if (options.Dispatcher is { } uiThread && uiThread is not ExclusiveDispatcherService && !uiThread.CheckAccess())
+            throw new InvalidOperationException("A session on the dispatcher of a UI thread opens from that thread: the test runs on it, as a test of views does.");
+        // Fails at once when another test has a session open, rather than hang with it
+        var registration = OpenSessions.Add();
+        try
+        {
+            return options.Dispatcher is null or ExclusiveDispatcherService
+                ? DispatcherTask.InDispatcher(() => OpenCoreAsync(options, assets, registration))
+                // The test is on the UI thread: the session opens there, and the test goes on there
+                : new DispatcherTask<EditorTestSession>(OpenCoreAsync(options, assets, registration));
+        }
+        catch
+        {
+            registration.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -127,7 +156,7 @@ public sealed class EditorTestSession : IAsyncDisposable
             return;
         disposed = true;
         if (Session is not null)
-            await SessionTeardown.DestroyAsync(Session);
+            await SessionTeardown.DestroyAsync(Session, plugins: Plugins as IDisposable);
         try
         {
             System.IO.Directory.Delete(Directory, true);
@@ -136,11 +165,28 @@ public sealed class EditorTestSession : IAsyncDisposable
         {
             // Best effort: a file the session opened last can still be closing
         }
+        registration?.Dispose();
+    }
+
+    private static async Task<EditorTestSession> OpenCoreAsync(EditorTestSessionOptions options, (string Location, Asset Asset)[] assets, IDisposable registration)
+    {
+        try
+        {
+            var fixture = await OpenCoreAsync(options, assets);
+            // The session stays recorded until it is disposed
+            fixture.registration = registration;
+            return fixture;
+        }
+        catch
+        {
+            registration.Dispose();
+            throw;
+        }
     }
 
     private static async Task<EditorTestSession> OpenCoreAsync(EditorTestSessionOptions options, (string Location, Asset Asset)[] assets)
     {
-        var dispatcher = new ExclusiveDispatcherService();
+        var dispatcher = options.Dispatcher ?? new ExclusiveDispatcherService();
         dispatcher.EnsureAccess();
         var directory = Path.Combine(Path.GetTempPath(), "StrideEditorTestSessions", Guid.NewGuid().ToString("N"));
         var packageName = options.PackageName ?? DefaultPackageName;
@@ -155,6 +201,9 @@ public sealed class EditorTestSession : IAsyncDisposable
             services = services.Append(NotSupportedService<IEditorDialogService>.Create());
         if (!options.Services.OfType<IClipboardService>().Any())
             services = services.Append(NotSupportedService<IClipboardService>.Create());
+        // The progress windows show nothing, so that the session's own save runs
+        if (!options.Services.OfType<IProgressWindowService>().Any())
+            services = services.Append(new TestProgressWindowService());
         var serviceProvider = new ViewModelServiceProvider(services);
 
         UFile packagePath;
@@ -169,7 +218,7 @@ public sealed class EditorTestSession : IAsyncDisposable
                 System.IO.Directory.Delete(directory, true);
             throw;
         }
-        var fixture = new EditorTestSession(directory, packageName, packagePath, serviceProvider);
+        var fixture = new EditorTestSession(directory, packageName, packagePath, serviceProvider, options.Plugins!);
         try
         {
             var session = await SessionViewModel.OpenSessionAsync(packagePath, loadParameters => TestPackageLoad.WithoutMSBuild(packagePath, null, fixture.Result, loadParameters),
@@ -194,13 +243,16 @@ public sealed class EditorTestSession : IAsyncDisposable
 public sealed class EditorTestSessionOptions
 {
     /// <summary>
-    /// The plugin host of the session, which knows the plugins of the assets and their editors.
+    /// The plugin host of the session, which knows the plugins of the assets and their editors. The session disposes it when it is
+    /// disposed, if the host is disposable.
     /// </summary>
     public IAssetsPluginService? Plugins { get; init; }
 
     /// <summary>
-    /// Other services of the session, such as fakes of the dialog and clipboard services; without them, these two services fail when
-    /// they are used (<see cref="NotSupportedService{T}"/>).
+    /// Other services of the session, such as a <see cref="TestEditorDialogService"/> and a fake of the clipboard service; without
+    /// them, these two services fail when they are used (<see cref="NotSupportedService{T}"/>). Without a progress window service
+    /// (<see cref="IProgressWindowService"/>, which a <see cref="TestEditorDialogService"/> is), the session has a
+    /// <see cref="TestProgressWindowService"/>.
     /// </summary>
     public IReadOnlyList<object> Services { get; init; } = [];
 
@@ -208,6 +260,16 @@ public sealed class EditorTestSessionOptions
     /// The name of the package; <see cref="EditorTestSession.DefaultPackageName"/> when <c>null</c>.
     /// </summary>
     public string? PackageName { get; init; }
+
+    /// <summary>
+    /// The UI thread of the session; a new <see cref="ExclusiveDispatcherService"/> when <c>null</c>.
+    /// </summary>
+    /// <remarks>
+    /// A test of views gives the dispatcher of its toolkit's UI thread (the <c>DispatcherService</c> of
+    /// <c>Stride.Core.Presentation.Avalonia</c> for Avalonia) and opens the session from that thread, as a headless test runs: the
+    /// session's work then reaches the views on their thread, and the test never leaves it. Its awaits let the session's work run.
+    /// </remarks>
+    public IDispatcherService? Dispatcher { get; init; }
 
     /// <summary>
     /// Runs once the session is open, in the dispatcher, before its initialization ends: for example to initialize the plugins of

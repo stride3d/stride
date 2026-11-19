@@ -108,7 +108,7 @@ namespace Stride.AssetCompiler
                     // Compute asset dependencies, and fill bundleAssets with list of all assets contained in bundles (directly or indirectly).
                     foreach (var assetUrl in bundle.Value.AssetUrls)
                     {
-                        CollectReferences(databaseFileProvider, bundle.Value.Source, bundleAssets, assetUrl);
+                        CollectReferences(databaseFileProvider, bundle.Value.Source, bundleAssets, assetUrl, referencedBy: null);
                     }
                 }
 
@@ -172,7 +172,7 @@ namespace Stride.AssetCompiler
                     // Those not present in dependencies will be added to this bundle
                     foreach (var assetUrl in bundle.AssetUrls)
                     {
-                        CollectBundle(databaseFileProvider, bundle, assetUrl);
+                        CollectBundle(databaseFileProvider, bundle, assetUrl, referencedBy: null);
                     }
                 }
 
@@ -403,7 +403,7 @@ namespace Stride.AssetCompiler
             return references;
         }
 
-        private void CollectReferences(DatabaseFileProvider databaseFileProvider, Bundle bundle, HashSet<string> assets, string assetUrl)
+        internal void CollectReferences(DatabaseFileProvider databaseFileProvider, Bundle bundle, HashSet<string> assets, string assetUrl, string referencedBy)
         {
             // Already included?
             if (!assets.Add(assetUrl))
@@ -411,16 +411,16 @@ namespace Stride.AssetCompiler
 
             ObjectId objectId;
             if (!databaseFileProvider.ContentIndexMap.TryGetValue(assetUrl, out objectId))
-                throw new InvalidOperationException(string.Format("Could not find asset {0} for bundle {1}", assetUrl, bundle.Name));
+                throw ContentNotFound(assetUrl, referencedBy, bundle.Name);
 
             // Include references
             foreach (var reference in GetChunkReferences(databaseFileProvider, ref objectId))
             {
-                CollectReferences(databaseFileProvider, bundle, assets, reference);
+                CollectReferences(databaseFileProvider, bundle, assets, reference, assetUrl);
             }
         }
 
-        private void CollectBundle(DatabaseFileProvider databaseFileProvider, ResolvedBundle resolvedBundle, string assetUrl)
+        internal void CollectBundle(DatabaseFileProvider databaseFileProvider, ResolvedBundle resolvedBundle, string assetUrl, string referencedBy)
         {
             // Check if index map contains it already (that also means object id has been stored as well)
             if (resolvedBundle.DependencyIndexMap.ContainsKey(assetUrl) || resolvedBundle.IndexMap.ContainsKey(assetUrl))
@@ -428,7 +428,7 @@ namespace Stride.AssetCompiler
 
             ObjectId objectId;
             if (!databaseFileProvider.ContentIndexMap.TryGetValue(assetUrl, out objectId))
-                throw new InvalidOperationException(string.Format("Could not find asset {0} for bundle {1}", assetUrl, resolvedBundle.Name));
+                throw ContentNotFound(assetUrl, referencedBy, resolvedBundle.Name);
 
             // Add asset to index map
             resolvedBundle.IndexMap.Add(assetUrl, objectId);
@@ -440,8 +440,20 @@ namespace Stride.AssetCompiler
 
             foreach (var reference in GetChunkReferences(databaseFileProvider, ref objectId))
             {
-                CollectBundle(databaseFileProvider, resolvedBundle, reference);
+                CollectBundle(databaseFileProvider, resolvedBundle, reference, assetUrl);
             }
+        }
+
+        // Content that compiled content references was not compiled: the build of an asset schedules the assets it
+        // references only inside the types its compiler lists in GetRuntimeTypes.
+        private static InvalidOperationException ContentNotFound(string assetUrl, string referencedBy, string bundleName)
+        {
+            if (referencedBy is null)
+                return new InvalidOperationException($"Could not find asset {assetUrl} for bundle {bundleName}");
+
+            return new InvalidOperationException($"Could not find content [{assetUrl}], referenced by [{referencedBy}], for bundle {bundleName}: nothing compiled it. "
+                + $"The compiler of the asset that makes [{referencedBy}] must list the type that holds the reference in its GetRuntimeTypes, "
+                + "so that the build compiles the assets it references.");
         }
 
         private static string FirstSegment(string rootedPath)

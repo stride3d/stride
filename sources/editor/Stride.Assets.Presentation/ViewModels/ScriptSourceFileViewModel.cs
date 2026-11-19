@@ -4,6 +4,7 @@
 using Stride.Assets.Scripts;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Diagnostics;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.Annotations;
 
@@ -57,10 +58,10 @@ public class ScriptSourceFileViewModel : SourceCodeViewModel<ScriptSourceFileAss
     }
 
     /// <inheritdoc />
-    protected internal override void Initialize()
+    protected internal override void Initialize(ILogger log)
     {
         // The base class reads the text of a project file
-        base.Initialize();
+        base.Initialize(log);
         if (!Directory.Package.Package.IsReadOnly)
             CaptureFile();
     }

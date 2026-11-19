@@ -82,7 +82,21 @@ public sealed class CommitTextBehavior : Behavior<TextBox>
             return;
 
         hasChanges = false;
-        BindingOperations.GetBindingExpressionBase(textBox, TextBox.TextProperty)?.UpdateSource();
+        if (BindingOperations.GetBindingExpressionBase(textBox, TextBox.TextProperty) is not { } expression)
+            return;
+
+        // The binding also changes the text while the box has the focus (an undo, a change made elsewhere): a text that is
+        // what the source shows is not an edit, and writing it back would change a value the text rounds (a color shown
+        // one byte per channel)
+        var text = textBox.Text;
+        expression.UpdateTarget();
+        if (text == textBox.Text)
+            return;
+
+        // Giving the edit back to the box counts as an edit again
+        textBox.SetCurrentValue(TextBox.TextProperty, text);
+        hasChanges = false;
+        expression.UpdateSource();
     }
 
     private void Cancel()

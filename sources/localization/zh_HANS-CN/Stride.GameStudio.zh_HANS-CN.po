@@ -101,12 +101,6 @@ msgctxt "Message"
 msgid "Platform {0} isn't supported for execution."
 msgstr "不支持在平台 {0} 运行。"
 
-#. Displayed when user tries to run Android project without an Android device attached.
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:713
-msgctxt "Message"
-msgid "No Android device found for execution."
-msgstr "没有找到可运行的 Android 设备。"
-
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:763
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:934
 msgctxt "Message"
@@ -119,26 +113,6 @@ msgstr "无法加载和编译项目 {0}"
 msgctxt "Message"
 msgid "Unable to reach to output executable: {0}"
 msgstr "无法输出可执行文件: {0}"
-
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:805
-msgctxt "Message"
-msgid "Couldn't find Android package name for {0}."
-msgstr "找不到 {0} 的 Android 包名。"
-
-#. Displayed when Android tools "adb" can't be found
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:815
-msgctxt "Message"
-msgid ""
-"Android tool \"\"adb\"\" couldn't found (no running process, in registry or "
-"on the PATH). Please add it to your PATH."
-msgstr ""
-"找不到 Android 工具 “adb” (注册表或 PATH 中没有可运行的进程)。请将其添加到 "
-"PATH 中。"
-
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:822
-msgctxt "Message"
-msgid "Can't run Android app with adb: {0}"
-msgstr "无法用 adb 运行 Android 应用: {0}"
 
 #. Displayed when starting a game on a platform requiring credentials but none were provided.
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:847

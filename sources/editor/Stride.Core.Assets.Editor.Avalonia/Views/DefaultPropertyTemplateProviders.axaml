@@ -679,22 +679,19 @@
                              Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
                     <TextBlock DockPanel.Dock="Left" Margin="8,0,0,0" VerticalAlignment="Center"
                                Text="{sd:LocalizeString Key name:}"/>
-                    <!-- TODO validation commands -->
                     <TextBox x:Name="TextBox1"
-                             Text="0"
-                             Margin="8" Width="160"/>
+                             Margin="8" Width="160">
+                      <Interaction.Behaviors>
+                        <sd:ValidateTextBehavior Command="{Binding [AddPrimitiveKey]}"
+                                                 InitialText="0"
+                                                 IsOpen="{Binding #ToggleButton.IsChecked, Mode=TwoWay}"/>
+                      </Interaction.Behaviors>
+                    </TextBox>
                   </DockPanel>
                 </Popup>
                 <Interaction.Behaviors>
                   <DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="{sd:False}">
                     <ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="0.5"/>
-                  </DataTriggerBehavior>
-                  <!-- This makes sure we can validate the textbox again even if the text is not changed -->
-                  <DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:False}">
-                    <ChangePropertyAction TargetObject="TextBox1" PropertyName="Text" Value=""/>
-                  </DataTriggerBehavior>
-                  <DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:True}">
-                    <ChangePropertyAction TargetObject="TextBox1" PropertyName="Text" Value="0"/>
                   </DataTriggerBehavior>
                 </Interaction.Behaviors>
               </Grid>
@@ -737,22 +734,19 @@
                              Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
                     <TextBlock DockPanel.Dock="Left" Margin="8,0,0,0" VerticalAlignment="Center"
                                Text="{sd:LocalizeString Key name:}"/>
-                    <!-- TODO validation commands -->
                     <TextBox x:Name="TextBox2"
-                             Text="{sd:LocalizeString New key}"
-                             Margin="8" Width="160"/>
+                             Margin="8" Width="160">
+                      <Interaction.Behaviors>
+                        <sd:ValidateTextBehavior Command="{Binding [AddPrimitiveKey]}"
+                                                 InitialText="{sd:LocalizeString New key}"
+                                                 IsOpen="{Binding #ToggleButton.IsChecked, Mode=TwoWay}"/>
+                      </Interaction.Behaviors>
+                    </TextBox>
                   </DockPanel>
                 </Popup>
                 <Interaction.Behaviors>
                   <DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="{sd:False}">
                     <ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
-                  </DataTriggerBehavior>
-                  <!-- This makes sure we can validate the textbox again even if the text is not changed -->
-                  <DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:False}">
-                    <ChangePropertyAction TargetObject="TextBox2" PropertyName="Text" Value=""/>
-                  </DataTriggerBehavior>
-                  <DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:True}">
-                    <ChangePropertyAction TargetObject="TextBox2" PropertyName="Text" Value="0"/>
                   </DataTriggerBehavior>
                 </Interaction.Behaviors>
               </Grid>
