@@ -2,8 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia;
+using System.ComponentModel;
 using Avalonia.Controls;
+using Avalonia.Data;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -99,5 +103,62 @@ public sealed class UICompanionTests
         editor.Bottom = 8;
         Assert.Equal(new Thickness(1, 2, 3, 4, 8, 6), editor.Value);
         window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task AHeldSpinButtonOfTheThicknessEditorWritesTheThicknessOnce()
+    {
+        PluginRegistrations.Of(new UIEditorAvaloniaPlugin(), typeof(IAssetEditorView));
+        var source = new ThicknessSource { Value = new Thickness(1, 2, 3, 4, 5, 6) };
+        source.Reset();
+        var editor = new ThicknessEditor();
+        // The binding of the property grid: written only when the editor commits
+        editor.Bind(ThicknessEditor.ValueProperty, new Binding(nameof(ThicknessSource.Value)) { Source = source, Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.Explicit });
+        var window = new Window { Content = editor, Width = 400, Height = 200 };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        var left = editor.GetVisualDescendants().OfType<NumericTextBox>().Single(x => x.Name == "PART_Left");
+        // The sides of a thickness show their spin buttons
+        var up = left.GetVisualDescendants().OfType<RepeatButton>().Single(x => x.Name == "PART_IncreaseButton");
+        Assert.True(up.IsEffectivelyVisible);
+        var center = up.TranslatePoint(new Point(up.Bounds.Width / 2, up.Bounds.Height / 2), window)!.Value;
+
+        window.MouseDown(center, MouseButton.Left);
+        for (var i = 0; i < 100 && left.Value < 4; ++i)
+        {
+            await Task.Delay(20);
+            Dispatcher.UIThread.RunJobs();
+        }
+        Assert.Equal(0, source.Writes);
+        window.MouseUp(center, MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(1, source.Writes);
+        Assert.Equal(left.Value, source.Value.Left);
+        Assert.True(source.Value.Left >= 4);
+        window.Close();
+    }
+
+    private sealed class ThicknessSource : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public int Writes { get; private set; }
+
+        public Thickness Value
+        {
+            get;
+            set
+            {
+                Writes++;
+                field = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
+            }
+        }
+
+        /// <summary>
+        /// Forgets the writes so far: the initial value is not one.
+        /// </summary>
+        public void Reset() => Writes = 0;
     }
 }
