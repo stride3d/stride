@@ -3,6 +3,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Assets.Models;
 
@@ -29,7 +30,9 @@ namespace Stride.Assets.Editor.Quantum.NodePresenters.Commands
         {
             foreach (var item in nodePresenter.Children)
             {
-                item.UpdateValue(parameter);
+                // The flag of a node is its inlined property: the item itself is a node information, which takes no flag
+                var preserve = item.TryGetChild(InlineData.InlinedProperty) ?? item.TryGetChild(nameof(NodeInformation.Preserve));
+                preserve?.UpdateValue(parameter);
             }
         }
     }
