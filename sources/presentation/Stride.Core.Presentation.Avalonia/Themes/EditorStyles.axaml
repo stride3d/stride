@@ -27,9 +27,51 @@
         <TextBox x:Name="PART_TextBox"
                  Text="{TemplateBinding Text}"
                  TextAlignment="{TemplateBinding TextAlignment}"
-                 PlaceholderText="{TemplateBinding PlaceholderText}"/>
+                 PlaceholderText="{TemplateBinding PlaceholderText}">
+          <!-- The spin buttons repeat while held; they take no focus, so that typing goes on in the text. The content of the
+               text box has no templated parent: it binds to the numeric box by ancestor -->
+          <TextBox.InnerRightContent>
+            <UniformGrid x:Name="UpDownButtons" Rows="2" MaxWidth="16" Margin="0,1,1,1" Cursor="Arrow"
+                         IsVisible="{Binding $parent[sd:NumericTextBox].DisplayUpDownButtons}">
+              <RepeatButton x:Name="PART_IncreaseButton" ClickMode="Press" Focusable="False" IsTabStop="False"
+                            Padding="2,0" MinHeight="0" CornerRadius="0"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Path Fill="{Binding $parent[RepeatButton].Foreground}" Stretch="Uniform" Width="7" Height="4"
+                      Data="M -4,2 L 4,2 0,-2 Z"/>
+              </RepeatButton>
+              <RepeatButton x:Name="PART_DecreaseButton" ClickMode="Press" Focusable="False" IsTabStop="False"
+                            Padding="2,0" MinHeight="0" CornerRadius="0"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Path Fill="{Binding $parent[RepeatButton].Foreground}" Stretch="Uniform" Width="7" Height="4"
+                      Data="M 4,-2 L -4,-2 0,2 Z"/>
+              </RepeatButton>
+            </UniformGrid>
+          </TextBox.InnerRightContent>
+        </TextBox>
       </ControlTemplate>
     </Setter>
+  </Style>
+  <!-- Dragging over the text changes the value while the box doesn't have the focus; while it drags, the cursor shows its
+       direction. The text presenter of the text box has its own cursor. -->
+  <Style Selector="sd|NumericTextBox[AllowMouseDrag=True] /template/ TextBox#PART_TextBox:not(:focus-within),
+                   sd|NumericTextBox[AllowMouseDrag=True] /template/ TextBox#PART_TextBox:not(:focus-within) /template/ ScrollViewer /template/ ScrollContentPresenter">
+    <Setter Property="Cursor" Value="SizeAll"/>
+  </Style>
+  <Style Selector="sd|NumericTextBox:drag-horizontal, sd|NumericTextBox:drag-horizontal /template/ TextBox#PART_TextBox,
+                   sd|NumericTextBox:drag-horizontal /template/ TextBox#PART_TextBox /template/ ScrollViewer /template/ ScrollContentPresenter">
+    <Setter Property="Cursor" Value="SizeWestEast"/>
+  </Style>
+  <Style Selector="sd|NumericTextBox:drag-vertical, sd|NumericTextBox:drag-vertical /template/ TextBox#PART_TextBox,
+                   sd|NumericTextBox:drag-vertical /template/ TextBox#PART_TextBox /template/ ScrollViewer /template/ ScrollContentPresenter">
+    <Setter Property="Cursor" Value="SizeNorthSouth"/>
+  </Style>
+  <!-- The editors of this file made of numeric boxes show no spin buttons (other editors, as a thickness, keep them) -->
+  <Style Selector="sd|Vector2Editor /template/ sd|NumericTextBox, sd|Vector3Editor /template/ sd|NumericTextBox, sd|Vector4Editor /template/ sd|NumericTextBox,
+                   sd|Int2Editor /template/ sd|NumericTextBox, sd|Int3Editor /template/ sd|NumericTextBox, sd|Int4Editor /template/ sd|NumericTextBox,
+                   sd|RectangleEditor /template/ sd|NumericTextBox, sd|RectangleFEditor /template/ sd|NumericTextBox,
+                   sd|AngleEditor /template/ sd|NumericTextBox, sd|QuaternionEditor /template/ sd|NumericTextBox, sd|MatrixEditor /template/ sd|NumericTextBox,
+                   sd|TimeSpanEditor /template/ sd|NumericTextBox, sd|DateTimeEditor /template/ sd|NumericTextBox">
+    <Setter Property="DisplayUpDownButtons" Value="False"/>
   </Style>
 
   <!-- Style for DateTime editor -->
