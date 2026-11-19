@@ -24,10 +24,41 @@ namespace Stride.Assets;
 /// </summary>
 internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
 {
-    public void Run(UFile? solutionPath, IReadOnlyList<PendingCodeUpgrade> pending, UpgradeBackup? backup, ILogger log)
+    public bool HasSourceMigrations(IReadOnlyList<PendingCodeUpgrade> pending) => GetPlans(pending).Count > 0;
+
+    public bool Run(UFile? solutionPath, IReadOnlyList<PendingCodeUpgrade> pending, UpgradeBackup? backup, ILogger log)
     {
-        // Resolve each pending upgrader's applicable code rules up front. If nothing applies, never open
-        // the (expensive) workspace — this keeps project-only upgrades at exactly today's cost.
+        // If nothing applies, never open the (expensive) workspace — this keeps project-only upgrades at exactly today's cost.
+        var plans = GetPlans(pending);
+        if (plans.Count == 0)
+        {
+            log.Info($"Code upgrade: {pending.Count} pending project(s), no applicable source migrations.");
+            return true;
+        }
+
+        log.Info($"Code upgrade: applying source migrations to {plans.Count} project(s)...");
+
+        try
+        {
+            // Escape any ambient synchronization context; MSBuildWorkspace is async-heavy.
+            return Task.Run(() => RunAsync(solutionPath, plans, backup, log)).GetAwaiter().GetResult();
+        }
+        catch (NotImplementedException)
+        {
+            // Unsupported upgrade output (e.g. project-level changes) is an upgrader-authoring error —
+            // surface it loudly instead of degrading to a warning.
+            throw;
+        }
+        catch (Exception ex)
+        {
+            log.Error("Source-code migration could not run (code left unchanged).", ex);
+            return false;
+        }
+    }
+
+    // Each pending upgrader's code rules that apply to the version its project is upgraded from
+    private static List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)> GetPlans(IReadOnlyList<PendingCodeUpgrade> pending)
+    {
         var plans = new List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)>();
         foreach (var item in pending)
         {
@@ -61,32 +92,11 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
             if (applicable.Count > 0)
                 plans.Add((item, applicable));
         }
-        if (plans.Count == 0)
-        {
-            log.Info($"Code upgrade: {pending.Count} pending project(s), no applicable source migrations.");
-            return;
-        }
-
-        log.Info($"Code upgrade: applying source migrations to {plans.Count} project(s)...");
-
-        try
-        {
-            // Escape any ambient synchronization context; MSBuildWorkspace is async-heavy.
-            Task.Run(() => RunAsync(solutionPath, plans, backup, log)).GetAwaiter().GetResult();
-        }
-        catch (NotImplementedException)
-        {
-            // Unsupported upgrade output (e.g. project-level changes) is an upgrader-authoring error —
-            // surface it loudly instead of degrading to a warning.
-            throw;
-        }
-        catch (Exception ex)
-        {
-            log.Warning("Source-code migration failed; the package upgrade will continue (code left unchanged).", ex);
-        }
+        return plans;
     }
 
-    private static async Task RunAsync(UFile? solutionPath, List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)> plans, UpgradeBackup? backup, ILogger log)
+    // Returns false, having written nothing, when the workspace lacks a project
+    private static async Task<bool> RunAsync(UFile? solutionPath, List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)> plans, UpgradeBackup? backup, ILogger log)
     {
         var cancellationToken = CancellationToken.None;
 
@@ -116,18 +126,23 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
                 log.Verbose($"Code upgrade workspace: {diagnostic.Message}");
         }
 
-        var solution = originalSolution;
-        foreach (var (pendingItem, upgrades) in plans)
+        var projectIds = new List<ProjectId>();
+        foreach (var (pendingItem, _) in plans)
         {
             var projectOsPath = pendingItem.ProjectFullPath.ToOSPath();
-            var project = solution.Projects.FirstOrDefault(x => PathsEqual(x.FilePath, projectOsPath));
+            var project = originalSolution.Projects.FirstOrDefault(x => PathsEqual(x.FilePath, projectOsPath));
             if (project is null)
             {
-                log.Warning($"Code upgrade: project [{pendingItem.ProjectFullPath.GetFileName()}] not found in the workspace; skipping its source migration.");
-                continue;
+                log.Error($"Code upgrade: project [{pendingItem.ProjectFullPath.GetFileName()}] not found in the workspace; no source code is migrated.");
+                return false;
             }
+            projectIds.Add(project.Id);
+        }
 
-            IReadOnlyList<ProjectId> targets = [project.Id];
+        var solution = originalSolution;
+        foreach (var ((pendingItem, upgrades), projectId) in plans.Zip(projectIds))
+        {
+            IReadOnlyList<ProjectId> targets = [projectId];
             foreach (var upgrade in upgrades)
             {
                 // A failing migration is skipped alone: the others of the project still apply
@@ -181,6 +196,7 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
 
         if (changedCount > 0)
             log.Info($"Code upgrade: migrated {changedCount} source file(s).");
+        return true;
     }
 
     /// <summary>

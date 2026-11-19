@@ -36,8 +36,10 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
     /// Bumps the upgrader's own package family to the current version on the given project. Runs before the
     /// structural registrations (which operate on the bumped project). Default is a no-op.
     /// </summary>
-    protected virtual void UpgradeProjectReferences(UFile projectFullPath, ILogger log)
+    /// <returns>False when the project could not be changed.</returns>
+    protected virtual bool UpgradeProjectReferences(UFile projectFullPath, ILogger log)
     {
+        return true;
     }
 
     /// <inheritdoc/>
@@ -58,7 +60,8 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
         session.UpgradeBackup?.Snapshot(projectFullPath.ToOSPath());
 
         // Bump the upgrader's own package family to the current version (subclass hook).
-        UpgradeProjectReferences(projectFullPath, log);
+        if (!UpgradeProjectReferences(projectFullPath, log))
+            return false;
 
         // Version-gated structural csproj migrations declared via the upgrade registry (r.Project):
         // load the project once, run each registration the project is upgrading across, save once.
@@ -84,7 +87,8 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
         }
         catch (Exception e)
         {
-            log.Warning($"Unable to load project [{projectFullPath.GetFileName()}]", e);
+            log.Error($"Unable to upgrade project [{projectFullPath.GetFileName()}]", e);
+            return false;
         }
         finally
         {

@@ -29,11 +29,17 @@ using static Stride.Assets.CodeUpgrades;
 
 namespace Stride.Assets
 {
-    [PackageUpgrader(new[] { "Stride.Foundation", "Stride.Core", "Stride.Engine" }, "4.0.0.0", CurrentVersion)]
+    [PackageUpgrader(new[] { "Stride.Foundation", "Stride.Core", "Stride.Engine" }, "4.0.0.0", CurrentVersion, Name = UpgraderName)]
     public partial class StridePackageUpgrader : CodePackageUpgrader
     {
         // Should match Stride.nupkg
         public const string CurrentVersion = StrideVersion.NuGetVersion;
+
+        /// <summary>
+        /// The name of this upgrader, which names the record of the Stride version a project was last upgraded to, or
+        /// created with (see <see cref="PackageUpgrader.UpgradeRecordItem"/>).
+        /// </summary>
+        public const string UpgraderName = "Stride";
 
         public static readonly string DefaultGraphicsCompositorLevel9Url = "/Stride.Engine/DefaultGraphicsCompositorLevel9";
         public static readonly string DefaultGraphicsCompositorLevel10Url = "/Stride.Engine/DefaultGraphicsCompositorLevel10";
@@ -51,7 +57,8 @@ namespace Stride.Assets
         /// involved. Common building block for fresh-template instantiation and legacy
         /// session-load paths.
         /// </summary>
-        public static void UpgradeProjectVersions(string csprojPath, ILogger log)
+        /// <returns>False when the project could not be changed (the failure is logged).</returns>
+        public static bool UpgradeProjectVersions(string csprojPath, ILogger log)
         {
             ArgumentNullException.ThrowIfNull(csprojPath);
             try
@@ -86,10 +93,12 @@ namespace Stride.Assets
 
                 project.ProjectCollection.UnloadAllProjects();
                 project.ProjectCollection.Dispose();
+                return true;
             }
             catch (Exception e)
             {
-                log.Warning($"Unable to upgrade Stride.* PackageReference versions in [{Path.GetFileName(csprojPath)}]", e);
+                log.Error($"Unable to upgrade Stride.* PackageReference versions in [{Path.GetFileName(csprojPath)}]", e);
+                return false;
             }
         }
 
@@ -240,9 +249,9 @@ namespace Stride.Assets
 
         // Bump every Stride.* PackageReference to the current version (also used standalone by the
         // fresh-template path). The base then runs the gated r.Project structural migrations.
-        protected override void UpgradeProjectReferences(UFile projectFullPath, ILogger log)
+        protected override bool UpgradeProjectReferences(UFile projectFullPath, ILogger log)
         {
-            UpgradeProjectVersions(projectFullPath.ToOSPath(), log);
+            return UpgradeProjectVersions(projectFullPath.ToOSPath(), log);
         }
 
         [CanBeNull]

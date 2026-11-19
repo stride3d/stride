@@ -14,6 +14,16 @@ public abstract class PackageUpgrader
     public PackageUpgraderAttribute Attribute { get; internal set; } = null!; // note: set right after being intialized
 
     /// <summary>
+    /// The MSBuild item in which a project records, for each upgrader, the version it last moved the project to: its
+    /// <c>Include</c> is the <see cref="PackageUpgraderAttribute.Name"/> of the upgrader, its <c>Version</c> the version.
+    /// </summary>
+    /// <remarks>
+    /// The session writes the record of an upgrader when it saves a project whose upgrade by that upgrader completed,
+    /// after everything else of the upgrade.
+    /// </remarks>
+    public const string UpgradeRecordItem = "StridePackageUpgradeRecord";
+
+    /// <summary>
     /// Performs a preprocessing step of package migration, before assembly references are loaded.
     /// </summary>
     /// <param name="loadParameters">The load parameters.</param>
