@@ -114,9 +114,9 @@ partial class PackageSession
         var result = new List<PendingCodeUpgrade>();
         foreach (var project in Projects.OfType<SolutionProject>())
         {
-            // PreLoadPackageDependencies skips a project whose dependencies are ready, so no upgrade of it runs: this
-            // also saves an evaluation of every project when the references are loaded again after the session load
-            if (project.FullPath is null || project.Package.State >= PackageState.DependenciesReady)
+            // PreLoadPackageDependencies skips a project whose dependencies are ready, or whose upgrade already ended, so no
+            // upgrade of it runs: this also saves an evaluation of every project when the references are loaded again
+            if (project.FullPath is null || project.Package.State >= PackageState.DependenciesReady || IsUpgradeEnded(project.Package))
                 continue;
             var projectPath = project.FullPath.ToOSPath();
             if (!File.Exists(projectPath))
@@ -179,6 +179,10 @@ partial class PackageSession
 
         // TODO: Remove and recheck Dependencies Ready if some secondary packages are removed?
         if (package.State >= PackageState.DependenciesReady)
+            return;
+
+        // A project that references it, or a later load of the missing references, gets here again
+        if (IsUpgradeEnded(package))
             return;
 
         // Avoid processing the same project multiple times
@@ -262,6 +266,7 @@ partial class PackageSession
                 }
 
                 // Process project references recursively (must be sequential due to MSBuild limitations)
+                project.ReferencedProjects.Clear();
                 foreach (var projectReference in msProject.GetItems("ProjectReference").ToList())
                 {
                     var projectFile = new UFile(Path.Combine(Path.GetDirectoryName(projectPath), projectReference.EvaluatedInclude));
@@ -272,6 +277,7 @@ partial class PackageSession
                         {
                             // Process referenced projects sequentially (MSBuild doesn't support parallel evaluation)
                             await PreLoadPackageDependencies(log, referencedProject, loadParameters);
+                            project.ReferencedProjects.Add(referencedProject);
 
                             // Get package upgrader from dependency
                             if (pendingPackageUpgradesPerPackage.TryGetValue(referencedProject.Package, out var dependencyPackageUpgraders))
@@ -346,12 +352,16 @@ partial class PackageSession
 
             if (pendingPackageUpgrades.Count > 0)
             {
+                if (IsUpgradeStopped(project, log))
+                    return;
+
                 // Need upgrades, let's ask user confirmation
                 var upgradeAllowed = RequestPackageUpgrade(package, pendingPackageUpgrades, loadParameters);
 
                 if (!PackageLoadParameters.ShouldUpgrade(upgradeAllowed))
                 {
                     log.Error($"Necessary package migration for [{package.Meta.Name}] has not been allowed");
+                    refusedUpgrades.Add(package);
                     return;
                 }
 
@@ -384,14 +394,17 @@ partial class PackageSession
                     }
                     catch (Exception e)
                     {
-                        log.Warning($"Unable to load project [{project.FullPath.GetFileName()}]", e);
+                        log.Error($"Could not upgrade the package references of [{project.FullPath.GetFileName()}]. {RestoreFromBackupHint}", e);
+                        failedUpgrades.Add(package);
+                        return;
                     }
 
                     var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
                     var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
                     if (!packageUpgrader.UpgradeBeforeAssembliesLoaded(loadParameters, package.Session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage))
                     {
-                        log.Error($"Error while upgrading package [{package.Meta.Name}] for [{dependencyPackage.Meta.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{dependencyPackage.Meta.Version}]");
+                        log.Error($"Error while upgrading package [{package.Meta.Name}] for [{pendingPackageUpgrade.Dependency.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{expectedVersion}]. {RestoreFromBackupHint}");
+                        failedUpgrades.Add(package);
                         return;
                     }
                 }

@@ -15,8 +15,15 @@ namespace Stride.Core.Assets;
 public class PackageUpgraderAttribute : Attribute
 {
     private readonly PackageVersionRange? updatedVersionRange;
+    private string? name;
 
     public string[] PackageNames { get; }
+
+    /// <summary>
+    /// The identity of the upgrader, which names the record of its upgrades in a project (see
+    /// <see cref="PackageUpgrader.UpgradeRecordItem"/>); the first of <see cref="PackageNames"/> when not set.
+    /// </summary>
+    public string Name { get => name ?? PackageNames[0]; set => name = value; }
 
     public PackageVersion PackageMinimumVersion { get; }
 

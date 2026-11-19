@@ -246,7 +246,8 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     /// <summary>
     /// Phase 2 — fresh templates ship with Stride.* <c>PackageReference</c>s pinned to the
     /// previous release (samples track stable versions, not dev1/dev2 suffixes); this rewrites
-    /// them to <see cref="StridePackageUpgrader.CurrentVersion"/>. Runs without a session or
+    /// them to <see cref="StridePackageUpgrader.CurrentVersion"/>, and records that version in each project
+    /// (<see cref="PackageUpgrader.UpgradeRecordItem"/>) unless the content was written for an older engine. Runs without a session or
     /// AssemblyContainer — same standalone path the legacy session-load uses internally.
     /// </summary>
     /// <param name="stampOlderContent">
@@ -259,8 +260,9 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         var log = parameters.Logger;
         var csprojs = Directory.EnumerateFiles(parameters.OutputDirectory, "*.csproj", SearchOption.AllDirectories).ToList();
 
-        if (!stampOlderContent && GetContentEngineVersion(csprojs) is { } contentVersion
-            && contentVersion.Version < new PackageVersion(StridePackageUpgrader.CurrentVersion).Version)
+        var contentVersion = GetContentEngineVersion(csprojs);
+        var olderContent = contentVersion is not null && contentVersion.Version < new PackageVersion(StridePackageUpgrader.CurrentVersion).Version;
+        if (!stampOlderContent && olderContent)
         {
             log.Info($"Template content is written for Stride {contentVersion}; it is upgraded to {StridePackageUpgrader.CurrentVersion} as it is loaded.");
             return true;
@@ -268,7 +270,17 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
 
         foreach (var csproj in csprojs)
         {
-            StridePackageUpgrader.UpgradeProjectVersions(csproj, log);
+            // Stamped older content didn't go through the upgrade: its record keeps the version it was written for
+            if (!StridePackageUpgrader.UpgradeProjectVersions(csproj, log) || olderContent)
+                continue;
+            try
+            {
+                VSProjectHelper.SetUpgradeRecord(csproj, StridePackageUpgrader.UpgraderName, StridePackageUpgrader.CurrentVersion);
+            }
+            catch (Exception e)
+            {
+                log.Warning($"Unable to record the Stride version in [{Path.GetFileName(csproj)}]", e);
+            }
         }
         return true;
     }

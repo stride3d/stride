@@ -24,11 +24,24 @@ public static class CodeUpgradeRunner
 /// </summary>
 public interface ICodeUpgradeRunner
 {
+    /// <summary>
+    /// Whether any upgrader of <paramref name="pending"/> declares source migrations for the version its project is upgraded
+    /// from, so that <see cref="Run"/> has something to migrate and needs a restored solution.
+    /// </summary>
+    bool HasSourceMigrations(IReadOnlyList<PendingCodeUpgrade> pending);
+
+    /// <summary>
+    /// Runs the source migrations of <paramref name="pending"/>.
+    /// </summary>
     /// <param name="solutionPath">The solution to open (already restored at the old versions), or <c>null</c> for a standalone project.</param>
     /// <param name="pending">The projects pending source migration, with the upgrader that declared rules and the version each is upgraded from.</param>
     /// <param name="backup">The copy-on-write backup to snapshot each source file into before overwriting it, or <c>null</c> when no backup is requested.</param>
     /// <param name="log">The logger.</param>
-    void Run(UFile? solutionPath, IReadOnlyList<PendingCodeUpgrade> pending, UpgradeBackup? backup, ILogger log);
+    /// <returns>
+    /// False when the migration could not run at all (the workspace could not be opened, or lacks a project), the error
+    /// being logged: then it wrote nothing, and the session stops the upgrade of the pending projects.
+    /// </returns>
+    bool Run(UFile? solutionPath, IReadOnlyList<PendingCodeUpgrade> pending, UpgradeBackup? backup, ILogger log);
 }
 
 /// <summary>

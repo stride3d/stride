@@ -246,6 +246,61 @@ public static class VSProjectHelper
         }
     }
 
+    /// <summary>
+    /// Records in a project that the upgrader <paramref name="upgraderName"/> moved it to <paramref name="version"/> (see
+    /// <see cref="PackageUpgrader.UpgradeRecordItem"/>), always in the project file: a record the project imports (from a
+    /// <c>Directory.Build.props</c>, for example) gets an <c>Update</c> of its version there.
+    /// </summary>
+    /// <param name="projectPath">The project file.</param>
+    /// <param name="upgraderName">The <see cref="PackageUpgraderAttribute.Name"/> of the upgrader.</param>
+    /// <param name="version">The version the upgrader moved the project to.</param>
+    /// <param name="backup">The upgrade backup, which gets the project file before it is written; <c>null</c> for none.</param>
+    public static void SetUpgradeRecord(string projectPath, string upgraderName, string version, UpgradeBackup? backup = null)
+    {
+        const string VersionMetadata = "Version";
+        var project = LoadProject(projectPath);
+        try
+        {
+            var record = project.GetItems(PackageUpgrader.UpgradeRecordItem).LastOrDefault(x => string.Equals(x.EvaluatedInclude, upgraderName, StringComparison.OrdinalIgnoreCase));
+            if (record?.GetMetadataValue(VersionMetadata) == version)
+                return;
+
+            backup?.Snapshot(project.Xml.FullPath);
+            if (record is not null && record.Xml.ContainingProject == project.Xml && !string.Equals(record.Xml.Include.Trim(), record.EvaluatedInclude, StringComparison.OrdinalIgnoreCase))
+            {
+                // An element of several items: MSBuild splits it
+                record.SetMetadataValue(VersionMetadata, version).Xml.ExpressedAsAttribute = true;
+            }
+            else
+            {
+                // A file the project imports may be shared by projects whose upgrade did not complete, and isn't always under
+                // the backup: an imported record is updated in the project file
+                var element = record is null ? project.Xml.AddItem(PackageUpgrader.UpgradeRecordItem, upgraderName)
+                    : record.Xml.ContainingProject == project.Xml ? record.Xml
+                    : project.Xml.Items.LastOrDefault(x => x.ItemType == PackageUpgrader.UpgradeRecordItem && string.Equals(x.Update?.Trim(), upgraderName, StringComparison.OrdinalIgnoreCase))
+                        ?? AddUpdateItem(project.Xml, PackageUpgrader.UpgradeRecordItem, upgraderName);
+                if (element.Metadata.LastOrDefault(x => x.Name == VersionMetadata) is { } metadata)
+                    metadata.Value = version;
+                else
+                    element.AddMetadata(VersionMetadata, version, expressAsAttribute: true);
+            }
+            project.Xml.Save();
+        }
+        finally
+        {
+            project.ProjectCollection.UnloadAllProjects();
+            project.ProjectCollection.Dispose();
+        }
+    }
+
+    private static ProjectItemElement AddUpdateItem(ProjectRootElement project, string itemType, string update)
+    {
+        var element = project.CreateItemElement(itemType);
+        element.Update = update;
+        project.AddItemGroup().AppendChild(element);
+        return element;
+    }
+
     public static MicrosoftProject LoadProject(string fullProjectLocation, string configuration = "Debug", string platform = "AnyCPU", Dictionary<string, string>? extraProperties = null)
     {
         configuration ??= "Debug";

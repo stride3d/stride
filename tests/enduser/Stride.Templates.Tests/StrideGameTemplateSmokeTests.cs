@@ -103,6 +103,7 @@ public class StrideGameTemplateSmokeTests
                         continue;
                     InstantiateAndValidate(workspace, templateShortName: shortName, projectName: projectName);
                 }
+                InstantiateAndValidate(workspace, templateShortName: "stride-library", projectName: "SmokeLibrary");
 
                 InstantiateUpdateOnlyAndValidate(workspace, projectName: "SmokeUpdateOnly");
                 InstantiateSpacedNameAndValidate(workspace, projectName: "Smoke Spaced Game");
@@ -162,6 +163,35 @@ public class StrideGameTemplateSmokeTests
         Assert.True(version.Success && version.Groups[1].Value.Length > 0,
             $"Generated {Path.GetFileName(libraryCsproj)} has no version on its Stride.Engine PackageReference:\n{csprojText}");
         Assert.DoesNotContain("+", version.Groups[1].Value);
+
+        AssertRecordsStrideVersion(instantiated);
+    }
+
+    private static Version NumberPart(string version) => Version.Parse(version.Split('-', '+')[0]);
+
+    /// <summary>
+    /// Every project of a new project records, in one Stride upgrade record, the Stride version its content is written for:
+    /// at most the version of the template's Stride.Engine references, also in the projects that get Stride through a
+    /// project reference.
+    /// </summary>
+    private static void AssertRecordsStrideVersion(string instantiated)
+    {
+        var projects = Directory.EnumerateFiles(instantiated, "*.csproj", SearchOption.AllDirectories)
+            .ToDictionary(x => x, x => System.Xml.Linq.XDocument.Load(x));
+        Assert.NotEmpty(projects);
+        var engineVersion = projects.Values
+            .SelectMany(x => x.Descendants("PackageReference"))
+            .Where(x => (string?)x.Attribute("Include") == "Stride.Engine")
+            .Select(x => (string?)x.Attribute("Version"))
+            .FirstOrDefault();
+        foreach (var (path, project) in projects)
+        {
+            var record = (string?)project.Descendants("StridePackageUpgradeRecord").SingleOrDefault(x => (string?)x.Attribute("Include") == "Stride")?.Attribute("Version");
+            Assert.True(!string.IsNullOrEmpty(record) && !record.Contains('$'), $"{Path.GetFileName(path)} records no Stride version:\n{project}");
+            // A sample stamped to a newer engine keeps the version its content is written for
+            if (engineVersion is not null)
+                Assert.True(NumberPart(record) <= NumberPart(engineVersion), $"{Path.GetFileName(path)} records {record}, above its engine {engineVersion}");
+        }
     }
 
     /// <summary>
@@ -183,6 +213,7 @@ public class StrideGameTemplateSmokeTests
         Assert.False(Directory.Exists(Path.Combine(instantiated, $"{projectName}.Game")),
             $"updateOnly must not regenerate the shared game library {projectName}.Game/ (issue #3262)");
         Assert.Empty(Directory.EnumerateFiles(instantiated, "*.slnx", SearchOption.AllDirectories));
+        AssertRecordsStrideVersion(instantiated);
     }
 
     /// <summary>
@@ -201,6 +232,7 @@ public class StrideGameTemplateSmokeTests
         Assert.True(Directory.Exists(Path.Combine(instantiated, $"{projectName}.Windows")),
             $"skipSolution must still emit the exec project {projectName}.Windows/ under {instantiated}");
         Assert.Empty(Directory.EnumerateFiles(instantiated, "*.slnx", SearchOption.AllDirectories));
+        AssertRecordsStrideVersion(instantiated);
     }
 
     /// <summary>
@@ -223,6 +255,7 @@ public class StrideGameTemplateSmokeTests
         Assert.True(File.Exists(Path.Combine(instantiated, $"{pluginName}.Assets", $"{pluginName}.Assets.csproj")), "Expected the Assets project to keep the dotted name");
         Assert.Contains($"public class {typeName}Asset ", File.ReadAllText(Path.Combine(instantiated, $"{pluginName}.Assets", $"{typeName}Asset.cs")));
         Assert.Contains($"public sealed class {typeName}EditorPlugin ", File.ReadAllText(Path.Combine(instantiated, $"{pluginName}.Editor", $"{typeName}EditorPlugin.cs")));
+        AssertRecordsStrideVersion(instantiated);
     }
 
     /// <summary>

@@ -264,6 +264,10 @@ internal class TemplatePreprocessor
         EmitTemplateJson();
         logger.Info($"Wrote template.json with {GuidMap.Count} generated/guid symbols");
 
+        // Each project records the Stride version its content is written for, before the stamp moves its references (see
+        // RecordStrideVersion).
+        RecordStrideVersion(logger);
+
         // Engine-version stamp: $EngineVersion$ literals (NewGame) plus concrete Stride.*
         // PackageReference versions (samples), so packed content instantiates against the
         // engine it shipped with. See the EngineVersion property doc.
@@ -441,7 +445,6 @@ internal class TemplatePreprocessor
             Copy(screenshot);
     }
 
-    /// <summary>Matches a <c>Stride*</c> Include + Version attribute pair (PackageReference shape).</summary>
     /// <summary>
     /// Community/third-party <c>Stride.*</c>-prefixed packages that version independently of the
     /// engine; their references pass through the engine-version stamp untouched.
@@ -455,6 +458,38 @@ internal class TemplatePreprocessor
     private static bool IsNonEnginePackage(string packageId)
         => NonEnginePackagePrefixes.Any(prefix => packageId.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>The <c>Stride*</c> package references of a project, with their version (an attribute or a child element).</summary>
+    private static IEnumerable<(string Include, XObject Version)> StrideReferences(XDocument doc)
+    {
+        foreach (var reference in doc.Descendants().Where(e => e.Name.LocalName == "PackageReference"))
+        {
+            var include = (string?)reference.Attribute("Include");
+            var version = (XObject?)reference.Attribute("Version") ?? reference.Elements().FirstOrDefault(e => e.Name.LocalName == "Version");
+            if (include is not null && version is not null && include.StartsWith("Stride", StringComparison.Ordinal))
+                yield return (include, version);
+        }
+    }
+
+    private static string GetValue(XObject node) => node is XAttribute attribute ? attribute.Value : ((XElement)node).Value;
+
+    /// <summary>Writes a project parsed from <paramref name="content"/> as authored: no added declaration, no reformatting, same newlines.</summary>
+    private static void SaveProject(string path, XDocument doc, string content)
+    {
+        var settings = new XmlWriterSettings { OmitXmlDeclaration = doc.Declaration is null, Indent = false, NewLineHandling = NewLineHandling.None };
+        // A declaration names the writer's encoding: UTF-8, as the file is written
+        var output = new Utf8StringWriter();
+        using (var writer = XmlWriter.Create(output, settings))
+            doc.Save(writer);
+        // The parser normalizes line ends to LF
+        var text = content.Contains("\r\n", StringComparison.Ordinal) ? output.ToString().Replace("\n", "\r\n") : output.ToString();
+        File.WriteAllText(path, text, new UTF8Encoding(false));
+    }
+
+    private sealed class Utf8StringWriter : StringWriter
+    {
+        public override Encoding Encoding => new UTF8Encoding(false);
+    }
+
     private void SubstituteEngineVersion(ILogger logger)
     {
         var files = 0;
@@ -465,14 +500,9 @@ internal class TemplatePreprocessor
             var updated = content.Replace("$EngineVersion$", EngineVersion);
             var doc = XDocument.Parse(updated, LoadOptions.PreserveWhitespace);
             var stamped = 0;
-            foreach (var reference in doc.Descendants().Where(e => e.Name.LocalName == "PackageReference"))
+            foreach (var (include, version) in StrideReferences(doc))
             {
-                var include = (string?)reference.Attribute("Include");
-                // Version is an attribute or a child element
-                var version = (XObject?)reference.Attribute("Version") ?? reference.Elements().FirstOrDefault(e => e.Name.LocalName == "Version");
-                if (include is null || version is null || !include.StartsWith("Stride", StringComparison.Ordinal))
-                    continue;
-                var value = version is XAttribute attribute ? attribute.Value : ((XElement)version).Value;
+                var value = GetValue(version);
                 // A remaining $placeholder$ is someone else's substitution point; community
                 // packages keep their committed version.
                 if (KeepSampleVersions || value.Contains('$') || value == EngineVersion || IsNonEnginePackage(include))
@@ -486,14 +516,7 @@ internal class TemplatePreprocessor
 
             if (stamped > 0)
             {
-                // Keep the file as authored: no added declaration, no reformatting, same newlines
-                var settings = new XmlWriterSettings { OmitXmlDeclaration = doc.Declaration is null, Indent = false, NewLineHandling = NewLineHandling.None };
-                var output = new StringBuilder();
-                using (var writer = XmlWriter.Create(output, settings))
-                    doc.Save(writer);
-                // The parser normalizes line ends to LF
-                var text = content.Contains("\r\n", StringComparison.Ordinal) ? output.ToString().Replace("\n", "\r\n") : output.ToString();
-                File.WriteAllText(csproj, text, new UTF8Encoding(false));
+                SaveProject(csproj, doc, content);
                 references += stamped;
                 files++;
             }
@@ -505,6 +528,77 @@ internal class TemplatePreprocessor
         }
         if (files > 0)
             logger.Info($"Stamped engine version {EngineVersion} into {files} .csproj file(s) ({references} Stride.* reference(s) rewritten)");
+    }
+
+    // PackageUpgrader.UpgradeRecordItem and StridePackageUpgrader.UpgraderName: this tool doesn't reference Stride.Assets
+    private const string UpgradeRecordItem = "StridePackageUpgradeRecord";
+    private const string StrideUpgraderName = "Stride";
+
+    /// <summary>
+    /// Records in every staged <c>.csproj</c> the Stride version its content is written for, in its
+    /// <c>StridePackageUpgradeRecord</c> item of the Stride upgrader: the version of its engine references before the
+    /// engine-version stamp (<c>$EngineVersion$</c> is the engine being packed), or, in a project that gets Stride through a
+    /// project reference, the version of the template's other projects. A sample stamped to a newer engine thus keeps the
+    /// version it went through the upgrade to, as an upgrade records the version it moved a project to.
+    /// </summary>
+    private void RecordStrideVersion(ILogger logger)
+    {
+        var projects = Directory.EnumerateFiles(OutputDirectory!, "*.csproj", SearchOption.AllDirectories)
+            .Select(path => (Path: path, Content: File.ReadAllText(path)))
+            .Select(x => (x.Path, x.Content, Document: XDocument.Parse(x.Content, LoadOptions.PreserveWhitespace)))
+            .ToList();
+
+        // Another $placeholder$ is no version yet
+        string? EngineVersionOf(XDocument doc)
+            => StrideReferences(doc).Where(x => !IsNonEnginePackage(x.Include))
+                .Select(x => string.IsNullOrEmpty(EngineVersion) ? GetValue(x.Version) : GetValue(x.Version).Replace("$EngineVersion$", EngineVersion))
+                .FirstOrDefault(x => !x.Contains('$'));
+        var templateVersion = projects.Select(x => EngineVersionOf(x.Document)).FirstOrDefault(x => x is not null);
+
+        var files = 0;
+        foreach (var (path, content, doc) in projects)
+        {
+            if ((EngineVersionOf(doc) ?? templateVersion) is { } version && SetUpgradeRecord(doc, StrideUpgraderName, version))
+            {
+                SaveProject(path, doc, content);
+                files++;
+            }
+        }
+        if (files > 0)
+            logger.Info($"Recorded the Stride version in {files} .csproj file(s)");
+    }
+
+    /// <summary>
+    /// Sets the version in the upgrade record of an upgrader: in its item, else in a new item group at the end of the
+    /// project. Returns false when the record already has that version.
+    /// </summary>
+    private static bool SetUpgradeRecord(XDocument doc, string upgrader, string version)
+    {
+        var root = doc.Root!;
+        var record = root.Descendants().LastOrDefault(e => e.Name.LocalName == UpgradeRecordItem
+            && string.Equals((string?)e.Attribute("Include"), upgrader, StringComparison.OrdinalIgnoreCase));
+        if (record is not null)
+        {
+            var current = (XObject?)record.Attribute("Version") ?? record.Elements().LastOrDefault(e => e.Name.LocalName == "Version");
+            if (current is not null && GetValue(current) == version)
+                return false;
+            if (current is XElement element)
+                element.Value = version;
+            else
+                record.SetAttributeValue("Version", version);
+            return true;
+        }
+
+        var ns = root.Name.Namespace;
+        var group = new XElement(ns + "ItemGroup",
+            new XText("\n    "),
+            new XElement(ns + UpgradeRecordItem, new XAttribute("Include", upgrader), new XAttribute("Version", version)),
+            new XText("\n  "));
+        if (root.Elements().LastOrDefault() is { } last)
+            last.AddAfterSelf(new XText("\n  "), group);
+        else
+            root.Add(new XText("\n  "), group, new XText("\n"));
+        return true;
     }
 
     /// <summary>
