@@ -842,7 +842,8 @@
         <sd:NumericTextBox x:Name="NumericTextBox"
                            Grid.Column="1" Margin="2"
                            Value="{Binding NodeValue, Converter={sd:CharToUnicode}, UpdateSourceTrigger=Explicit}"
-                           ToolTip.Tip="{sd:LocalizeString Unicode value, Context=ToolTip}">
+                           ToolTip.Tip="{sd:LocalizeString Unicode value, Context=ToolTip}"
+                           DisplayUpDownButtons="False">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
               <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
@@ -863,7 +864,8 @@
                        Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue={x:Static s:Double.MaxValue}, TargetNullValue={x:Static s:Double.MaxValue}}"
                        SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=1, TargetNullValue=1}"
                        LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=10, TargetNullValue=10}"
-                       DecimalPlaces="{Binding [DecimalPlaces], Converter={caec:DifferentValuesToNull}, FallbackValue=6, TargetNullValue=6}">
+                       DecimalPlaces="{Binding [DecimalPlaces], Converter={caec:DifferentValuesToNull}, FallbackValue=6, TargetNullValue=6}"
+                       DisplayUpDownButtons="False">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
           <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
@@ -884,7 +886,8 @@
                        Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue={x:Static s:Double.MaxValue}, TargetNullValue={x:Static s:Double.MaxValue}}"
                        SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=1, TargetNullValue=1}"
                        LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=10, TargetNullValue=10}"
-                       DecimalPlaces="0">
+                       DecimalPlaces="0"
+                       DisplayUpDownButtons="False">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
           <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
@@ -933,7 +936,8 @@
                            Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue={x:Static s:Double.MaxValue}, TargetNullValue={x:Static s:Double.MaxValue}}"
                            SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=1, TargetNullValue=1}"
                            LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=10, TargetNullValue=10}"
-                           DecimalPlaces="{Binding [DecimalPlaces], Converter={caec:DifferentValuesToNull}, FallbackValue=6, TargetNullValue=6}">
+                           DecimalPlaces="{Binding [DecimalPlaces], Converter={caec:DifferentValuesToNull}, FallbackValue=6, TargetNullValue=6}"
+                           DisplayUpDownButtons="False">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
               <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
@@ -1178,7 +1182,8 @@
   <caev:TypeMatchTemplateProvider x:Key="AnglePropertyTemplateProvider" Type="{x:Type math:AngleSingle}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:NumericTextBox Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:AngleSingleToDegrees}}, UpdateSourceTrigger=Explicit}"
-                         ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}">
+                         ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}"
+                         DisplayUpDownButtons="False">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
             <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
