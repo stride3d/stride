@@ -63,6 +63,15 @@ public static class SceneEditorCommands
     /// <summary>Pastes the copied entities in the active scene (the context menu of the tree's empty area).</summary>
     public const string PasteInRootId = "Stride.Scene.PasteInRoot";
 
+    /// <summary>Moves the selected entities in front of the camera of the view (Ctrl+Alt+F).</summary>
+    public const string MoveToViewId = "Stride.Scene.MoveToView";
+
+    /// <summary>Gives the selected entities the position and the rotation of the camera of the view (Ctrl+Shift+F).</summary>
+    public const string AlignWithViewId = "Stride.Scene.AlignWithView";
+
+    /// <summary>Moves the camera of the view to the selected entity, looking where it looks (Shift+F).</summary>
+    public const string AlignViewToSelectionId = "Stride.Scene.AlignViewToSelection";
+
     /// <summary>
     /// Creates the commands, each time new descriptors (a descriptor is registered once).
     /// </summary>
@@ -81,6 +90,9 @@ public static class SceneEditorCommands
         Wrap(BreakLinkToPrefabId, () => Tr._p("Menu", "Break link to prefab"), null, x => x.BreakLinkToPrefabCommand, null, true, "prefab", "unlink"),
         Wrap(CreatePrefabFromSelectionId, () => Tr._p("Menu", "Create prefab from selection"), null, x => x.CreatePrefabFromSelectionCommand, null, true, "prefab", "new"),
         Wrap(PasteInRootId, () => Tr._p("Menu", "Paste into the active scene"), null, x => x.PasteCommand, true, false, "clipboard", "root"),
+        Wrap(MoveToViewId, () => Tr._p("Menu", "Move to view"), "Ctrl+Alt+F", x => x.MoveToViewCommand, null, true, "camera", "place", "entity"),
+        Wrap(AlignWithViewId, () => Tr._p("Menu", "Align with view"), "Ctrl+Shift+F", x => x.AlignWithViewCommand, null, true, "camera", "rotation", "entity"),
+        Wrap(AlignViewToSelectionId, () => Tr._p("Menu", "Align view to selection"), "Shift+F", x => x.AlignViewToSelectionCommand, null, true, "camera", "look", "entity"),
     ];
 
     // A command of the editor it was invoked in, run with the parameter its menu item or key gave it; it is in the command

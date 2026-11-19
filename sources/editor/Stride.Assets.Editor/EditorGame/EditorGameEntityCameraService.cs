@@ -66,6 +66,12 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
     /// </summary>
     public ICameraViewOptions? Options { get; set; }
 
+    /// <summary>
+    /// Gets the distance from the camera to the point it turns around with Alt and a left drag (game thread): after a focus,
+    /// the framed entity.
+    /// </summary>
+    internal float OrbitDistance => revolutionRadius;
+
     /// <inheritdoc/>
     public override void SwitchProjection()
     {
