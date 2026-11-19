@@ -1082,14 +1082,15 @@ public static class Matrix4x4Extensions
         /// <param name="scale">When the method completes, contains the scaling component of the decomposed matrix.</param>
         /// <param name="rotation">When the method completes, contains the rotation component of the decomposed matrix.</param>
         /// <param name="translation">When the method completes, contains the translation component of the decomposed matrix.</param>
+        /// <returns><c>true</c> when the matrix has a rotation; <c>false</c> when one of its scales is zero, and the rotation is then the identity.</returns>
         /// <remarks>
         /// This method is designed to decompose an SRT transformation matrix only.
         /// </remarks>
         public bool Decompose(out Vector3 scale, out Quaternion rotation, out Vector3 translation)
         {
-            matrix.Decompose(out scale, out Matrix4x4 rotationMatrix, out translation);
+            var hasRotation = matrix.Decompose(out scale, out Matrix4x4 rotationMatrix, out translation);
             rotation = Quaternion.CreateFromRotationMatrix(rotationMatrix);
-            return true;
+            return hasRotation;
         }
 
         /// <summary>

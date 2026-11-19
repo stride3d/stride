@@ -1392,6 +1392,21 @@ public class TestMatrix
     }
 
     [Fact]
+    public void TestMatrixDecomposeWithAScaleOfZeroSaysItHasNoRotation()
+    {
+        var translation = new Vector3(10, 20, 30);
+        var m = Matrix4x4.CreateScale(2, 0, 4) * Matrix4x4.CreateFromQuaternion(Quaternion.CreateRotationY(MathUtil.PiOverFour)) * Matrix4x4.CreateTranslation(translation);
+
+        Assert.False(m.Decompose(out Vector3 scale, out Quaternion rotation, out Vector3 outTranslation));
+        Assert.Equal(Quaternion.Identity, rotation);
+        Assert.Equal(translation, outTranslation);
+        Assert.Equal(0.0f, scale.Y);
+
+        Assert.False(m.Decompose(out scale, out Matrix4x4 rotationMatrix, out outTranslation));
+        Assert.Equal(Matrix4x4.Identity, rotationMatrix);
+    }
+
+    [Fact]
     public void TestMatrixDecomposeScaleRotationTranslation()
     {
         var scale = new Vector3(2, 3, 4);
