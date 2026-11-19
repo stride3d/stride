@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 
 namespace Stride.Assets.Editor.Avalonia.Behaviors;
@@ -63,9 +64,10 @@ public abstract class AutoCompletePickerBehavior : Behavior<AutoCompleteBox>
 
     private void OnLostFocus(object? sender, RoutedEventArgs e)
     {
-        // The list of the box is part of it: the focus only leaves when it goes to another control
+        // The list of the box is part of it: the focus only leaves when it goes to another control. A press on an item of
+        // the list also takes the focus, and closes the list, before the item is picked: commit once the press is handled.
         if (AssociatedObject is { IsKeyboardFocusWithin: false })
-            Commit();
+            Dispatcher.UIThread.Post(Commit);
     }
 
     private void OnTextChanged(object? sender, TextChangedEventArgs e)
