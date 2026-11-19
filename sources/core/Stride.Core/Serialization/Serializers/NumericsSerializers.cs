@@ -59,3 +59,21 @@ public sealed class PlaneSerializer : NumericsSerializer<Plane>;
 /// </summary>
 [DataSerializerGlobal(typeof(Matrix4x4Serializer))]
 public sealed class Matrix4x4Serializer : NumericsSerializer<Matrix4x4>;
+
+/// <summary>
+/// Data serializer for <see cref="Half"/>: it writes its 16 bits.
+/// </summary>
+[DataSerializerGlobal(typeof(HalfSerializer))]
+public sealed class HalfSerializer : DataSerializer<Half>
+{
+    /// <inheritdoc/>
+    public override bool IsBlittable => true;
+
+    /// <inheritdoc/>
+    public override void Serialize(ref Half obj, ArchiveMode mode, SerializationStream stream)
+    {
+        var bits = BitConverter.HalfToUInt16Bits(obj);
+        stream.Serialize(ref bits);
+        obj = BitConverter.UInt16BitsToHalf(bits);
+    }
+}

@@ -19,6 +19,35 @@ public class NumericsTests
         public Matrix4x4 Transform;
     }
 
+    public class Halves
+    {
+        public Half Height;
+        public Half Width;
+    }
+
+    [Fact]
+    public void HalfIsWrittenAsANumber()
+    {
+        var serializer = new Serializer();
+
+        var text = serializer.Serialize(new Halves { Height = (Half)1.5f, Width = (Half)2f }, typeof(Halves));
+
+        Assert.Equal("Height: 1.5\nWidth: 2.0\n", text.ReplaceLineEndings("\n"));
+        var read = (Halves)serializer.Deserialize(text, typeof(Halves))!;
+        Assert.Equal((Half)1.5f, read.Height);
+        Assert.Equal((Half)2f, read.Width);
+    }
+
+    [Fact]
+    public void HalfIsReadFromTheBitsStrideWrote()
+    {
+        // The form of Stride.Core.Mathematics.Half, the type that System.Half replaced: 15872 is 0x3E00, 1.5
+        var read = (Halves)new Serializer().Deserialize("Height: {RawValue: 15872}\nWidth:\n  RawValue: 16384\n", typeof(Halves))!;
+
+        Assert.Equal((Half)1.5f, read.Height);
+        Assert.Equal((Half)2f, read.Width);
+    }
+
     [Fact]
     public void SystemNumericsTypesAreWrittenAsTheMathTypesOfStride()
     {

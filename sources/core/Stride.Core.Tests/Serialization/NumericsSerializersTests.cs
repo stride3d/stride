@@ -27,6 +27,17 @@ public class NumericsSerializersTests
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
     }
 
+    [Fact]
+    public void HalfIsSerializedAsItsBits()
+    {
+        using var memory = new MemoryStream();
+        new BinarySerializationWriter(memory).Write((Half)1.5f);
+        Assert.Equal(new byte[] { 0x00, 0x3E }, memory.ToArray());
+
+        memory.Position = 0;
+        Assert.Equal((Half)1.5f, new BinarySerializationReader(memory).Read<Half>());
+    }
+
     // Through the serializer that the selector finds for the type
     private static void AssertFloats<T>(T value, params float[] expected) where T : unmanaged
     {
