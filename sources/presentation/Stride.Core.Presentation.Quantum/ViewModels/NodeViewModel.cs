@@ -39,6 +39,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     private bool isRefreshing;
     private bool refreshPending;
     private bool suppressAssociatedDataNotifications;
+    private bool keepPresentersOnDestroy;
     private readonly (Type declarer, int token)? sortingHint;
 
 #if DEBUG
@@ -97,7 +98,9 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             nodePresenter.ValueChanging -= ValueChanging;
             nodePresenter.ValueChanged -= ValueChanged;
             nodePresenter.AttachedProperties.PropertyUpdated -= AttachedPropertyUpdated;
-            nodePresenter.Dispose();
+            // A refresh of the parent rebuilds this node from presenters that may still be in use: it disposes them itself
+            if (!keepPresentersOnDestroy)
+                nodePresenter.Dispose();
         }
         base.Destroy();
     }
@@ -451,10 +454,20 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
                 // (see GitHub issue #3488).
                 var previousAssociatedData = associatedData.ToDictionary(x => x.Key, x => x.Value);
 
+                // The new children are built from the presenters of this node's presenters as they are now. When only an
+                // attached property changed, those are the same presenters as before, so destroying the old children must not
+                // dispose them: a disposed presenter no longer follows its node, and the new child would not see its changes.
+                // The old children's own children are destroyed too, so that none of them still listens to a presenter.
+                var previousPresenters = new List<INodePresenter>();
                 foreach (var child in Children.ToList())
                 {
                     RemoveChild(child);
-                    child.Destroy();
+                    foreach (var node in child.Children.SelectDeep(x => x.Children).Prepend(child).ToList())
+                    {
+                        previousPresenters.AddRange(node.nodePresenters);
+                        node.keepPresentersOnDestroy = true;
+                        node.Destroy();
+                    }
                 }
                 foreach (var command in Commands.ToList())
                 {
@@ -471,6 +484,12 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
                     owner.GraphViewModelService.NodeViewModelFactory.GenerateChildren(owner, this, nodePresenters);
                     FinishInitialization();
+                    // The presenters that left the tree are disposed (the parent presenter that rebuilt its children did it already)
+                    foreach (var presenter in previousPresenters)
+                    {
+                        if (!IsInPresenterTree(presenter))
+                            presenter.Dispose();
+                    }
                 }
                 finally
                 {
@@ -487,6 +506,17 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             // Ends the indexer change even when the refresh throws, so the bindings that saw it start don't wait for it
             OnPropertyChanged(IndexerPropertyName);
         }
+    }
+
+    // Whether a presenter is still a child of its parent, and so on up to its root
+    private static bool IsInPresenterTree(INodePresenter presenter)
+    {
+        for (var current = presenter; current.Parent is { } parent; current = parent)
+        {
+            if (!parent.Children.Contains(current))
+                return false;
+        }
+        return true;
     }
 
     private void NotifyAssociatedDataChanges(IReadOnlyDictionary<string, object> previousData)
