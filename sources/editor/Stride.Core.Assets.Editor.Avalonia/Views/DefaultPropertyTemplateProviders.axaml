@@ -924,12 +924,17 @@
                 Height="22" VerticalAlignment="Center"
                 IsEnabled="{sd:MultiBinding {Binding [Minimum]}, {Binding [Maximum]},
                                             Converter={sd:MultiChained {sd:AllEqualMulti}, {sd:InvertBool}}}"
-                Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"
+                Value="{Binding #RangedValueBox.Value, Mode=OneWay}"
                 Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Double.MinValue}}"
                 Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Double.MaxValue}}"
                 SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"
-                LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"/>
-        <sd:NumericTextBox Grid.Column="1"
+                LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}">
+          <Interaction.Behaviors>
+            <!-- The box writes the value once per slide or key press -->
+            <sd:NumericTextBoxSliderBehavior NumericTextBox="{Binding #RangedValueBox}"/>
+          </Interaction.Behaviors>
+        </Slider>
+        <sd:NumericTextBox x:Name="RangedValueBox" Grid.Column="1"
                            Margin="6,2,2,2"
                            Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, UpdateSourceTrigger=Explicit}"
                            Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue={x:Static s:Double.MinValue}, TargetNullValue={x:Static s:Double.MinValue}}"
