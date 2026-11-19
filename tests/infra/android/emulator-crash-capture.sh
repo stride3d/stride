@@ -3,7 +3,8 @@
 # driver, Lavapipe on CI), which otherwise disappears without a backtrace.
 #
 #   emulator-crash-capture.sh arm              enable core dumps for the running emulator
-#   emulator-crash-capture.sh collect <dir>    write backtraces of any core + crashpad dumps into <dir>
+#   emulator-crash-capture.sh collect <dir>    write backtraces of any core + crashpad dumps into <dir>;
+#                                              an emulator that hangs is aborted first, so it leaves a core
 #
 # The emulator must run with -crash-report-mode disabled: its crashpad handler otherwise takes
 # the signal and exits without a core (its minidump is still copied as a fallback).
@@ -32,6 +33,22 @@ case "$1" in
     OUT="$2"
     [ -n "$OUT" ] || exit 0
     mkdir -p "$OUT"
+    # An emulator that hangs instead of crashing leaves no core: when it is alive but no longer
+    # answers adb, abort it, so its threads' backtraces show where it is stuck.
+    if [ -f "$CORE_DIR/.armed" ] && pgrep '^qemu-system-' >/dev/null; then
+      adb="${ANDROID_SDK_ROOT:-$ANDROID_HOME}/platform-tools/adb"
+      [ -x "$adb" ] || adb=adb
+      timeout 20 "$adb" -e shell true >/dev/null 2>&1
+      if [ $? -eq 124 ]; then
+        for pid in $(pgrep '^qemu-system-'); do
+          echo "emulator-crash-capture: emulator pid $pid does not answer adb, aborting it for a core"
+          # SIGCONT too, in case it is stopped: the abort is delivered only to a running process.
+          { kill -ABRT "$pid" && kill -CONT "$pid"; } 2>/dev/null || sudo -n kill -ABRT "$pid"
+          # Writing the core takes a while (it holds the guest RAM).
+          for _ in $(seq 120); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+        done
+      fi
+    fi
     for core in "$CORE_DIR"/core.*; do
       [ -f "$core" ] || continue
       exe=$(cat "$CORE_DIR/exe.${core##*.}" 2>/dev/null)
