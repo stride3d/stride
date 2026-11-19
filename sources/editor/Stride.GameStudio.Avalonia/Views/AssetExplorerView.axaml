@@ -226,6 +226,10 @@
              SelectedItems="{Binding SelectedContent}"
              SelectionMode="Multiple"
              Margin="4">
+      <!-- Files dropped from the file manager are imported into the selected folder -->
+      <Interaction.Behaviors>
+        <dd:FileDropBehavior/>
+      </Interaction.Behaviors>
       <!-- The Edit commands while the asset view has the focus -->
       <sd:EditCommands.Bindings>
         <sd:EditCommandBinding Kind="Cut" Command="{Binding CutContentCommand}"/>
