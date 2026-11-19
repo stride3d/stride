@@ -44,10 +44,10 @@
        platform for output path / launcher gating. -->
   <PropertyGroup>
     <StrideTargetFramework>$(TargetFramework)</StrideTargetFramework>
-    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkWindows)'))">$(StrideFrameworkWindows)</StrideTargetFramework>
-    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkAndroid)'))">$(StrideFrameworkAndroid)</StrideTargetFramework>
-    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkiOS)'))">$(StrideFrameworkiOS)</StrideTargetFramework>
-    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkmacOS)'))">$(StrideFrameworkmacOS)</StrideTargetFramework>
+    <StrideTargetFramework Condition="'$(TargetPlatformIdentifier)' == 'Windows'">$(StrideFrameworkWindows)</StrideTargetFramework>
+    <StrideTargetFramework Condition="'$(TargetPlatformIdentifier)' == 'Android'">$(StrideFrameworkAndroid)</StrideTargetFramework>
+    <StrideTargetFramework Condition="'$(TargetPlatformIdentifier)' == 'iOS'">$(StrideFrameworkiOS)</StrideTargetFramework>
+    <StrideTargetFramework Condition="'$(TargetPlatformIdentifier)' == 'MacOS'">$(StrideFrameworkmacOS)</StrideTargetFramework>
     <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkAndroid)' ">Android</StridePlatform>
     <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatform>
     <StridePlatform Condition=" '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)' ">macOS</StridePlatform>
