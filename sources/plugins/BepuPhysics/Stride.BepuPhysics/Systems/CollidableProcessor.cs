@@ -9,7 +9,6 @@ using Stride.Engine;
 using Stride.Games;
 using Stride.Rendering;
 using Stride.Core.Mathematics;
-using Matrix4x4 = System.Numerics.Matrix4x4;
 using Stride.BepuPhysics.Definitions;
 using Stride.Core.Threading;
 using System.Numerics;

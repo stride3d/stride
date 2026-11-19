@@ -22,7 +22,6 @@ using System.Runtime.CompilerServices;
 using Stride.Core.MicroThreading;
 using Stride.Core.Serialization;
 using Stride.Engine;
-using NVector3 = System.Numerics.Vector3;
 using BRigidPose = BepuPhysics.RigidPose;
 using SRigidPose = Stride.BepuPhysics.Definitions.RigidPose;
 using SBodyVelocity = Stride.BepuPhysics.Definitions.BodyVelocity;

@@ -9,9 +9,8 @@ using System.Numerics;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
-using Matrix = System.Numerics.Matrix4x4;
 
-public sealed class MatrixEditor : VectorEditorBase<Matrix?>
+public sealed class MatrixEditor : VectorEditorBase<Matrix4x4?>
 {
     public static readonly StyledProperty<float?> M11Property =
         AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M11), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
@@ -187,7 +186,7 @@ public sealed class MatrixEditor : VectorEditorBase<Matrix?>
     }
 
     /// <inheritdoc/>
-    protected override void UpdateComponentsFromValue(Matrix? value)
+    protected override void UpdateComponentsFromValue(Matrix4x4? value)
     {
         if (value is not { } matrix)
             return;
@@ -199,7 +198,7 @@ public sealed class MatrixEditor : VectorEditorBase<Matrix?>
     }
 
     /// <inheritdoc/>
-    protected override Matrix? UpdateValueFromComponent(AvaloniaProperty property)
+    protected override Matrix4x4? UpdateValueFromComponent(AvaloniaProperty property)
     {
         if (!Value.HasValue || !((float?)GetValue(property)).HasValue)
             return null;
@@ -214,7 +213,7 @@ public sealed class MatrixEditor : VectorEditorBase<Matrix?>
 
     /// <inheritdoc/>
     [return: NotNull]
-    protected override Matrix? UpateValueFromFloat(float value)
+    protected override Matrix4x4? UpateValueFromFloat(float value)
     {
         return Matrix4x4.Create(value);
     }

@@ -8,7 +8,6 @@ using System.Numerics;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
-using Matrix = System.Numerics.Matrix4x4;
 
 public sealed class QuaternionEditor : VectorEditorBase<Quaternion?>
 {
@@ -65,7 +64,7 @@ public sealed class QuaternionEditor : VectorEditorBase<Quaternion?>
         if (current.NearEquals(quaternion) && X.HasValue && Y.HasValue && Z.HasValue)
             return;
 
-        var rotationMatrix = Matrix.CreateFromQuaternion(quaternion);
+        var rotationMatrix = Matrix4x4.CreateFromQuaternion(quaternion);
         rotationMatrix.Decompose(out decomposedRotation.Y, out decomposedRotation.X, out decomposedRotation.Z);
         SetCurrentValue(XProperty, GetDisplayValue(decomposedRotation.X));
         SetCurrentValue(YProperty, GetDisplayValue(decomposedRotation.Y));

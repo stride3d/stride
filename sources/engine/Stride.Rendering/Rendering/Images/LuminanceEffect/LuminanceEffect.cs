@@ -6,7 +6,6 @@ using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
-using Half = System.Half;
 
 namespace Stride.Rendering.Images
 {

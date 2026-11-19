@@ -13,7 +13,6 @@ using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using NVector3 = System.Numerics.Vector3;
 using System.Numerics;
 
 namespace Stride.BepuPhysics;
@@ -170,7 +169,7 @@ public class CharacterComponent : CharacterComponentAbstract
     /// <inheritdoc/>
     protected override void SimulationUpdate(BepuSimulation sim, float simTimeStep, ref InternalCharacterData character, in BodyReference characterBody, out bool wakeupBody)
     {
-        var viewDirection = (NVector3)(Orientation * Vector3.UnitZ);
+        var viewDirection = Orientation * Vector3.UnitZ;
 
         var newTargetVelocity = new System.Numerics.Vector2(MoveVector.X, MoveVector.Y) * Speed;
         //Modifying the character's raw data does not automatically wake the character up, so we do so explicitly if necessary.
@@ -247,7 +246,7 @@ public class CharacterComponent : CharacterComponentAbstract
     /// and 1 would return true only when a surface matches <paramref name="groundNormal"/> exactly.
     /// </param>
     [Obsolete($"Contacts are no longer collected, add your own {nameof(ContactEventHandler)}")]
-    protected bool GroundTest(NVector3 groundNormal, float threshold = 0f)
+    protected bool GroundTest(Vector3 groundNormal, float threshold = 0f)
     {
         if (Simulation == null || Contacts.Count == 0)
             return false;
@@ -259,7 +258,7 @@ public class CharacterComponent : CharacterComponentAbstract
 
             var contactNormal = contact.Contact.Normal;
 
-            if (NVector3.Dot(groundNormal, contactNormal) >= threshold) // If the body is supported by a contact whose surface is against gravity
+            if (Vector3.Dot(groundNormal, contactNormal) >= threshold) // If the body is supported by a contact whose surface is against gravity
             {
                 return true;
             }

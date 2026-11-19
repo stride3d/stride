@@ -6,7 +6,6 @@ using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.TypeConverters;
-using Half = System.Half;
 using HalfConverter = Stride.Core.TypeConverters.HalfConverter;
 using System.Numerics;
 

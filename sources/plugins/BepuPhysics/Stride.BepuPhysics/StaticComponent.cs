@@ -9,8 +9,6 @@ using Stride.BepuPhysics.Definitions;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Quaternion = System.Numerics.Quaternion;
-using Vector3 = System.Numerics.Vector3;
 using NRigidPose = BepuPhysics.RigidPose;
 using System.Numerics;
 

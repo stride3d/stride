@@ -49,7 +49,6 @@ using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
 using Stride.Core.Mathematics;
-using Half = System.Half;
 
 namespace Stride.Core.TypeConverters;
 

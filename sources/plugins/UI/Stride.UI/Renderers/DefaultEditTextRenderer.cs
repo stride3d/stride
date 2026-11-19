@@ -8,7 +8,6 @@ using Stride.Graphics;
 using Stride.Graphics.Font;
 using Stride.UI.Controls;
 using IServiceRegistry = Stride.Core.IServiceRegistry;
-using Vector3 = System.Numerics.Vector3;
 using System.Numerics;
 
 namespace Stride.UI.Renderers
