@@ -72,7 +72,9 @@
     </DataTemplate>
   </aev:SkeletonNodeListTemplateProvider>
 
-  <!-- The start and end of an animation clip, in frames: a slider over the length of the source animation, and a box -->
+  <!-- The start and end of an animation clip, in frames: a slider over the length of the source animation, and a box. The
+       length of the animation comes from its source: the bounds are bound one way, as the box would write its frame rounding
+       back -->
   <aev:AnimationFrameTemplateProvider x:Key="AnimationFrameTemplateProvider"
                                       caev:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="Most">
     <DataTemplate DataType="cpqvm:NodeViewModel">
@@ -83,8 +85,8 @@
         </Grid.ColumnDefinitions>
         <Slider Grid.Column="0" Height="22" VerticalAlignment="Center"
                 Value="{Binding #FrameBox.Value, Mode=OneWay}"
-                Minimum="{ReflectionBinding Parent.Parent[AnimationTimeMinimum].NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={sd:Double 0}}"
-                Maximum="{ReflectionBinding Parent.Parent[AnimationTimeMaximum].NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={sd:Double 0}}"
+                Minimum="{ReflectionBinding Parent.Parent[AnimationTimeMinimum].NodeValue, Mode=OneWay, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={sd:Double 0}}"
+                Maximum="{ReflectionBinding Parent.Parent[AnimationTimeMaximum].NodeValue, Mode=OneWay, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={sd:Double 0}}"
                 SmallChange="1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="1">
           <Interaction.Behaviors>
             <!-- The box writes the frame once per slide or key press -->
@@ -93,8 +95,8 @@
         </Slider>
         <sd:NumericTextBox x:Name="FrameBox" Grid.Column="1" Margin="6,2,2,2"
                            Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, UpdateSourceTrigger=Explicit}"
-                           Minimum="{ReflectionBinding Parent.Parent[AnimationTimeMinimum].NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={sd:Double 0}}"
-                           Maximum="{ReflectionBinding Parent.Parent[AnimationTimeMaximum].NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={x:Static s:Double.MaxValue}}"
+                           Minimum="{ReflectionBinding Parent.Parent[AnimationTimeMinimum].NodeValue, Mode=OneWay, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={sd:Double 0}}"
+                           Maximum="{ReflectionBinding Parent.Parent[AnimationTimeMaximum].NodeValue, Mode=OneWay, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={x:Static s:Double.MaxValue}}"
                            SmallChange="1" LargeChange="1" DecimalPlaces="0" DisplayUpDownButtons="False">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
