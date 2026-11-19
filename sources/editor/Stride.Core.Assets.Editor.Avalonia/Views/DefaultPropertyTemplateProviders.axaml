@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
                     xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
                     xmlns:caeqnpc="using:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands"
                     xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
@@ -979,6 +980,32 @@
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:DateTimeEditor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Guid -->
+  <caev:TypeMatchTemplateProvider x:Key="GuidPropertyTemplateProvider" Type="{x:Type s:Guid}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid>
+        <TextBox x:Name="GuidTextBox"
+                 Text="{Binding NodeValue, Converter={caec:GuidToString}, UpdateSourceTrigger=Explicit}">
+          <Interaction.Behaviors>
+            <caeb:GuidInputMaskBehavior/>
+            <sd:CommitTextBehavior/>
+            <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
+            </DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </TextBox>
+        <!-- While the box has the focus, completes the typed text with the rest of the template, to show the characters and
+             dashes still missing: the typed part is transparent and only aligns the rest -->
+        <TextBlock IsHitTestVisible="False" VerticalAlignment="Center"
+                   Margin="{Binding #GuidTextBox.Padding}" Padding="1,0"
+                   FontFamily="{Binding #GuidTextBox.FontFamily}" FontSize="{Binding #GuidTextBox.FontSize}"
+                   IsVisible="{Binding #GuidTextBox.IsKeyboardFocusWithin}">
+          <Run Text="{Binding #GuidTextBox.Text, Mode=OneWay}" Foreground="Transparent"/><Run Text="{Binding #GuidTextBox.Text, Mode=OneWay, Converter={caec:GuidTemplateRemainder}}" Foreground="#807F7F7F"/>
+        </TextBlock>
+      </Grid>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
