@@ -16,10 +16,32 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
         <ResourceInclude Source="avares://Stride.GameStudio.Avalonia/Views/PackageMenuResources.axaml"/>
+        <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SceneEditorImages.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
   <DockPanel>
+    <!-- Expands or collapses the folders of the tree; the command palette has the same commands -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="4,4,4,0" Spacing="2">
+      <StackPanel.Styles>
+        <Style Selector="Button">
+          <Setter Property="Padding" Value="4"/>
+          <Setter Property="Background" Value="Transparent"/>
+        </Style>
+      </StackPanel.Styles>
+      <Button x:Name="ExpandAssetFoldersButton" Click="OnExpandAssetFoldersClick"
+              ToolTip.Tip="{sd:LocalizeString Expand all asset folders, Context=ToolTip}">
+        <Image Source="{StaticResource ImageExpandAssetFolders}" Width="16" Height="16"/>
+      </Button>
+      <Button x:Name="ExpandAllFoldersButton" Click="OnExpandAllFoldersClick"
+              ToolTip.Tip="{sd:LocalizeString Expand all, Context=ToolTip}">
+        <Image Source="{StaticResource ImageExpandAllFolders}" Width="16" Height="16"/>
+      </Button>
+      <Button x:Name="CollapseAllFoldersButton" Click="OnCollapseAllFoldersClick"
+              ToolTip.Tip="{sd:LocalizeString Collapse all, Context=ToolTip}">
+        <Image Source="{StaticResource ImageCollapseAllFolders}" Width="16" Height="16"/>
+      </Button>
+    </StackPanel>
     <!-- A "*" follows the name of an item with unsaved changes -->
     <TreeView x:Name="SolutionTree"
               Focusable="True"
