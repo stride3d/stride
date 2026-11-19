@@ -33,7 +33,10 @@ public class TestCodeUpgrade
         }
     }
 
-    private static async Task<string> ApplyAsync(string source, params CodeUpgrade[] upgrades)
+    private static Task<string> ApplyAsync(string source, params CodeUpgrade[] upgrades) => ApplyAsync(source, DocumentationMode.Parse, upgrades);
+
+    // documentationMode: the one the project is opened with; None for a project that generates no documentation file
+    private static async Task<string> ApplyAsync(string source, DocumentationMode documentationMode, params CodeUpgrade[] upgrades)
     {
         using var workspace = new AdhocWorkspace();
         var projectId = ProjectId.CreateNewId();
@@ -41,12 +44,14 @@ public class TestCodeUpgrade
             .WithMetadataReferences(FrameworkReferences())
             .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             // C# 14 extension members are the real #3037 shape; parse at the latest language version.
-            .WithParseOptions(new CSharpParseOptions(LanguageVersion.Preview));
+            .WithParseOptions(new CSharpParseOptions(LanguageVersion.Preview, documentationMode));
         workspace.AddProject(projectInfo);
 
         var documentId = DocumentId.CreateNewId(projectId);
         // Give the document a real path: the engine only migrates on-disk user source (it writes back by path).
         var solution = workspace.CurrentSolution.AddDocument(documentId, "Test.cs", SourceText.From(source), filePath: Path.Combine(Path.GetTempPath(), "Test.cs"));
+        // As the runner opens it
+        solution = RoslynCodeUpgradeRunner.ParseDocumentationComments(solution);
 
         IReadOnlyList<ProjectId> targets = [projectId];
         foreach (var upgrade in upgrades)
@@ -57,11 +62,12 @@ public class TestCodeUpgrade
         return text.ToString();
     }
 
+    // No error, and every cref names something
     private static void AssertCompiles(string source)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Preview));
+        var syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Preview, DocumentationMode.Diagnose));
         var compilation = CSharpCompilation.Create("Check", [syntaxTree], FrameworkReferences(), new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        Assert.Empty(compilation.GetDiagnostics().Where(x => x.Severity == DiagnosticSeverity.Error));
+        Assert.Empty(compilation.GetDiagnostics().Where(x => x.Severity == DiagnosticSeverity.Error || x.Id is "CS1574" or "CS1580" or "CS1584" or "CS0419"));
     }
 
     [Fact]
@@ -161,6 +167,26 @@ public class TestCodeUpgrade
         Assert.Contains("<see cref=\"Game.Audio\"/>", result);
         Assert.Contains("bool A(Game g) => g is { Audio: not null };", result);
         Assert.Contains("object B() => this.Audio;", result);
+    }
+
+    [Fact]
+    public async Task MemberToExtensionImportsNothingForADocumentationReference()
+    {
+        var source = """
+            namespace TestNs
+            {
+                class Game
+                {
+                    public object Audio => null;
+                }
+                /// <summary>Plays through <see cref="Game.Audio"/>.</summary>
+                class Script : Game { }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DocumentationMode.None, Rewrite(MemberToExtension("TestNs.Game", "Audio", "Extensions.Audio")));
+
+        Assert.Equal(source, result);
     }
 
     [Fact]
@@ -419,20 +445,25 @@ public class TestCodeUpgrade
         Assert.Contains("t.Fill(other: \"x\")", result);
     }
 
-    [Fact]
-    public async Task RemoveUnusedUsingsRemovesOnlyListedAndUnusedDirectives()
+    [Theory]
+    [InlineData(DocumentationMode.Parse)]
+    [InlineData(DocumentationMode.None)]
+    public async Task RemoveUnusedUsingsRemovesOnlyListedAndUnusedDirectives(DocumentationMode documentationMode)
     {
         // Namespaces are declared so they resolve, standing in for the from-version closure (where e.g.
         // SharpDX still exists). Only the unused directive matching the dropped list may be removed.
         var source = """
             using DroppedNs;
             using DroppedNs.Sub;
+            using DroppedNs.Documented;
             using System.Text;
 
             namespace DroppedNs { public class A { } }
             namespace DroppedNs.Sub { public class B { } }
+            namespace DroppedNs.Documented { public class C { } }
             namespace TestNs
             {
+                /// <summary>Documented with <see cref="C"/>.</summary>
                 class Usage
                 {
                     A a; // keeps `using DroppedNs;` in use
@@ -440,12 +471,13 @@ public class TestCodeUpgrade
             }
             """;
 
-        var result = await ApplyAsync(source, RemoveUnusedUsings("DroppedNs"));
+        var result = await ApplyAsync(source, documentationMode, RemoveUnusedUsings("DroppedNs"));
 
         // The unused directive of the dropped namespace family is removed (sub-namespaces included)...
         Assert.DoesNotContain("using DroppedNs.Sub;", result);
-        // ...the used one stays (that code needs manual porting; removing the using would only obscure it),
+        // ...the used ones stay (that code needs manual porting; removing the using would only obscure it), a cref is a use,
         Assert.Contains("using DroppedNs;", result);
+        Assert.Contains("using DroppedNs.Documented;", result);
         // ...and unused directives outside the dropped list are none of our business.
         Assert.Contains("using System.Text;", result);
     }
@@ -581,6 +613,37 @@ public class TestCodeUpgrade
     }
 
     [Fact]
+    public async Task StaticMemberMoveRetargetsDocumentationReferences()
+    {
+        // A cref is qualified as code is, and keeps its parameters
+        var source = """
+            using static TestNs.Old;
+            using Alias = TestNs.Old;
+
+            """ + MovedMembersSource + """
+
+            namespace TestNs
+            {
+                static class New { public static void Free(nint buffer) { } }
+
+                /// <summary>Frees with <see cref="Old.FreeMemory"/> or <see cref="TestNs.Old.FreeMemory(nint)"/>.</summary>
+                class Usage { }
+            }
+            namespace UserNs
+            {
+                /// <summary>Frees with <see cref="FreeMemory"/> or <see cref="Alias.FreeMemory"/>, not <see cref="TestNs.Other.FreeMemory"/>.</summary>
+                class Usage { }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DocumentationMode.None, MoveUpgrade);
+
+        Assert.Contains("""/// <summary>Frees with <see cref="New.Free"/> or <see cref="TestNs.New.Free(nint)"/>.</summary>""", result);
+        Assert.Contains("""/// <summary>Frees with <see cref="TestNs.New.Free"/> or <see cref="TestNs.New.Free"/>, not <see cref="TestNs.Other.FreeMemory"/>.</summary>""", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
     public async Task MemberRenameRenamesOnlyTheMatchingMember()
     {
         // The 4.5.1 shape: CommandList.UnsetRenderTargets became ResetTargets.
@@ -617,6 +680,63 @@ public class TestCodeUpgrade
         // The unrelated same-named method is untouched.
         Assert.Contains("o.UnsetRenderTargets()", result);
         AssertCompiles(result);
+    }
+
+    [Theory]
+    [InlineData(DocumentationMode.Parse)]
+    [InlineData(DocumentationMode.None)]
+    public async Task MemberRenameRenamesDocumentationReferences(DocumentationMode documentationMode)
+    {
+        // None: a project that generates no documentation file, whose documentation comments are read as text unless parsed for the upgrade
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public void UnsetRenderTargets() { }
+                    /// <summary>Same as <see cref="UnsetRenderTargets"/>.</summary>
+                    public void ResetTargets() { }
+                }
+                class Other
+                {
+                    public void UnsetRenderTargets() { }
+                }
+                /// <summary>Calls <see cref="Target.UnsetRenderTargets"/> and <see cref="TestNs.Target.UnsetRenderTargets()"/>, not <see cref="Other.UnsetRenderTargets"/>.</summary>
+                class Usage { }
+            }
+            """;
+
+        var result = await ApplyAsync(source, documentationMode, Rewrite(MemberRename("TestNs.Target", "UnsetRenderTargets", "ResetTargets")));
+
+        Assert.Contains("""/// <summary>Same as <see cref="ResetTargets"/>.</summary>""", result);
+        Assert.Contains("""/// <summary>Calls <see cref="Target.ResetTargets"/> and <see cref="TestNs.Target.ResetTargets()"/>, not <see cref="Other.UnsetRenderTargets"/>.</summary>""", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task PropertyAndMethodSwapsKeepDocumentationReferences()
+    {
+        // A cref names a property and a method the same way, without the parameter list a method may have
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public bool IsSRgb => true;
+                    public bool IsHdr() => true;
+                }
+                /// <summary>Reads <see cref="Target.IsSRgb"/>, <see cref="Target.IsHdr()"/> and <see cref="Target.IsHdr"/>.</summary>
+                class Usage
+                {
+                    bool A(Target t) => t.IsSRgb && t.IsHdr();
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DocumentationMode.None, Rewrite(PropertyToMethod("TestNs.Target", "IsSRgb"), MethodToProperty("TestNs.Target", "IsHdr")));
+
+        Assert.Contains("""/// <summary>Reads <see cref="Target.IsSRgb"/>, <see cref="Target.IsHdr"/> and <see cref="Target.IsHdr"/>.</summary>""", result);
+        Assert.Contains("bool A(Target t) => t.IsSRgb() && t.IsHdr;", result);
     }
 
     [Fact]
