@@ -1,0 +1,149 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:aeb="using:Stride.Assets.Editor.Avalonia.Behaviors"
+                    xmlns:aec="using:Stride.Assets.Editor.Avalonia.Converters"
+                    xmlns:aev="using:Stride.Assets.Editor.Avalonia.Views"
+                    xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+                    xmlns:caeqnpc="using:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands"
+                    xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
+                    xmlns:compositing="using:Stride.Rendering.Compositing"
+                    xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+                    xmlns:s="using:System"
+                    x:Class="Stride.Assets.Editor.Avalonia.Views.AssetPropertyTemplateProviders">
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/DefaultPropertyTemplateProviders.axaml"/>
+  </ResourceDictionary.MergedDictionaries>
+
+  <!-- The shader of a compute shader class of a material: a list of the effect shaders of the package, filtered by the text -->
+  <aev:ShaderClassNodeMixinReferenceTemplateProvider x:Key="MaterialShaderClassNodeMixinReferenceTemplateProvider"
+                                                     caev:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="Most">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <AutoCompleteBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}, UpdateSourceTrigger=Explicit}"
+                       ItemsSource="{Binding [AvailableEffectShaders]}"
+                       FilterMode="Contains" MinimumPrefixLength="0" MaxDropDownHeight="300"
+                       PlaceholderText="{sd:LocalizeString Select shader...}">
+        <Interaction.Behaviors>
+          <aeb:TextPickerBehavior/>
+        </Interaction.Behaviors>
+      </AutoCompleteBox>
+    </DataTemplate>
+  </aev:ShaderClassNodeMixinReferenceTemplateProvider>
+
+  <!-- The font of a sprite font: a list of the fonts installed on the system -->
+  <aev:SpriteFontFontNameTemplateProvider x:Key="SpriteFontFontNameTemplateProvider"
+                                          caev:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="Most">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <ComboBox HorizontalAlignment="Stretch" MaxDropDownHeight="400"
+                SelectedItem="{Binding NodeValue}"
+                ItemsSource="{ReflectionBinding Root[SpriteFontAvailableFonts]}"/>
+    </DataTemplate>
+  </aev:SpriteFontFontNameTemplateProvider>
+
+  <!-- The node list of a skeleton: the read-only header, with buttons that keep all the nodes or none -->
+  <aev:SkeletonNodeListTemplateProvider x:Key="SkeletonNodeInformationListTemplateProvider"
+                                        caev:PropertyViewHelper.TemplateCategory="PropertyHeader" OverrideRule="Most">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid x:Name="Grid" caev:PropertyViewHelper.Increment="0"
+            IsVisible="{Binding IsVisible}"
+            Margin="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 1,0,0,0}}">
+        <Border x:Name="PART_Name"
+                Background="{DynamicResource PropertyHeaderBackground}"
+                MinHeight="20" Margin="6" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                ToolTip.Tip="{Binding [Documentation]}"/>
+        <DockPanel x:Name="HeaderDockPanel" Margin="10,8">
+          <UniformGrid DockPanel.Dock="Right" Rows="1" HorizontalAlignment="Right">
+            <Button Margin="6,0" Padding="8,2" VerticalAlignment="Center"
+                    Content="{sd:LocalizeString All, Context=Button}"
+                    Command="{Binding [SkeletonNodePreserveAll]}" CommandParameter="{sd:True}"/>
+            <Button Margin="6,0" Padding="8,2" VerticalAlignment="Center"
+                    Content="{sd:LocalizeString None, Context=Button}"
+                    Command="{Binding [SkeletonNodePreserveAll]}" CommandParameter="{sd:False}"/>
+          </UniformGrid>
+          <ToggleButton DockPanel.Dock="Left"
+                        Width="8" Height="8" HorizontalAlignment="Left"
+                        Template="{StaticResource TreeExpanderToggleButton}"
+                        IsChecked="{Binding $parent[sd:PropertyViewItem].IsExpanded}"
+                        IsVisible="{Binding VisibleChildrenCount, Converter={sd:NumericToBool}}"/>
+          <TextBlock x:Name="HeaderTextBlock" Margin="8,0,0,0" FontSize="16" TextTrimming="CharacterEllipsis"
+                     Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+        </DockPanel>
+      </Grid>
+    </DataTemplate>
+  </aev:SkeletonNodeListTemplateProvider>
+
+  <!-- The start and end of an animation clip, in frames: a slider over the length of the source animation, and a box -->
+  <aev:AnimationFrameTemplateProvider x:Key="AnimationFrameTemplateProvider"
+                                      caev:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="Most">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="3*"/>
+          <ColumnDefinition Width="*" MinWidth="60"/>
+        </Grid.ColumnDefinitions>
+        <Slider Grid.Column="0" Height="22" VerticalAlignment="Center"
+                Value="{Binding #FrameBox.Value, Mode=OneWay}"
+                Minimum="{ReflectionBinding Parent.Parent[AnimationTimeMinimum].NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={sd:Double 0}}"
+                Maximum="{ReflectionBinding Parent.Parent[AnimationTimeMaximum].NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={sd:Double 0}}"
+                SmallChange="1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="1">
+          <Interaction.Behaviors>
+            <!-- The box writes the frame once per slide or key press -->
+            <sd:NumericTextBoxSliderBehavior NumericTextBox="{Binding #FrameBox}"/>
+          </Interaction.Behaviors>
+        </Slider>
+        <sd:NumericTextBox x:Name="FrameBox" Grid.Column="1" Margin="6,2,2,2"
+                           Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, UpdateSourceTrigger=Explicit}"
+                           Minimum="{ReflectionBinding Parent.Parent[AnimationTimeMinimum].NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={sd:Double 0}}"
+                           Maximum="{ReflectionBinding Parent.Parent[AnimationTimeMaximum].NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, FallbackValue={x:Static s:Double.MaxValue}}"
+                           SmallChange="1" LargeChange="1" DecimalPlaces="0" DisplayUpDownButtons="False">
+          <Interaction.Behaviors>
+            <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
+            </DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </sd:NumericTextBox>
+      </Grid>
+    </DataTemplate>
+  </aev:AnimationFrameTemplateProvider>
+
+  <!-- The start and end of a reference clip, in frames: a box, as the source has no known length -->
+  <aev:AnimationFrameBoxTemplateProvider x:Key="AnimationFrameBoxTemplateProvider"
+                                         caev:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="Most">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:NumericTextBox Margin="6,2,2,2"
+                         Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {aec:TimeToFrames}}, UpdateSourceTrigger=Explicit}"
+                         Minimum="0" SmallChange="1" LargeChange="1" DecimalPlaces="3" DisplayUpDownButtons="False">
+        <Interaction.Behaviors>
+          <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
+          </DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:NumericTextBox>
+    </DataTemplate>
+  </aev:AnimationFrameBoxTemplateProvider>
+
+  <!-- The camera slot of a camera component: the name of the slot, and a list of the slots of the graphics compositor. The
+       slots are entries of a list like the types of an abstract member, whose template this one replaces: the slot type is
+       matched exactly, so it comes before all the others -->
+  <caev:TypeMatchTemplateProvider x:Key="SceneCameraSlotIndexTemplateProvider" Type="compositing:SceneCameraSlotId"
+                                  caev:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="All">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <ComboBox x:Name="SlotComboBox" DockPanel.Dock="Right" VerticalAlignment="Center"
+                  Theme="{StaticResource AbstractTypeSelectionComboBoxTheme}" IsVisible="True"
+                  ItemsSource="{Binding [AbstractNodeMatchingEntries]}">
+          <Interaction.Behaviors>
+            <EventTriggerBehavior EventName="DropDownClosed"
+                                  IsEnabled="{Binding #SlotComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
+              <InvokeCommandAction Command="{Binding [UpdateCameraSlotIndex]}"
+                                   CommandParameter="{ReflectionBinding #SlotComboBox.SelectedItem.Value}"/>
+              <ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+            </EventTriggerBehavior>
+          </Interaction.Behaviors>
+        </ComboBox>
+        <TextBlock Margin="5,0" IsHitTestVisible="False" VerticalAlignment="Center"
+                   Text="{sd:MultiBinding {Binding}, {Binding [AbstractNodeMatchingEntries]}, {Binding NodeValue}, Converter={aec:NodeToCameraSlotName}}"/>
+      </DockPanel>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+</ResourceDictionary>
