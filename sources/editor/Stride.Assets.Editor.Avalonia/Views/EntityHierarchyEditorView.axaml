@@ -81,6 +81,7 @@
         <MenuItem Command="{cmd:Command Stride.Scene.MoveToView}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.AlignWithView}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.AlignViewToSelection}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.SnapToFloor}"/>
         <Separator/>
         <MenuItem Command="{cmd:Command Stride.Scene.Duplicate}"/>
         <MenuItem Command="{cmd:Command Stride.Edit.Cut}">

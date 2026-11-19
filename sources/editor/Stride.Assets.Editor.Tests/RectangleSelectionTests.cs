@@ -7,6 +7,7 @@ using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Rendering;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
 
 namespace Stride.Assets.Editor.Tests;
@@ -52,6 +53,21 @@ public sealed class RectangleSelectionTests
 
         Assert.True(EditorGameEntitySelectionService.IsInRectangle(light, new RectangleF(0.7f, 0.2f, 0.1f, 0.1f), ViewProjection));
         Assert.False(EditorGameEntitySelectionService.IsInRectangle(light, new RectangleF(0.4f, 0.4f, 0.2f, 0.2f), ViewProjection));
+    }
+
+    [Fact]
+    public void AnEntityWithoutAModelIsInTheRectangleByTheModelsOfItsChildren()
+    {
+        // A group at the middle of the view whose child is a floor that goes out of the rectangle
+        var group = new Entity("Group");
+        var floor = new Entity("Floor");
+        group.AddChild(floor);
+        floor.Add(new ModelComponent(new Model()) { BoundingBox = new BoundingBox(new Vector3(-20, -1, -1), new Vector3(20, 0, 1)) });
+        group.Transform.UpdateWorldMatrix();
+
+        Assert.False(EditorGameEntitySelectionService.IsInRectangle(group, new RectangleF(0.4f, 0.4f, 0.2f, 0.2f), ViewProjection));
+        floor.Get<ModelComponent>().BoundingBox = new BoundingBox(new Vector3(-1), new Vector3(1));
+        Assert.True(EditorGameEntitySelectionService.IsInRectangle(group, new RectangleF(0.4f, 0.4f, 0.2f, 0.2f), ViewProjection));
     }
 
     [Fact]
