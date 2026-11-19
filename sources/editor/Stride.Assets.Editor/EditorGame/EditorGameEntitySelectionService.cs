@@ -23,6 +23,7 @@ using Stride.Rendering.Compositing;
 using Stride.Rendering.Sprites;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
@@ -138,6 +139,68 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
                 Add(entity);
                 break;
         }
+    }
+
+    /// <summary>
+    /// Selects the entities that a rectangle drawn in the view holds (game thread), as one change of the selection of the
+    /// hierarchy: an entity with a model when its whole bounding box is in the rectangle, any other entity when its
+    /// position is. Only the entities that can be selected count.
+    /// </summary>
+    /// <param name="rectangle">The rectangle, in normalized view coordinates.</param>
+    /// <param name="mode">How the rectangle changes the selection.</param>
+    /// <param name="viewProjection">The view and projection matrices of the camera of the view.</param>
+    public void SelectInRectangle(RectangleF rectangle, RectangleSelectionMode mode, Matrix viewProjection)
+    {
+        var ids = new List<AbsoluteId>();
+        foreach (var entity in ContentEntities())
+        {
+            var id = controller.GetAbsoluteId(entity);
+            if (selection.IsSelectable(id) && IsInRectangle(entity, rectangle, viewProjection))
+                ids.Add(id);
+        }
+        if (ids.Count == 0 && mode != RectangleSelectionMode.Replace)
+            return;
+
+        UpdateHierarchySelection(selectedContent =>
+        {
+            var items = ids.Select(FindElement).OfType<EntityViewModel>().Where(x => x.IsSelectable).Cast<object>().ToList();
+            RectangleSelection.Apply(selectedContent, items, mode);
+        });
+    }
+
+    /// <summary>
+    /// Indicates whether a rectangle of the view holds an entity: the world bounding box of its model, or its position
+    /// when it has no model (a light, a camera, an empty entity).
+    /// </summary>
+    internal static bool IsInRectangle(Entity entity, RectangleF rectangle, Matrix viewProjection)
+    {
+        if (entity.Get<ModelComponent>() is { Enabled: true, Model: not null, BoundingBox: var bounds } && bounds.Minimum.X <= bounds.Maximum.X)
+            return RectangleSelection.Contains(rectangle, bounds, viewProjection);
+        return RectangleSelection.Contains(rectangle, entity.Transform.WorldMatrix.TranslationVector, viewProjection);
+    }
+
+    /// <summary>
+    /// The entities of the edited scene and of its loaded child scenes, or of the edited prefab (game thread), without the
+    /// anchors the game adds for the child scenes.
+    /// </summary>
+    private IEnumerable<Entity> ContentEntities()
+    {
+        if (Game.ContentScene is not { } contentScene)
+            return [];
+        return new[] { contentScene }.BreadthFirst(x => x.Children)
+            .SelectMany(x => x.Entities)
+            .Where(x => !IsSceneAnchor(x))
+            .BreadthFirst(x => x.Transform.Children.Select(y => y.Entity))
+            .Distinct();
+    }
+
+    /// <summary>
+    /// Indicates whether an entity is the anchor the game adds to a scene for one of its child scenes: it has the identifier
+    /// of that child scene, and belongs to no asset.
+    /// </summary>
+    internal static bool IsSceneAnchor(Entity entity)
+    {
+        return entity.Scene is { } scene && scene.Children.Any(x => x.Id == entity.Id);
     }
 
     /// <summary>

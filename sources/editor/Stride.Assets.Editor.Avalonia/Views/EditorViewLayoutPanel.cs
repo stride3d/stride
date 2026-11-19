@@ -60,6 +60,22 @@ public sealed class EditorViewLayoutPanel : Grid
     /// </summary>
     public EditorViewLayoutViewModel? Layout { get => GetValue(LayoutProperty); set => SetValue(LayoutProperty, value); }
 
+    /// <summary>
+    /// Gets the view that has the input of the game: the active pane's view when several views show, else the game's view.
+    /// </summary>
+    public Control? ActiveView
+    {
+        get
+        {
+            foreach (var child in Children)
+            {
+                if (child is PaneHost { IsActive: true } host)
+                    return host.View;
+            }
+            return Children.Contains(GameView as Control) ? (Control)GameView! : Children.OfType<PaneHost>().FirstOrDefault()?.View;
+        }
+    }
+
     /// <inheritdoc/>
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -193,6 +209,7 @@ public sealed class EditorViewLayoutPanel : Grid
         public PaneHost(EditorViewPaneViewModel pane, Control view)
         {
             this.pane = pane;
+            View = view;
             DataContext = pane;
             BorderThickness = new Thickness(1);
             var menu = new MenuFlyout();
@@ -237,6 +254,16 @@ public sealed class EditorViewLayoutPanel : Grid
             UpdateActive();
             UpdateMaximized();
         }
+
+        /// <summary>
+        /// Gets the view of the pane.
+        /// </summary>
+        public Control View { get; }
+
+        /// <summary>
+        /// Gets whether the pane is the active one: its view has the input of the game.
+        /// </summary>
+        public bool IsActive => pane.IsActive;
 
         /// <summary>
         /// Sets whether the layout has several panes: the header and the border of the active pane only show then.

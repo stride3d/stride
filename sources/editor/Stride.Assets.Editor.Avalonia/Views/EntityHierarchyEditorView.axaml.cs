@@ -159,10 +159,43 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     private void FollowToolbar()
     {
         if (toolbar is not null)
+        {
             toolbar.ContextMenuRequested -= OnSceneViewContextMenuRequested;
+            toolbar.PropertyChanged -= OnToolbarPropertyChanged;
+        }
         toolbar = editor?.ViewOptions as EditorViewToolbarViewModel;
         if (toolbar is not null)
+        {
             toolbar.ContextMenuRequested += OnSceneViewContextMenuRequested;
+            toolbar.PropertyChanged += OnToolbarPropertyChanged;
+        }
+        UpdateSelectionRectangle();
+    }
+
+    private void OnToolbarPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(EditorViewToolbarViewModel.SelectionRectangle))
+            UpdateSelectionRectangle();
+    }
+
+    /// <summary>
+    /// Draws the selection rectangle of a left drag over the view that has the input of the game.
+    /// </summary>
+    internal void UpdateSelectionRectangle()
+    {
+        if (toolbar?.SelectionRectangle is not { } rectangle || GameViews.ActiveView is not { } view
+            || view.TranslatePoint(default, SelectionRectangleLayer) is not { } origin)
+        {
+            SelectionRectangleBox.IsVisible = false;
+            return;
+        }
+
+        var size = view.Bounds.Size;
+        Canvas.SetLeft(SelectionRectangleBox, origin.X + rectangle.X * size.Width);
+        Canvas.SetTop(SelectionRectangleBox, origin.Y + rectangle.Y * size.Height);
+        SelectionRectangleBox.Width = rectangle.Width * size.Width;
+        SelectionRectangleBox.Height = rectangle.Height * size.Height;
+        SelectionRectangleBox.IsVisible = true;
     }
 
     /// <summary>

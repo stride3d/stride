@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
 using Stride.Input;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
@@ -33,6 +34,10 @@ namespace Stride.Assets.Editor.EditorGame.Tools;
 /// <item>A right release under the threshold opens the context menu of the view, even though the camera had the mouse for
 /// its right drag, unless another button went down meanwhile, the camera keys moved the camera, or another service (the
 /// view cube) had the mouse.</item>
+/// <item>When <see cref="IsRectangleSelectionEnabled"/> is on, a left drag that a left click there would have given to the
+/// selection (not on the tool's gizmo, without Alt, which orbits the camera) draws a selection rectangle
+/// (<see cref="SelectionRectangle"/>) once it moves past the click threshold; its release selects what the rectangle holds.
+/// The right button going down, or another service taking the mouse, cancels it.</item>
 /// </list>
 /// The camera asks <see cref="IsDefaultInputOn"/> for its drags.
 /// </para>
@@ -133,6 +138,17 @@ internal sealed class EditorViewToolSet : IDisposable
     /// Gets whether the active tool uses the mouse.
     /// </summary>
     public bool IsUsingMouse => Call(ActiveTool, x => x.IsUsingMouse, false);
+
+    /// <summary>
+    /// Gets or sets whether a left drag on the view draws a selection rectangle. Off by default: the user interface that draws
+    /// the rectangle turns it on.
+    /// </summary>
+    public bool IsRectangleSelectionEnabled { get; set; }
+
+    /// <summary>
+    /// Gets the selection rectangle being drawn, in normalized view coordinates, or <c>null</c>.
+    /// </summary>
+    public RectangleF? SelectionRectangle { get; private set; }
 
     /// <summary>
     /// Indicates whether a tool was turned off after an error.
@@ -251,6 +267,9 @@ internal sealed class EditorViewToolSet : IDisposable
                     IsMouseAvailable = frame.IsMouseAvailable,
                     IsMouseAvailableToContextMenu = frame.IsMouseAvailableToContextMenu,
                     HasCameraMoved = frame.HasCameraMoved,
+                    Start = frame.PressPosition ?? frame.MousePosition,
+                    CanDrawRectangle = button == MouseButton.Left && IsRectangleSelectionEnabled && !isUsingMouse && frame.IsMouseAvailable && !frame.IsAltDown
+                        && !frame.DownButtons.Contains(MouseButton.Right) && IsDefaultInputOn(EditorViewDefaultInputs.Selection),
                 };
                 // The cursor can reach the press position in the frame of the press
                 if (!frame.ReleasedButtons.Contains(button))
@@ -262,8 +281,18 @@ internal sealed class EditorViewToolSet : IDisposable
                 press.HasCameraMoved |= frame.HasCameraMoved;
             }
 
+            if (button == MouseButton.Left)
+                UpdateSelectionRectangle(frame);
+
             if (!frame.ReleasedButtons.Contains(button) || !presses.Remove(button, out var released))
                 continue;
+            if (button == MouseButton.Left && SelectionRectangle is { } rectangle)
+            {
+                // The rectangle selects what it holds, with the keys held at the release
+                SelectionRectangle = null;
+                (clicks ??= []).Add(new EditorViewToolClick(button, ToSelection: true) { ToTool = false, Rectangle = rectangle });
+                continue;
+            }
             if (released.Distance >= TransformationGizmo.TransformationStartPixelThreshold)
                 continue;
 
@@ -278,6 +307,27 @@ internal sealed class EditorViewToolSet : IDisposable
             (clicks ??= []).Add(new EditorViewToolClick(button, toSelection) { ToTool = toTool, OpensContextMenu = opensContextMenu });
         }
         return clicks ?? (IReadOnlyList<EditorViewToolClick>)[];
+    }
+
+    /// <summary>
+    /// Draws the selection rectangle of a left drag, from its press to the cursor, once the drag moves past the click
+    /// threshold; the right button going down or another service taking the mouse cancels it.
+    /// </summary>
+    private void UpdateSelectionRectangle(EditorViewInputFrame frame)
+    {
+        if (!presses.TryGetValue(MouseButton.Left, out var press) || !press.CanDrawRectangle)
+        {
+            SelectionRectangle = null;
+            return;
+        }
+        if (press.OtherButtonPressed || !frame.IsMouseAvailable || frame.DownButtons.Contains(MouseButton.Right))
+        {
+            press.CanDrawRectangle = false;
+            SelectionRectangle = null;
+            return;
+        }
+        if (press.Distance >= TransformationGizmo.TransformationStartPixelThreshold)
+            SelectionRectangle = RectangleSelection.FromCorners(press.Start, frame.MousePosition);
     }
 
     /// <summary>
@@ -487,6 +537,8 @@ internal sealed class EditorViewToolSet : IDisposable
         public bool IsMouseAvailableToContextMenu;
         public bool OtherButtonPressed;
         public bool HasCameraMoved;
+        public Vector2 Start;
+        public bool CanDrawRectangle;
     }
 }
 
@@ -507,4 +559,10 @@ internal sealed record EditorViewToolClick(MouseButton Button, bool ToSelection)
     /// Gets whether the click opens the context menu of the view: a right click without drag.
     /// </summary>
     public bool OpensContextMenu { get; init; }
+
+    /// <summary>
+    /// Gets the selection rectangle that a left drag drew, in normalized view coordinates, or <c>null</c> for a click: the
+    /// selection takes what it holds.
+    /// </summary>
+    public RectangleF? Rectangle { get; init; }
 }
