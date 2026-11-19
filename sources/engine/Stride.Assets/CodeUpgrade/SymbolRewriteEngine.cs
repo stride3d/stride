@@ -95,7 +95,8 @@ internal static class SymbolRewriteEngine
                 // that also had a parameter renamed), as long as they edit disjoint nodes.
                 if (!appliedSpans.Add((edit.Span, edit.Rewrite)))
                     continue;
-                var node = root.FindNode(edit.Span, getInnermostNodeForTie: true);
+                // A reference in a documentation comment is a name of its cref
+                var node = root.FindNode(edit.Span, findInsideTrivia: true, getInnermostNodeForTie: true);
                 if (node is null)
                     continue;
                 edit.Rewrite.RewriteReference(editor, node, edit.Symbol);

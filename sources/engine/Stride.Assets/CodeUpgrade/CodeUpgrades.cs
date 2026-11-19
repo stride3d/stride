@@ -24,7 +24,8 @@ namespace Stride.Assets;
 /// <param name="ResolveSymbols">Resolves the matched symbol(s) from the old-version compilation.</param>
 /// <param name="RewriteReference">
 /// Applies the edit at one reference. Receives the editor, the syntax node at the reference location
-/// (typically the member-name identifier), and the matched symbol.
+/// (typically the member-name identifier), and the matched symbol. A reference in a documentation comment
+/// is the name inside its cref: leave it alone unless a new name fits there.
 /// </param>
 public sealed record SymbolRewrite(
     Func<Compilation, IEnumerable<ISymbol>> ResolveSymbols,
@@ -63,7 +64,7 @@ public static partial class CodeUpgrades
     /// Matches the property <paramref name="propertyName"/> on <paramref name="declaringType"/> (its
     /// full metadata name, e.g. <c>"Stride.Graphics.PixelFormatExtensions"</c>) and wraps each access in
     /// an invocation, preserving the receiver and trivia. Also handles extension members and conditional
-    /// access (<c>x?.Foo</c> → <c>x?.Foo()</c>).
+    /// access (<c>x?.Foo</c> → <c>x?.Foo()</c>). A cref stays: it names the method as it named the property.
     /// </summary>
     public static SymbolRewrite PropertyToMethod(string declaringType, string propertyName)
     {
@@ -73,6 +74,9 @@ public static partial class CodeUpgrades
             compilation => ResolveMembers(compilation, declaringType, propertyName),
             static (editor, referenceNode, symbol) =>
             {
+                if (referenceNode.Parent is NameMemberCrefSyntax)
+                    return;
+
                 // The reference location points at the member-name identifier; promote it to the whole
                 // member access/binding so the receiver is carried into the invocation.
                 var target = referenceNode;
@@ -101,7 +105,8 @@ public static partial class CodeUpgrades
     /// metadata name, e.g. <c>"Stride.Graphics.PixelFormatExtensions"</c>) and unwraps each no-argument
     /// invocation to a plain member access, preserving the receiver and trivia. Also handles extension
     /// members and conditional access (<c>x?.Foo()</c> → <c>x?.Foo</c>). Calls passing arguments are left
-    /// untouched (they can't become a property access).
+    /// untouched (they can't become a property access). A cref loses its empty parameter list:
+    /// <c>&lt;see cref="X.Foo()"/&gt;</c> → <c>&lt;see cref="X.Foo"/&gt;</c>.
     /// </summary>
     public static SymbolRewrite MethodToProperty(string declaringType, string methodName)
     {
@@ -111,6 +116,13 @@ public static partial class CodeUpgrades
             compilation => ResolveMembers(compilation, declaringType, methodName),
             static (editor, referenceNode, symbol) =>
             {
+                if (referenceNode.Parent is NameMemberCrefSyntax cref)
+                {
+                    if (cref.Parameters is { Parameters.Count: 0 })
+                        editor.ReplaceNode(cref, cref.WithParameters(null));
+                    return;
+                }
+
                 // The reference location points at the member-name identifier; promote it to the whole
                 // member access/binding — the invocation's Expression.
                 var target = referenceNode;
@@ -165,7 +177,8 @@ public static partial class CodeUpgrades
     /// <summary>
     /// Migrates a static member that moved to another (non-nested) type, optionally renamed:
     /// <c>Utilities.FreeMemory(p)</c> → <c>MemoryUtilities.Free(p)</c>. Alias and <c>using static</c>
-    /// references become fully qualified, since the new type can't be assumed in scope.
+    /// references become fully qualified, since the new type can't be assumed in scope. So do crefs:
+    /// <c>&lt;see cref="Utilities.FreeMemory"/&gt;</c> → <c>&lt;see cref="MemoryUtilities.Free"/&gt;</c>.
     /// </summary>
     public static SymbolRewrite StaticMemberMove(string declaringType, string memberName, string newDeclaringType, string newMemberName = null)
     {
@@ -182,30 +195,28 @@ public static partial class CodeUpgrades
             compilation => ResolveMembers(compilation, declaringType, memberName),
             (editor, referenceNode, symbol) =>
             {
-                // Anything that isn't the member-name identifier (e.g. a reference inside a doc comment,
-                // which the engine doesn't descend into) is left alone.
+                // Anything that isn't the member-name identifier is left alone.
                 if (referenceNode is not SimpleNameSyntax name || name.Identifier.ValueText != memberName)
                     return;
 
                 // WithIdentifier keeps the type argument list of a generic name (Swap<T>).
                 var newName = name.WithIdentifier(SyntaxFactory.Identifier(name.Identifier.LeadingTrivia, newMemberName, name.Identifier.TrailingTrivia));
 
-                if (name.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == name)
+                if (name.Parent is NameMemberCrefSyntax cref)
+                {
+                    // The parameter list of the cref stays
+                    var newCref = cref.WithName(newName);
+                    if (cref.Parent is QualifiedCrefSyntax qualifiedCref && qualifiedCref.Member == cref)
+                        editor.ReplaceNode(qualifiedCref, qualifiedCref.WithContainer(NewType(qualifiedCref.Container, SyntaxFactory.ParseTypeName(newDeclaringType))).WithMember(newCref));
+                    else
+                        editor.ReplaceNode(cref, SyntaxFactory.QualifiedCref(SyntaxFactory.ParseTypeName(newDeclaringType), newCref.WithoutTrivia()).WithTriviaFrom(cref));
+                }
+                else if (name.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == name)
                 {
                     var receiver = memberAccess.Expression;
-                    var newReceiver = receiver;
-                    if (editor.SemanticModel.GetSymbolInfo(receiver).Symbol is ITypeSymbol)
-                    {
-                        var receiverTypeName = receiver switch
-                        {
-                            MemberAccessExpressionSyntax qualified => qualified.Name,
-                            AliasQualifiedNameSyntax aliasQualified => aliasQualified.Name,
-                            _ => receiver as SimpleNameSyntax,
-                        };
-                        newReceiver = sameNamespace && receiverTypeName is not null && receiverTypeName.Identifier.ValueText == oldTypeName
-                            ? receiver.ReplaceNode(receiverTypeName, SyntaxFactory.IdentifierName(newTypeName).WithTriviaFrom(receiverTypeName))
-                            : SyntaxFactory.ParseExpression(newDeclaringType).WithTriviaFrom(receiver);
-                    }
+                    var newReceiver = editor.SemanticModel.GetSymbolInfo(receiver).Symbol is ITypeSymbol
+                        ? NewType(receiver, SyntaxFactory.ParseExpression(newDeclaringType))
+                        : receiver;
                     editor.ReplaceNode(memberAccess, memberAccess.WithExpression(newReceiver).WithName(newName));
                 }
                 else if (name.Parent is not MemberBindingExpressionSyntax)
@@ -223,6 +234,22 @@ public static partial class CodeUpgrades
                     editor.ReplaceNode(name, newName);
                 }
             });
+
+        // The new type in place of the old one: written the same way in the same namespace (Utilities → MemoryUtilities,
+        // TestNs.Utilities → TestNs.MemoryUtilities), else as its full name
+        TNode NewType<TNode>(TNode oldType, TNode fullName) where TNode : SyntaxNode
+        {
+            var typeName = oldType switch
+            {
+                MemberAccessExpressionSyntax qualified => qualified.Name,
+                QualifiedNameSyntax qualified => qualified.Right,
+                AliasQualifiedNameSyntax aliasQualified => aliasQualified.Name,
+                _ => oldType as SimpleNameSyntax,
+            };
+            return sameNamespace && typeName is not null && typeName.Identifier.ValueText == oldTypeName
+                ? oldType.ReplaceNode(typeName, SyntaxFactory.IdentifierName(newTypeName).WithTriviaFrom(typeName))
+                : fullName.WithTriviaFrom(oldType);
+        }
     }
 
     /// <summary>
@@ -471,10 +498,13 @@ public static partial class CodeUpgrades
                             editor.ReplaceNode(binding, Access(SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(throughMember)), member).WithTriviaFrom(binding));
                         break;
 
-                    // A name in a type context (cref, qualified name): left alone
+                    // A name in a type context: left alone
                     case QualifiedNameSyntax qualified when qualified.Right == name:
-                    case NameMemberCrefSyntax:
                         break;
+
+                    // A cref names the member through its type, where the using of the extension member does not help
+                    case NameMemberCrefSyntax:
+                        return;
 
                     // Not an expression: a property pattern's name ({ Audio: ... }), a named argument or initializer
                     case NameColonSyntax:

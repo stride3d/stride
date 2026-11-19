@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
 using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
@@ -103,7 +104,7 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
                 await workspace.OpenProjectAsync(pendingItem.ProjectFullPath.ToOSPath(), cancellationToken: cancellationToken);
         }
 
-        var originalSolution = workspace.CurrentSolution;
+        var originalSolution = ParseDocumentationComments(workspace.CurrentSolution);
 
         foreach (var diagnostic in workspace.Diagnostics)
         {
@@ -180,6 +181,20 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
 
         if (changedCount > 0)
             log.Info($"Code upgrade: migrated {changedCount} source file(s).");
+    }
+
+    /// <summary>
+    /// Parses the documentation comments of the projects that generate no documentation file, which the workspace opens with
+    /// these comments as plain text: the upgrades then see the references in them, and the compiler counts the usings they need.
+    /// </summary>
+    internal static Solution ParseDocumentationComments(Solution solution)
+    {
+        foreach (var projectId in solution.ProjectIds)
+        {
+            if (solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions { DocumentationMode: DocumentationMode.None } parseOptions)
+                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Parse));
+        }
+        return solution;
     }
 
     // Enumerates the full ProjectChanges surface except GetChangedDocuments (the only delta the runner persists);
