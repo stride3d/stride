@@ -370,6 +370,16 @@
         <Run Text="{Binding Session?.AssetCollection.FilteredContent.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}}"/>
         <Run Text="{Binding Session?.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text=({0} selected), Plural=({0} selected), IsStringFormat=True, Context=StatusBar}}"/>
       </TextBlock>
+      <!-- When the last recovery copy of the unsaved changes was written (autosave) -->
+      <TextBlock Name="RecoveryStatus"
+                 Grid.Column="2"
+                 Margin="8,0"
+                 HorizontalAlignment="Right"
+                 VerticalAlignment="Center"
+                 Opacity="0.7"
+                 Text="{Binding Recovery?.Status}"
+                 IsVisible="{Binding Recovery?.Status, Converter={sd:ObjectToBool}}"
+                 ToolTip.Tip="{sd:LocalizeString A copy of the unsaved changes is kept outside of the project in case Game Studio closes unexpectedly. Save to write the changes to the project., Context=ToolTip}"/>
       <Border Grid.Column="3"
               Margin="2"
               BorderThickness="1"
