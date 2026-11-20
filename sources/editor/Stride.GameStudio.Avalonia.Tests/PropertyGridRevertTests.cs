@@ -147,6 +147,43 @@ public sealed class PropertyGridRevertTests
         }
     }
 
+    [AvaloniaFact]
+    public async Task TheIconRevertsTheCheckBoxOfTwoSelectedAssets()
+    {
+        // The check box shows the values of both assets: it must not write a value back while they are reverted one by one
+        using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, new TogglePropertiesAsset { IsEnabled = false }), (OtherLocation, new TogglePropertiesAsset { IsEnabled = false }));
+        var window = new Window { Content = new PropertyGridView { DataContext = fixture.Session.ActiveProperties } };
+        await window.ShowAsync();
+        try
+        {
+            var (first, second) = (fixture.Asset(AssetLocation), fixture.Asset(OtherLocation));
+            fixture.Session.AssetCollection.SelectAssets([first, second]);
+            await WindowTestHelper.WaitUntilAsync(() => fixture.Session.ActiveProperties.Selection?.Count == 2 && TryItem(window, nameof(TogglePropertiesAsset.IsEnabled)) is not null, "the two assets");
+            await Task.Delay(200);
+            await WindowTestHelper.PumpAsync();
+
+            await window.ClickAsync(RevertButton(Item(window, nameof(TogglePropertiesAsset.IsEnabled))));
+            await WindowTestHelper.PumpAsync();
+            await WindowTestHelper.WaitUntilAsync(() => ((TogglePropertiesAsset)first.Asset).IsEnabled && ((TogglePropertiesAsset)second.Asset).IsEnabled, "both check boxes reverted");
+            // The check box of the value (the header has a hidden one, for the objects that can be turned off)
+            Assert.True(Item(window, nameof(TogglePropertiesAsset.IsEnabled)).GetVisualDescendants().OfType<CheckBox>().Single(x => x.IsEffectivelyVisible).IsChecked);
+
+            // The undo and the redo change them one by one too
+            fixture.Session.UndoRedoService.Undo();
+            await WindowTestHelper.PumpAsync();
+            Assert.False(((TogglePropertiesAsset)first.Asset).IsEnabled);
+            Assert.False(((TogglePropertiesAsset)second.Asset).IsEnabled);
+            fixture.Session.UndoRedoService.Redo();
+            await WindowTestHelper.PumpAsync();
+            Assert.True(((TogglePropertiesAsset)first.Asset).IsEnabled);
+            Assert.True(((TogglePropertiesAsset)second.Asset).IsEnabled);
+        }
+        finally
+        {
+            await window.CloseAsync();
+        }
+    }
+
     private static async Task<PropertyViewItem> ShowPropertyAsync(ShellSessionFixture fixture, Window window, string member)
     {
         fixture.Session.AssetCollection.SelectAssets([fixture.Asset(AssetLocation)]);
