@@ -168,6 +168,36 @@ public sealed class EditCommandRouterTests
     }
 
     [AvaloniaFact]
+    public void ATextBoxWithNoTypingToUndoLeavesUndoToThePanel()
+    {
+        var (window, view, viewModel) = Show();
+        try
+        {
+            Assert.True(view.Filter.Focus());
+            Assert.False(view.Filter.CanUndo);
+
+            // The Edit menu and the shortcut undo in the panel
+            Assert.True(view.Router.Undo.CanExecute(null));
+            view.Router.Undo.Execute(null);
+            Assert.Single(viewModel.Undo.Executions);
+            window.KeyPressQwerty(PhysicalKey.Z, RawInputModifiers.Control);
+            Assert.Equal(2, viewModel.Undo.Executions.Count);
+            Assert.True(view.Filter.IsUndoEnabled);
+
+            // Once the user types, the text box undoes the typing
+            window.KeyTextInput("a");
+            Assert.True(view.Filter.CanUndo);
+            window.KeyPressQwerty(PhysicalKey.Z, RawInputModifiers.Control);
+            Assert.Equal("", view.Filter.Text ?? "");
+            Assert.Equal(2, viewModel.Undo.Executions.Count);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void TheShortcutsReachTheFocusedPanelAfterTheFocusedControl()
     {
         var (window, view, viewModel) = Show();

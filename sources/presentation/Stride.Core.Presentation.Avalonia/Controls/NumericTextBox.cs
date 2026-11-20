@@ -284,6 +284,8 @@ public sealed class NumericTextBox : TemplatedControl
             case Key.Enter:
                 var commitSuccess = CommitInput();
                 e.Handled = !commitSuccess;
+                if (commitSuccess)
+                    ForgetTyping();
                 break;
         }
     }
@@ -291,7 +293,22 @@ public sealed class NumericTextBox : TemplatedControl
     protected override void OnLostFocus(FocusChangedEventArgs e)
     {
         CommitInput(true);
+        ForgetTyping();
         base.OnLostFocus(e);
+    }
+
+    /// <summary>
+    /// Clears the undo history of the text box once its value is written or replaced: Undo then undoes the edit of the value,
+    /// not the typing that made it. While the user types, Undo undoes the typing.
+    /// </summary>
+    private void ForgetTyping()
+    {
+        if (TextBox is not { IsUndoEnabled: true } textBox)
+            return;
+
+        // The text box clears its history when its undo is turned off
+        textBox.SetCurrentValue(TextBox.IsUndoEnabledProperty, false);
+        textBox.SetCurrentValue(TextBox.IsUndoEnabledProperty, true);
     }
 
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
@@ -373,6 +390,7 @@ public sealed class NumericTextBox : TemplatedControl
             hasPendingEdit = false;
             if (IsInitialized)
                 SyncTextAndValueProperties(false, null, true);
+            ForgetTyping();
         }
 
         UpdateValueRatio();
