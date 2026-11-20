@@ -78,7 +78,7 @@ Instantiates a sample from the locally built template packages, bound to this ch
    ```bash
    stride new stride-animatedmodel --version 4.4.0-devN -n MySample -o C:\path\MySample
    ```
-   Template content is stamped with the matching engine version at pack time, so the generated project restores as-is. Without the [`stride` CLI](../../sources/launcher/README.md) installed, run it from source: `dotnet run --project sources/launcher/Stride.Cli -- new ...`.
+   `stride new` upgrades a sample written for an older Stride to this version, so the generated project restores as-is. Without the [`stride` CLI](../../sources/launcher/README.md) installed, run it from source: `dotnet run --project sources/launcher/Stride.Cli -- new ...`.
 4. **Build and run.** The graphics API is a per-game choice; it must be one of the `StrideGraphicsApis` values in `build/Stride.Local.props` the engine was built with:
    ```bash
    dotnet build C:\path\MySample\MySample.Windows\MySample.Windows.csproj -p:StrideGraphicsApi=Vulkan

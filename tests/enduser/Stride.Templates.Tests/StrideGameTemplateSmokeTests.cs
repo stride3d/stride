@@ -188,7 +188,7 @@ public class StrideGameTemplateSmokeTests
         {
             var record = (string?)project.Descendants("StridePackageUpgradeRecord").SingleOrDefault(x => (string?)x.Attribute("Include") == "Stride")?.Attribute("Version");
             Assert.True(!string.IsNullOrEmpty(record) && !record.Contains('$'), $"{Path.GetFileName(path)} records no Stride version:\n{project}");
-            // A sample stamped to a newer engine keeps the version its content is written for
+            // A sample moved to the build that packs it keeps the version its content is written for
             if (engineVersion is not null)
                 Assert.True(NumberPart(record) <= NumberPart(engineVersion), $"{Path.GetFileName(path)} records {record}, above its engine {engineVersion}");
         }
