@@ -27,6 +27,7 @@
 * THE SOFTWARE.
 */
 
+using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -223,6 +224,14 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     public readonly int[] ToArray()
     {
         return [X, Y, Z];
+    }
+
+    /// <summary>Raises each component of a vector to a power.</summary>
+    /// <param name="value">The vector.</param>
+    /// <param name="exponent">The exponent.</param>
+    public static Int3 Pow(Int3 value, int exponent)
+    {
+        return new Int3((int)Math.Pow(value.X, exponent), (int)Math.Pow(value.Y, exponent), (int)Math.Pow(value.Z, exponent));
     }
 
     /// <summary>
@@ -570,26 +579,34 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     /// </returns>
     public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        var handler = new DefaultInterpolatedStringHandler(8, 3, formatProvider);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
+        var handler = new DefaultInterpolatedStringHandler(6, 3, formatProvider);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format);
-        handler.AppendLiteral(" Z:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format);
+        handler.AppendLiteral(">");
         return handler.ToStringAndClear();
     }
 
     bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         var format1 = format.Length > 0 ? format.ToString() : null;
-        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(8, 3, destination, provider, out _);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(provider).NumberGroupSeparator;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(6, 3, destination, provider, out _);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format1);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format1);
-        handler.AppendLiteral(" Z:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format1);
+        handler.AppendLiteral(">");
         return destination.TryWrite(ref handler, out charsWritten);
     }
 

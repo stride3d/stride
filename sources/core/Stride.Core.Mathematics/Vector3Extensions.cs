@@ -41,6 +41,22 @@ public static class Vector3Extensions
 {
     extension(Vector3)
     {
+        /// <summary>Scales a vector to a length of one; a vector too short to have a direction is returned as it is.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 NormalizeSafe(Vector3 value)
+        {
+            float length = value.Length();
+            return length > MathUtil.ZeroTolerance ? value * (1.0f / length) : value;
+        }
+
+        /// <summary>Raises each component of a vector to a power.</summary>
+        /// <param name="value">The vector.</param>
+        /// <param name="exponent">The exponent.</param>
+        public static Vector3 Pow(Vector3 value, float exponent)
+        {
+            return new Vector3(MathF.Pow(value.X, exponent), MathF.Pow(value.Y, exponent), MathF.Pow(value.Z, exponent));
+        }
+
         /// <summary>
         /// Moves the first vector3 to the second one in a straight line.
         /// </summary>
@@ -521,6 +537,16 @@ public static class Vector3Extensions
 
     extension(Vector3 vector3)
     {
+        /// <summary>Determines whether every component of a vector differs from the same component of this one by less than the tolerance of that component.</summary>
+        /// <param name="other">The vector to compare with this instance.</param>
+        /// <param name="tolerance">For each component, the difference from which the two are not near.</param>
+        public bool NearEquals(Vector3 other, Vector3 tolerance)
+        {
+            return MathF.Abs(other.X - vector3.X) < tolerance.X &&
+                MathF.Abs(other.Y - vector3.Y) < tolerance.Y &&
+                MathF.Abs(other.Z - vector3.Z) < tolerance.Z;
+        }
+
         /// <summary>
         /// Gets a value indicting whether this instance is normalized.
         /// </summary>

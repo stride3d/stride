@@ -21,6 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -492,30 +493,40 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
     /// </returns>
     public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        var handler = new DefaultInterpolatedStringHandler(11, 4, formatProvider);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
+        var handler = new DefaultInterpolatedStringHandler(8, 4, formatProvider);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format);
-        handler.AppendLiteral(" Z:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format);
-        handler.AppendLiteral(" W:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(W, format);
+        handler.AppendLiteral(">");
         return handler.ToStringAndClear();
     }
 
     bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         var format1 = format.Length > 0 ? format.ToString() : null;
-        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(11, 4, destination, provider, out _);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(provider).NumberGroupSeparator;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(8, 4, destination, provider, out _);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format1);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format1);
-        handler.AppendLiteral(" Z:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format1);
-        handler.AppendLiteral(" W:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(W, format1);
+        handler.AppendLiteral(">");
         return destination.TryWrite(ref handler, out charsWritten);
     }
 

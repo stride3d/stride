@@ -153,6 +153,10 @@ public static class PlaneExtensions
 
     extension(in Plane self)
     {
+        /// <summary>Returns the text System.Numerics gives for a plane, with each number formatted as asked.</summary>
+        public string ToString(string format, IFormatProvider formatProvider)
+            => $"{{Normal:{self.Normal.ToString(format, formatProvider)} D:{self.D.ToString(format, formatProvider)}}}";
+
         /// <summary>
         /// Creates an array containing the elements of the plane.
         /// </summary>

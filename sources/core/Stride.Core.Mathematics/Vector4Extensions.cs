@@ -41,6 +41,22 @@ public static class Vector4Extensions
 {
     extension(Vector4)
     {
+        /// <summary>Scales a vector to a length of one; a vector too short to have a direction is returned as it is.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector4 NormalizeSafe(Vector4 value)
+        {
+            float length = value.Length();
+            return length > MathUtil.ZeroTolerance ? value * (1.0f / length) : value;
+        }
+
+        /// <summary>Raises each component of a vector to a power.</summary>
+        /// <param name="value">The vector.</param>
+        /// <param name="exponent">The exponent.</param>
+        public static Vector4 Pow(Vector4 value, float exponent)
+        {
+            return new Vector4(MathF.Pow(value.X, exponent), MathF.Pow(value.Y, exponent), MathF.Pow(value.Z, exponent), MathF.Pow(value.W, exponent));
+        }
+
         /// <summary>
         /// Moves the first vector4 to the second one in a straight line.
         /// </summary>

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -173,6 +174,24 @@ public struct Double2 : IEquatable<Double2>, ISpanFormattable
     public readonly double[] ToArray()
     {
         return [X, Y];
+    }
+
+    /// <summary>Scales a vector to a length of one. A vector of length zero gives NaN, as the vectors of System.Numerics do.</summary>
+    /// <param name="value">The vector to scale.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double2 Normalize(Double2 value)
+    {
+        return value / value.Length();
+    }
+
+    /// <summary>Scales a vector to a length of one; a vector too short to have a direction is returned as it is.</summary>
+    /// <param name="value">The vector to scale.</param>
+    /// <param name="tolerance">The length up to which a vector is too short.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double2 NormalizeSafe(Double2 value, double tolerance = MathUtil.ZeroTolerance)
+    {
+        double length = value.Length();
+        return length > tolerance ? value * (1.0 / length) : value;
     }
 
     /// <summary>
@@ -995,22 +1014,28 @@ public struct Double2 : IEquatable<Double2>, ISpanFormattable
     /// </returns>
     public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        var handler = new DefaultInterpolatedStringHandler(5, 2, formatProvider);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
+        var handler = new DefaultInterpolatedStringHandler(4, 2, formatProvider);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format);
+        handler.AppendLiteral(">");
         return handler.ToStringAndClear();
     }
 
     bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         var format1 = format.Length > 0 ? format.ToString() : null;
-        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(5, 2, destination, provider, out _);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(provider).NumberGroupSeparator;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(4, 2, destination, provider, out _);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format1);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format1);
+        handler.AppendLiteral(">");
         return destination.TryWrite(ref handler, out charsWritten);
     }
 

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -236,6 +237,32 @@ public struct Double4 : IEquatable<Double4>, ISpanFormattable
     public readonly double[] ToArray()
     {
         return [X, Y, Z, W];
+    }
+
+    /// <summary>Scales a vector to a length of one. A vector of length zero gives NaN, as the vectors of System.Numerics do.</summary>
+    /// <param name="value">The vector to scale.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double4 Normalize(Double4 value)
+    {
+        return value / value.Length();
+    }
+
+    /// <summary>Scales a vector to a length of one; a vector too short to have a direction is returned as it is.</summary>
+    /// <param name="value">The vector to scale.</param>
+    /// <param name="tolerance">The length up to which a vector is too short.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double4 NormalizeSafe(Double4 value, double tolerance = MathUtil.ZeroTolerance)
+    {
+        double length = value.Length();
+        return length > tolerance ? value * (1.0 / length) : value;
+    }
+
+    /// <summary>Raises each component of a vector to a power.</summary>
+    /// <param name="value">The vector.</param>
+    /// <param name="exponent">The exponent.</param>
+    public static Double4 Pow(Double4 value, double exponent)
+    {
+        return new Double4(Math.Pow(value.X, exponent), Math.Pow(value.Y, exponent), Math.Pow(value.Z, exponent), Math.Pow(value.W, exponent));
     }
 
     /// <summary>
@@ -970,30 +997,40 @@ public struct Double4 : IEquatable<Double4>, ISpanFormattable
     /// </returns>
     public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        var handler = new DefaultInterpolatedStringHandler(11, 4, formatProvider);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
+        var handler = new DefaultInterpolatedStringHandler(8, 4, formatProvider);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format);
-        handler.AppendLiteral(" Z:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format);
-        handler.AppendLiteral(" W:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(W, format);
+        handler.AppendLiteral(">");
         return handler.ToStringAndClear();
     }
 
     bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         var format1 = format.Length > 0 ? format.ToString() : null;
-        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(11, 4, destination, provider, out _);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(provider).NumberGroupSeparator;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(8, 4, destination, provider, out _);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format1);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format1);
-        handler.AppendLiteral(" Z:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format1);
-        handler.AppendLiteral(" W:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(W, format1);
+        handler.AppendLiteral(">");
         return destination.TryWrite(ref handler, out charsWritten);
     }
 

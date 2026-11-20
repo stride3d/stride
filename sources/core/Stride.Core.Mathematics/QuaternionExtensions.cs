@@ -42,6 +42,14 @@ public static class QuaternionExtensions
 {
     extension(Quaternion)
     {
+        /// <summary>Scales a quaternion to a length of one; a quaternion too short to be a rotation is returned as it is.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Quaternion NormalizeSafe(Quaternion value)
+        {
+            float length = value.Length();
+            return length > MathUtil.ZeroTolerance ? value * (1.0f / length) : value;
+        }
+
         /// <summary>
         /// Returns a <see cref="System.Numerics.Quaternion"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 2D triangle.
         /// </summary>
@@ -298,6 +306,74 @@ public static class QuaternionExtensions
 
     extension(Quaternion quaternion)
     {
+        /// <summary>Returns the text System.Numerics gives for a quaternion, with each number formatted as asked.</summary>
+        public string ToString(string format, IFormatProvider formatProvider)
+            => $"{{X:{quaternion.X.ToString(format, formatProvider)} Y:{quaternion.Y.ToString(format, formatProvider)} Z:{quaternion.Z.ToString(format, formatProvider)} W:{quaternion.W.ToString(format, formatProvider)}}}";
+
+        /// <summary>
+        /// Computes the angle of the rotation, in radians.
+        /// </summary>
+        public float GetAngle()
+        {
+            float length = (quaternion.X * quaternion.X) + (quaternion.Y * quaternion.Y) + (quaternion.Z * quaternion.Z);
+            if (length < MathUtil.ZeroTolerance)
+                return 0.0f;
+
+            return 2.0f * MathF.Acos(quaternion.W);
+        }
+
+        /// <summary>
+        /// Computes the axis of the rotation; a quaternion that has no rotation gives the X axis.
+        /// </summary>
+        public Vector3 GetAxis()
+        {
+            float length = (quaternion.X * quaternion.X) + (quaternion.Y * quaternion.Y) + (quaternion.Z * quaternion.Z);
+            if (length < MathUtil.ZeroTolerance)
+                return Vector3.UnitX;
+
+            float inv = 1.0f / length;
+            return new Vector3(quaternion.X * inv, quaternion.Y * inv, quaternion.Z * inv);
+        }
+
+        /// <summary>
+        /// Computes the yaw, pitch and roll of the rotation, in radians, as the X, Y and Z of a vector.
+        /// </summary>
+        public Vector3 GetYawPitchRoll()
+        {
+            // Equivalent to:
+            //  Matrix4x4.CreateFromQuaternion(quaternion).Decompose(out yaw, out pitch, out roll);
+
+            var xx = quaternion.X * quaternion.X;
+            var yy = quaternion.Y * quaternion.Y;
+            var zz = quaternion.Z * quaternion.Z;
+            var xy = quaternion.X * quaternion.Y;
+            var zw = quaternion.Z * quaternion.W;
+            var zx = quaternion.Z * quaternion.X;
+            var yw = quaternion.Y * quaternion.W;
+            var yz = quaternion.Y * quaternion.Z;
+            var xw = quaternion.X * quaternion.W;
+
+            var M11 = 1.0f - (2.0f * (yy + zz));
+            var M12 = 2.0f * (xy + zw);
+            var M21 = 2.0f * (xy - zw);
+            var M22 = 1.0f - (2.0f * (zz + xx));
+            var M31 = 2.0f * (zx + yw);
+            var M32 = 2.0f * (yz - xw);
+            var M33 = 1.0f - (2.0f * (yy + xx));
+
+            /*** Refer to Matrix4x4.Decompose(out float yaw, out float pitch, out float roll) for code and license ***/
+            if (MathUtil.IsOne(Math.Abs(M32)))
+            {
+                // Edge cases where M32 == +1 and M32 == -1
+                return M32 >= 0
+                    ? new Vector3(MathF.Atan2(-M21, M11), -MathUtil.PiOverTwo, 0)
+                    : new Vector3(-MathF.Atan2(-M21, M11), MathUtil.PiOverTwo, 0);
+            }
+
+            // Common case
+            return new Vector3(MathF.Atan2(M31, M33), MathF.Asin(-M32), MathF.Atan2(M12, M22));
+        }
+
         /// <summary>
         /// Gets a value indicting whether this instance is normalized.
         /// </summary>

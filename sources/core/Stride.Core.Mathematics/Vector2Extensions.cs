@@ -41,6 +41,14 @@ public static class Vector2Extensions
 {
     extension(Vector2)
     {
+        /// <summary>Scales a vector to a length of one; a vector too short to have a direction is returned as it is.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 NormalizeSafe(Vector2 value)
+        {
+            float length = value.Length();
+            return length > MathUtil.ZeroTolerance ? value * (1.0f / length) : value;
+        }
+
         /// <summary>
         /// Moves the first vector2 to the second one in a straight line.
         /// </summary>

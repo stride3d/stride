@@ -44,6 +44,24 @@ public static class Matrix4x4Extensions
 {
     extension(Matrix4x4)
     {
+        /// <summary>Calculates the inverse of a matrix; a matrix that has none gives the zero matrix, and <c>false</c>.</summary>
+        /// <remarks>The same variable can be given as both arguments.</remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool InvertSafe(in Matrix4x4 matrix, out Matrix4x4 result)
+        {
+            if (Matrix4x4.Invert(matrix, out result))
+                return true;
+            result = default;
+            return false;
+        }
+
+        /// <summary>Creates a matrix from its 16 elements, row by row.</summary>
+        public static Matrix4x4 Create(ReadOnlySpan<float> values)
+        {
+            ArgumentOutOfRangeException.ThrowIfNotEqual(values.Length, 16);
+            return MemoryMarshal.Read<Matrix4x4>(MemoryMarshal.AsBytes(values));
+        }
+
         /// <summary>
         /// Scales a matrix by the given value.
         /// </summary>
@@ -800,6 +818,15 @@ public static class Matrix4x4Extensions
 
     extension(in Matrix4x4 matrix)
     {
+        /// <summary>Returns the text System.Numerics gives for a matrix, with each number formatted as asked.</summary>
+        public string ToString(string format, IFormatProvider formatProvider)
+        {
+            string Row(char row, Vector4 values)
+                => $"{{M{row}1:{values.X.ToString(format, formatProvider)} M{row}2:{values.Y.ToString(format, formatProvider)} M{row}3:{values.Z.ToString(format, formatProvider)} M{row}4:{values.W.ToString(format, formatProvider)}}}";
+
+            return $"{{ {Row('1', matrix.X)} {Row('2', matrix.Y)} {Row('3', matrix.Z)} {Row('4', matrix.W)} }}";
+        }
+
         /// <summary>
         /// Gets or sets the first column in the matrix; that is M11, M21, M31, and M41.
         /// </summary>
