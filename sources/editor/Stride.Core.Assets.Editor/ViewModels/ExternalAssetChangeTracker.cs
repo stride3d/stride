@@ -412,28 +412,42 @@ namespace Stride.Core.Assets.Editor.ViewModels
 
             declinedContents.Remove(path);
 
+            var undoRedoService = session.UndoRedoService;
+            using (var transaction = undoRedoService.CreateTransaction())
+            {
+                ReplaceAssetContent(asset, assetItem.Asset, assetItem.YamlMetadata);
+                undoRedoService.SetName(transaction, $"Reload {asset.Url} changed outside of Game Studio");
+            }
+            // The reloaded asset is what the file holds: it is clean, and undoing the reload makes it dirty
+            undoRedoService.NotifySave(asset);
+            Log.Info($"[{asset.Url}] has been reloaded: it has been changed outside of Game Studio.");
+        }
+
+        /// <summary>
+        /// Replaces the content of an asset with the given one, in the transaction of the caller: undoing it brings back the previous
+        /// content, and the asset is dirty until the session saves it. The assets deriving from it take the new content of their base.
+        /// </summary>
+        /// <param name="asset">The asset whose content is replaced.</param>
+        /// <param name="newAsset">The new content, with the same identifier and type.</param>
+        /// <param name="yamlMetadata">The Yaml metadata (overrides...) of the new content.</param>
+        internal void ReplaceAssetContent([NotNull] AssetViewModel asset, [NotNull] Asset newAsset, AttachedYamlAssetMetadata yamlMetadata)
+        {
             // The previous asset comes back on undo with its own Yaml metadata, as it would be saved
+            var logger = new LoggerResult();
             asset.PrepareSave(logger);
             var previousAsset = asset.Asset;
             var previousYamlMetadata = new AttachedYamlAssetMetadata();
             asset.AssetItem.YamlMetadata.CopyInto(previousYamlMetadata);
 
             var undoRedoService = session.UndoRedoService;
-            using (var transaction = undoRedoService.CreateTransaction())
+            using (session.CreateAssetFixupContext())
             {
-                using (session.CreateAssetFixupContext())
-                {
-                    var changedDerivedAssets = ReplaceAsset(asset, assetItem.Asset, assetItem.YamlMetadata);
-                    undoRedoService.PushOperation(new ReloadAssetOperation(this, asset, previousAsset, previousYamlMetadata, assetItem.Asset, assetItem.YamlMetadata));
-                    // The assets deriving from it differ from their files now, as when it is edited in Game Studio
-                    if (changedDerivedAssets.Count > 0)
-                        undoRedoService.PushOperation(new EmptyDirtyingOperation(changedDerivedAssets.SelectMany(x => x.Dirtiables).Distinct()));
-                }
-                undoRedoService.SetName(transaction, $"Reload {asset.Url} changed outside of Game Studio");
+                var changedDerivedAssets = ReplaceAsset(asset, newAsset, yamlMetadata);
+                undoRedoService.PushOperation(new ReloadAssetOperation(this, asset, previousAsset, previousYamlMetadata, newAsset, yamlMetadata));
+                // The assets deriving from it differ from their files now, as when it is edited in Game Studio
+                if (changedDerivedAssets.Count > 0)
+                    undoRedoService.PushOperation(new EmptyDirtyingOperation(changedDerivedAssets.SelectMany(x => x.Dirtiables).Distinct()));
             }
-            // The reloaded asset is what the file holds: it is clean, and undoing the reload makes it dirty
-            undoRedoService.NotifySave(asset);
-            Log.Info($"[{asset.Url}] has been reloaded: it has been changed outside of Game Studio.");
         }
 
         /// <summary>
