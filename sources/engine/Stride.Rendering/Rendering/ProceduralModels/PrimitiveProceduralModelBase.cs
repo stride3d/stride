@@ -9,6 +9,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Rendering.ProceduralModels
 {
@@ -103,7 +104,7 @@ namespace Stride.Rendering.ProceduralModels
                 throw new InvalidOperationException("Invalid GeometricPrimitive [{0}]. Expecting non-zero Vertices array");
             }
 
-            if (LocalOffset != Vector3.Zero)
+            if (!LocalOffset.NearEquals(Vector3.Zero))
             {
                 for (var index = 0; index < data.Vertices.Length; index++)
                 {
@@ -112,15 +113,15 @@ namespace Stride.Rendering.ProceduralModels
             }
 
             //Scale if necessary
-            if (Scale != Vector3.One)
+            if (!Scale.NearEquals(Vector3.One))
             {
-                var inverseMatrix = Matrix.Scaling(Scale);
-                inverseMatrix.Invert();
+                var inverseMatrix = Matrix4x4.CreateScale(Scale);
+                Matrix4x4.InvertSafe(inverseMatrix, out inverseMatrix);
                 for (var index = 0; index < data.Vertices.Length; index++)
                 {
                     data.Vertices[index].Position *= Scale;
-                    Vector3.TransformNormal(ref data.Vertices[index].Normal, ref inverseMatrix, out data.Vertices[index].Normal);
-                    data.Vertices[index].Normal.Normalize();
+                    data.Vertices[index].Normal = Vector3.TransformNormal(data.Vertices[index].Normal, inverseMatrix);
+                    data.Vertices[index].Normal = Vector3.NormalizeSafe(data.Vertices[index].Normal);
                 }
             }
 

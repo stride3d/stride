@@ -3,6 +3,7 @@
 using System;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Input
 {
@@ -49,7 +50,7 @@ namespace Stride.Input
             keysEnum.MoveNext(); secondFingerId = keysEnum.Current;
 
             var beginDirVec = FingerIdsToLastPos[secondFingerId] - FingerIdsToLastPos[firstFingerId];
-            beginVectorNormalized = Vector2.Normalize(beginDirVec);
+            beginVectorNormalized = Vector2.NormalizeSafe(beginDirVec);
             beginVectorLength = beginDirVec.Length();
 
             beginCenter = (FingerIdsToLastPos[secondFingerId] + FingerIdsToLastPos[firstFingerId]) / 2;
@@ -68,7 +69,7 @@ namespace Stride.Input
         protected override void UpdateGestureVarsAndPerfomChecks()
         {
             var currentVector = FingerIdsToLastPos[secondFingerId] - FingerIdsToLastPos[firstFingerId];
-            var currentVectorNormalized = Vector2.Normalize(currentVector);
+            var currentVectorNormalized = Vector2.NormalizeSafe(currentVector);
 
             // Update the gesture current rotation value
             var rotSign = beginVectorNormalized[0] * currentVectorNormalized[1] - beginVectorNormalized[1] * currentVectorNormalized[0];

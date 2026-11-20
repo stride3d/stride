@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -136,7 +137,7 @@ namespace Stride.Graphics
             get { return BordersInternal; }
             set
             {
-                if (value == BordersInternal)
+                if (value.NearEquals(BordersInternal))
                     return;
 
                 BordersInternal = value;
@@ -169,7 +170,7 @@ namespace Stride.Graphics
             get { return sizeInPixels; }
             private set
             {
-                if (value == sizeInPixels)
+                if (value.NearEquals(sizeInPixels))
                     return;
 
                 sizeInPixels = value;
@@ -187,7 +188,7 @@ namespace Stride.Graphics
             get { return pixelsPerUnit; }
             set
             {
-                if (pixelsPerUnit == value)
+                if (pixelsPerUnit.NearEquals(value))
                     return;
 
                 pixelsPerUnit = value;

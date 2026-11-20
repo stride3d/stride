@@ -9,6 +9,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Drawing;
 using Stride.Animations;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels.CurveEditor
 {
@@ -125,16 +126,16 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
                         break;
 
                     case RotationDisplayMode.Euler:
-                        Matrix.RotationQuaternion(ref sample, out var matrix);
+                        var matrix = Matrix4x4.CreateFromQuaternion(sample);
                         DecomposeXYZ(matrix, out vector);
                         //matrix.DecomposeXYZ(out decomposed);
                         sampleData.Add(new RotationData(ft, MathUtil.RadiansToDegrees(vector.X), MathUtil.RadiansToDegrees(vector.Y), MathUtil.RadiansToDegrees(vector.Z), float.NaN));
                         break;
 
                     case RotationDisplayMode.AxisAngle:
-                        vector = sample.Axis;
-                        vector.Normalize();
-                        sampleData.Add(new RotationData(ft, vector.X, vector.Y, vector.Z, MathUtil.RadiansToDegrees(sample.Angle)));
+                        vector = sample.GetAxis();
+                        vector = Vector3.NormalizeSafe(vector);
+                        sampleData.Add(new RotationData(ft, vector.X, vector.Y, vector.Z, MathUtil.RadiansToDegrees(sample.GetAngle())));
                         break;
 
                     default:
@@ -209,7 +210,7 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
         /// </summary>
         /// <param name="matrix"></param>
         /// <param name="rotation"></param>
-        private static void DecomposeXYZ(in Matrix matrix, out Vector3 rotation)
+        private static void DecomposeXYZ(in Matrix4x4 matrix, out Vector3 rotation)
         {
             var rotY = MathUtil.IsOne(Math.Abs(matrix.M13)) ? Math.Acos(Math.Max(Math.Abs(matrix.M11), Math.Abs(matrix.M33))) : Math.Asin(-matrix.M13);
             rotation.Y = (float)(MathF.Sign(-matrix.M13) * rotY);

@@ -5,6 +5,7 @@ using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using IReference = Stride.Core.Serialization.Contents.IReference;
+using System.Numerics;
 
 namespace Stride.Core.Assets.Quantum;
 
@@ -30,7 +31,7 @@ public class AssetNodeContainer : NodeContainer, IPrimitiveTypeFilter
         typeof(Quaternion),
         typeof(RectangleF),
         typeof(Rectangle),
-        typeof(Matrix),
+        typeof(Matrix4x4),
         typeof(AngleSingle),
     ];
 

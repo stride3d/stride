@@ -5,6 +5,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Font;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Renderers
 {

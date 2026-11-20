@@ -30,6 +30,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -181,12 +182,6 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     public static explicit operator Int3(System.Numerics.Vector3 v) => new((int)v.X, (int)v.Y, (int)v.Z);
 
     /// <summary>
-    /// Casts from Stride.Maths to System.Numerics vectors
-    /// </summary>
-    /// <param name="v">Value to cast</param>
-    public static explicit operator System.Numerics.Vector3(Int3 v) => new(v.X, v.Y, v.Z);
-
-    /// <summary>
     /// Calculates the length of the vector.
     /// </summary>
     /// <returns>The length of the vector.</returns>
@@ -222,34 +217,12 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     }
 
     /// <summary>
-    /// Raises the exponent for each components.
-    /// </summary>
-    /// <param name="exponent">The exponent.</param>
-    public void Pow(int exponent)
-    {
-        X = (int)Math.Pow(X, exponent);
-        Y = (int)Math.Pow(Y, exponent);
-        Z = (int)Math.Pow(Z, exponent);
-    }
-
-    /// <summary>
     /// Creates an array containing the elements of the vector.
     /// </summary>
     /// <returns>A three-element array containing the components of the vector.</returns>
     public readonly int[] ToArray()
     {
         return [X, Y, Z];
-    }
-
-    /// <summary>
-    /// Adds two vectors.
-    /// </summary>
-    /// <param name="left">The first vector to add.</param>
-    /// <param name="right">The second vector to add.</param>
-    /// <param name="result">When the method completes, contains the sum of the two vectors.</param>
-    public static void Add(ref readonly Int3 left, ref readonly Int3 right, out Int3 result)
-    {
-        result = new Int3(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
     }
 
     /// <summary>
@@ -268,32 +241,10 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     /// </summary>
     /// <param name="left">The first vector to subtract.</param>
     /// <param name="right">The second vector to subtract.</param>
-    /// <param name="result">When the method completes, contains the difference of the two vectors.</param>
-    public static void Subtract(ref readonly Int3 left, ref readonly Int3 right, out Int3 result)
-    {
-        result = new Int3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
-    }
-
-    /// <summary>
-    /// Subtracts two vectors.
-    /// </summary>
-    /// <param name="left">The first vector to subtract.</param>
-    /// <param name="right">The second vector to subtract.</param>
     /// <returns>The difference of the two vectors.</returns>
     public static Int3 Subtract(Int3 left, Int3 right)
     {
         return new Int3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name="value">The vector to scale.</param>
-    /// <param name="scale">The amount by which to scale the vector.</param>
-    /// <param name="result">When the method completes, contains the scaled vector.</param>
-    public static void Multiply(ref readonly Int3 value, int scale, out Int3 result)
-    {
-        result = new Int3(value.X * scale, value.Y * scale, value.Z * scale);
     }
 
     /// <summary>
@@ -312,32 +263,10 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     /// </summary>
     /// <param name="left">The first vector to modulate.</param>
     /// <param name="right">The second vector to modulate.</param>
-    /// <param name="result">When the method completes, contains the modulated vector.</param>
-    public static void Modulate(ref readonly Int3 left, ref readonly Int3 right, out Int3 result)
-    {
-        result = new Int3(left.X * right.X, left.Y * right.Y, left.Z * right.Z);
-    }
-
-    /// <summary>
-    /// Modulates a vector with another by performing component-wise multiplication.
-    /// </summary>
-    /// <param name="left">The first vector to modulate.</param>
-    /// <param name="right">The second vector to modulate.</param>
     /// <returns>The modulated vector.</returns>
-    public static Int3 Modulate(Int3 left, Int3 right)
+    public static Int3 Multiply(Int3 left, Int3 right)
     {
         return new Int3(left.X * right.X, left.Y * right.Y, left.Z * right.Z);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name="value">The vector to scale.</param>
-    /// <param name="scale">The amount by which to scale the vector.</param>
-    /// <param name="result">When the method completes, contains the scaled vector.</param>
-    public static void Divide(ref readonly Int3 value, int scale, out Int3 result)
-    {
-        result = new Int3(value.X / scale, value.Y / scale, value.Z / scale);
     }
 
     /// <summary>
@@ -349,16 +278,6 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     public static Int3 Divide(Int3 value, int scale)
     {
         return new Int3(value.X / scale, value.Y / scale, value.Z / scale);
-    }
-
-    /// <summary>
-    /// Reverses the direction of a given vector.
-    /// </summary>
-    /// <param name="value">The vector to negate.</param>
-    /// <param name="result">When the method completes, contains a vector facing in the opposite direction.</param>
-    public static void Negate(ref readonly Int3 value, out Int3 result)
-    {
-        result = new Int3(-value.X, -value.Y, -value.Z);
     }
 
     /// <summary>
@@ -377,8 +296,9 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     /// <param name="value">The value to clamp.</param>
     /// <param name="min">The minimum value.</param>
     /// <param name="max">The maximum value.</param>
-    /// <param name="result">When the method completes, contains the clamped value.</param>
-    public static void Clamp(ref readonly Int3 value, ref readonly Int3 min, ref readonly Int3 max, out Int3 result)
+    /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Int3 Clamp(Int3 value, Int3 min, Int3 max)
     {
         int x = value.X;
         x = (x > max.X) ? max.X : x;
@@ -392,31 +312,7 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
         z = (z > max.Z) ? max.Z : z;
         z = (z < min.Z) ? min.Z : z;
 
-        result = new Int3(x, y, z);
-    }
-
-    /// <summary>
-    /// Restricts a value to be within a specified range.
-    /// </summary>
-    /// <param name="value">The value to clamp.</param>
-    /// <param name="min">The minimum value.</param>
-    /// <param name="max">The maximum value.</param>
-    /// <returns>The clamped value.</returns>
-    public static Int3 Clamp(Int3 value, Int3 min, Int3 max)
-    {
-        Clamp(ref value, ref min, ref max, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Calculates the dot product of two vectors.
-    /// </summary>
-    /// <param name="left">First source vector.</param>
-    /// <param name="right">Second source vector.</param>
-    /// <param name="result">When the method completes, contains the dot product of the two vectors.</param>
-    public static void Dot(ref readonly Int3 left, ref readonly Int3 right, out int result)
-    {
-        result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z);
+        return new Int3(x, y, z);
     }
 
     /// <summary>
@@ -436,52 +332,20 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     /// <param name="start">Start vector.</param>
     /// <param name="end">End vector.</param>
     /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <param name="result">When the method completes, contains the linear interpolation of the two vectors.</param>
-    /// <remarks>
-    /// This method performs the linear interpolation based on the following formula.
-    /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
-    /// </remarks>
-    public static void Lerp(ref readonly Int3 start, ref readonly Int3 end, float amount, out Int3 result)
-    {
-        result.X = (int)(start.X + ((end.X - start.X) * amount));
-        result.Y = (int)(start.Y + ((end.Y - start.Y) * amount));
-        result.Z = (int)(start.Z + ((end.Z - start.Z) * amount));
-    }
-
-    /// <summary>
-    /// Performs a linear interpolation between two vectors.
-    /// </summary>
-    /// <param name="start">Start vector.</param>
-    /// <param name="end">End vector.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
     /// <returns>The linear interpolation of the two vectors.</returns>
     /// <remarks>
     /// This method performs the linear interpolation based on the following formula.
     /// <c>start + (end - start) * amount</c>
     /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
     /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Int3 Lerp(Int3 start, Int3 end, float amount)
     {
-        Lerp(ref start, ref end, amount, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Performs a cubic interpolation between two vectors.
-    /// </summary>
-    /// <param name="start">Start vector.</param>
-    /// <param name="end">End vector.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <param name="result">When the method completes, contains the cubic interpolation of the two vectors.</param>
-    public static void SmoothStep(ref readonly Int3 start, ref readonly Int3 end, float amount, out Int3 result)
-    {
-        amount = (amount > 1) ? 1 : ((amount < 0) ? 0 : amount);
-        amount = amount * amount * (3 - (2 * amount));
-
+        Int3 result;
         result.X = (int)(start.X + ((end.X - start.X) * amount));
         result.Y = (int)(start.Y + ((end.Y - start.Y) * amount));
         result.Z = (int)(start.Z + ((end.Z - start.Z) * amount));
+        return result;
     }
 
     /// <summary>
@@ -491,23 +355,17 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     /// <param name="end">End vector.</param>
     /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
     /// <returns>The cubic interpolation of the two vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Int3 SmoothStep(Int3 start, Int3 end, float amount)
     {
-        SmoothStep(ref start, ref end, amount, out var result);
-        return result;
-    }
+        Int3 result;
+        amount = (amount > 1) ? 1 : ((amount < 0) ? 0 : amount);
+        amount = amount * amount * (3 - (2 * amount));
 
-    /// <summary>
-    /// Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name="left">The first source vector.</param>
-    /// <param name="right">The second source vector.</param>
-    /// <param name="result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
-    public static void Max(ref readonly Int3 left, ref readonly Int3 right, out Int3 result)
-    {
-        result.X = (left.X > right.X) ? left.X : right.X;
-        result.Y = (left.Y > right.Y) ? left.Y : right.Y;
-        result.Z = (left.Z > right.Z) ? left.Z : right.Z;
+        result.X = (int)(start.X + ((end.X - start.X) * amount));
+        result.Y = (int)(start.Y + ((end.Y - start.Y) * amount));
+        result.Z = (int)(start.Z + ((end.Z - start.Z) * amount));
+        return result;
     }
 
     /// <summary>
@@ -516,9 +374,13 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     /// <param name="left">The first source vector.</param>
     /// <param name="right">The second source vector.</param>
     /// <returns>A vector containing the largest components of the source vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Int3 Max(Int3 left, Int3 right)
     {
-        Max(ref left, ref right, out var result);
+        Int3 result;
+        result.X = (left.X > right.X) ? left.X : right.X;
+        result.Y = (left.Y > right.Y) ? left.Y : right.Y;
+        result.Z = (left.Z > right.Z) ? left.Z : right.Z;
         return result;
     }
 
@@ -527,23 +389,14 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     /// </summary>
     /// <param name="left">The first source vector.</param>
     /// <param name="right">The second source vector.</param>
-    /// <param name="result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
-    public static void Min(ref readonly Int3 left, ref readonly Int3 right, out Int3 result)
+    /// <returns>A vector containing the smallest components of the source vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Int3 Min(Int3 left, Int3 right)
     {
+        Int3 result;
         result.X = (left.X < right.X) ? left.X : right.X;
         result.Y = (left.Y < right.Y) ? left.Y : right.Y;
         result.Z = (left.Z < right.Z) ? left.Z : right.Z;
-    }
-
-    /// <summary>
-    /// Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name="left">The first source vector.</param>
-    /// <param name="right">The second source vector.</param>
-    /// <returns>A vector containing the smallest components of the source vectors.</returns>
-    public static Int3 Min(Int3 left, Int3 right)
-    {
-        Min(ref left, ref right, out var result);
         return result;
     }
 
@@ -566,9 +419,9 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     /// <param name="value">The source vector.</param>
     /// <param name="rounding">The rounding strategy to use.</param>
     /// <returns>A vector containing the rounded values of the source vector.</returns>
-    public static Int3 Round(in Vector3 value, MidpointRounding rounding = default)
+    public static Int3 Round(Vector3 value, MidpointRounding rounding = default)
     {
-        Round(in value, out var result, rounding);
+        Round(value, out var result, rounding);
         return result;
     }
 

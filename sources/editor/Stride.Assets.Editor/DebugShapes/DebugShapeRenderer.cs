@@ -9,6 +9,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.DebugShapes
 {

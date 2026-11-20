@@ -11,6 +11,7 @@ using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Rendering;
 using static BulletSharp.UnsafeNativeMethods;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -633,7 +634,7 @@ namespace Stride.Physics
         /// or
         /// A Gear constraint always needs two rigidbodies to be created.
         /// </exception>
-        public static Constraint CreateConstraint(ConstraintTypes type, RigidbodyComponent rigidBodyA, Matrix frameA, bool useReferenceFrameA = false)
+        public static Constraint CreateConstraint(ConstraintTypes type, RigidbodyComponent rigidBodyA, Matrix4x4 frameA, bool useReferenceFrameA = false)
         {
             return CreateConstraintInternal(type, rigidBodyA, frameA, useReferenceFrameA:useReferenceFrameA);
         }
@@ -653,7 +654,7 @@ namespace Stride.Physics
         /// or
         /// Both RigidBodies must be valid
         /// </exception>
-        public static Constraint CreateConstraint(ConstraintTypes type, RigidbodyComponent rigidBodyA, RigidbodyComponent rigidBodyB, Matrix frameA, Matrix frameB, bool useReferenceFrameA = false)
+        public static Constraint CreateConstraint(ConstraintTypes type, RigidbodyComponent rigidBodyA, RigidbodyComponent rigidBodyB, Matrix4x4 frameA, Matrix4x4 frameB, bool useReferenceFrameA = false)
         {
             if (rigidBodyA == null || rigidBodyB == null) throw new Exception("Both RigidBodies must be valid");
             return CreateConstraintInternal(type, rigidBodyA, frameA, rigidBodyB, frameB, useReferenceFrameA);
@@ -699,7 +700,7 @@ namespace Stride.Physics
         }
 
 
-        static Constraint CreateConstraintInternal(ConstraintTypes type, RigidbodyComponent rigidBodyA, Matrix frameA, RigidbodyComponent rigidBodyB = null, Matrix frameB = default, bool useReferenceFrameA = false)
+        static Constraint CreateConstraintInternal(ConstraintTypes type, RigidbodyComponent rigidBodyA, Matrix4x4 frameA, RigidbodyComponent rigidBodyB = null, Matrix4x4 frameB = default, bool useReferenceFrameA = false)
         {
             if (rigidBodyA == null) throw new Exception($"{nameof(rigidBodyA)} must be valid");
             if (rigidBodyB != null && rigidBodyB.Simulation != rigidBodyA.Simulation) throw new Exception("Both RigidBodies must be on the same simulation");
@@ -715,8 +716,8 @@ namespace Stride.Physics
                     {
                         InternalPoint2PointConstraint = 
                             rigidBodyB == null ? 
-                            new BulletSharp.Point2PointConstraint(rbA, frameA.TranslationVector ) :
-                            new BulletSharp.Point2PointConstraint(rbA, rbB, frameA.TranslationVector, frameB.TranslationVector),
+                            new BulletSharp.Point2PointConstraint(rbA, frameA.Translation ) :
+                            new BulletSharp.Point2PointConstraint(rbA, rbB, frameA.Translation, frameB.Translation),
                     };
                     constraintBase = constraint;
 
@@ -800,7 +801,7 @@ namespace Stride.Physics
                         InternalGearConstraint =  
                             rigidBodyB == null ? 
                                 throw new Exception("A Gear constraint always needs two rigidbodies to be created.") :
-                                new BulletSharp.GearConstraint(rbA, rbB, frameA.TranslationVector, frameB.TranslationVector),
+                                new BulletSharp.GearConstraint(rbA, rbB, frameA.Translation, frameB.Translation),
                     };
                     constraintBase = constraint;
 
@@ -979,7 +980,7 @@ namespace Stride.Physics
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
         /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
         /// <returns>The result of this test</returns>
-        public HitResult ShapeSweep(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
+        public HitResult ShapeSweep(ColliderShape shape, Matrix4x4 from, Matrix4x4 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
         {
             var sh = shape.InternalShape as BulletSharp.ConvexShape;
             if (sh == null)
@@ -1003,7 +1004,7 @@ namespace Stride.Physics
         /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
         /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public void ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
+        public void ShapeSweepPenetrating(ColliderShape shape, Matrix4x4 from, Matrix4x4 to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
         {
             var sh = shape.InternalShape as BulletSharp.ConvexShape;
             if (sh == null)

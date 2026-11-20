@@ -10,8 +10,9 @@
 using Stride.Core.Mathematics;
 using static System.MathF;
 using static Stride.Core.Mathematics.MathUtil;
-using static Stride.Core.Mathematics.Vector2;
-using static Stride.Core.Mathematics.Vector3;
+using static System.Numerics.Vector2;
+using static System.Numerics.Vector3;
+using System.Numerics;
 
 namespace Stride.Heightfield;
 
@@ -99,7 +100,7 @@ public static partial class RunevisionTerrainErosion
         //
         // p: current coordinate    i: integer part of p    o: grid points for 4x4 cells
         //
-        Vector2 pInt = Floor(p);
+        Vector2 pInt = Vector2.Round(p, MidpointRounding.ToNegativeInfinity);
         Vector2 pFrac = p - pInt;
         Vector2 phaseDir = new Vector2(0.0f);
         float weightSum = 0.0f;
@@ -124,7 +125,7 @@ public static partial class RunevisionTerrainErosion
                 // Bell-shaped weight function which is 1 at dist 0 and nearly 0 at dist 1.5f.
                 // Due to the random offsets of up to 0.5f, the closest a cell point not in the 4x4
                 // grid can be to the current point p is 1.5f units away.
-                float sqrDist = Dot(vectorFromCellPoint, vectorFromCellPoint);
+                float sqrDist = Vector2.Dot(vectorFromCellPoint, vectorFromCellPoint);
                 float weight = Exp(-sqrDist * 2.0f);
                 // Subtract 0.01111 to make the function actually 0 at distance 1.5f, which avoids
                 // some (very subtle) grid line artefacts.
@@ -135,7 +136,7 @@ public static partial class RunevisionTerrainErosion
 
                 // The waveInput is a gradient which increases in value along sideDir. Its rate of
                 // change is the freq times tau, due to the multiplier pre-applied to sideDir.
-                float waveInput = Dot(vectorFromCellPoint, sideDir) + offset;
+                float waveInput = Vector2.Dot(vectorFromCellPoint, sideDir) + offset;
 
                 // Add this cell's cosine and sine wave contributions to the interpolated value.
                 phaseDir += new Vector2(Cos(waveInput), Sin(waveInput)) * weight;
@@ -145,7 +146,7 @@ public static partial class RunevisionTerrainErosion
         // Get the raw interpolated value.
         Vector2 interpolated = phaseDir / weightSum;
         // Interpret the value as a vector whose Length represents the magnitude of both waves.
-        float magnitude = Sqrt(Dot(interpolated, interpolated));
+        float magnitude = Sqrt(Vector2.Dot(interpolated, interpolated));
         // Apply a lower threshold to show small magnitudes we're going to fully normalize.
         magnitude = Max(1.0f - normalization, magnitude);
         // Return a vector containing the normalized cosine and sine waves, as well as the direction
@@ -226,7 +227,7 @@ public static partial class RunevisionTerrainErosion
 
         // Deteriming the strength of the initial slope used for gully directions
         // based on the specified Lerp of the actual slope and an assumed slope.
-        Vector2 gullySlope = Lerp(heightAndSlope.YZ(), heightAndSlope.YZ() / slopeLength * assumedSlope.X, assumedSlope.Y);
+        Vector2 gullySlope = Vector2.Lerp(heightAndSlope.YZ(), heightAndSlope.YZ() / slopeLength * assumedSlope.X, assumedSlope.Y);
 
         for (int i = 0; i < octaves; i++) {
             // Calculate and add gullies to the height and slope.
@@ -247,7 +248,7 @@ public static partial class RunevisionTerrainErosion
             // Gullies has height offset (from -1 to 1) in x and derivative in yz.
             Vector3 gullies = new Vector3(phacelle.X, phacelle.Y * phacelleZW.X, phacelle.Y * phacelleZW.Y);
             // Fade gullies towards fadeTarget based on combiMask.
-            Vector3 fadedGullies = Lerp(new Vector3(fadeTarget, 0.0f, 0.0f), gullies * gullyWeight, combiMask);
+            Vector3 fadedGullies = Vector3.Lerp(new Vector3(fadeTarget, 0.0f, 0.0f), gullies * gullyWeight, combiMask);
             // Apply height offset and derivative (slope) according to strength of current octave.
             heightAndSlope += fadedGullies * strength;
             magnitude += strength;
@@ -479,7 +480,7 @@ public static partial class RunevisionTerrainErosion
         if (settings.Trees)
         {
             Vector2 deriv = n.YZ() + new Vector2(h.Y, h.Z);
-            float normalY = 1.0f / Sqrt(1.0f + Dot(deriv, deriv));
+            float normalY = 1.0f / Sqrt(1.0f + Vector2.Dot(deriv, deriv));
             float treesAmount = GetTreesAmount(eroded, normalY, h.X / h.W + 0.5f, ridgeMap, settings);
             trees = (1.0f - Pow(noised((p + new Vector2(0.5f)) * 200.0f).X * 0.5f + 0.5f, 2.0f) - 1.0f + 1.0f * treesAmount) * 1.5f;
             if (trees > 0.0f)

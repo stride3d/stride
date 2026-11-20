@@ -6,6 +6,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Graphics.Regression;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests;
 
@@ -15,7 +16,7 @@ namespace Stride.Graphics.Tests;
 /// </summary>
 public class TestMatrixLayout : GraphicTestGameBase
 {
-    private static readonly Matrix Expected = new(
+    private static readonly Matrix4x4 Expected = new(
         11, 12, 13, 14,
         21, 22, 23, 24,
         31, 32, 33, 34,
@@ -39,11 +40,11 @@ public class TestMatrixLayout : GraphicTestGameBase
             var commandList = game.GraphicsContext.CommandList;
 
             using var target = Texture.New2D(device, 4, 4, PixelFormat.R32_Float, TextureFlags.RenderTarget);
-            using var matrixBuffer = Buffer.Structured.New(device, new[] { Matrix.Identity, Expected });
+            using var matrixBuffer = Buffer.Structured.New(device, new[] { Matrix4x4.Identity, Expected });
 
             var effect = new EffectInstance(game.EffectSystem.LoadEffect("MatrixLayoutTestShader").WaitForResult());
             effect.Parameters.Set(MatrixLayoutTestShaderKeys.TestMatrix, Expected);
-            effect.Parameters.Set(MatrixLayoutTestShaderKeys.TestMatrices, new[] { Matrix.Identity, Expected });
+            effect.Parameters.Set(MatrixLayoutTestShaderKeys.TestMatrices, new[] { Matrix4x4.Identity, Expected });
             effect.Parameters.Set(MatrixLayoutTestShaderKeys.TestMatrixBuffer, matrixBuffer);
             effect.Parameters.Set(MatrixLayoutTestShaderKeys.Source, source);
             effect.UpdateEffect(device);

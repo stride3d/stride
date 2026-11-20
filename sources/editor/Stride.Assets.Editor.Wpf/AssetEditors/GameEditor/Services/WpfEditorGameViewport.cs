@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Controls;
 using Stride.Editor.Engine;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 {

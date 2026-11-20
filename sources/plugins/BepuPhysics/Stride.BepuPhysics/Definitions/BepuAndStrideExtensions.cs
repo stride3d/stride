@@ -2,10 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using NVector3 = System.Numerics.Vector3;
-using SVector3 = Stride.Core.Mathematics.Vector3;
+using SVector3 = System.Numerics.Vector3;
 
 using NQuaternion = System.Numerics.Quaternion;
-using SQuaternion = Stride.Core.Mathematics.Quaternion;
+using SQuaternion = System.Numerics.Quaternion;
 
 using BRigidPose = BepuPhysics.RigidPose;
 using SRigidPose = Stride.BepuPhysics.Definitions.RigidPose;
@@ -14,6 +14,7 @@ using BBodyVelocity = BepuPhysics.BodyVelocity;
 using SBodyVelocity = Stride.BepuPhysics.Definitions.BodyVelocity;
 
 using System.Runtime.CompilerServices;
+using Stride.Core.Mathematics;
 
 
 internal static class BepuAndStrideExtensions

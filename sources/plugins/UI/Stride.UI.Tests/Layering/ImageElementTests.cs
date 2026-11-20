@@ -9,6 +9,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering.Sprites;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Layering
 {

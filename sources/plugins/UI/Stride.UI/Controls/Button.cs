@@ -9,6 +9,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.UI.Attributes;
+using System.Numerics;
 
 namespace Stride.UI.Controls
 {

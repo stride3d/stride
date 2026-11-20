@@ -13,6 +13,7 @@ using Stride.Graphics.Data;
 using Stride.Importer.ThreeD;
 using Stride.Rendering;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Assets.Tests;
 
@@ -39,9 +40,9 @@ public class TestModelBones : IDisposable
         public static readonly Placement Identity = new(Vector3.Zero, Vector3.Zero, Vector3.One);
 
         // FBX local transform with no pivots, rotation order XYZ, in row-vector order
-        public Matrix Matrix => Matrix.Scaling(Scaling)
-            * Matrix.RotationX(MathUtil.DegreesToRadians(Rotation.X)) * Matrix.RotationY(MathUtil.DegreesToRadians(Rotation.Y)) * Matrix.RotationZ(MathUtil.DegreesToRadians(Rotation.Z))
-            * Matrix.Translation(Translation);
+        public Matrix4x4 Matrix => Matrix4x4.CreateScale(Scaling)
+            * Matrix4x4.CreateRotationX(MathUtil.DegreesToRadians(Rotation.X)) * Matrix4x4.CreateRotationY(MathUtil.DegreesToRadians(Rotation.Y)) * Matrix4x4.CreateRotationZ(MathUtil.DegreesToRadians(Rotation.Z))
+            * Matrix4x4.CreateTranslation(Translation);
     }
 
     public record Scene
@@ -59,8 +60,8 @@ public class TestModelBones : IDisposable
         // FBX rotation order of the mesh's model, 0 being XYZ
         public int RotationOrder { get; init; }
 
-        public Matrix RootBind => Root.Matrix;
-        public Matrix ChildBind => Child.Matrix * Root.Matrix;
+        public Matrix4x4 RootBind => Root.Matrix;
+        public Matrix4x4 ChildBind => Child.Matrix * Root.Matrix;
     }
 
     public static TheoryData<string, Scene> Scenes => new()
@@ -89,7 +90,7 @@ public class TestModelBones : IDisposable
 
         // The file's units, as the importer applied them, from the root bone's position
         updater.GetWorldMatrix(Array.FindIndex(skeleton.Nodes, x => x.Name == "root"), out var root);
-        var scale = root.TranslationVector.Length() / scene.RootBind.TranslationVector.Length();
+        var scale = root.Translation.Length() / scene.RootBind.Translation.Length();
 
         var expected = Vertices.Select(x => Vector3.TransformCoordinate(x, scene.Geometric.Matrix * scene.MeshAtBind.Matrix) * scale).ToList();
         var actual = model.Meshes.SelectMany(x => Skin(x, updater)).ToList();
@@ -149,11 +150,11 @@ public class TestModelBones : IDisposable
                 var boneName = skeleton.Nodes[bone.NodeIndex].Name;
                 Assert.True(recorded.TryGetValue((meshName, boneName), out var expected), $"{file}: no cluster in the file for mesh {meshName}, bone {boneName}");
                 // The importer's units, then its scene root, which the importer bakes into the offsets
-                expected.TranslationVector *= 0.01f;
-                expected = Matrix.Invert(root) * expected * root;
+                expected.Translation *= 0.01f;
+                expected = (Matrix4x4.Invert(root, out var inverse) ? inverse : default) * expected * root;
                 var actual = bone.LinkToMeshMatrix;
                 for (var i = 0; i < 16; i++)
-                    Assert.True(Math.Abs(actual[i] - expected[i]) < 1e-3f, $"{file}, {meshName}, bone {boneName}: {actual} instead of {expected}");
+                    Assert.True(Math.Abs(actual[i / 4, i % 4] - expected[i / 4, i % 4]) < 1e-3f, $"{file}, {meshName}, bone {boneName}: {actual} instead of {expected}");
                 checkedBones++;
             }
         }
@@ -211,7 +212,7 @@ public class TestModelBones : IDisposable
         var text = new StringBuilder();
         void Line(string line) => text.Append(line).Append('\n');
         string Numbers(IEnumerable<float> values) => string.Join(",", values.Select(x => x.ToString("R", CultureInfo.InvariantCulture)));
-        string Matrix(Matrix m) => Numbers(Enumerable.Range(0, 16).Select(i => m[i]));
+        string Matrix(Matrix4x4 m) => Numbers(Enumerable.Range(0, 16).Select(i => m[i / 4, i % 4]));
         string Vector(Vector3 v) => Numbers([v.X, v.Y, v.Z]);
         void Placement(Placement p)
         {
@@ -219,14 +220,14 @@ public class TestModelBones : IDisposable
             Line($"P: \"Lcl Rotation\", \"Lcl Rotation\", \"\", \"A\",{Vector(p.Rotation)}");
             Line($"P: \"Lcl Scaling\", \"Lcl Scaling\", \"\", \"A\",{Vector(p.Scaling)}");
         }
-        void Cluster(long id, int[] indices, Matrix bind)
+        void Cluster(long id, int[] indices, Matrix4x4 bind)
         {
             Line($"Deformer: {id}, \"SubDeformer::\", \"Cluster\" {{");
             Line("Version: 100");
             Line($"Indexes: *{indices.Length} {{ a: {string.Join(",", indices)} }}");
             Line($"Weights: *{indices.Length} {{ a: {string.Join(",", indices.Select(_ => "1"))} }}");
             // As the FBX SDK writes it: the mesh at bind, then into the bone's space at bind
-            Line($"Transform: *16 {{ a: {Matrix(scene.MeshAtBind.Matrix * Stride.Core.Mathematics.Matrix.Invert(bind))} }}");
+            Line($"Transform: *16 {{ a: {Matrix(scene.MeshAtBind.Matrix * (Matrix4x4.Invert(bind, out var inverse) ? inverse : default))} }}");
             Line($"TransformLink: *16 {{ a: {Matrix(bind)} }}");
             Line("}");
         }
@@ -293,7 +294,7 @@ public class TestModelBones : IDisposable
         private record Node(string Name, List<object> Properties, List<Node> Children);
 
         /// <param name="root">The scene root Assimp makes from the file's axes and units, in row-vector order.</param>
-        public static Dictionary<(string Mesh, string Bone), Matrix> ReadClusters(string path, out Matrix root)
+        public static Dictionary<(string Mesh, string Bone), Matrix4x4> ReadClusters(string path, out Matrix4x4 root)
         {
             var data = File.ReadAllBytes(path);
             Assert.Equal("Kaydara FBX Binary  ", Encoding.ASCII.GetString(data, 0, 20));
@@ -311,16 +312,16 @@ public class TestModelBones : IDisposable
                     settings[(string)property.Properties[0]] = Convert.ToDouble(property.Properties[4], CultureInfo.InvariantCulture);
             }
             var unit = (float)settings["UnitScaleFactor"];
-            var axes = new Matrix { M44 = 1 };
+            var axes = new Matrix4x4 { M44 = 1 };
             axes[0, (int)settings["CoordAxis"]] = (float)settings["CoordAxisSign"] * unit;
             axes[1, (int)settings["UpAxis"]] = (float)settings["UpAxisSign"] * unit;
             axes[2, (int)settings["FrontAxis"]] = (float)settings["FrontAxisSign"] * unit;
             // Assimp's matrices act on column vectors, Stride's on row vectors
-            axes.Transpose();
+            axes = Matrix4x4.Transpose(axes);
             root = axes;
 
-            var models = new Dictionary<long, (string Name, Matrix Geometric)>();
-            var clusters = new Dictionary<long, Matrix>();
+            var models = new Dictionary<long, (string Name, Matrix4x4 Geometric)>();
+            var clusters = new Dictionary<long, Matrix4x4>();
             foreach (var item in roots.First(x => x.Name == "Objects").Children)
             {
                 var id = (long)item.Properties[0];
@@ -339,9 +340,9 @@ public class TestModelBones : IDisposable
                 else if (item.Name == "Deformer" && (string)item.Properties[2] == "Cluster")
                 {
                     var values = (double[])item.Children.First(x => x.Name == "Transform").Properties[0];
-                    var matrix = new Matrix();
+                    var matrix = new Matrix4x4();
                     for (var i = 0; i < 16; i++)
-                        matrix[i] = (float)values[i];
+                        matrix[i / 4, i % 4] = (float)values[i];
                     clusters[id] = matrix;
                 }
             }
@@ -352,7 +353,7 @@ public class TestModelBones : IDisposable
                 .ToList();
 
             // Bone to cluster, cluster to skin, skin to geometry, geometry to the models that use it
-            var result = new Dictionary<(string, string), Matrix>();
+            var result = new Dictionary<(string, string), Matrix4x4>();
             foreach (var (bone, cluster) in links.Where(x => models.ContainsKey(x.Child) && clusters.ContainsKey(x.Parent)))
             {
                 foreach (var skin in links.Where(x => x.Child == cluster).Select(x => x.Parent))

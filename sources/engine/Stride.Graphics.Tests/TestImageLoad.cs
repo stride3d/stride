@@ -8,6 +8,7 @@ using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

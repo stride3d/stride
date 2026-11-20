@@ -8,6 +8,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Lights;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Shadows
 {
@@ -121,7 +122,7 @@ namespace Stride.Rendering.Shadows
 
             // TODO: Min and Max distance can be auto-computed from readback from Z buffer
 
-            Matrix.Invert(ref sourceView.View, out var viewToWorld);
+            Matrix4x4.InvertSafe(sourceView.View, out var viewToWorld);
 
             // Update the frustum infos
             UpdateFrustum(sourceView);
@@ -141,8 +142,8 @@ namespace Stride.Rendering.Shadows
             {
                 if (MathF.Abs(Vector3.Dot(direction, vectorUp)) < (1.0 - 0.0001))
                 {
-                    side = Vector3.Normalize(Vector3.Cross(vectorUp, direction));
-                    upDirection = Vector3.Normalize(Vector3.Cross(direction, side));
+                    side = Vector3.NormalizeSafe(Vector3.Cross(vectorUp, direction));
+                    upDirection = Vector3.NormalizeSafe(Vector3.Cross(direction, side));
                     break;
                 }
             }
@@ -237,13 +238,13 @@ namespace Stride.Rendering.Shadows
                     target = cascadeBoundWS.Center;
 
                     // Computes the bouding box of the frustum cascade in light space
-                    var lightViewMatrix = Matrix.LookAtRH(target, target + direction, upDirection);
+                    var lightViewMatrix = Matrix4x4.CreateLookAt(target, target + direction, upDirection);
                     cascadeMinBoundLS = new Vector3(float.MaxValue);
                     cascadeMaxBoundLS = new Vector3(-float.MaxValue);
                     for (int i = 0; i < cascadeFrustumCornersWS.Length; i++)
                     {
                         Vector3 cornerViewSpace;
-                        Vector3.TransformCoordinate(ref cascadeFrustumCornersWS[i], ref lightViewMatrix, out cornerViewSpace);
+                        cornerViewSpace = Vector3.TransformCoordinate(cascadeFrustumCornersWS[i], lightViewMatrix);
 
                         cascadeMinBoundLS = Vector3.Min(cascadeMinBoundLS, cornerViewSpace);
                         cascadeMaxBoundLS = Vector3.Max(cascadeMaxBoundLS, cornerViewSpace);
@@ -253,24 +254,24 @@ namespace Stride.Rendering.Shadows
                 }
 
                 // Update the shadow camera. The calculation of the eye position assumes RH coordinates.
-                var viewMatrix = Matrix.LookAtRH(target - direction * cascadeMaxBoundLS.Z, target, upDirection); // View;;
+                var viewMatrix = Matrix4x4.CreateLookAt(target - direction * cascadeMaxBoundLS.Z, target, upDirection); // View;;
                 var nearClip = 0.0f;
                 var farClip = cascadeMaxBoundLS.Z - cascadeMinBoundLS.Z;
-                var projectionMatrix = Matrix.OrthoOffCenterRH(cascadeMinBoundLS.X, cascadeMaxBoundLS.X, cascadeMinBoundLS.Y, cascadeMaxBoundLS.Y, nearClip, farClip); // Projection
-                Matrix viewProjectionMatrix;
-                Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out viewProjectionMatrix);
+                var projectionMatrix = Matrix4x4.CreateOrthographicOffCenter(cascadeMinBoundLS.X, cascadeMaxBoundLS.X, cascadeMinBoundLS.Y, cascadeMaxBoundLS.Y, nearClip, farClip); // Projection
+                Matrix4x4 viewProjectionMatrix;
+                viewProjectionMatrix = Matrix4x4.Multiply(viewMatrix, projectionMatrix);
 
                 // Stabilize the Shadow matrix on the projection
                 if (shadow.StabilizationMode == LightShadowMapStabilizationMode.ProjectionSnapping)
                 {
-                    var shadowPixelPosition = viewProjectionMatrix.TranslationVector * lightShadowMap.Size * 0.5f; // shouln't it be scale and not translation ?
+                    var shadowPixelPosition = viewProjectionMatrix.Translation * lightShadowMap.Size * 0.5f; // shouln't it be scale and not translation ?
                     shadowPixelPosition.Z = 0;
                     var shadowPixelPositionRounded = new Vector3(MathF.Round(shadowPixelPosition.X), MathF.Round(shadowPixelPosition.Y), 0.0f);
 
                     var shadowPixelOffset = new Vector4(shadowPixelPositionRounded - shadowPixelPosition, 0.0f);
                     shadowPixelOffset *= 2.0f / lightShadowMap.Size;
-                    projectionMatrix.Row4 += shadowPixelOffset;
-                    Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out viewProjectionMatrix);
+                    projectionMatrix.W += shadowPixelOffset;
+                    viewProjectionMatrix = Matrix4x4.Multiply(viewMatrix, projectionMatrix);
                 }
 
                 shaderData.ViewMatrix[cascadeLevel] = viewMatrix;
@@ -303,9 +304,9 @@ namespace Stride.Rendering.Shadows
                 float centerY = 0.5f * (cascadeTextureCoords.Y + cascadeTextureCoords.W);
 
                 // Compute receiver view proj matrix
-                Matrix adjustmentMatrix = Matrix.Scaling(leftX, -leftY, 1.0f) * Matrix.Translation(centerX, centerY, 0.0f);
+                Matrix4x4 adjustmentMatrix = Matrix4x4.CreateScale(leftX, -leftY, 1.0f) * Matrix4x4.CreateTranslation(centerX, centerY, 0.0f);
                 // Calculate View Proj matrix from World space to Cascade space
-                Matrix.Multiply(ref viewProjectionMatrix, ref adjustmentMatrix, out shaderData.WorldToShadowCascadeUV[cascadeLevel]);
+                shaderData.WorldToShadowCascadeUV[cascadeLevel] = Matrix4x4.Multiply(viewProjectionMatrix, adjustmentMatrix);
 
                 // Allocate shadow render view
                 var shadowRenderView = CreateRenderView();
@@ -326,16 +327,16 @@ namespace Stride.Rendering.Shadows
 
         private void UpdateFrustum(RenderView renderView)
         {
-            Matrix.Invert(ref renderView.Projection, out var projectionToView);
+            Matrix4x4.InvertSafe(renderView.Projection, out var projectionToView);
 
             // Compute frustum-dependent variables (common for all shadow maps)
-            Matrix.Invert(ref renderView.ViewProjection, out var projectionToWorld);
+            Matrix4x4.InvertSafe(renderView.ViewProjection, out var projectionToWorld);
 
             // Transform Frustum corners in World Space (8 points) - algorithm is valid only if the view matrix does not do any kind of scale/shear transformation
             for (int i = 0; i < 8; ++i)
             {
-                Vector3.TransformCoordinate(ref FrustumBasePoints[i], ref projectionToWorld, out frustumCornersWS[i]);
-                Vector3.TransformCoordinate(ref FrustumBasePoints[i], ref projectionToView, out frustumCornersVS[i]);
+                frustumCornersWS[i] = Vector3.TransformCoordinate(FrustumBasePoints[i], projectionToWorld);
+                frustumCornersVS[i] = Vector3.TransformCoordinate(FrustumBasePoints[i], projectionToView);
             }
 
             // With a reversed depth projection the z = 0 corners lie on the far plane: order the corners near plane first
@@ -349,7 +350,7 @@ namespace Stride.Rendering.Shadows
             }
         }
 
-        private static float ToLinearDepth(float depthZ, ref Matrix projectionMatrix)
+        private static float ToLinearDepth(float depthZ, ref Matrix4x4 projectionMatrix)
         {
             // as projection matrix is RH we calculate it like this
             var denominator = (depthZ + projectionMatrix.M33);
@@ -467,9 +468,9 @@ namespace Stride.Rendering.Shadows
             public readonly float[] CascadeSplits;
             public float DepthBias;
             public float OffsetScale;
-            public readonly Matrix[] WorldToShadowCascadeUV;
-            public readonly Matrix[] ViewMatrix;
-            public readonly Matrix[] ProjectionMatrix;
+            public readonly Matrix4x4[] WorldToShadowCascadeUV;
+            public readonly Matrix4x4[] ViewMatrix;
+            public readonly Matrix4x4[] ProjectionMatrix;
             public readonly Vector2[] DepthRange;   ///////////////////////////////////////////////////
             public readonly Vector4[] TextureCoords;
 
@@ -477,9 +478,9 @@ namespace Stride.Rendering.Shadows
             {
                 DepthRange = new Vector2[cascadeCount];
                 CascadeSplits = new float[cascadeCount];
-                WorldToShadowCascadeUV = new Matrix[cascadeCount];
-                ViewMatrix = new Matrix[cascadeCount];
-                ProjectionMatrix = new Matrix[cascadeCount];
+                WorldToShadowCascadeUV = new Matrix4x4[cascadeCount];
+                ViewMatrix = new Matrix4x4[cascadeCount];
+                ProjectionMatrix = new Matrix4x4[cascadeCount];
                 TextureCoords = new Vector4[cascadeCount];
             }
         }
@@ -489,8 +490,8 @@ namespace Stride.Rendering.Shadows
             private const string ShaderName = "ShadowMapReceiverDirectional";
             private readonly int cascadeCount;
             private float[] cascadeSplits;
-            private Matrix[] worldToShadowCascadeUV;
-            private Matrix[] inverseWorldToShadowCascadeUV; /////////////////////////////////////////////////// Required for calculating the correct sampling offset for calculating the thickness.
+            private Matrix4x4[] worldToShadowCascadeUV;
+            private Matrix4x4[] inverseWorldToShadowCascadeUV; /////////////////////////////////////////////////// Required for calculating the correct sampling offset for calculating the thickness.
             private Vector2[] depthRanges;    ///////////////////////////////////////////////////
             private float[] depthBiases;
             private float[] offsetScales;
@@ -499,8 +500,8 @@ namespace Stride.Rendering.Shadows
             private Vector2 shadowMapTextureTexelSize;
             private ObjectParameterKey<Texture> shadowMapTextureKey;
             private ValueParameterKey<float> cascadeSplitsKey;
-            private ValueParameterKey<Matrix> worldToShadowCascadeUVsKey;
-            private ValueParameterKey<Matrix> inverseWorldToShadowCascadeUVsKey;    ///////////////////////////////////////////////////
+            private ValueParameterKey<Matrix4x4> worldToShadowCascadeUVsKey;
+            private ValueParameterKey<Matrix4x4> inverseWorldToShadowCascadeUVsKey;    ///////////////////////////////////////////////////
             private ValueParameterKey<Vector2> depthRangesKey;       ///////////////////////////////////////////////////
             private ValueParameterKey<float> depthBiasesKey;
             private ValueParameterKey<float> offsetScalesKey;
@@ -567,7 +568,7 @@ namespace Stride.Rendering.Shadows
                         int cascadeIndex = splitIndex + i;
                         cascadeSplits[cascadeIndex] = splits[i];
                         worldToShadowCascadeUV[cascadeIndex] = lightWorldToShadowCascadeUVs[i];
-                        inverseWorldToShadowCascadeUV[cascadeIndex] = Matrix.Invert(lightWorldToShadowCascadeUVs[i]);  ///////////////////////////////////////////////////
+                        Matrix4x4.InvertSafe(lightWorldToShadowCascadeUVs[i], out inverseWorldToShadowCascadeUV[cascadeIndex]);  ///////////////////////////////////////////////////
                         depthRanges[cascadeIndex] = lightDepthRanges[i];    ///////////////////////////////////////////////////
                     }
 

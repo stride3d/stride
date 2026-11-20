@@ -16,6 +16,7 @@ using Stride.Importer.Common;
 using Stride.Importer.ThreeD;
 using Stride.Rendering;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Assets.Tests;
 
@@ -92,14 +93,14 @@ public class TestMorphImport
         var remapped = Sample().Remap(new uint[] { 2, 0, 0 });
         Assert.Equal(new uint[] { 0, 1, 3, 5 }, remapped.VertexOffsets);
         Assert.Equal(remapped.Entries[1].PositionDelta, remapped.Entries[3].PositionDelta);
-        var targetNormal = Vector3.Normalize(new Vector3(1, 0, 1));
+        var targetNormal = Vector3.NormalizeSafe(new Vector3(1, 0, 1));
         var data = MeshMorphData.Create(1, new[] { "Tilt" }, new[] {
             MeshMorphEntry.Create(0, 0, Vector3.UnitX, targetNormal - Vector3.UnitZ, Vector3.Zero) }, true);
-        var transform = Matrix.Scaling(2, 3, 4) * Matrix.Translation(5, 6, 7);
+        var transform = Matrix4x4.CreateScale(2, 3, 4) * Matrix4x4.CreateTranslation(5, 6, 7);
         var transformed = data.Transform(transform, new[] { Vector3.UnitZ }, null);
         Assert.Equal(new Vector3(2, 0, 0), transformed.Entries[0].PositionDelta);
         // Independent analytical inverse-transpose normal result (translation must not affect a delta).
-        var expected = Vector3.Normalize(new Vector3(targetNormal.X / 2, 0, targetNormal.Z / 4)) - Vector3.UnitZ;
+        var expected = Vector3.NormalizeSafe(new Vector3(targetNormal.X / 2, 0, targetNormal.Z / 4)) - Vector3.UnitZ;
         Assert.True((expected - transformed.Entries[0].NormalDelta).Length() < 0.002f);
     }
 
@@ -220,13 +221,13 @@ public class TestMorphImport
             data.Validate();
             Assert.Equal(generated, data.HasNormalDeltas);
             Assert.Equal(generated, data.HasTangentDeltas);
-            Assert.All(data.Entries, entry => Assert.Equal(generated, entry.NormalDelta != Vector3.Zero));
+            Assert.All(data.Entries, entry => Assert.Equal(generated, !entry.NormalDelta.NearEquals(Vector3.Zero)));
             if (generated)
             {
                 // Corners in one triangle tilt to (0,-1,2)/sqrt(5); the shared corners average both faces.
                 var expected = new[] { 0.338f, 0.4597f };
                 Assert.All(data.Entries, entry => Assert.Contains(expected, length => Math.Abs(entry.NormalDelta.Length() - length) < 0.01f));
-                Assert.Contains(data.Entries, entry => entry.TangentDelta != Vector3.Zero);
+                Assert.Contains(data.Entries, entry => !entry.TangentDelta.NearEquals(Vector3.Zero));
             }
         }
         finally { File.Delete(path); }

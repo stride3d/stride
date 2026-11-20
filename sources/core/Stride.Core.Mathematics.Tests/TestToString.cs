@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -325,7 +326,7 @@ public class TestToString
     public void TestMatrix()
     {
         DoTestToString(
-            Matrix.Zero,
+            default(Matrix4x4),
             (
                 "[M11:0 M12:0 M13:0 M14:0] [M21:0 M22:0 M23:0 M24:0] [M31:0 M32:0 M33:0 M34:0] [M41:0 M42:0 M43:0 M44:0]",
                 "[M11:0 M12:0 M13:0 M14:0] [M21:0 M22:0 M23:0 M24:0] [M31:0 M32:0 M33:0 M34:0] [M41:0 M42:0 M43:0 M44:0]",
@@ -334,7 +335,7 @@ public class TestToString
             )
         );
         DoTestToString(
-            Matrix.Identity,
+            Matrix4x4.Identity,
             (
                 "[M11:1 M12:0 M13:0 M14:0] [M21:0 M22:1 M23:0 M24:0] [M31:0 M32:0 M33:1 M34:0] [M41:0 M42:0 M43:0 M44:1]",
                 "[M11:1 M12:0 M13:0 M14:0] [M21:0 M22:1 M23:0 M24:0] [M31:0 M32:0 M33:1 M34:0] [M41:0 M42:0 M43:0 M44:1]",
@@ -347,10 +348,10 @@ public class TestToString
     [Fact]
     public void TestPlane()
     {
-        DoTestToString(new Plane(0.0f), ("A:0 B:0 C:0 D:0", "A:0 B:0 C:0 D:0", "A:0 B:0 C:0 D:0", "A:0 B:0 C:0 D:0"));
-        DoTestToString(new Plane(1.0f), ("A:1 B:1 C:1 D:1", "A:1 B:1 C:1 D:1", "A:1 B:1 C:1 D:1", "A:1 B:1 C:1 D:1"));
-        DoTestToString(new Plane(Vector3.Zero, Vector3.UnitY), ("A:0 B:1 C:0 D:0", "A:0 B:1 C:0 D:0", "A:0 B:1 C:0 D:0", "A:0 B:1 C:0 D:0"));
-        DoTestToString(new Plane(Vector3.One, Vector3.UnitY + Vector3.UnitZ), ("A:0 B:1 C:1 D:2", "A:0 B:1 C:1 D:2", "A:0 B:1 C:1 D:2", "A:0 B:1 C:1 D:2"));
+        DoTestToString(new Plane(0.0f, 0.0f, 0.0f, 0.0f), ("A:0 B:0 C:0 D:0", "A:0 B:0 C:0 D:0", "A:0 B:0 C:0 D:0", "A:0 B:0 C:0 D:0"));
+        DoTestToString(new Plane(1.0f, 1.0f, 1.0f, 1.0f), ("A:1 B:1 C:1 D:1", "A:1 B:1 C:1 D:1", "A:1 B:1 C:1 D:1", "A:1 B:1 C:1 D:1"));
+        DoTestToString(new Plane(Vector3.UnitY, Vector3.Dot(Vector3.UnitY, Vector3.Zero)), ("A:0 B:1 C:0 D:0", "A:0 B:1 C:0 D:0", "A:0 B:1 C:0 D:0", "A:0 B:1 C:0 D:0"));
+        DoTestToString(new Plane(Vector3.UnitY + Vector3.UnitZ, Vector3.Dot(Vector3.UnitY + Vector3.UnitZ, Vector3.One)), ("A:0 B:1 C:1 D:2", "A:0 B:1 C:1 D:2", "A:0 B:1 C:1 D:2", "A:0 B:1 C:1 D:2"));
     }
 
     [Fact]
@@ -382,7 +383,7 @@ public class TestToString
     {
         DoTestToString(Quaternion.Zero, ("X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0"));
         DoTestToString(Quaternion.Identity, ("X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1"));
-        DoTestToString(Quaternion.One, ("X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1"));
+        DoTestToString(new Quaternion(1, 1, 1, 1), ("X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1"));
     }
 
     [Fact]

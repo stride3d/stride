@@ -12,6 +12,7 @@ using Stride.Input;
 using Stride.Rendering.Sprites;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {
@@ -54,17 +55,17 @@ namespace Stride.UI.Tests.Regression
             if (Input.IsKeyPressed(Keys.Down))
                 localMatrix.M43 += DepthIncrement;
             if (Input.IsKeyPressed(Keys.NumPad4))
-                localMatrix = localMatrix * Matrix.RotationY(-RotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationY(-RotationIncrement);
             if (Input.IsKeyPressed(Keys.NumPad6))
-                localMatrix = localMatrix * Matrix.RotationY(+RotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationY(+RotationIncrement);
             if (Input.IsKeyPressed(Keys.NumPad2))
-                localMatrix = localMatrix * Matrix.RotationX(+RotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationX(+RotationIncrement);
             if (Input.IsKeyPressed(Keys.NumPad8))
-                localMatrix = localMatrix * Matrix.RotationX(-RotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationX(-RotationIncrement);
             if (Input.IsKeyPressed(Keys.NumPad1))
-                localMatrix = localMatrix * Matrix.RotationZ(-RotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationZ(-RotationIncrement);
             if (Input.IsKeyPressed(Keys.NumPad9))
-                localMatrix = localMatrix * Matrix.RotationZ(+RotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationZ(+RotationIncrement);
 
             if (Input.IsKeyPressed(Keys.L))
                 border.BorderThickness += new Thickness(1, 0, 0, 0, 0, 0);
@@ -102,14 +103,14 @@ namespace Stride.UI.Tests.Regression
         private void ResetBorderElement()
         {
             border.Depth = 100;
-            border.LocalMatrix = Matrix.Identity;
+            border.LocalMatrix = Matrix4x4.Identity;
             border.BorderThickness = new Thickness(3, 5, 1, 4, 6, 2);
             border.SetCanvasRelativePosition(new Vector3(0.5f));
         }
 
         private void FlattenBorderElement()
         {
-            border.LocalMatrix = Matrix.Identity;
+            border.LocalMatrix = Matrix4x4.Identity;
             border.SetCanvasRelativePosition(new Vector3(0.5f, 0.5f, 0f));
             border.Depth = 0;
 
@@ -121,7 +122,7 @@ namespace Stride.UI.Tests.Regression
 
         private void TurnBorderElement()
         {
-            border.LocalMatrix = Matrix.RotationYawPitchRoll(-0.2f, -0.3f, 0.4f);
+            border.LocalMatrix = Matrix4x4.CreateFromYawPitchRoll(-0.2f, -0.3f, 0.4f);
         }
 
         [Fact]

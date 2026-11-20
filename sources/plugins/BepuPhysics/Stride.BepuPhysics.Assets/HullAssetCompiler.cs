@@ -19,6 +19,7 @@ using Stride.Graphics.Data;
 using Stride.Rendering;
 using Stride.Assets.VHACD;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Assets;
 
@@ -93,14 +94,14 @@ internal class HullAssetCompiler : AssetCompilerBase
 
                 commandContext.Logger.Info("Processing convex hull generation, this might take a while!");
 
-                var nodeTransforms = new List<Matrix>();
+                var nodeTransforms = new List<Matrix4x4>();
 
                 //pre-compute all node transforms, assuming nodes are ordered... see ModelViewHierarchyUpdater
 
                 if (modelAsset.Skeleton == null)
                 {
-                    Matrix baseMatrix;
-                    Matrix.Transformation(ref Parameters.Scaling, ref Parameters.LocalRotation, ref Parameters.LocalOffset, out baseMatrix);
+                    Matrix4x4 baseMatrix;
+                    Matrix4x4.CreateTransformation(Parameters.Scaling, Parameters.LocalRotation, Parameters.LocalOffset, out baseMatrix);
                     nodeTransforms.Add(baseMatrix);
                 }
                 else
@@ -108,17 +109,17 @@ internal class HullAssetCompiler : AssetCompilerBase
                     var nodesLength = modelAsset.Skeleton.Nodes.Length;
                     for (var i = 0; i < nodesLength; i++)
                     {
-                        Matrix localMatrix;
-                        Matrix.Transformation(
-                            ref modelAsset.Skeleton.Nodes[i].Transform.Scale,
-                            ref modelAsset.Skeleton.Nodes[i].Transform.Rotation,
-                            ref modelAsset.Skeleton.Nodes[i].Transform.Position, out localMatrix);
+                        Matrix4x4 localMatrix;
+                        Matrix4x4.CreateTransformation(
+                            modelAsset.Skeleton.Nodes[i].Transform.Scale,
+                            modelAsset.Skeleton.Nodes[i].Transform.Rotation,
+                            modelAsset.Skeleton.Nodes[i].Transform.Position, out localMatrix);
 
-                        Matrix worldMatrix;
+                        Matrix4x4 worldMatrix;
                         if (modelAsset.Skeleton.Nodes[i].ParentIndex != -1)
                         {
                             var nodeTransform = nodeTransforms[modelAsset.Skeleton.Nodes[i].ParentIndex];
-                            Matrix.Multiply(ref localMatrix, ref nodeTransform, out worldMatrix);
+                            worldMatrix = Matrix4x4.Multiply(localMatrix, nodeTransform);
                         }
                         else
                         {
@@ -127,8 +128,8 @@ internal class HullAssetCompiler : AssetCompilerBase
 
                         if (i == 0)
                         {
-                            Matrix baseMatrix;
-                            Matrix.Transformation(ref Parameters.Scaling, ref Parameters.LocalRotation, ref Parameters.LocalOffset, out baseMatrix);
+                            Matrix4x4 baseMatrix;
+                            Matrix4x4.CreateTransformation(Parameters.Scaling, Parameters.LocalRotation, Parameters.LocalOffset, out baseMatrix);
                             nodeTransforms.Add(baseMatrix * worldMatrix);
                         }
                         else
@@ -175,15 +176,15 @@ internal class HullAssetCompiler : AssetCompilerBase
                         var vertexIndex = meshData.Draw.VertexBuffers[0].Offset;
                         for (var v = 0; v < meshData.Draw.VertexBuffers[0].Count; v++)
                         {
-                            var posMatrix = Matrix.Translation(new Vector3(BitConverter.ToSingle(vertexData, vertexIndex + 0), BitConverter.ToSingle(vertexData, vertexIndex + 4), BitConverter.ToSingle(vertexData, vertexIndex + 8)));
+                            var posMatrix = Matrix4x4.CreateTranslation(new Vector3(BitConverter.ToSingle(vertexData, vertexIndex + 0), BitConverter.ToSingle(vertexData, vertexIndex + 4), BitConverter.ToSingle(vertexData, vertexIndex + 8)));
 
-                            Matrix rotatedMatrix;
+                            Matrix4x4 rotatedMatrix;
                             var nodeTransform = nodeTransforms[i];
-                            Matrix.Multiply(ref posMatrix, ref nodeTransform, out rotatedMatrix);
+                            rotatedMatrix = Matrix4x4.Multiply(posMatrix, nodeTransform);
 
-                            combinedVerts.Add(rotatedMatrix.TranslationVector.X);
-                            combinedVerts.Add(rotatedMatrix.TranslationVector.Y);
-                            combinedVerts.Add(rotatedMatrix.TranslationVector.Z);
+                            combinedVerts.Add(rotatedMatrix.Translation.X);
+                            combinedVerts.Add(rotatedMatrix.Translation.Y);
+                            combinedVerts.Add(rotatedMatrix.Translation.Z);
 
                             vertexIndex += stride;
                         }

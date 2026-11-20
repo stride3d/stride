@@ -12,6 +12,7 @@ using Stride.Core.Storage;
 using Stride.Engine;
 using Stride.Graphics.Font;
 using Stride.Graphics.Regression;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

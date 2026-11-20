@@ -11,6 +11,7 @@ using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
 using Stride.UI.Events;
+using System.Numerics;
 
 namespace Stride.UI.Controls
 {
@@ -442,7 +443,7 @@ namespace Stride.UI.Controls
             var axis = (int)Orientation;
             var offsets = TrackStartingOffsets;
             var elementSize = RenderSize[axis];
-            var touchPosition = touchPostionWorld[axis] - WorldMatrixInternal[12 + axis] + elementSize / 2;
+            var touchPosition = touchPostionWorld[axis] - WorldMatrixInternal[(12 + axis) / 4, (12 + axis) % 4] + elementSize / 2;
             var ratio = (touchPosition - offsets.X) / (elementSize - offsets.X - offsets.Y);
             Value = MathUtil.Lerp(Minimum, Maximum, Orientation == Orientation.Vertical ^ IsDirectionReversed ? 1 - ratio : ratio);
         }

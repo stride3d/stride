@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Runtime.CompilerServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -44,55 +45,25 @@ public struct BoundingFrustum
     /// Initializes a new instance of the <see cref="BoundingFrustum"/> struct from a matrix view-projection.
     /// </summary>
     /// <param name="matrix">The matrix view projection.</param>
-    public BoundingFrustum(ref readonly Matrix matrix)
+    public BoundingFrustum(ref readonly Matrix4x4 matrix)
     {
         // Left
-        Plane.Normalize(
-            matrix.M14 + matrix.M11,
-            matrix.M24 + matrix.M21,
-            matrix.M34 + matrix.M31,
-            matrix.M44 + matrix.M41,
-            out LeftPlane);
+        LeftPlane = Plane.Normalize(new Plane(matrix.M14 + matrix.M11, matrix.M24 + matrix.M21, matrix.M34 + matrix.M31, matrix.M44 + matrix.M41));
 
         // Right
-        Plane.Normalize(
-            matrix.M14 - matrix.M11,
-            matrix.M24 - matrix.M21,
-            matrix.M34 - matrix.M31,
-            matrix.M44 - matrix.M41,
-            out RightPlane);
+        RightPlane = Plane.Normalize(new Plane(matrix.M14 - matrix.M11, matrix.M24 - matrix.M21, matrix.M34 - matrix.M31, matrix.M44 - matrix.M41));
 
         // Top
-        Plane.Normalize(
-            matrix.M14 - matrix.M12,
-            matrix.M24 - matrix.M22,
-            matrix.M34 - matrix.M32,
-            matrix.M44 - matrix.M42,
-            out TopPlane);
+        TopPlane = Plane.Normalize(new Plane(matrix.M14 - matrix.M12, matrix.M24 - matrix.M22, matrix.M34 - matrix.M32, matrix.M44 - matrix.M42));
 
         // Bottom
-        Plane.Normalize(
-            matrix.M14 + matrix.M12,
-            matrix.M24 + matrix.M22,
-            matrix.M34 + matrix.M32,
-            matrix.M44 + matrix.M42,
-            out BottomPlane);
+        BottomPlane = Plane.Normalize(new Plane(matrix.M14 + matrix.M12, matrix.M24 + matrix.M22, matrix.M34 + matrix.M32, matrix.M44 + matrix.M42));
 
         // Near
-        Plane.Normalize(
-            matrix.M13,
-            matrix.M23,
-            matrix.M33,
-            matrix.M43,
-            out NearPlane);
+        NearPlane = Plane.Normalize(new Plane(matrix.M13, matrix.M23, matrix.M33, matrix.M43));
 
         // Far
-        Plane.Normalize(
-            matrix.M14 - matrix.M13,
-            matrix.M24 - matrix.M23,
-            matrix.M34 - matrix.M33,
-            matrix.M44 - matrix.M43,
-            out FarPlane);
+        FarPlane = Plane.Normalize(new Plane(matrix.M14 - matrix.M13, matrix.M24 - matrix.M23, matrix.M34 - matrix.M33, matrix.M44 - matrix.M43));
     }
 
     /// <summary>

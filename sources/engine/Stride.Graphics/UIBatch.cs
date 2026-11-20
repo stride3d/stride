@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -25,7 +26,7 @@ namespace Stride.Graphics
         /// <summary>
         /// The view projection matrix that will be used for the current begin/end draw calls.
         /// </summary>
-        private Matrix viewProjectionMatrix;
+        private Matrix4x4 viewProjectionMatrix;
 
         // Cached states
         private BlendStateDescription? currentBlendState;
@@ -168,7 +169,7 @@ namespace Stride.Graphics
         /// <param name="blendState">Blending options.</param>
         /// <param name="depthStencilState">Depth and stencil options.</param>
         /// <param name="stencilValue">The value of the stencil buffer to take as reference</param>
-        public void Begin(GraphicsContext graphicsContext, ref Matrix viewProjection, BlendStateDescription? blendState, DepthStencilStateDescription? depthStencilState, int stencilValue)
+        public void Begin(GraphicsContext graphicsContext, ref Matrix4x4 viewProjection, BlendStateDescription? blendState, DepthStencilStateDescription? depthStencilState, int stencilValue)
         {
             Begin(graphicsContext, ref viewProjection, blendState, null, null, depthStencilState, stencilValue);
         }
@@ -184,7 +185,7 @@ namespace Stride.Graphics
         /// <param name="rasterizerState">Rasterization options.</param>
         /// <param name="depthStencilState">Depth and stencil options.</param>
         /// <param name="stencilValue">The value of the stencil buffer to take as reference</param>
-        public void Begin(GraphicsContext graphicsContext, ref Matrix viewProjection, BlendStateDescription? blendState, SamplerState samplerState, RasterizerStateDescription? rasterizerState, DepthStencilStateDescription? depthStencilState, int stencilValue)
+        public void Begin(GraphicsContext graphicsContext, ref Matrix4x4 viewProjection, BlendStateDescription? blendState, SamplerState samplerState, RasterizerStateDescription? rasterizerState, DepthStencilStateDescription? depthStencilState, int stencilValue)
         {
             viewProjectionMatrix = viewProjection;
 
@@ -212,7 +213,7 @@ namespace Stride.Graphics
         /// <param name="elementSize">The size of the rectangle</param>
         /// <param name="color">The color of the rectangle</param>
         /// <param name="depthBias">The depth bias to use when drawing the element</param>
-        public void DrawRectangle(ref Matrix worldMatrix, ref Vector3 elementSize, ref Color color, int depthBias)
+        public void DrawRectangle(ref Matrix4x4 worldMatrix, ref Vector3 elementSize, ref Color color, int depthBias)
         {
             // Skip items with null size
             if (elementSize.LengthSquared() < MathUtil.ZeroTolerance)
@@ -238,12 +239,12 @@ namespace Stride.Graphics
             matrix.M32 *= elementSize.Z;
             matrix.M33 *= elementSize.Z;
 
-            Matrix worldViewProjection;
-            Matrix.Multiply(ref matrix, ref viewProjectionMatrix, out worldViewProjection);
-            drawInfo.UnitXWorld = worldViewProjection.Row1;
-            drawInfo.UnitYWorld = worldViewProjection.Row2;
-            drawInfo.UnitZWorld = worldViewProjection.Row3;
-            Vector4.Transform(ref vector4LeftTop, ref worldViewProjection, out drawInfo.LeftTopCornerWorld);
+            Matrix4x4 worldViewProjection;
+            worldViewProjection = Matrix4x4.Multiply(matrix, viewProjectionMatrix);
+            drawInfo.UnitXWorld = worldViewProjection.X;
+            drawInfo.UnitYWorld = worldViewProjection.Y;
+            drawInfo.UnitZWorld = worldViewProjection.Z;
+            drawInfo.LeftTopCornerWorld = Vector4.Transform(vector4LeftTop, worldViewProjection);
 
             var elementInfo = new ElementInfo(4, 6, in drawInfo, depthBias);
 
@@ -257,7 +258,7 @@ namespace Stride.Graphics
         /// <param name="elementSize">The size of the cube</param>
         /// <param name="color">The color of the cube</param>
         /// <param name="depthBias">The depth bias to use when drawing the element</param>
-        public void DrawCube(ref Matrix worldMatrix, ref Vector3 elementSize, ref Color color, int depthBias)
+        public void DrawCube(ref Matrix4x4 worldMatrix, ref Vector3 elementSize, ref Color color, int depthBias)
         {
             DrawCube(ref worldMatrix, ref elementSize, ref color, depthBias, false);
         }
@@ -269,12 +270,12 @@ namespace Stride.Graphics
         /// <param name="elementSize">The size of the element</param>
         /// <param name="color">The color of the element</param>
         /// <param name="depthBias">The depth bias to use when drawing the element</param>
-        public void DrawBackground(ref Matrix worldMatrix, ref Vector3 elementSize, ref Color color, int depthBias)
+        public void DrawBackground(ref Matrix4x4 worldMatrix, ref Vector3 elementSize, ref Color color, int depthBias)
         {
             DrawCube(ref worldMatrix, ref elementSize, ref color, depthBias, true);
         }
 
-        private void DrawCube(ref Matrix worldMatrix, ref Vector3 elementSize, ref Color color, int depthBias, bool isReverse)
+        private void DrawCube(ref Matrix4x4 worldMatrix, ref Vector3 elementSize, ref Color color, int depthBias, bool isReverse)
         {
             // Skip items with null size
             if (elementSize.LengthSquared() < MathUtil.ZeroTolerance)
@@ -300,12 +301,12 @@ namespace Stride.Graphics
             matrix.M32 *= elementSize.Z;
             matrix.M33 *= elementSize.Z;
 
-            Matrix worldViewProjection;
-            Matrix.Multiply(ref matrix, ref viewProjectionMatrix, out worldViewProjection);
-            drawInfo.UnitXWorld = worldViewProjection.Row1;
-            drawInfo.UnitYWorld = worldViewProjection.Row2;
-            drawInfo.UnitZWorld = worldViewProjection.Row3;
-            Vector4.Transform(ref vector4LeftTop, ref worldViewProjection, out drawInfo.LeftTopCornerWorld);
+            Matrix4x4 worldViewProjection;
+            worldViewProjection = Matrix4x4.Multiply(matrix, viewProjectionMatrix);
+            drawInfo.UnitXWorld = worldViewProjection.X;
+            drawInfo.UnitYWorld = worldViewProjection.Y;
+            drawInfo.UnitZWorld = worldViewProjection.Z;
+            drawInfo.LeftTopCornerWorld = Vector4.Transform(vector4LeftTop, worldViewProjection);
 
             var elementInfo = new ElementInfo(8, 6 * 6, in drawInfo, depthBias);
 
@@ -325,7 +326,7 @@ namespace Stride.Graphics
         /// <param name="imageOrientation">The rotation to apply on the image uv</param>
         /// <param name="swizzle">Swizzle mode indicating the swizzle use when sampling the texture in the shader</param>
         /// <param name="snapImage">Indicate if the image needs to be snapped or not</param>
-        public void DrawImage(Texture texture, ref Matrix worldMatrix, ref RectangleF sourceRectangle, ref Vector3 elementSize, ref Vector4 borderSize,
+        public void DrawImage(Texture texture, ref Matrix4x4 worldMatrix, ref RectangleF sourceRectangle, ref Vector3 elementSize, ref Vector4 borderSize,
             ref Color color, int depthBias, ImageOrientation imageOrientation = ImageOrientation.AsIs, SwizzleMode swizzle = SwizzleMode.None, bool snapImage = false)
         {
             if (texture == null) throw new ArgumentNullException(nameof(texture));
@@ -349,7 +350,7 @@ namespace Stride.Graphics
                 ColorAdd = Color.Zero,
                 Swizzle = swizzle,
                 SnapImage = snapImage,
-                Primitive = borderSize == Vector4.Zero ? PrimitiveType.Rectangle : PrimitiveType.BorderRectangle,
+                Primitive = borderSize.NearEquals(Vector4.Zero) ? PrimitiveType.Rectangle : PrimitiveType.BorderRectangle,
                 BorderSize = new Vector4(borderSize.X / sourceRectangle.Width, borderSize.Y / sourceRectangle.Height, borderSize.Z / sourceRectangle.Width, borderSize.W / sourceRectangle.Height),
             };
 
@@ -367,10 +368,10 @@ namespace Stride.Graphics
             matrix.M32 *= elementSize.Z;
             matrix.M33 *= elementSize.Z;
 
-            Matrix worldViewProjection;
-            Matrix.Multiply(ref matrix, ref viewProjectionMatrix, out worldViewProjection);
-            drawInfo.UnitXWorld = worldViewProjection.Row1;
-            drawInfo.UnitYWorld = worldViewProjection.Row2;
+            Matrix4x4 worldViewProjection;
+            worldViewProjection = Matrix4x4.Multiply(matrix, viewProjectionMatrix);
+            drawInfo.UnitXWorld = worldViewProjection.X;
+            drawInfo.UnitYWorld = worldViewProjection.Y;
 
             // rotate origin and unit axis if need.
             var leftTopCorner = vector4LeftTop;
@@ -381,7 +382,7 @@ namespace Stride.Graphics
                 drawInfo.UnitYWorld = unitX;
                 leftTopCorner = new Vector4(-0.5f, 0.5f, 0, 1);
             }
-            Vector4.Transform(ref leftTopCorner, ref worldViewProjection, out drawInfo.LeftTopCornerWorld);
+            drawInfo.LeftTopCornerWorld = Vector4.Transform(leftTopCorner, worldViewProjection);
 
             var verticesPerElement = 4;
             var indicesPerElement = 6;
@@ -396,7 +397,7 @@ namespace Stride.Graphics
             Draw(texture, in elementInfo);
         }
 
-        internal void DrawCharacter(Texture texture, in Matrix worldViewProjectionMatrix, in RectangleF sourceRectangle, in Color color, int depthBias, SwizzleMode swizzle)
+        internal void DrawCharacter(Texture texture, in Matrix4x4 worldViewProjectionMatrix, in RectangleF sourceRectangle, in Color color, int depthBias, SwizzleMode swizzle)
         {
             if (texture == null) throw new ArgumentNullException(nameof(texture));
 
@@ -416,9 +417,9 @@ namespace Stride.Graphics
                 Swizzle = swizzle,
                 Primitive = PrimitiveType.Rectangle,
                 VertexShift = Vector4.Zero,
-                UnitXWorld = worldViewProjectionMatrix.Row1,
-                UnitYWorld = worldViewProjectionMatrix.Row2,
-                LeftTopCornerWorld = worldViewProjectionMatrix.Row4,
+                UnitXWorld = worldViewProjectionMatrix.X,
+                UnitYWorld = worldViewProjectionMatrix.Y,
+                LeftTopCornerWorld = worldViewProjectionMatrix.W,
             };
 
             var elementInfo = new ElementInfo(4, 6, in drawInfo, depthBias);
@@ -441,7 +442,7 @@ namespace Stride.Graphics
             worldMatrix.M43 -= worldMatrix.M13 * leftTopCornerOffset.X + worldMatrix.M23 * leftTopCornerOffset.Y;
 
             // transform the world matrix into the world view project matrix
-            Matrix.Multiply(ref worldMatrix, ref viewProjectionMatrix, out drawCommand.Matrix);
+            drawCommand.Matrix = Matrix4x4.Multiply(worldMatrix, viewProjectionMatrix);
 
             font.TypeSpecificRatios(drawCommand.RequestedFontSize, ref drawCommand.SnapText, ref drawCommand.RealVirtualResolutionRatio, out var actualFontSize);
 
@@ -534,18 +535,18 @@ namespace Stride.Graphics
                         vertex++;     // Move vertex pointer position
 
                         if (c == 0)
-                            Vector4.Add(ref currentPosition, ref drawInfo->UnitXWorld, out currentPosition);
+                            currentPosition = Vector4.Add(currentPosition, drawInfo->UnitXWorld);
                         else
-                            Vector4.Subtract(ref currentPosition, ref drawInfo->UnitXWorld, out currentPosition);
+                            currentPosition = Vector4.Subtract(currentPosition, drawInfo->UnitXWorld);
                     }
 
                     if (r == 0)
-                        Vector4.Add(ref currentPosition, ref drawInfo->UnitYWorld, out currentPosition);
+                        currentPosition = Vector4.Add(currentPosition, drawInfo->UnitYWorld);
                     else
-                        Vector4.Subtract(ref currentPosition, ref drawInfo->UnitYWorld, out currentPosition);
+                        currentPosition = Vector4.Subtract(currentPosition, drawInfo->UnitYWorld);
                 }
 
-                Vector4.Add(ref currentPosition, ref drawInfo->UnitZWorld, out currentPosition);
+                currentPosition = Vector4.Add(currentPosition, drawInfo->UnitZWorld);
             }
         }
 
@@ -572,13 +573,13 @@ namespace Stride.Graphics
             // Calculate the position offsets
 
             // posOffsetOuterLeft is just Vector4.Zero
-            Vector4.Multiply(ref drawInfo->UnitXWorld, drawInfo->VertexShift.X, out var posOffsetLeftInner);
-            Vector4.Multiply(ref drawInfo->UnitXWorld, drawInfo->VertexShift.Z, out var posOffsetRightInner);
+            var posOffsetLeftInner = Vector4.Multiply(drawInfo->UnitXWorld, drawInfo->VertexShift.X);
+            var posOffsetRightInner = Vector4.Multiply(drawInfo->UnitXWorld, drawInfo->VertexShift.Z);
             // posOffsetRightOuter is drawInfo->UnitXWorld
 
             // posOffsetOuterTop is just Vector4.Zero
-            Vector4.Multiply(ref drawInfo->UnitYWorld, drawInfo->VertexShift.Y, out var posOffsetTopInner);
-            Vector4.Multiply(ref drawInfo->UnitYWorld, drawInfo->VertexShift.W, out var posOffsetBottomInner);
+            var posOffsetTopInner = Vector4.Multiply(drawInfo->UnitYWorld, drawInfo->VertexShift.Y);
+            var posOffsetBottomInner = Vector4.Multiply(drawInfo->UnitYWorld, drawInfo->VertexShift.W);
             // posOffsetBottomOuter is drawInfo->UnitYWorld
 
             var posOffsetX = stackalloc Vector4[]

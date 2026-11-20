@@ -6,6 +6,7 @@ using Stride.Core.Assets;
 using Stride.Core.Mathematics;
 using Stride.Physics.Assets;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Assets.Tests
 {

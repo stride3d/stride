@@ -4,10 +4,12 @@
 using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Data;
+using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
-using Matrix = Mathematics.Matrix;
+using Matrix = System.Numerics.Matrix4x4;
 
 public sealed class MatrixEditor : VectorEditorBase<Matrix?>
 {
@@ -192,7 +194,7 @@ public sealed class MatrixEditor : VectorEditorBase<Matrix?>
 
         foreach (var property in PropertyToIndex)
         {
-            SetCurrentValue(property.Key, matrix[property.Value]);
+            SetCurrentValue(property.Key, matrix[property.Value / 4, property.Value % 4]);
         }
     }
 
@@ -205,15 +207,15 @@ public sealed class MatrixEditor : VectorEditorBase<Matrix?>
         var array = new float[16];
         foreach (var (localProperty, index) in PropertyToIndex)
         {
-            array[index] = property == localProperty ? ((float?)GetValue(localProperty)).Value : Value.Value[index];
+            array[index] = property == localProperty ? ((float?)GetValue(localProperty)).Value : Value.Value[index / 4, index % 4];
         }
-        return new Matrix(array);
+        return Matrix4x4.Create(array);
     }
 
     /// <inheritdoc/>
     [return: NotNull]
     protected override Matrix? UpateValueFromFloat(float value)
     {
-        return new Matrix(value);
+        return Matrix4x4.Create(value);
     }
 }

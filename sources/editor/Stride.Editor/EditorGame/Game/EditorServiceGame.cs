@@ -20,6 +20,7 @@ using Stride.Games;
 using Stride.Games.Time;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
+using System.Numerics;
 
 namespace Stride.Editor.EditorGame.Game
 {

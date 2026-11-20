@@ -6,6 +6,7 @@ using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Engine;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame;
 

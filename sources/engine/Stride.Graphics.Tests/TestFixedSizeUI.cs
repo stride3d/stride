@@ -10,6 +10,7 @@ using Stride.Rendering.Compositing;
 using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

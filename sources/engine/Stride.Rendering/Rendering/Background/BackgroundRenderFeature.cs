@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering.Skyboxes;
 using Stride.Streaming;
+using System.Numerics;
 
 namespace Stride.Rendering.Background
 {
@@ -144,9 +145,9 @@ namespace Stride.Rendering.Background
                 return; // not supported for the moment.
             }
             spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.Intensity, renderBackground.Intensity);
-            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ViewInverse, Matrix.Invert(renderView.View));
-            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ProjectionInverse, Matrix.Invert(renderView.Projection));
-            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.SkyMatrix, Matrix.Invert(Matrix.RotationQuaternion(renderBackground.Rotation)));
+            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ViewInverse, Matrix4x4.Invert(renderView.View, out var inverse) ? inverse : default);
+            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ProjectionInverse, Matrix4x4.Invert(renderView.Projection, out var inverse2) ? inverse2 : default);
+            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.SkyMatrix, Matrix4x4.Invert(Matrix4x4.CreateFromQuaternion(renderBackground.Rotation), out var inverse3) ? inverse3 : default);
             spriteBatch.Draw(texture, destination, null, Color.White, 0, Vector2.Zero, layerDepth: -0.5f);
             spriteBatch.End();
         }

@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -31,14 +32,14 @@ namespace Stride.Rendering
         internal struct RenderModelFrameInfo
         {
             // Copied during Extract
-            public Matrix World;
+            public Matrix4x4 World;
         }
 
         internal struct RenderModelViewInfo
         {
             // Copied during Extract
-            public Matrix WorldViewProjection;
-            public Matrix WorldView;
+            public Matrix4x4 WorldViewProjection;
+            public Matrix4x4 WorldView;
         }
 
         /// <inheritdoc/>
@@ -71,7 +72,7 @@ namespace Stride.Rendering
                 var renderMesh = objectNode.RenderObject as RenderMesh;
 
                 // TODO: Extract world
-                renderModelObjectInfo[objectNodeReference].World = renderMesh != null ? renderMesh.World : Matrix.Identity;
+                renderModelObjectInfo[objectNodeReference].World = renderMesh != null ? renderMesh.World : Matrix4x4.Identity;
             }
         }
 
@@ -92,8 +93,8 @@ namespace Stride.Rendering
                     ref var renderModelFrameInfo = ref RenderModelObjectInfoData[renderPerViewNode.ObjectNode];
                     ref var renderModelViewInfo = ref RenderModelViewInfoData[renderPerViewNodeReference];
 
-                    Matrix.Multiply(ref renderModelFrameInfo.World, ref view.View, out renderModelViewInfo.WorldView);
-                    Matrix.Multiply(ref renderModelFrameInfo.World, ref view.ViewProjection, out renderModelViewInfo.WorldViewProjection);
+                    renderModelViewInfo.WorldView = Matrix4x4.Multiply(renderModelFrameInfo.World, view.View);
+                    renderModelViewInfo.WorldViewProjection = Matrix4x4.Multiply(renderModelFrameInfo.World, view.ViewProjection);
                 }
             }
         }
@@ -152,9 +153,9 @@ namespace Stride.Rendering
 
                     // Fill PerView
                     perView->View = view.View;
-                    Matrix.Invert(ref view.View, out perView->ViewInverse);
+                    Matrix4x4.InvertSafe(view.View, out perView->ViewInverse);
                     perView->Projection = view.Projection;
-                    Matrix.Invert(ref view.Projection, out perView->ProjectionInverse);
+                    Matrix4x4.InvertSafe(view.Projection, out perView->ProjectionInverse);
                     perView->ViewProjection = view.ViewProjection;
                     perView->ProjScreenRay = new Vector2(-1.0f / view.Projection.M11, 1.0f / view.Projection.M22);
                     // TODO GRAPHICS REFACTOR avoid cbuffer read
@@ -209,7 +210,7 @@ namespace Stride.Rendering
                     var mappedCB = renderNode.Resources.ConstantBuffer.Data;
                     if (worldOffset != -1)
                     {
-                        var world = (Matrix*)((byte*)mappedCB + worldOffset);
+                        var world = (Matrix4x4*)((byte*)mappedCB + worldOffset);
                         *world = renderModelObjectInfo.World;
                     }
 
@@ -224,14 +225,14 @@ namespace Stride.Rendering
                             WorldViewProjection = renderModelViewInfo.WorldViewProjection,
                         };
 
-                        Matrix.Invert(ref renderModelObjectInfo.World, out perDrawData.WorldInverse);
-                        Matrix.Transpose(ref perDrawData.WorldInverse, out perDrawData.WorldInverseTranspose);
-                        Matrix.Invert(ref renderModelViewInfo.WorldView, out perDrawData.WorldViewInverse);
+                        Matrix4x4.InvertSafe(renderModelObjectInfo.World, out perDrawData.WorldInverse);
+                        perDrawData.WorldInverseTranspose = Matrix4x4.Transpose(perDrawData.WorldInverse);
+                        Matrix4x4.InvertSafe(renderModelViewInfo.WorldView, out perDrawData.WorldViewInverse);
 
                         perDrawData.WorldScale = new Vector3(
-                            ((Vector3)renderModelObjectInfo.World.Row1).Length(),
-                            ((Vector3)renderModelObjectInfo.World.Row2).Length(),
-                            ((Vector3)renderModelObjectInfo.World.Row3).Length());
+                            (renderModelObjectInfo.World.X.AsVector3()).Length(),
+                            (renderModelObjectInfo.World.Y.AsVector3()).Length(),
+                            (renderModelObjectInfo.World.Z.AsVector3()).Length());
 
                         perDrawData.EyeMS = new Vector4(perDrawData.WorldViewInverse.M41, perDrawData.WorldViewInverse.M42, perDrawData.WorldViewInverse.M43, 1.0f);
 
@@ -251,11 +252,11 @@ namespace Stride.Rendering
         [StructLayout(LayoutKind.Sequential)]
         private struct PerView
         {
-            public Matrix View;
-            public Matrix ViewInverse;
-            public Matrix Projection;
-            public Matrix ProjectionInverse;
-            public Matrix ViewProjection;
+            public Matrix4x4 View;
+            public Matrix4x4 ViewInverse;
+            public Matrix4x4 Projection;
+            public Matrix4x4 ProjectionInverse;
+            public Matrix4x4 ViewProjection;
             public Vector2 ProjScreenRay;
             private Vector2 padding1;
             public Vector4 Eye;
@@ -264,11 +265,11 @@ namespace Stride.Rendering
         [StructLayout(LayoutKind.Sequential)]
         private struct PerDrawExtra
         {
-            public Matrix WorldInverse;
-            public Matrix WorldInverseTranspose;
-            public Matrix WorldView;
-            public Matrix WorldViewInverse;
-            public Matrix WorldViewProjection;
+            public Matrix4x4 WorldInverse;
+            public Matrix4x4 WorldInverseTranspose;
+            public Matrix4x4 WorldView;
+            public Matrix4x4 WorldViewInverse;
+            public Matrix4x4 WorldViewProjection;
             public Vector3 WorldScale;
             private float padding1;
             public Vector4 EyeMS;

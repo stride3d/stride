@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -38,8 +39,8 @@ namespace Stride.Rendering
 
         public override unsafe void GenerateSortKey(RenderView renderView, RenderViewStage renderViewStage, SortKey* sortKeys)
         {
-            Matrix.Invert(ref renderView.View, out var viewInverse);
-            var plane = new Plane(viewInverse.Forward, Vector3.Dot(viewInverse.TranslationVector, viewInverse.Forward)); // TODO: Point-normal-constructor seems wrong. Check.
+            Matrix4x4.InvertSafe(renderView.View, out var viewInverse);
+            var plane = new Plane(viewInverse.Forward, Vector3.Dot(viewInverse.Translation, viewInverse.Forward)); // TODO: Point-normal-constructor seems wrong. Check.
 
             var renderNodes = renderViewStage.RenderNodes;
 

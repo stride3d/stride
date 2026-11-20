@@ -5,6 +5,7 @@ using System;
 using Xunit;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Layering
 {
@@ -21,11 +22,11 @@ namespace Stride.UI.Tests.Layering
             Assert.True((reference - value).Length() < 0.001f);
         }
 
-        public static void AssertAreNearlyEqual(Matrix reference, Matrix value)
+        public static void AssertAreNearlyEqual(Matrix4x4 reference, Matrix4x4 value)
         {
             var diffMat = reference - value;
             for (int i = 0; i < 16; i++)
-                Assert.True(Math.Abs(diffMat[i]) < 0.001);
+                Assert.True(Math.Abs(diffMat[i / 4, i % 4]) < 0.001);
         }
         // ReSharper restore UnusedParameter.Local 
 

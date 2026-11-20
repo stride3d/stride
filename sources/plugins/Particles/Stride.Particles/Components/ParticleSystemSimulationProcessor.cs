@@ -9,6 +9,7 @@ using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Particles.Components
 {

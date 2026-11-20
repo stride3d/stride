@@ -6,6 +6,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -43,7 +44,7 @@ namespace Stride.Graphics
 
             var spriteEffect = new Effect(graphicsDevice, SpriteEffect.Bytecode).DisposeBy(this);
             simpleEffect = new EffectInstance(spriteEffect).DisposeBy(this);
-            simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, Matrix.Identity);
+            simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, Matrix4x4.Identity);
             simpleEffect.UpdateEffect(graphicsDevice);
 
             pipelineState = new MutablePipelineState(GraphicsDevice);

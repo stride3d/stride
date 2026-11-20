@@ -20,6 +20,7 @@ using Stride.Assets.Editor.AssetEditors.GameEditor;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
 using Stride.Assets.Editor.SceneEditor;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame.Tools;
 
@@ -355,7 +356,7 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
     private bool HasCameraMoved()
     {
         var position = Context.Camera.Position;
-        var moved = position != lastCameraPosition;
+        var moved = !position.NearEquals(lastCameraPosition);
         lastCameraPosition = position;
         return moved;
     }
@@ -383,7 +384,7 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
             IsAltDown = input.IsKeyDown(Keys.LeftAlt) || input.IsKeyDown(Keys.RightAlt),
             Entity = entity,
             Picking = picking,
-            Ray = EditorGameHelper.CalculateRayFromMousePosition(camera.Component, mousePosition, Matrix.Invert(camera.ViewMatrix)),
+            Ray = EditorGameHelper.CalculateRayFromMousePosition(camera.Component, mousePosition, Matrix4x4.Invert(camera.ViewMatrix, out var inverse) ? inverse : default),
         };
         if (toolClick.ToTool)
             ToolSet.Click(click);

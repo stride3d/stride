@@ -1,5 +1,6 @@
 using System;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Input
 {
@@ -30,7 +31,7 @@ namespace Stride.Input
         /// <param name="direction">A normalized 2d direction or <see cref="Vector2.Zero"/> for a neutral position</param>
         public Direction(Vector2 direction)
         {
-            if (direction == Vector2.Zero)
+            if (direction.NearEquals(Vector2.Zero))
                 value = null;
             else
                 value = (int)(Math.Atan2(direction.X, direction.Y) * FullAngle);

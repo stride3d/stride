@@ -16,6 +16,7 @@ using Stride.Assets.Editor.AssetEditors;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -45,9 +46,9 @@ public abstract class EditorGameCameraService : EditorGameMouseServiceBase, IEdi
 
     public CameraComponent Component { get; private set; } = null!;
 
-    public Matrix ViewMatrix => Component.ViewMatrix;
+    public Matrix4x4 ViewMatrix => Component.ViewMatrix;
 
-    public Matrix ProjectionMatrix
+    public Matrix4x4 ProjectionMatrix
     {
         get
         {
@@ -240,10 +241,10 @@ public abstract class EditorGameCameraService : EditorGameMouseServiceBase, IEdi
     /// Gets the view matrix of a camera at <paramref name="position"/> that looks along <paramref name="yaw"/> and
     /// <paramref name="pitch"/>, as the editor camera does.
     /// </summary>
-    internal static Matrix ComputeViewMatrix(Vector3 position, float yaw, float pitch)
+    internal static Matrix4x4 ComputeViewMatrix(Vector3 position, float yaw, float pitch)
     {
-        var rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(yaw, pitch, 0));
-        return Matrix.Translation(-position) * Matrix.RotationQuaternion(rotation);
+        var rotation = Quaternion.Inverse(Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0));
+        return Matrix4x4.CreateTranslation(-position) * Matrix4x4.CreateFromQuaternion(rotation);
     }
 
     /// <summary>

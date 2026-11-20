@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Graphics;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels
 {
@@ -220,9 +221,9 @@ namespace Stride.Rendering.Voxels
 
         public void CollectVoxelizationPasses(ProcessedVoxelVolume data, VoxelStorageContext storageContext)
         {
-            Matrix BaseVoxelMatrix = storageContext.Matrix;
-            BaseVoxelMatrix.Invert();
-            BaseVoxelMatrix = BaseVoxelMatrix * Matrix.Scaling(2f, 2f, 2f);
+            Matrix4x4 BaseVoxelMatrix = storageContext.Matrix;
+            Matrix4x4.InvertSafe(BaseVoxelMatrix, out BaseVoxelMatrix);
+            BaseVoxelMatrix = BaseVoxelMatrix * Matrix4x4.CreateScale(2f, 2f, 2f);
             if (UpdatesPerFrame != UpdateMethods.AllClipmapsMultipleRenders)
             {
                 /*

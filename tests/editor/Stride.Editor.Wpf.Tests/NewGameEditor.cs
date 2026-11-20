@@ -9,6 +9,7 @@ using Stride.Assets;
 using Stride.Assets.Editor.Templates;
 using Stride.Core.Mathematics;
 using Stride.GameStudio.AutoTesting;
+using System.Numerics;
 
 namespace Stride.Editor.Wpf.Tests;
 

@@ -17,6 +17,7 @@ using Stride.Editor.Engine;
 using Stride.Games;
 using Stride.Graphics;
 using AvaloniaPixelFormat = Avalonia.Platform.PixelFormat;
+using System.Numerics;
 
 namespace Stride.Editor.Avalonia.Tests.Engine;
 

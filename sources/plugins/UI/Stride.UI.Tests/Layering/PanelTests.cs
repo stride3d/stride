@@ -5,6 +5,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Layering
 {
@@ -16,7 +17,7 @@ namespace Stride.UI.Tests.Layering
         private void ResetState()
         {
             DependencyProperties.Clear();
-            LocalMatrix = Matrix.Identity;
+            LocalMatrix = Matrix4x4.Identity;
             Children.Clear();
         }
 
@@ -41,7 +42,7 @@ namespace Stride.UI.Tests.Layering
             // default values
             Assert.Equal(0, DependencyProperties.Get(ZIndexPropertyKey));
             Assert.False(ClipToBounds);
-            Assert.Equal(Matrix.Identity, DependencyProperties.Get(PanelArrangeMatrixPropertyKey));
+            Assert.Equal(Matrix4x4.Identity, DependencyProperties.Get(PanelArrangeMatrixPropertyKey));
         }
 
         /// <summary>
@@ -103,16 +104,16 @@ namespace Stride.UI.Tests.Layering
             Arrange(Vector3.One, false);
 
             // test that the world matrix of the panel is correctly updated.
-            var localMatrix = Matrix.Scaling(0.1f, 0.5f, 1f);
-            var worldMatrix = Matrix.Scaling(1f, 0.8f, 0.4f);
+            var localMatrix = Matrix4x4.CreateScale(0.1f, 0.5f, 1f);
+            var worldMatrix = Matrix4x4.CreateScale(1f, 0.8f, 0.4f);
             LocalMatrix = localMatrix;
             UpdateWorldMatrix(ref worldMatrix, true);
-            Assert.Equal(new Matrix(0.1f,0,0,0, 0,0.4f,0,0, 0,0,0.4f,0, 0.5f, 0.4f, 0.2f,1), WorldMatrix);
+            Assert.Equal(new Matrix4x4(0.1f,0,0,0, 0,0.4f,0,0, 0,0,0.4f,0, 0.5f, 0.4f, 0.2f,1), WorldMatrix);
 
             // add a child and set its local matrix
             var child = new PanelTests { DepthAlignment = DepthAlignment.Stretch };
-            var childArrangementMatrix = Matrix.Translation(10, 20, 30);
-            var childLocalMatrix = new Matrix(0,-1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,1);
+            var childArrangementMatrix = Matrix4x4.CreateTranslation(10, 20, 30);
+            var childLocalMatrix = new Matrix4x4(0,-1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,1);
             child.LocalMatrix = childLocalMatrix;
             Children.Add(child);
 
@@ -124,7 +125,7 @@ namespace Stride.UI.Tests.Layering
 
             // check that the value of the world matrix of the child is correctly updated too
             UpdateWorldMatrix(ref worldMatrix, true);
-            Assert.Equal(new Matrix(0,-0.4f,0,0, 0.1f,0,0,0, 0,0,0.4f,0, 1.55f,8.6f,12.4f,1), child.WorldMatrix);
+            Assert.Equal(new Matrix4x4(0,-0.4f,0,0, 0.1f,0,0,0, 0,0,0.4f,0, 1.55f,8.6f,12.4f,1), child.WorldMatrix);
         }
 
         /// <summary>
@@ -152,8 +153,8 @@ namespace Stride.UI.Tests.Layering
             var child = new Button();
             Children.Add(child);
 
-            var worldMatrix = Matrix.Zero;
-            var localMatrix = Matrix.Identity;
+            var worldMatrix = default(Matrix4x4);
+            var localMatrix = Matrix4x4.Identity;
             
             Measure(Vector3.Zero);
             Arrange(Vector3.Zero, false);
@@ -204,7 +205,7 @@ namespace Stride.UI.Tests.Layering
             UpdateWorldMatrix(ref worldMatrix, true);
             Assert.Equal(worldMatrix.M11, child.WorldMatrix.M11);
 
-            var childArrangeMatrix = 10 * Matrix.Identity;
+            var childArrangeMatrix = 10 * Matrix4x4.Identity;
             child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, childArrangeMatrix);
             worldMatrix.M11 = 1;
             UpdateWorldMatrix(ref worldMatrix, false);

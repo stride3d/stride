@@ -14,6 +14,7 @@ using Stride.Engine;
 using Stride.Shaders.Compiler;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.SceneEditor.Game
 {
@@ -271,7 +272,7 @@ namespace Stride.Assets.Editor.AssetEditors.SceneEditor.Game
                 while (Game.IsRunning)
                 {
                     var newPosition = Entity.Transform.Position;
-                    if (newPosition != oldPositon)
+                    if (!newPosition.NearEquals(oldPositon))
                     {
                         // Note: anchor id is equal to the corresponding scene id
                         var scene = Game.GetScene(Entity.Id);

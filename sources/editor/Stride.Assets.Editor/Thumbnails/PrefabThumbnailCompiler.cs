@@ -9,6 +9,7 @@ using Stride.Assets.Entities;
 using Stride.Editor.Thumbnails;
 using Stride.Engine;
 using Stride.Extensions;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Thumbnails
 {

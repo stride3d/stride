@@ -12,6 +12,7 @@ using Stride.Core.Mathematics;
 using Stride.Particles.BoundingShapes;
 using Stride.Particles.DebugDraw;
 using Stride.Particles.Initializers;
+using System.Numerics;
 
 namespace Stride.Particles
 {
@@ -44,9 +45,9 @@ namespace Stride.Particles
         {
             scale *= UniformScale;
 
-            rotation *= Rotation;
+            rotation = Quaternion.Concatenate(rotation, Rotation);
 
-            Rotation.Rotate(ref translation);
+            translation = Vector3.Transform(translation, Rotation);
             translation *= UniformScale;
             translation += Translation;
 

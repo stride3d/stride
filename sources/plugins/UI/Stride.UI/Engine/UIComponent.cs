@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Rendering;
 using Stride.Rendering.UI;
+using System.Numerics;
 
 namespace Stride.Engine
 {

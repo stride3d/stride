@@ -11,6 +11,7 @@ using Stride.Core.Threading;
 using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Physics;
 
@@ -148,7 +149,7 @@ public unsafe class HeightfieldColliderShape : ColliderShape
 
         var halfRange = (MaxHeight - MinHeight) * 0.5f;
         var offset = -(MinHeight + halfRange);
-        DebugPrimitiveMatrix = Matrix.Translation(new Vector3(0, offset, 0)) * Matrix.Scaling(Vector3.One * DebugScaling);
+        DebugPrimitiveMatrix = Matrix4x4.CreateTranslation(new Vector3(0, offset, 0)) * Matrix4x4.CreateScale(Vector3.One * DebugScaling);
     }
 
     public bool UseDiamondSubdivision

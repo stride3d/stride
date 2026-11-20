@@ -11,6 +11,7 @@ using Stride.Rendering.Compositing;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.ProceduralModels;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests;
 
@@ -94,9 +95,9 @@ public abstract class EmissiveBoxCaptureTestBase : GameTestBase
 
         // The plane is authored in the XZ plane, so turn it to face along the axis
         if (axis.X != 0.0f)
-            entity.Transform.Rotation = Quaternion.RotationZ(MathUtil.PiOverTwo);
+            entity.Transform.Rotation = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
         else if (axis.Z != 0.0f)
-            entity.Transform.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo);
+            entity.Transform.Rotation = Quaternion.CreateRotationX(MathUtil.PiOverTwo);
 
         Scene.Entities.Add(entity);
 

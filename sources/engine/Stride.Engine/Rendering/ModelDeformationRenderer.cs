@@ -14,6 +14,7 @@ using Stride.Graphics.Data;
 using Stride.Rendering.ComputeEffect;
 using Stride.Rendering.Materials;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Rendering;
 
@@ -167,9 +168,9 @@ internal sealed class ModelDeformationRenderer : IModelDeformer, IDisposable
             var materialInfo = renderModel.Materials[meshIndex];
             if (materialInfo.MeshCount == 0)
                 continue;
-            Matrix world = renderModel.Meshes[materialInfo.MeshStartIndex].World;
+            Matrix4x4 world = renderModel.Meshes[materialInfo.MeshStartIndex].World;
             var blendMatrices = model.MeshInfos[meshIndex].BlendMatrices;
-            instance.Schedule(deformMorph ? model.GetMorphWeights(meshIndex) : instance.ZeroWeights, deformSkin ? blendMatrices : Array.Empty<Matrix>(), world, deformMorph);
+            instance.Schedule(deformMorph ? model.GetMorphWeights(meshIndex) : instance.ZeroWeights, deformSkin ? blendMatrices : Array.Empty<Matrix4x4>(), world, deformMorph);
             if (compute)
                 instance.Mesh.Skinning = deformSkin ? null : mesh.Skinning;
             for (int pass = 0; pass < materialInfo.MeshCount; pass++)
@@ -295,7 +296,7 @@ internal sealed class ModelDeformationRenderer : IModelDeformer, IDisposable
 
     // Stride uses row vectors (p' = p * M): the first three columns let the shader compute each output component
     // as one dot product with float4(p, 1).
-    private static void WriteColumns(in Matrix matrix, Span<Vector4> rows)
+    private static void WriteColumns(in Matrix4x4 matrix, Span<Vector4> rows)
     {
         rows[0] = matrix.Column1;
         rows[1] = matrix.Column2;
@@ -663,7 +664,7 @@ internal sealed class ModelDeformationRenderer : IModelDeformer, IDisposable
             Used--;
         }
 
-        public void Set(int slot, float[] values, int pose, in Matrix inverseWorld, bool skinned, bool morphed, int activeCount)
+        public void Set(int slot, float[] values, int pose, in Matrix4x4 inverseWorld, bool skinned, bool morphed, int activeCount)
         {
             values.AsSpan().CopyTo(weightData.AsSpan(slot * Shared.TargetCount, Shared.TargetCount));
             flagData[slot] = InstanceActive | (skinned ? InstanceSkinned : 0) | (morphed ? InstanceMorphed : 0);
@@ -745,7 +746,7 @@ internal sealed class ModelDeformationRenderer : IModelDeformer, IDisposable
         public readonly float[] ZeroWeights;
         private readonly int boneCount;
         private float[] weights;
-        private Matrix world;
+        private Matrix4x4 world;
         private bool morphed;
 
         public bool IsScheduled { get; private set; }
@@ -788,7 +789,7 @@ internal sealed class ModelDeformationRenderer : IModelDeformer, IDisposable
         }
 
         // Keeps this frame's deformation until a view collects the model.
-        public void Schedule(float[] values, Matrix[] bones, Matrix world, bool morphed)
+        public void Schedule(float[] values, Matrix4x4[] bones, Matrix4x4 world, bool morphed)
         {
             if (bones.Length > boneCount)
                 throw new InvalidOperationException("Skinning bone layout changed.");
@@ -811,11 +812,11 @@ internal sealed class ModelDeformationRenderer : IModelDeformer, IDisposable
                 if (value != 0)
                     activeCount++;
             }
-            var inverseWorld = Matrix.Identity;
-            bool worldIsInvertible = Math.Abs(world.Determinant()) >= MinTransformDeterminant;
+            var inverseWorld = Matrix4x4.Identity;
+            bool worldIsInvertible = Math.Abs(world.GetDeterminant()) >= MinTransformDeterminant;
             bool skinned = IsSkinned && worldIsInvertible;
             if (skinned)
-                Matrix.Invert(ref world, out inverseWorld);
+                Matrix4x4.InvertSafe(world, out inverseWorld);
             Batch.Set(Slot, weights, pose, inverseWorld, skinned, morphed, activeCount);
         }
 

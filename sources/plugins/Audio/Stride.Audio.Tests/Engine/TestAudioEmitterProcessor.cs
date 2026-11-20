@@ -9,6 +9,7 @@ using Xunit;
 
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.Audio.Tests.Engine
 {

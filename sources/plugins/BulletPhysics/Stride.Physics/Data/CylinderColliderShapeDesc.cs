@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -56,8 +57,8 @@ namespace Stride.Physics
             return MathF.Abs(other.Height - Height) < float.Epsilon &&
                    MathF.Abs(other.Radius - Radius) < float.Epsilon &&
                    other.Orientation == Orientation &&
-                   other.LocalOffset == LocalOffset &&
-                   other.LocalRotation == LocalRotation;
+                   other.LocalOffset.NearEquals(LocalOffset) &&
+                   other.LocalRotation.NearEquals(LocalRotation);
         }
 
         public ColliderShape CreateShape(IServiceRegistry services)

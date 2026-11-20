@@ -9,6 +9,8 @@ using Stride.Graphics;
 using Stride.Input;
 using TextAlignment = Stride.Graphics.TextAlignment;
 
+using System.Numerics;
+
 namespace Stride.UI.Controls
 {
     public partial class EditText
@@ -51,7 +53,7 @@ namespace Stride.UI.Controls
             var regionHalf = textRegion / 2;
             var worldMatrix = WorldMatrix;
 
-            var offset = worldMatrix.TranslationVector;
+            var offset = worldMatrix.Translation;
             // Text draws from the upper left corner of the rect, let's account for that
             offset -= worldMatrix.Right * regionHalf.X - worldMatrix.Up * regionHalf.Y;
             worldPosition -= offset.XY();

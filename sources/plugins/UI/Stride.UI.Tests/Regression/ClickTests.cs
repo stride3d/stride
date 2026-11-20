@@ -12,6 +12,7 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {
@@ -83,17 +84,17 @@ namespace Stride.UI.Tests.Regression
             if (Input.IsKeyPressed(Keys.Down))
                 localMatrix.M43 += depthIncrement;
             if (Input.IsKeyPressed(Keys.NumPad4))
-                localMatrix = localMatrix * Matrix.RotationY(-rotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationY(-rotationIncrement);
             if (Input.IsKeyPressed(Keys.NumPad6))
-                localMatrix = localMatrix * Matrix.RotationY(+rotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationY(+rotationIncrement);
             if (Input.IsKeyPressed(Keys.NumPad2))
-                localMatrix = localMatrix * Matrix.RotationX(+rotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationX(+rotationIncrement);
             if (Input.IsKeyPressed(Keys.NumPad8))
-                localMatrix = localMatrix * Matrix.RotationX(-rotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationX(-rotationIncrement);
             if (Input.IsKeyPressed(Keys.NumPad1))
-                localMatrix = localMatrix * Matrix.RotationZ(-rotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationZ(-rotationIncrement);
             if (Input.IsKeyPressed(Keys.NumPad9))
-                localMatrix = localMatrix * Matrix.RotationZ(+rotationIncrement);
+                localMatrix = localMatrix * Matrix4x4.CreateRotationZ(+rotationIncrement);
 
             if (Input.KeyEvents.Any())
             {
@@ -124,13 +125,13 @@ namespace Stride.UI.Tests.Regression
             FrameGameSystem.Draw(0, UpdateTextBlockText).TakeScreenshot(0);
             FrameGameSystem.Draw(1, Draw1).TakeScreenshot(1);
             FrameGameSystem.Draw(2, Draw2).TakeScreenshot(2);
-            FrameGameSystem.Draw(3, () => SetElement2Matrix(Matrix.Translation(0, 0, -132))).Draw(4, Draw3).TakeScreenshot(4);
-            FrameGameSystem.Draw(5, () => SetElement2Matrix(Matrix.Translation(0, 0, 204))).Draw(6, Draw4).TakeScreenshot(6);
-            FrameGameSystem.Draw(7, () => SetElement2Matrix(Matrix.RotationYawPitchRoll(-0.1f, -0.2f, 0.3f))).Draw(8, Draw5).TakeScreenshot(8);
+            FrameGameSystem.Draw(3, () => SetElement2Matrix(Matrix4x4.CreateTranslation(0, 0, -132))).Draw(4, Draw3).TakeScreenshot(4);
+            FrameGameSystem.Draw(5, () => SetElement2Matrix(Matrix4x4.CreateTranslation(0, 0, 204))).Draw(6, Draw4).TakeScreenshot(6);
+            FrameGameSystem.Draw(7, () => SetElement2Matrix(Matrix4x4.CreateFromYawPitchRoll(-0.1f, -0.2f, 0.3f))).Draw(8, Draw5).TakeScreenshot(8);
             FrameGameSystem.Draw(Draw6).TakeScreenshot();
         }
 
-        private void SetElement2Matrix(Matrix matrix)
+        private void SetElement2Matrix(Matrix4x4 matrix)
         {
             elements[1].LocalMatrix = matrix;
         }

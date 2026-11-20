@@ -14,6 +14,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using NVector3 = System.Numerics.Vector3;
+using System.Numerics;
 
 namespace Stride.BepuPhysics;
 
@@ -64,7 +65,7 @@ public class CharacterComponent : CharacterComponentAbstract
         {
             _velocity = value;
 
-            var inv = Quaternion.Invert(GlobalBasis);
+            var inv = Quaternion.Inverse(GlobalBasis);
             value = inv * value;
             MoveVector = new Vector2(value.X, value.Z) / Speed;
         }
@@ -130,7 +131,7 @@ public class CharacterComponent : CharacterComponentAbstract
     [DataMemberIgnore, Obsolete($"Contacts are no longer collected, add your own {nameof(ContactEventHandler)}")]
     public List<(CollidableComponent Source, Contact Contact)> Contacts { get; } = new();
 
-    private Quaternion GlobalBasis => Quaternion.LookRotation(Orientation * Vector3.UnitZ, Orientation * LocalUp);
+    private Quaternion GlobalBasis => Quaternion.CreateLookRotation(Orientation * Vector3.UnitZ, Orientation * LocalUp);
 
     public CharacterComponent()
     {
@@ -148,7 +149,7 @@ public class CharacterComponent : CharacterComponentAbstract
     public virtual void Move(Vector3 direction)
     {
         // Note that this method should be thread safe, see usage in RecastPhysicsNavigationProcessor
-        var inv = Quaternion.Invert(GlobalBasis);
+        var inv = Quaternion.Inverse(GlobalBasis);
         direction = inv * direction;
         MoveVector = new Vector2(direction.X, direction.Z);
     }

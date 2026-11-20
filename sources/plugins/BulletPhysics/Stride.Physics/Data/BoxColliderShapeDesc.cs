@@ -4,6 +4,7 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -39,7 +40,7 @@ namespace Stride.Physics
         public bool Match(object obj)
         {
             var other = obj as BoxColliderShapeDesc;
-            return other?.Is2D == Is2D && other.Size == Size && other.LocalOffset == LocalOffset && other.LocalRotation == LocalRotation;
+            return other?.Is2D == Is2D && other.Size.NearEquals(Size) && other.LocalOffset.NearEquals(LocalOffset) && other.LocalRotation.NearEquals(LocalRotation);
         }
 
         public ColliderShape CreateShape(IServiceRegistry services)

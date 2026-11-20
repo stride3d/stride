@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
+using System.Numerics;
 
 namespace Stride.Games.AutoTesting;
 

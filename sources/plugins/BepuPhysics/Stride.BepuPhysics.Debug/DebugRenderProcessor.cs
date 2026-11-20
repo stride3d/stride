@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Debug;
 
@@ -172,7 +173,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
         foreach (var (collidable, (wireframes, cache)) in _wireFrameRenderObject)
         {
-            Matrix matrix;
+            Matrix4x4 matrix;
             switch (Mode)
             {
                 case SynchronizationMode.Physics:
@@ -182,7 +183,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
                         var worldRotation = pose.Orientation.ToStride();
                         var scale = Vector3.One;
                         worldPosition -= Vector3.Transform(collidable.CenterOfMass, worldRotation);
-                        Matrix.Transformation(ref scale, ref worldRotation, ref worldPosition, out matrix);
+                        Matrix4x4.CreateTransformation(scale, worldRotation, worldPosition, out matrix);
                     }
                     else
                     {
@@ -193,7 +194,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
                     // We don't need to call UpdateWorldMatrix before reading WorldMatrix as we're running after the TransformProcessor operated,
                     // and we don't expect or care if other processors affect the transform afterwards
                     collidable.Entity.Transform.WorldMatrix.Decompose(out _, out matrix, out var translation);
-                    matrix.TranslationVector = translation;
+                    matrix.Translation = translation;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Mode));
@@ -276,7 +277,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
             var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, data.Indices, data.Vertices);
             wireframe.Color = GetCurrentColor(collidable);
-            Matrix.Transformation(ref transforms[i].Scale, ref transforms[i].RotationLocal, ref transforms[i].PositionLocal, out wireframe.CollidableBaseMatrix);
+            Matrix4x4.CreateTransformation(transforms[i].Scale, transforms[i].RotationLocal, transforms[i].PositionLocal, out wireframe.CollidableBaseMatrix);
             wireframes.Add(wireframe);
             _visibilityGroup.RenderObjects.Add(wireframe);
         }

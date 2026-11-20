@@ -11,6 +11,8 @@ using Stride.Games;
 using Stride.Graphics.SDL;
 using Window = Stride.Graphics.SDL.Window;
 
+using System.Numerics;
+
 namespace Stride.Input
 {
     /// <summary>

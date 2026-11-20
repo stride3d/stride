@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.BepuPhysics.Systems;
 using Stride.Core.Annotations;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 

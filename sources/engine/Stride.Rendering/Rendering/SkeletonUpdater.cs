@@ -7,6 +7,7 @@ using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -93,12 +94,12 @@ namespace Stride.Rendering
             matrixCounter++;
         }
 
-        public void GetWorldMatrix(int index, out Matrix matrix)
+        public void GetWorldMatrix(int index, out Matrix4x4 matrix)
         {
             matrix = nodeTransformations[index].WorldMatrix;
         }
 
-        public void GetLocalMatrix(int index, out Matrix matrix)
+        public void GetLocalMatrix(int index, out Matrix4x4 matrix)
         {
             matrix = nodeTransformations[index].LocalMatrix;
         }
@@ -127,7 +128,7 @@ namespace Stride.Rendering
                 // Compute WorldMatrix
                 if (parentIndex != -1)
                 {
-                    Matrix.Multiply(ref node.LocalMatrix, ref nodeTransformationsLocal[parentIndex].WorldMatrix, out node.WorldMatrix);
+                    node.WorldMatrix = Matrix4x4.Multiply(node.LocalMatrix, nodeTransformationsLocal[parentIndex].WorldMatrix);
                     if (nodeTransformationsLocal[parentIndex].IsScalingNegative)
                         node.IsScalingNegative = !node.IsScalingNegative;
                 }
@@ -141,7 +142,7 @@ namespace Stride.Rendering
         private static void UpdateLocalMatrix(ref ModelNodeTransformation node)
         {
             var scaling = node.Transform.Scale;
-            Matrix.Transformation(ref scaling, ref node.Transform.Rotation, ref node.Transform.Position, out node.LocalMatrix);
+            Matrix4x4.CreateTransformation(scaling, node.Transform.Rotation, node.Transform.Position, out node.LocalMatrix);
             node.IsScalingNegative = (scaling.X < 0.0f) ^ (scaling.Y < 0.0f) ^ (scaling.Z < 0.0f);
         }
     }

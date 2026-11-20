@@ -5,6 +5,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
 using Stride.UI;
+using System.Numerics;
 
 namespace Stride.Engine
 {
@@ -61,15 +62,15 @@ namespace Stride.Engine
                 UseCustomAspectRatio = true,
                 AspectRatio = aspectRatio,
                 VerticalFieldOfView = MathUtil.RadiansToDegrees(verticalFov),
-                ViewMatrix = Matrix.LookAtRH(new Vector3(0, 0, zOffset), Vector3.Zero, Vector3.UnitY),
-                ProjectionMatrix = Matrix.PerspectiveFovRH(verticalFov, aspectRatio, nearPlane, farPlane),
+                ViewMatrix = Matrix4x4.CreateLookAt(new Vector3(0, 0, zOffset), Vector3.Zero, Vector3.UnitY),
+                ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(verticalFov, aspectRatio, nearPlane, farPlane),
             };
 
             return cameraComponent;
         }
 
         /// <inheritdoc/>
-        public override void ComputeMatrix(bool recursive, out Matrix matrix)
+        public override void ComputeMatrix(bool recursive, out Matrix4x4 matrix)
         {
             // If model is not in the parent, we might want to force recursive update (since parentModelComponent might not be updated yet)
             if (forceRecursive || recursive)
@@ -83,28 +84,28 @@ namespace Stride.Engine
                 followedElement = FindElementByName(elementName, rootElement);
             }
 
-            matrix = Matrix.Identity;
+            matrix = Matrix4x4.Identity;
             var worldMatrix = parentUIComponent.Entity.Get<TransformComponent>().WorldMatrix;
 
             // Updated? (rare slow path)
             if (followedElement != null)
             {
-                Matrix parentWorldMatrix = Matrix.Identity;
-                Matrix parentInverseMatrix = Matrix.Identity;
+                Matrix4x4 parentWorldMatrix = Matrix4x4.Identity;
+                Matrix4x4 parentInverseMatrix = Matrix4x4.Identity;
 
                 if (parentUIComponent.IsFullScreen)
                 {
                     // The resulting matrix should be in pixel units
 
                     // The fullscreen ui component is always in the center
-                    worldMatrix = Matrix.Identity;
+                    worldMatrix = Matrix4x4.Identity;
 
                     // The resulting matrix should be in world units
-                    parentWorldMatrix.Row2 = -parentWorldMatrix.Row2;
-                    parentWorldMatrix.Row3 = -parentWorldMatrix.Row3;
+                    parentWorldMatrix.Y = -parentWorldMatrix.Y;
+                    parentWorldMatrix.Z = -parentWorldMatrix.Z;
 
-                    parentInverseMatrix.Row2 = -parentInverseMatrix.Row2;
-                    parentInverseMatrix.Row3 = -parentInverseMatrix.Row3;
+                    parentInverseMatrix.Y = -parentInverseMatrix.Y;
+                    parentInverseMatrix.Z = -parentInverseMatrix.Z;
 
                     matrix = parentWorldMatrix * followedElement.WorldMatrix * parentInverseMatrix;
                 }
@@ -112,34 +113,34 @@ namespace Stride.Engine
                 {
                     if (parentUIComponent.IsBillboard && camera != null)
                     {
-                        Matrix viewInverse;
-                        Matrix.Invert(ref camera.ViewMatrix, out viewInverse);
+                        Matrix4x4 viewInverse;
+                        Matrix4x4.InvertSafe(camera.ViewMatrix, out viewInverse);
 
-                        var viewInverseRow1 = viewInverse.Row1;
-                        var viewInverseRow2 = viewInverse.Row2;
+                        var viewInverseRow1 = viewInverse.X;
+                        var viewInverseRow2 = viewInverse.Y;
 
                         // remove scale of the camera
                         viewInverseRow1 /= viewInverseRow1.XYZ().Length();
                         viewInverseRow2 /= viewInverseRow2.XYZ().Length();
 
                         // set the scale of the object
-                        viewInverseRow1 *= worldMatrix.Row1.XYZ().Length();
-                        viewInverseRow2 *= worldMatrix.Row2.XYZ().Length();
+                        viewInverseRow1 *= worldMatrix.X.XYZ().Length();
+                        viewInverseRow2 *= worldMatrix.Y.XYZ().Length();
 
                         // set the adjusted world matrix
-                        worldMatrix.Row1 = viewInverseRow1;
-                        worldMatrix.Row2 = viewInverseRow2;
-                        worldMatrix.Row3 = viewInverse.Row3;
+                        worldMatrix.X = viewInverseRow1;
+                        worldMatrix.Y = viewInverseRow2;
+                        worldMatrix.Z = viewInverse.Z;
                     }
 
                     // The resulting matrix should be in world units
-                    parentWorldMatrix.Row2 = -parentWorldMatrix.Row2;
-                    parentWorldMatrix.Row3 = -parentWorldMatrix.Row3;
-                    parentWorldMatrix = Matrix.Scaling(parentUIComponent.Resolution / parentUIComponent.Size) * parentWorldMatrix;
+                    parentWorldMatrix.Y = -parentWorldMatrix.Y;
+                    parentWorldMatrix.Z = -parentWorldMatrix.Z;
+                    parentWorldMatrix = Matrix4x4.CreateScale(parentUIComponent.Resolution / parentUIComponent.Size) * parentWorldMatrix;
 
-                    parentInverseMatrix.Row2 = -parentInverseMatrix.Row2;
-                    parentInverseMatrix.Row3 = -parentInverseMatrix.Row3;
-                    parentInverseMatrix = Matrix.Scaling(parentUIComponent.Size / parentUIComponent.Resolution) * parentInverseMatrix;
+                    parentInverseMatrix.Y = -parentInverseMatrix.Y;
+                    parentInverseMatrix.Z = -parentInverseMatrix.Z;
+                    parentInverseMatrix = Matrix4x4.CreateScale(parentUIComponent.Size / parentUIComponent.Resolution) * parentInverseMatrix;
                    // Matrix.Invert(ref parentWorldMatrix, out parentInverseMatrix);
 
                     matrix = parentWorldMatrix * followedElement.WorldMatrix * parentInverseMatrix;

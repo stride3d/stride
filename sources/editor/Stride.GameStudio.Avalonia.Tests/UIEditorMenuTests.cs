@@ -12,6 +12,7 @@ using Stride.UI.Editor.ViewModels;
 using Stride.UI.Panels;
 using static Stride.GameStudio.Avalonia.Tests.Helpers.UIEditorFixture;
 using Canvas = Stride.UI.Panels.Canvas;
+using System.Numerics;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

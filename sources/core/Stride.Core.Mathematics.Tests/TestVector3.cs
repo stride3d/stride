@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -51,7 +52,7 @@ public class TestVector3
         Assert.Equal(7.0f, result.Y);
         Assert.Equal(9.0f, result.Z);
 
-        Vector3.Add(ref v1, ref v2, out var result2);
+        var result2 = Vector3.Add(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -65,7 +66,7 @@ public class TestVector3
         Assert.Equal(5.0f, result.Y);
         Assert.Equal(6.0f, result.Z);
 
-        Vector3.Subtract(ref v1, ref v2, out var result2);
+        var result2 = Vector3.Subtract(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -117,7 +118,7 @@ public class TestVector3
         Assert.Equal(5.2f, result.Y);
         Assert.Equal(-7.8f, result.Z);
 
-        Vector3.Negate(ref v, out var result2);
+        var result2 = Vector3.Negate(v);
         Assert.Equal(result, result2);
     }
 
@@ -145,14 +146,14 @@ public class TestVector3
     public void TestVector3Normalization()
     {
         var v = new Vector3(2.0f, 2.0f, 1.0f);
-        var normalized = Vector3.Normalize(v);
+        var normalized = Vector3.NormalizeSafe(v);
         var length = (float)Math.Sqrt(9.0f); // sqrt(4 + 4 + 1)
         Assert.Equal(2.0f/length, normalized.X, 3);
         Assert.Equal(2.0f/length, normalized.Y, 3);
         Assert.Equal(1.0f/length, normalized.Z, 3);
         Assert.Equal(1.0f, normalized.Length(), 3);
 
-        v.Normalize();
+        v = Vector3.NormalizeSafe(v);
         Assert.Equal(1.0f, v.Length(), 3);
     }
 
@@ -241,13 +242,13 @@ public class TestVector3
         var v2 = new Vector3(3.5f, 4.2f, 5.1f);
         var v3 = new Vector3(5.1f, 6.3f, 7.2f);
 
-        Assert.True(v1 == v2);
-        Assert.False(v1 == v3);
-        Assert.False(v1 != v2);
-        Assert.True(v1 != v3);
+        Assert.True(v1.NearEquals(v2));
+        Assert.False(v1.NearEquals(v3));
+        Assert.False(!v1.NearEquals(v2));
+        Assert.True(!v1.NearEquals(v3));
 
-        Assert.True(v1.Equals(v2));
-        Assert.False(v1.Equals(v3));
+        Assert.True(v1.NearEquals(v2));
+        Assert.False(v1.NearEquals(v3));
         Assert.False(v1.Equals(null));
         Assert.False(v1.Equals(new object()));
     }
@@ -305,8 +306,8 @@ public class TestVector3
     public void TestVector3Transform()
     {
         var v = new Vector3(1.0f, 0.0f, 0.0f);
-        var matrix = Matrix.RotationZ(MathUtil.PiOverTwo);
-        var result = Vector3.Transform(v, matrix);
+        var matrix = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
+        var result = Vector4.Transform(v, matrix);
         Assert.Equal(0.0f, result.X, 3);
         Assert.Equal(1.0f, result.Y, 3);
         Assert.Equal(0.0f, result.Z, 3);
@@ -316,7 +317,7 @@ public class TestVector3
     public void TestVector3TransformQuaternion()
     {
         var v = new Vector3(1.0f, 0.0f, 0.0f);
-        var q = Quaternion.RotationZ(MathUtil.PiOverTwo);
+        var q = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
         var result = Vector3.Transform(v, q);
         Assert.Equal(0.0f, result.X, 3);
         Assert.Equal(1.0f, result.Y, 3);
@@ -327,7 +328,7 @@ public class TestVector3
     public void TestVector3TransformCoordinate()
     {
         var v = new Vector3(1.0f, 1.0f, 1.0f);
-        var matrix = Matrix.Translation(5.0f, 10.0f, 15.0f);
+        var matrix = Matrix4x4.CreateTranslation(5.0f, 10.0f, 15.0f);
         var result = Vector3.TransformCoordinate(v, matrix);
         Assert.Equal(6.0f, result.X, 3);
         Assert.Equal(11.0f, result.Y, 3);
@@ -338,7 +339,7 @@ public class TestVector3
     public void TestVector3TransformNormal()
     {
         var v = new Vector3(1.0f, 0.0f, 0.0f);
-        var matrix = Matrix.RotationZ(MathUtil.PiOverTwo);
+        var matrix = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
         var result = Vector3.TransformNormal(v, matrix);
         Assert.Equal(0.0f, result.X, 3);
         Assert.Equal(1.0f, result.Y, 3);
@@ -360,12 +361,12 @@ public class TestVector3
         Assert.Equal(v, backToStride);
 
         // Vector2
-        Vector2 v2 = (Vector2)v;
+        Vector2 v2 = v.AsVector2();
         Assert.Equal(3.5f, v2.X);
         Assert.Equal(4.2f, v2.Y);
 
         // Vector4
-        Vector4 v4 = (Vector4)v;
+        Vector4 v4 = v.AsVector4();
         Assert.Equal(3.5f, v4.X);
         Assert.Equal(4.2f, v4.Y);
         Assert.Equal(5.1f, v4.Z);
@@ -397,7 +398,7 @@ public class TestVector3
     public void TestVector3ZeroLengthNormalization()
     {
         var zero = Vector3.Zero;
-        var normalized = Vector3.Normalize(zero);
+        var normalized = Vector3.NormalizeSafe(zero);
 
         // Normalizing zero vector should return zero (not NaN)
         Assert.False(float.IsNaN(normalized.X));
@@ -482,17 +483,17 @@ public class TestVector3
 
         // Due to floating point precision, these very small differences may be considered equal
         // This test documents the actual behavior
-        var areEqual = v1 == v2;
+        var areEqual = v1.NearEquals(v2);
 
         // Just verify that comparison doesn't throw and gives consistent result
-        Assert.Equal(v1.Equals(v2), areEqual);
+        Assert.Equal(v1.NearEquals(v2), areEqual);
     }
 
     [Fact]
     public void TestVector2FromVector3TruncatesZ()
     {
         var v3 = new Vector3(1.0f, 2.0f, 999.0f);
-        var v2 = (Vector2)v3;
+        var v2 = v3.AsVector2();
 
         Assert.Equal(1.0f, v2.X);
         Assert.Equal(2.0f, v2.Y);
@@ -503,7 +504,7 @@ public class TestVector3
     {
         var v1 = new Vector3(2.0f, 4.0f, 6.0f);
         var v2 = new Vector3(3.0f, 5.0f, 7.0f);
-        var result = Vector3.Modulate(v1, v2);
+        var result = Vector3.Multiply(v1, v2);
 
         Assert.Equal(6.0f, result.X);
         Assert.Equal(20.0f, result.Y);
@@ -515,7 +516,7 @@ public class TestVector3
     {
         var v1 = new Vector3(6.0f, 20.0f, 42.0f);
         var v2 = new Vector3(3.0f, 5.0f, 7.0f);
-        var result = Vector3.Demodulate(v1, v2);
+        var result = Vector3.Divide(v1, v2);
 
         Assert.Equal(2.0f, result.X);
         Assert.Equal(4.0f, result.Y);
@@ -562,7 +563,7 @@ public class TestVector3
     public void TestVector3ProjectUnproject()
     {
         var vector = new Vector3(100.0f, 50.0f, 0.5f);
-        var worldViewProj = Matrix.Identity;
+        var worldViewProj = Matrix4x4.Identity;
 
         var projected = Vector3.Project(vector, 0, 0, 800, 600, 0, 1, worldViewProj);
         var unprojected = Vector3.Unproject(projected, 0, 0, 800, 600, 0, 1, worldViewProj);
@@ -627,8 +628,8 @@ public class TestVector3
     [Fact]
     public void TestVector3RotationYawPitchRoll()
     {
-        var q = Quaternion.RotationYawPitchRoll(0.5f, 0.3f, 0.2f);
-        var ypr = Vector3.RotationYawPitchRoll(q);
+        var q = Quaternion.CreateFromYawPitchRoll(0.5f, 0.3f, 0.2f);
+        var ypr = q.GetYawPitchRoll();
 
         Assert.True(MathUtil.NearEqual(ypr.X, 0.5f) || Math.Abs(ypr.X - 0.5f) < 0.01f);
         Assert.True(MathUtil.NearEqual(ypr.Y, 0.3f) || Math.Abs(ypr.Y - 0.3f) < 0.01f);
@@ -640,9 +641,9 @@ public class TestVector3
     {
         var source = new[] { new Vector3(1, 2, 3), new Vector3(4, 5, 6) };
         var dest = new Vector4[2];
-        var transform = Matrix.Translation(10, 20, 30);
+        var transform = Matrix4x4.CreateTranslation(10, 20, 30);
 
-        Vector3.Transform(source, ref transform, dest);
+        Vector3.Transform(source, transform, dest);
 
         Assert.Equal(11.0f, dest[0].X);
         Assert.Equal(22.0f, dest[0].Y);
@@ -654,9 +655,9 @@ public class TestVector3
     {
         var source = new[] { new Vector3(1, 2, 3), new Vector3(4, 5, 6) };
         var dest = new Vector3[2];
-        var transform = Matrix.Translation(10, 20, 30);
+        var transform = Matrix4x4.CreateTranslation(10, 20, 30);
 
-        Vector3.TransformCoordinate(source, ref transform, dest);
+        Vector3.TransformCoordinate(source, transform, dest);
 
         Assert.Equal(11.0f, dest[0].X);
         Assert.Equal(22.0f, dest[0].Y);
@@ -668,9 +669,9 @@ public class TestVector3
     {
         var source = new[] { new Vector3(1, 0, 0), new Vector3(0, 1, 0) };
         var dest = new Vector3[2];
-        var transform = Matrix.RotationZ(MathUtil.PiOverTwo);
+        var transform = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
 
-        Vector3.TransformNormal(source, ref transform, dest);
+        Vector3.TransformNormal(source, transform, dest);
 
         Assert.True(MathUtil.NearEqual(dest[0].X, 0.0f));
         Assert.True(MathUtil.NearEqual(dest[0].Y, 1.0f));
@@ -681,9 +682,9 @@ public class TestVector3
     {
         var source = new[] { new Vector3(1, 0, 0), new Vector3(0, 1, 0) };
         var dest = new Vector3[2];
-        var rotation = Quaternion.RotationAxis(Vector3.UnitZ, MathUtil.PiOverTwo);
+        var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, MathUtil.PiOverTwo);
 
-        Vector3.Transform(source, ref rotation, dest);
+        Vector3.Transform(source, rotation, dest);
 
         Assert.True(MathUtil.NearEqual(dest[0].X, 0.0f));
         Assert.True(MathUtil.NearEqual(dest[0].Y, 1.0f));
@@ -751,7 +752,7 @@ public class TestVector3
         var v2 = new Vector3(1.001f, 2.001f, 3.001f);
         var epsilon = new Vector3(0.01f, 0.01f, 0.01f);
 
-        Assert.True(Vector3.NearEqual(ref v1, ref v2, ref epsilon));
+        Assert.True(v1.NearEquals(v2, epsilon));
     }
 
     [Fact]

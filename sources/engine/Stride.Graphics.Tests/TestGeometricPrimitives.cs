@@ -9,6 +9,7 @@ using Stride.Rendering;
 using Stride.Games;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Input;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {
@@ -16,8 +17,8 @@ namespace Stride.Graphics.Tests
     {
         private EffectInstance simpleEffect;
         private List<GeometricPrimitive> primitives;
-        private Matrix view;
-        private Matrix projection;
+        private Matrix4x4 view;
+        private Matrix4x4 projection;
 
         private float timeSeconds;
 
@@ -71,7 +72,7 @@ namespace Stride.Graphics.Tests
                              };
 
 
-            view = Matrix.LookAtRH(new Vector3(0, 0, 5), new Vector3(0, 0, 0), Vector3.UnitY);
+            view = Matrix4x4.CreateLookAt(new Vector3(0, 0, 5), new Vector3(0, 0, 0), Vector3.UnitY);
 
             Window.AllowUserResizing = true;
         }
@@ -92,10 +93,10 @@ namespace Stride.Graphics.Tests
             if (Input.IsKeyPressed(Keys.Right))
                 ChangePrimitiveStartOffset(1);
 
-            projection = Matrix.PerspectiveFovRH(MathF.PI / 4.0f, (float)GraphicsDevice.Presenter.BackBuffer.ViewWidth / GraphicsDevice.Presenter.BackBuffer.ViewHeight, 0.1f, 100.0f);
+            projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 4.0f, (float)GraphicsDevice.Presenter.BackBuffer.ViewWidth / GraphicsDevice.Presenter.BackBuffer.ViewHeight, 0.1f, 100.0f);
 
             if (GraphicsDevice.Presenter.BackBuffer.ViewWidth < GraphicsDevice.Presenter.BackBuffer.ViewHeight) // the screen is standing up on Android{
-                view = Matrix.LookAtRH(new Vector3(0, 0, 10), new Vector3(0, 0, 0), Vector3.UnitX);
+                view = Matrix4x4.CreateLookAt(new Vector3(0, 0, 10), new Vector3(0, 0, 0), Vector3.UnitX);
         }
 
         private void ChangePrimitiveStartOffset(int i)
@@ -144,14 +145,14 @@ namespace Stride.Graphics.Tests
                 var time = timeSeconds + i;
 
                 // Setup the World matrice for this primitive
-                var world = Matrix.Scaling(MathF.Sin(time * 1.5f) * 0.2f + 1.0f) * Matrix.RotationX(time) * Matrix.RotationY(time * 2.0f) * Matrix.RotationZ(time * .7f) * Matrix.Translation(x, y, 0);
+                var world = Matrix4x4.CreateScale(MathF.Sin(time * 1.5f) * 0.2f + 1.0f) * Matrix4x4.CreateRotationX(time) * Matrix4x4.CreateRotationY(time * 2.0f) * Matrix4x4.CreateRotationZ(time * .7f) * Matrix4x4.CreateTranslation(x, y, 0);
 
                 // Disable Cull only for the plane primitive, otherwise use standard culling
                 var defaultRasterizerState = i == 0 ? RasterizerStates.CullNone : RasterizerStates.CullBack;
                 primitive.PipelineState.State.RasterizerState = isWireframe ? wireframeState : defaultRasterizerState;
 
                 // Draw the primitive using BasicEffect
-                simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, Matrix.Multiply(world, Matrix.Multiply(view, projection)));
+                simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, Matrix4x4.Multiply(world, Matrix4x4.Multiply(view, projection)));
                 primitive.Draw(GraphicsContext, simpleEffect);
             }
         }

@@ -28,7 +28,8 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 
-using Half = Stride.Core.Mathematics.Half;
+using Half = System.Half;
+using System.Numerics;
 
 namespace Stride.Graphics;
 

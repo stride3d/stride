@@ -7,6 +7,7 @@ using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -37,14 +38,14 @@ namespace Stride.Physics
                 LocalScaling = cachedScaling,
             };
 
-            Matrix rotationMatrix;
-            var oY = Vector3.Normalize(Normal);
+            Matrix4x4 rotationMatrix;
+            var oY = Vector3.NormalizeSafe(Normal);
             var oZ = Vector3.Cross(Vector3.UnitX, oY);
             if (oZ.LengthSquared() > MathUtil.ZeroTolerance)
             {
-                oZ.Normalize();
+                oZ = Vector3.NormalizeSafe(oZ);
                 var oX = Vector3.Cross(oY, oZ);
-                rotationMatrix = new Matrix(
+                rotationMatrix = new Matrix4x4(
                     oX.X, oX.Y, oX.Z, 0,
                     oY.X, oY.Y, oY.Z, 0,
                     oZ.X, oZ.Y, oZ.Z, 0,
@@ -53,14 +54,14 @@ namespace Stride.Physics
             else
             {
                 var s = Math.Sign(oY.X);
-                rotationMatrix = new Matrix(
+                rotationMatrix = new Matrix4x4(
                     0, s, 0, 0,
                     s, 0, 0, 0,
                     0, 0, 1, 0,
                     0, 0, 0, 1);
             }
 
-            DebugPrimitiveMatrix = Matrix.Translation(Offset * Vector3.UnitY) * rotationMatrix;
+            DebugPrimitiveMatrix = Matrix4x4.CreateTranslation(Offset * Vector3.UnitY) * rotationMatrix;
         }
 
         public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)

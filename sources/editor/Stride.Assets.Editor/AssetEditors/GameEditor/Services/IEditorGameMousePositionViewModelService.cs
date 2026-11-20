@@ -4,6 +4,7 @@
 
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.ViewModels;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 

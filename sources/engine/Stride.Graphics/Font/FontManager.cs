@@ -10,6 +10,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
+using System.Numerics;
 
 namespace Stride.Graphics.Font
 {

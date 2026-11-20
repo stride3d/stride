@@ -4,6 +4,7 @@
 #pragma warning disable SA1649 // File name must match first type name
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Animations
 {
@@ -416,7 +417,7 @@ namespace Stride.Animations
         /// <inheritdoc/>
         protected override Quaternion Multiply(Quaternion a, Quaternion b)
         {
-            return a * b;
+            return Quaternion.Concatenate(a, b);
         }
     }
 

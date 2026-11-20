@@ -15,6 +15,7 @@ using Stride.Graphics;
 using Stride.Physics;
 using Stride.TextureConverter;
 using Stride.Assets;
+using System.Numerics;
 
 namespace Stride.Physics.Assets
 {

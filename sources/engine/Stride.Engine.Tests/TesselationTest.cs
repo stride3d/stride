@@ -18,6 +18,7 @@ using Stride.Graphics;
 using Stride.Graphics.Regression;
 using Stride.Input;
 using Stride.Rendering.Compositing;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {

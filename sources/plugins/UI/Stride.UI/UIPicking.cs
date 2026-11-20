@@ -9,6 +9,7 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.UI;
+using System.Numerics;
 
 namespace Stride.UI
 {
@@ -19,7 +20,7 @@ namespace Stride.UI
     {
         public RenderUIElement RenderObject;
         public RenderView View;
-        public Matrix WorldViewProjection;
+        public Matrix4x4 WorldViewProjection;
         public Vector3 VirtualResolution;
         public Viewport Viewport;
         public Vector2 BackBufferSize;
@@ -181,21 +182,21 @@ namespace Stride.UI
         /// <summary>
         /// Creates a ray in object space based on a screen position and a previously rendered object's WorldViewProjection matrix
         /// </summary>
-        private static Ray GetWorldRay(in UIPickingTarget target, Vector2 screenPos, ref Matrix worldViewProj)
+        private static Ray GetWorldRay(in UIPickingTarget target, Vector2 screenPos, ref Matrix4x4 worldViewProj)
         {
             screenPos *= target.BackBufferSize;
 
             var unprojectedNear = target.Viewport.Unproject(new Vector3(screenPos, 0.0f), ref worldViewProj);
             var unprojectedFar = target.Viewport.Unproject(new Vector3(screenPos, 1.0f), ref worldViewProj);
 
-            var rayDirection = Vector3.Normalize(unprojectedFar - unprojectedNear);
+            var rayDirection = Vector3.NormalizeSafe(unprojectedFar - unprojectedNear);
             return new Ray(unprojectedNear, rayDirection);
         }
 
         /// <summary>
         /// Returns if a screen position is within the borders of a tested ui component
         /// </summary>
-        private static bool GetTouchPosition(in UIPickingTarget target, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
+        private static bool GetTouchPosition(in UIPickingTarget target, ref Matrix4x4 worldViewProj, Vector2 screenPosition, out Ray uiRay)
         {
             uiRay = new Ray(new Vector3(float.NegativeInfinity), new Vector3(0, 1, 0));
 
@@ -215,7 +216,7 @@ namespace Stride.UI
             return true;
         }
 
-        private void UpdateTouchEvents(in UIPickingTarget target, ref Matrix worldViewProj, GameTime gameTime)
+        private void UpdateTouchEvents(in UIPickingTarget target, ref Matrix4x4 worldViewProj, GameTime gameTime)
         {
             var state = target.RenderObject;
             var rootElement = state.Page.RootElement;
@@ -236,7 +237,7 @@ namespace Stride.UI
                 var currentTouchedElement = lastTouchedElement;
 
                 // re-calculate the element under cursor if click position changed.
-                if (lastTouchPosition != currentTouchPosition)
+                if (!lastTouchPosition.NearEquals(currentTouchPosition))
                 {
                     if (!GetTouchPosition(target, ref worldViewProj, currentTouchPosition, out var uiRay))
                         continue;
@@ -315,10 +316,10 @@ namespace Stride.UI
             }
         }
 
-        private static Matrix GetInverseZViewProjection(in UIPickingTarget target)
+        private static Matrix4x4 GetInverseZViewProjection(in UIPickingTarget target)
         {
             var inverseZViewProj = target.WorldViewProjection;
-            inverseZViewProj.Row3 = -inverseZViewProj.Row3;
+            inverseZViewProj.Z = -inverseZViewProj.Z;
             return inverseZViewProj;
         }
 
@@ -346,7 +347,7 @@ namespace Stride.UI
                     continue;
 
                 var lastMouseOverElement = state.LastMouseOverElement;
-                var retest = mousePosition != state.LastMousePosition
+                var retest = !mousePosition.NearEquals(state.LastMousePosition)
                     || target.Frame != state.LastMouseOverFrame
                     || (lastMouseOverElement?.RequiresMouseOverUpdate ?? false);
 

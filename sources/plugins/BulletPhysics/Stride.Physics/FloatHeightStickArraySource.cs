@@ -4,6 +4,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -55,7 +56,7 @@ namespace Stride.Physics
             }
 
             return other.HeightStickSize == HeightStickSize &&
-                other.HeightRange == HeightRange &&
+                other.HeightRange.NearEquals(HeightRange) &&
                 Math.Abs(other.InitialHeight - InitialHeight) < float.Epsilon;
         }
     }

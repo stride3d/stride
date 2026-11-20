@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Graphics;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels
 {

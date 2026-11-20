@@ -5,6 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering;
 

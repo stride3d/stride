@@ -5,6 +5,7 @@ using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Particles.DebugDraw;
+using System.Numerics;
 
 namespace Stride.Particles.BoundingShapes
 {

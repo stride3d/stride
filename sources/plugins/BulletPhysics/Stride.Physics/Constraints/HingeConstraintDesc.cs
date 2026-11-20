@@ -5,6 +5,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Physics.Constraints
 {
@@ -79,10 +80,10 @@ namespace Stride.Physics.Constraints
         public Constraint Build(RigidbodyComponent bodyA, RigidbodyComponent bodyB)
         {
             var axisA = Vector3.UnitX;
-            AxisInA.Rotate(ref axisA);
+            axisA = Vector3.Transform(axisA, AxisInA);
 
             var axisB = Vector3.UnitX;
-            AxisInA.Rotate(ref axisB);
+            axisB = Vector3.Transform(axisB, AxisInA);
 
             var hinge = bodyB == null
                 ? Simulation.CreateHingeConstraint(bodyA, PivotInA, axisA, UseReferenceFrameA)

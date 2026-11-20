@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Input
 {

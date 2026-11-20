@@ -8,6 +8,7 @@ using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -33,7 +34,7 @@ namespace Stride.Physics
             Radius = radius;
             Orientation = orientation;
 
-            Matrix rotation;
+            Matrix4x4 rotation;
             CapsuleShape shape;
 
             cachedScaling = Is2D ? new Vector3(1, 1, 0) : Vector3.One; 
@@ -45,7 +46,7 @@ namespace Stride.Physics
                     {
                         LocalScaling = cachedScaling,
                     };
-                    rotation = Matrix.RotationX(MathF.PI / 2.0f);
+                    rotation = Matrix4x4.CreateRotationX(MathF.PI / 2.0f);
                     break;
 
                 case ShapeOrientation.UpY:
@@ -53,7 +54,7 @@ namespace Stride.Physics
                     {
                         LocalScaling = cachedScaling,
                     };
-                    rotation = Matrix.Identity;
+                    rotation = Matrix4x4.Identity;
                     break;
 
                 case ShapeOrientation.UpX:
@@ -61,7 +62,7 @@ namespace Stride.Physics
                     {
                         LocalScaling = cachedScaling,
                     };
-                    rotation = Matrix.RotationZ(MathF.PI / 2.0f);
+                    rotation = Matrix4x4.CreateRotationZ(MathF.PI / 2.0f);
                     break;
 
                 default:
@@ -70,7 +71,7 @@ namespace Stride.Physics
 
             InternalShape = Is2D ? (CollisionShape)new Convex2DShape(shape) { LocalScaling = cachedScaling } : shape;
 
-            DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(DebugScaling)) * rotation;
+            DebugPrimitiveMatrix = Matrix4x4.CreateScale(new Vector3(DebugScaling)) * rotation;
         }
 
         public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)

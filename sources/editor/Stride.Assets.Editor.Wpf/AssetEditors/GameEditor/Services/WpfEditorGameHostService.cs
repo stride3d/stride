@@ -12,6 +12,7 @@ using Stride.Core.Presentation.Controls;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Engine;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using System.Numerics;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 

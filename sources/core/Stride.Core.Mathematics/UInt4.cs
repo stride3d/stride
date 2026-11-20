@@ -24,6 +24,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -189,12 +190,6 @@ public struct UInt4 : IEquatable<UInt4>, ISpanFormattable
     /// <param name="v">Value to cast</param>
     public static explicit operator UInt4(System.Numerics.Vector4 v) => new((uint)v.X, (uint)v.Y, (uint)v.Z, (uint)v.W);
 
-    /// <summary>
-    /// Casts from Stride.Maths to System.Numerics vectors
-    /// </summary>
-    /// <param name="v">Value to cast</param>
-    public static explicit operator System.Numerics.Vector4(UInt4 v) => new(v.X, v.Y, v.Z, v.W);
-
 
     /// <summary>
     ///   Creates an array containing the elements of the vector.
@@ -203,17 +198,6 @@ public struct UInt4 : IEquatable<UInt4>, ISpanFormattable
     public uint[] ToArray()
     {
         return [X, Y, Z, W];
-    }
-
-    /// <summary>
-    ///   Adds two vectors.
-    /// </summary>
-    /// <param name = "left">The first vector to add.</param>
-    /// <param name = "right">The second vector to add.</param>
-    /// <param name = "result">When the method completes, contains the sum of the two vectors.</param>
-    public static void Add(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
-    {
-        result = new UInt4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
     }
 
     /// <summary>
@@ -232,32 +216,10 @@ public struct UInt4 : IEquatable<UInt4>, ISpanFormattable
     /// </summary>
     /// <param name = "left">The first vector to subtract.</param>
     /// <param name = "right">The second vector to subtract.</param>
-    /// <param name = "result">When the method completes, contains the difference of the two vectors.</param>
-    public static void Subtract(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
-    {
-        result = new UInt4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
-    }
-
-    /// <summary>
-    ///   Subtracts two vectors.
-    /// </summary>
-    /// <param name = "left">The first vector to subtract.</param>
-    /// <param name = "right">The second vector to subtract.</param>
     /// <returns>The difference of the two vectors.</returns>
     public static UInt4 Subtract(UInt4 left, UInt4 right)
     {
         return new UInt4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
-    }
-
-    /// <summary>
-    ///   Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <param name = "result">When the method completes, contains the scaled vector.</param>
-    public static void Multiply(ref readonly UInt4 value, uint scale, out UInt4 result)
-    {
-        result = new UInt4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
     }
 
     /// <summary>
@@ -276,32 +238,10 @@ public struct UInt4 : IEquatable<UInt4>, ISpanFormattable
     /// </summary>
     /// <param name = "left">The first vector to modulate.</param>
     /// <param name = "right">The second vector to modulate.</param>
-    /// <param name = "result">When the method completes, contains the modulated vector.</param>
-    public static void Modulate(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
-    {
-        result = new UInt4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
-    }
-
-    /// <summary>
-    ///   Modulates a vector with another by performing component-wise multiplication.
-    /// </summary>
-    /// <param name = "left">The first vector to modulate.</param>
-    /// <param name = "right">The second vector to modulate.</param>
     /// <returns>The modulated vector.</returns>
-    public static UInt4 Modulate(UInt4 left, UInt4 right)
+    public static UInt4 Multiply(UInt4 left, UInt4 right)
     {
         return new UInt4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
-    }
-
-    /// <summary>
-    ///   Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <param name = "result">When the method completes, contains the scaled vector.</param>
-    public static void Divide(ref readonly UInt4 value, uint scale, out UInt4 result)
-    {
-        result = new UInt4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
     }
 
     /// <summary>
@@ -321,8 +261,8 @@ public struct UInt4 : IEquatable<UInt4>, ISpanFormattable
     /// <param name = "value">The value to clamp.</param>
     /// <param name = "min">The minimum value.</param>
     /// <param name = "max">The maximum value.</param>
-    /// <param name = "result">When the method completes, contains the clamped value.</param>
-    public static void Clamp(ref readonly UInt4 value, ref readonly UInt4 min, ref readonly UInt4 max, out UInt4 result)
+    /// <returns>The clamped value.</returns>
+    public static UInt4 Clamp(UInt4 value, UInt4 min, UInt4 max)
     {
         uint x = value.X;
         x = (x > max.X) ? max.X : x;
@@ -340,34 +280,7 @@ public struct UInt4 : IEquatable<UInt4>, ISpanFormattable
         w = (w > max.W) ? max.W : w;
         w = (w < min.W) ? min.W : w;
 
-        result = new UInt4(x, y, z, w);
-    }
-
-    /// <summary>
-    ///   Restricts a value to be within a specified range.
-    /// </summary>
-    /// <param name = "value">The value to clamp.</param>
-    /// <param name = "min">The minimum value.</param>
-    /// <param name = "max">The maximum value.</param>
-    /// <returns>The clamped value.</returns>
-    public static UInt4 Clamp(UInt4 value, UInt4 min, UInt4 max)
-    {
-        Clamp(ref value, ref min, ref max, out var result);
-        return result;
-    }
-
-    /// <summary>
-    ///   Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name = "left">The first source vector.</param>
-    /// <param name = "right">The second source vector.</param>
-    /// <param name = "result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
-    public static void Max(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
-    {
-        result.X = (left.X > right.X) ? left.X : right.X;
-        result.Y = (left.Y > right.Y) ? left.Y : right.Y;
-        result.Z = (left.Z > right.Z) ? left.Z : right.Z;
-        result.W = (left.W > right.W) ? left.W : right.W;
+        return new UInt4(x, y, z, w);
     }
 
     /// <summary>
@@ -376,9 +289,14 @@ public struct UInt4 : IEquatable<UInt4>, ISpanFormattable
     /// <param name = "left">The first source vector.</param>
     /// <param name = "right">The second source vector.</param>
     /// <returns>A vector containing the largest components of the source vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static UInt4 Max(UInt4 left, UInt4 right)
     {
-        Max(ref left, ref right, out var result);
+        UInt4 result;
+        result.X = (left.X > right.X) ? left.X : right.X;
+        result.Y = (left.Y > right.Y) ? left.Y : right.Y;
+        result.Z = (left.Z > right.Z) ? left.Z : right.Z;
+        result.W = (left.W > right.W) ? left.W : right.W;
         return result;
     }
 
@@ -387,24 +305,15 @@ public struct UInt4 : IEquatable<UInt4>, ISpanFormattable
     /// </summary>
     /// <param name = "left">The first source vector.</param>
     /// <param name = "right">The second source vector.</param>
-    /// <param name = "result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
-    public static void Min(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
+    /// <returns>A vector containing the smallest components of the source vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt4 Min(UInt4 left, UInt4 right)
     {
+        UInt4 result;
         result.X = (left.X < right.X) ? left.X : right.X;
         result.Y = (left.Y < right.Y) ? left.Y : right.Y;
         result.Z = (left.Z < right.Z) ? left.Z : right.Z;
         result.W = (left.W < right.W) ? left.W : right.W;
-    }
-
-    /// <summary>
-    ///   Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name = "left">The first source vector.</param>
-    /// <param name = "right">The second source vector.</param>
-    /// <returns>A vector containing the smallest components of the source vectors.</returns>
-    public static UInt4 Min(UInt4 left, UInt4 right)
-    {
-        Min(ref left, ref right, out var result);
         return result;
     }
 

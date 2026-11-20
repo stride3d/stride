@@ -4,6 +4,7 @@
 using System;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.UI
 {
@@ -34,7 +35,7 @@ namespace Stride.UI
         /// <returns><value>True</value> if the two contexts are equals</returns>
         public bool Equals(LayoutingContext other)
         {
-            return RealResolution.Equals(other.RealResolution) && VirtualResolution.Equals(other.VirtualResolution);
+            return RealResolution.NearEquals(other.RealResolution) && VirtualResolution.NearEquals(other.VirtualResolution);
         }
     }
 }

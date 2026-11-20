@@ -10,6 +10,7 @@ using Stride.Engine;
 using Stride.Input;
 using Stride.UI.Editor.Services;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using System.Numerics;
 
 namespace Stride.UI.Editor.Game
 {
@@ -121,7 +122,7 @@ namespace Stride.UI.Editor.Game
             pitch = Math.Abs(deltaPitch) < rotationAdaptation ? desiredPitch : pitch + rotationAdaptation * MathF.Sign(deltaPitch);
 
             // Compute base vectors for camera movement
-            var rotation = Matrix.RotationYawPitchRoll(yaw, pitch, 0);
+            var rotation = Matrix4x4.CreateFromYawPitchRoll(yaw, pitch, 0);
             var forward = Vector3.TransformNormal(ForwardVector, rotation);
             var up = Vector3.TransformNormal(UpVector, rotation);
             var right = Vector3.Cross(forward, up);

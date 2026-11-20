@@ -24,6 +24,7 @@ using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.ViewModels;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame
 {
@@ -185,7 +186,7 @@ namespace Stride.Assets.Editor.EditorGame
                 previewService.borderPipelineState.State.Output.CaptureState(drawContext.CommandList);
                 previewService.borderPipelineState.Update();
                 drawContext.CommandList.SetPipelineState(previewService.borderPipelineState.CurrentState);
-                previewService.spriteEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, Matrix.Scaling((float)(IncrustRenderer.Viewport.Width + 1) * 2.0f / (float)currentViewport.Width, -(float)(IncrustRenderer.Viewport.Height + 1) * 2.0f / (float)currentViewport.Height, 1.0f) * Matrix.Translation((float)position.X * 2.0f / (float)currentViewport.Width - 1.0f, -((float)position.Y * 2.0f / (float)currentViewport.Height - 1.0f), 0.0f));
+                previewService.spriteEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, Matrix4x4.CreateScale((float)(IncrustRenderer.Viewport.Width + 1) * 2.0f / (float)currentViewport.Width, -(float)(IncrustRenderer.Viewport.Height + 1) * 2.0f / (float)currentViewport.Height, 1.0f) * Matrix4x4.CreateTranslation((float)position.X * 2.0f / (float)currentViewport.Width - 1.0f, -((float)position.Y * 2.0f / (float)currentViewport.Height - 1.0f), 0.0f));
                 previewService.spriteEffect.Apply(drawContext.GraphicsContext);
 
                 drawContext.CommandList.SetVertexBuffer(0, previewService.borderVertexBuffer, 0, VertexPositionTexture.Size);

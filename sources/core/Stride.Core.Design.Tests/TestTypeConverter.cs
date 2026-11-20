@@ -9,7 +9,8 @@ using Xunit;
 
 using Stride.Core.Mathematics;
 using Stride.Core.TypeConverters;
-using Half = Stride.Core.Mathematics.Half;
+using Half = System.Half;
+using System.Numerics;
 
 namespace Stride.Core.Design.Tests;
 
@@ -44,31 +45,31 @@ public class TestTypeConverter
     [Fact]
     public void TestHalf()
     {
-        TestConversionMultipleCultures(new Half(5.6f));
+        TestConversionMultipleCultures((Half)5.6f);
     }
 
     [Fact]
     public void TestHalf2()
     {
-        TestConversionMultipleCultures(new Half2(new Half(5.12f), new Half(2)));
+        TestConversionMultipleCultures(new Half2((Half)5.12f, (Half)2));
     }
 
     [Fact]
     public void TestHalf3()
     {
-        TestConversionMultipleCultures(new Half3(new Half(5.12f), new Half(2), new Half(-17.54f)));
+        TestConversionMultipleCultures(new Half3((Half)5.12f, (Half)2, (Half)(-17.54f)));
     }
 
     [Fact]
     public void TestHalf4()
     {
-        TestConversionMultipleCultures(new Half4(new Half(5.12f), new Half(2), new Half(-17.54f), new Half(-5)));
+        TestConversionMultipleCultures(new Half4((Half)5.12f, (Half)2, (Half)(-17.54f), (Half)(-5)));
     }
 
     [Fact]
     public void TestMatrix()
     {
-        TestConversionMultipleCultures(new Matrix(0.25f, 50.0f, -4.9f, 1, 5.12f, 2, -17.54f, -5, 10.25f, 150.0f, -14.9f, 11, 15.12f, 12, -117.54f, -15));
+        TestConversionMultipleCultures(new Matrix4x4(0.25f, 50.0f, -4.9f, 1, 5.12f, 2, -17.54f, -5, 10.25f, 150.0f, -14.9f, 11, 15.12f, 12, -117.54f, -15));
     }
 
     [Fact]

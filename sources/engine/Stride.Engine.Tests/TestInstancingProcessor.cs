@@ -14,6 +14,7 @@ using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.ProceduralModels;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {
@@ -66,7 +67,7 @@ namespace Stride.Engine.Tests
 
             // Instances off the entity's origin, so a box widened twice is centered elsewhere than one widened once
             var instancingArray = new InstancingUserArray { ModelTransformUsage = ModelTransformUsage.PostMultiply };
-            instancingArray.UpdateWorldMatrices([Matrix.Translation(1, 0, 0), Matrix.Translation(3, 0, 0)]);
+            instancingArray.UpdateWorldMatrices([Matrix4x4.CreateTranslation(1, 0, 0), Matrix4x4.CreateTranslation(3, 0, 0)]);
             var instancing = new InstancingComponent { Type = instancingArray };
 
             // A scene instance makes a group's processors in the order it met their component types, so the component order decides which comes first

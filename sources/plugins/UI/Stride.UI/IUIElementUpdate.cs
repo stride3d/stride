@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Mathematics;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.UI
 {
@@ -21,7 +22,7 @@ namespace Stride.UI
         /// </summary>
         /// <param name="parentWorldMatrix">The world matrix of the parent.</param>
         /// <param name="parentWorldChanged">Boolean indicating if the world matrix provided by the parent changed</param>
-        void UpdateWorldMatrix(ref Matrix parentWorldMatrix, bool parentWorldChanged);
+        void UpdateWorldMatrix(ref Matrix4x4 parentWorldMatrix, bool parentWorldChanged);
 
         /// <summary>
         /// Recursively update the <see cref="UIElement.RenderOpacity"/>, <see cref="UIElement.DepthBias"/> and <see cref="UIElement.IsHierarchyEnabled"/> state fields of the <see cref="UIElement"/>. 

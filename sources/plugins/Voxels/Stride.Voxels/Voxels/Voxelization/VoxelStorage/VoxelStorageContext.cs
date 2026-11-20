@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels
 {
@@ -15,7 +16,7 @@ namespace Stride.Rendering.Voxels
         public Vector3 Translation;
         public Vector3 VoxelSpaceTranslation;
         public float VoxelSize;
-        public Matrix Matrix;
+        public Matrix4x4 Matrix;
 
         public float RealVoxelSize()
         {

@@ -24,6 +24,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -76,7 +77,7 @@ namespace Stride.Graphics
 
         public bool Equals(VertexPositionNormalTexture other)
         {
-            return Position.Equals(other.Position) && Normal.Equals(other.Normal) && TextureCoordinate.Equals(other.TextureCoordinate);
+            return Position.NearEquals(other.Position) && Normal.NearEquals(other.Normal) && TextureCoordinate.NearEquals(other.TextureCoordinate);
         }
 
         public override bool Equals(object obj)

@@ -12,6 +12,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Engine;
 using Stride.Assets.Editor.AssetEditors.GameEditor;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -67,10 +68,10 @@ public sealed class GameEditorChangePropagatorTests
             [context.Box.Id] = new() { Position = position, Rotation = Quaternion.Identity, Scale = scale },
         });
 
-        await context.WaitForGameSide(x => x.Transform.Position == position && x.Transform.Scale == scale);
+        await context.WaitForGameSide(x => x.Transform.Position.NearEquals(position) && x.Transform.Scale.NearEquals(scale));
 
         context.Fixture.Session.UndoRedoService.Undo();
-        await context.WaitForGameSide(x => x.Transform.Position == Vector3.Zero && x.Transform.Scale == Vector3.One);
+        await context.WaitForGameSide(x => x.Transform.Position.NearEquals(Vector3.Zero) && x.Transform.Scale.NearEquals(Vector3.One));
     });
 
     [Fact]

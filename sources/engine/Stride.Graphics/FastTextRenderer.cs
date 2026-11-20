@@ -9,6 +9,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
 using NVector4 = System.Numerics.Vector4;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -332,6 +333,6 @@ namespace Stride.Graphics
         /// <summary>
         /// A general matrix transformation for the text. Should include view and projection if needed.
         /// </summary>
-        public Matrix MatrixTransform { get; set; } = Matrix.Identity;
+        public Matrix4x4 MatrixTransform { get; set; } = Matrix4x4.Identity;
     }
 }

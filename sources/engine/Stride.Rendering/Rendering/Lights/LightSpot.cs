@@ -9,6 +9,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Rendering.Lights
 {
@@ -197,7 +198,7 @@ namespace Stride.Rendering.Lights
             // TODO: Check if we can improve this calculation with a better model
             var targetPosition = new Vector4(position + direction * Range, 1.0f);
             Vector4 projectedTarget;
-            Vector4.Transform(ref targetPosition, ref renderView.ViewProjection, out projectedTarget);
+            projectedTarget = Vector4.Transform(targetPosition, renderView.ViewProjection);
 
             var d = MathF.Abs(projectedTarget.W) + 0.00001f;
             var r = Range * Math.Sin(MathUtil.DegreesToRadians(AngleOuter / 2.0f));

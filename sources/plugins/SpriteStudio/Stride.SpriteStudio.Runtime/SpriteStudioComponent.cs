@@ -9,6 +9,7 @@ using Stride.Core.Serialization;
 using Stride.Rendering;
 using Stride.SpriteStudio.Runtime;
 using Stride.Updater;
+using System.Numerics;
 
 namespace Stride.Engine
 {

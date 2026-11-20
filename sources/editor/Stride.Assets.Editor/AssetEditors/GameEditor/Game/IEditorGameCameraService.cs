@@ -5,6 +5,7 @@
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
 {
@@ -12,9 +13,9 @@ namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
     {
         CameraComponent Component { get; }
 
-        Matrix ViewMatrix { get; }
+        Matrix4x4 ViewMatrix { get; }
 
-        Matrix ProjectionMatrix { get; }
+        Matrix4x4 ProjectionMatrix { get; }
 
         Vector3 Position { get; }
 

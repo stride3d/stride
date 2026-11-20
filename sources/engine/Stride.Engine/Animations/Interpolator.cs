@@ -13,7 +13,7 @@ namespace Stride.Animations
     {
         public static class Vector2
         {
-            public static void Cubic(ref Core.Mathematics.Vector2 value1, ref Core.Mathematics.Vector2 value2, ref Core.Mathematics.Vector2 value3, ref Core.Mathematics.Vector2 value4, float t, out Core.Mathematics.Vector2 result)
+            public static void Cubic(ref System.Numerics.Vector2 value1, ref System.Numerics.Vector2 value2, ref System.Numerics.Vector2 value3, ref System.Numerics.Vector2 value4, float t, out System.Numerics.Vector2 result)
             {
                 // http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Interpolation_on_the_unit_interval_without_exact_derivatives
                 float t2 = t * t;
@@ -30,14 +30,14 @@ namespace Stride.Animations
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void Linear(ref Core.Mathematics.Vector2 value1, ref Core.Mathematics.Vector2 value2, float t, out Core.Mathematics.Vector2 result)
+            public static void Linear(ref System.Numerics.Vector2 value1, ref System.Numerics.Vector2 value2, float t, out System.Numerics.Vector2 result)
             {
-                Core.Mathematics.Vector2.Lerp(ref value1, ref value2, t, out result);
+                result = System.Numerics.Vector2.Lerp(value1, value2, t);
             }
         }
         public static class Vector3
         {
-            public static void Cubic(ref Core.Mathematics.Vector3 value1, ref Core.Mathematics.Vector3 value2, ref Core.Mathematics.Vector3 value3, ref Core.Mathematics.Vector3 value4, float t, out Core.Mathematics.Vector3 result)
+            public static void Cubic(ref System.Numerics.Vector3 value1, ref System.Numerics.Vector3 value2, ref System.Numerics.Vector3 value3, ref System.Numerics.Vector3 value4, float t, out System.Numerics.Vector3 result)
             {
                 // http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Interpolation_on_the_unit_interval_without_exact_derivatives
                 float t2 = t * t;
@@ -55,15 +55,15 @@ namespace Stride.Animations
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void Linear(ref Core.Mathematics.Vector3 value1, ref Core.Mathematics.Vector3 value2, float t, out Core.Mathematics.Vector3 result)
+            public static void Linear(ref System.Numerics.Vector3 value1, ref System.Numerics.Vector3 value2, float t, out System.Numerics.Vector3 result)
             {
-                Core.Mathematics.Vector3.Lerp(ref value1, ref value2, t, out result);
+                result = System.Numerics.Vector3.Lerp(value1, value2, t);
             }
         }
 
         public static class Vector4
         {
-            public static void Cubic(ref Core.Mathematics.Vector4 value1, ref Core.Mathematics.Vector4 value2, ref Core.Mathematics.Vector4 value3, ref Core.Mathematics.Vector4 value4, float t, out Core.Mathematics.Vector4 result)
+            public static void Cubic(ref System.Numerics.Vector4 value1, ref System.Numerics.Vector4 value2, ref System.Numerics.Vector4 value3, ref System.Numerics.Vector4 value4, float t, out System.Numerics.Vector4 result)
             {
                 // http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Interpolation_on_the_unit_interval_without_exact_derivatives
                 float t2 = t * t;
@@ -82,24 +82,24 @@ namespace Stride.Animations
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void Linear(ref Core.Mathematics.Vector4 value1, ref Core.Mathematics.Vector4 value2, float t, out Core.Mathematics.Vector4 result)
+            public static void Linear(ref System.Numerics.Vector4 value1, ref System.Numerics.Vector4 value2, float t, out System.Numerics.Vector4 result)
             {
-                Core.Mathematics.Vector4.Lerp(ref value1, ref value2, t, out result);
+                result = System.Numerics.Vector4.Lerp(value1, value2, t);
             }
         }
 
         public static class Quaternion
         {
-            public static void Cubic(ref Core.Mathematics.Quaternion value1, ref Core.Mathematics.Quaternion value2, ref Core.Mathematics.Quaternion value3, ref Core.Mathematics.Quaternion value4, float t, out Core.Mathematics.Quaternion result)
+            public static void Cubic(ref System.Numerics.Quaternion value1, ref System.Numerics.Quaternion value2, ref System.Numerics.Quaternion value3, ref System.Numerics.Quaternion value4, float t, out System.Numerics.Quaternion result)
             {
                 // TODO Investigate: Squad doesn't seem to do the same thing as implicit derivatives
                 throw new NotImplementedException();
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void SphericalLinear(ref Core.Mathematics.Quaternion value1, ref Core.Mathematics.Quaternion value2, float t, out Core.Mathematics.Quaternion result)
+            public static void SphericalLinear(ref System.Numerics.Quaternion value1, ref System.Numerics.Quaternion value2, float t, out System.Numerics.Quaternion result)
             {
-                Core.Mathematics.Quaternion.Slerp(ref value1, ref value2, t, out result);
+                result = System.Numerics.Quaternion.Slerp(value1, value2, t);
             }
         }
 

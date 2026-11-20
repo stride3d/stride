@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.UI.Controls
 {
@@ -424,7 +425,7 @@ namespace Stride.UI.Controls
                 CurrentScrollingSpeed[index] = Math.Sign(CurrentScrollingSpeed[index]) * Math.Max(0, Math.Abs(CurrentScrollingSpeed[index]) - elapsedSeconds * Deceleration);
 
             // update the scrolling position
-            if (lastFrameTranslation != Vector3.Zero)
+            if (!lastFrameTranslation.NearEquals(Vector3.Zero))
                 ScrollOfInternal(ref lastFrameTranslation, false);
 
             // Smoothly hide the scroll bars if the no movements
@@ -742,13 +743,13 @@ namespace Stride.UI.Controls
             var childOffsets = offsets + new Vector3(Padding.Left, Padding.Top, Padding.Front) - ViewPort / 2;
 
             // set the arrange matrix of the child.
-            VisualContent.DependencyProperties.Set(ContentArrangeMatrixPropertyKey, Matrix.Translation(childOffsets));
+            VisualContent.DependencyProperties.Set(ContentArrangeMatrixPropertyKey, Matrix4x4.CreateTranslation(childOffsets));
 
             // force re-calculation of main element and scroll bars world matrices
             ArrangeChanged = true;
         }
 
-        protected override void UpdateWorldMatrix(ref Matrix parentWorldMatrix, bool parentWorldChanged)
+        protected override void UpdateWorldMatrix(ref Matrix4x4 parentWorldMatrix, bool parentWorldChanged)
         {
             var shouldUpdateScrollBars = parentWorldChanged || ArrangeChanged || LocalMatrixChanged;
 
@@ -778,7 +779,7 @@ namespace Stride.UI.Controls
                     barPosition[index] = -(RenderSize[index] / 2 + (scrollBarPositionRatio * (RenderSize[index] - scrollBar.RenderSize[index])));
 
                     var parentMatrix = WorldMatrix;
-                    parentMatrix.TranslationVector += barPosition;
+                    parentMatrix.Translation += barPosition;
 
                     ((IUIElementUpdate)scrollBar).UpdateWorldMatrix(ref parentMatrix, true);
                 }

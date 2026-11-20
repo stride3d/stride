@@ -6,6 +6,8 @@ using System;
 using Stride.Core.Mathematics;
 using Stride.Games;
 
+using System.Numerics;
+
 namespace Stride.VirtualReality
 {
     internal class OpenVRTrackedDevice : TrackedItem
@@ -26,7 +28,7 @@ namespace Stride.VirtualReality
         {
             if (trackedDevice != null)
             {
-                Matrix mat;
+                Matrix4x4 mat;
                 Vector3 vel, angVel;
                 internalState = OpenVR.GetTrackerPose(trackedDevice.TrackerIndex, out mat, out vel, out angVel);
                 if (internalState != DeviceState.Invalid)

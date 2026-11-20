@@ -39,6 +39,7 @@ using Stride.Editor.Preview;
 using Stride.Engine;
 using Stride.GameStudio.ViewModels;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.GameStudio.AutoTesting;
 

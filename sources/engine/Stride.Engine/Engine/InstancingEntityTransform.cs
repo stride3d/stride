@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Engine
 {
@@ -49,7 +50,7 @@ namespace Stride.Engine
             var matrices = WorldMatrices;
             if (matrices == null || matrices.Length < maxInstanceCount)
             {
-                matrices = new Matrix[maxInstanceCount];
+                matrices = new Matrix4x4[maxInstanceCount];
             }
 
             // Gather instance transforms

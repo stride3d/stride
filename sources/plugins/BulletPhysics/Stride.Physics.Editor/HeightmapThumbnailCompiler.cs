@@ -10,6 +10,7 @@ using Stride.Editor.Thumbnails;
 using Stride.Graphics;
 using Stride.Physics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics.Editor
 {

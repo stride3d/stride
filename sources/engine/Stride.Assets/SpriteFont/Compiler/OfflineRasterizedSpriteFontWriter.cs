@@ -83,6 +83,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 using Stride.Core.Mathematics;
 using Stride.Graphics.Font;
+using System.Numerics;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {

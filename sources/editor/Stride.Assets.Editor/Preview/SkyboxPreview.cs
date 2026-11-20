@@ -17,6 +17,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.ProceduralModels;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Preview;
 

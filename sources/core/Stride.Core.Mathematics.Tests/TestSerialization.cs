@@ -3,6 +3,7 @@
 
 using Stride.Core.Serialization;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -19,7 +20,7 @@ public class TestSerialization
         Assert.Equal(Bytes(new System.Numerics.Plane(1, 2, 3, 4)), Bytes(new Plane(1, 2, 3, 4)));
         Assert.Equal(
             Bytes(new System.Numerics.Matrix4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)),
-            Bytes(new Matrix(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)));
+            Bytes(new Matrix4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)));
     }
 
     private static byte[] Bytes<T>(T value)

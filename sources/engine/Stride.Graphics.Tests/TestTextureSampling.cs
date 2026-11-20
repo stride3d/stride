@@ -6,6 +6,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {
@@ -19,7 +20,7 @@ namespace Stride.Graphics.Tests
 
         private struct DrawOptions
         {
-            public Matrix Transform;
+            public Matrix4x4 Transform;
 
             public SamplerState Sampler;
         };
@@ -87,9 +88,9 @@ namespace Stride.Graphics.Tests
             //vao = VertexArrayObject.New(GraphicsDevice, mesh.Draw.IndexBuffer, mesh.Draw.VertexBuffers);
 
             myDraws = new DrawOptions[3];
-            myDraws[0] = new DrawOptions { Sampler = GraphicsDevice.SamplerStates.LinearClamp, Transform = Matrix.Multiply(Matrix.Scaling(0.4f), Matrix.Translation(-0.5f, 0.5f, 0f)) };
-            myDraws[1] = new DrawOptions { Sampler = GraphicsDevice.SamplerStates.LinearWrap, Transform = Matrix.Multiply(Matrix.Scaling(0.4f), Matrix.Translation(0.5f, 0.5f, 0f)) };
-            myDraws[2] = new DrawOptions { Sampler = SamplerState.New(GraphicsDevice, new SamplerStateDescription(TextureFilter.Linear, TextureAddressMode.Mirror)), Transform = Matrix.Multiply(Matrix.Scaling(0.4f), Matrix.Translation(0.5f, -0.5f, 0f)) };
+            myDraws[0] = new DrawOptions { Sampler = GraphicsDevice.SamplerStates.LinearClamp, Transform = Matrix4x4.Multiply(Matrix4x4.CreateScale(0.4f), Matrix4x4.CreateTranslation(-0.5f, 0.5f, 0f)) };
+            myDraws[1] = new DrawOptions { Sampler = GraphicsDevice.SamplerStates.LinearWrap, Transform = Matrix4x4.Multiply(Matrix4x4.CreateScale(0.4f), Matrix4x4.CreateTranslation(0.5f, 0.5f, 0f)) };
+            myDraws[2] = new DrawOptions { Sampler = SamplerState.New(GraphicsDevice, new SamplerStateDescription(TextureFilter.Linear, TextureAddressMode.Mirror)), Transform = Matrix4x4.Multiply(Matrix4x4.CreateScale(0.4f), Matrix4x4.CreateTranslation(0.5f, -0.5f, 0f)) };
             //var borderDescription = new SamplerStateDescription(TextureFilter.Linear, TextureAddressMode.Border) { BorderColor = Color.Purple };
             //var border = SamplerState.New(GraphicsDevice, borderDescription);
             //myDraws[3] = new DrawOptions { Sampler = border, Transform = Matrix.Multiply(Matrix.Scale(0.3f), Matrix.Translation(-0.5f, -0.5f, 0f)) };

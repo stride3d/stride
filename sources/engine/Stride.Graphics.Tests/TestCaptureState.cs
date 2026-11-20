@@ -8,6 +8,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

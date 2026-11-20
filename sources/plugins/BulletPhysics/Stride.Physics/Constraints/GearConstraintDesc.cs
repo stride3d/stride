@@ -3,6 +3,7 @@
 
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Physics.Constraints
 {
@@ -57,12 +58,12 @@ namespace Stride.Physics.Constraints
             if (bodyB == null) throw new System.InvalidOperationException("A Gear constraint requires two rigidbodies.");
 
             var axis = Vector3.UnitX;
-            AxisInA.Rotate(ref axis);
-            var frameA = Matrix.Translation(axis);
+            axis = Vector3.Transform(axis, AxisInA);
+            var frameA = Matrix4x4.CreateTranslation(axis);
 
             axis = Vector3.UnitX;
-            AxisInB.Rotate(ref axis);
-            var frameB = Matrix.Translation(axis);
+            axis = Vector3.Transform(axis, AxisInB);
+            var frameB = Matrix4x4.CreateTranslation(axis);
 
             var gear = Simulation.CreateConstraint(ConstraintTypes.Gear, bodyA, bodyB, frameA, frameB) as GearConstraint;
 

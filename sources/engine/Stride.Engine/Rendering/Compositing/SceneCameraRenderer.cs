@@ -6,6 +6,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Rendering.Compositing
 {
@@ -152,34 +153,34 @@ namespace Stride.Rendering.Compositing
             if (surfaceRotation != SurfaceRotation.Identity)
             {
                 var rot = GetSurfaceRotationMatrix(surfaceRotation);
-                Matrix.Multiply(ref renderView.Projection, ref rot, out renderView.Projection);
+                renderView.Projection = Matrix4x4.Multiply(renderView.Projection, rot);
             }
 
             // Enable frustum culling
             renderView.CullingMode = CameraCullingMode.Frustum;
 
-            Matrix.Multiply(ref renderView.View, ref renderView.Projection, out renderView.ViewProjection);
+            renderView.ViewProjection = Matrix4x4.Multiply(renderView.View, renderView.Projection);
         }
 
         // Clip-space rotation per VK_SURFACE_TRANSFORM_*_BIT_KHR (row-major).
-        private static Matrix GetSurfaceRotationMatrix(SurfaceRotation rotation) => rotation switch
+        private static Matrix4x4 GetSurfaceRotationMatrix(SurfaceRotation rotation) => rotation switch
         {
-            SurfaceRotation.Rotate90 => new Matrix(
+            SurfaceRotation.Rotate90 => new Matrix4x4(
                  0, -1, 0, 0,
                  1,  0, 0, 0,
                  0,  0, 1, 0,
                  0,  0, 0, 1),
-            SurfaceRotation.Rotate180 => new Matrix(
+            SurfaceRotation.Rotate180 => new Matrix4x4(
                 -1,  0, 0, 0,
                  0, -1, 0, 0,
                  0,  0, 1, 0,
                  0,  0, 0, 1),
-            SurfaceRotation.Rotate270 => new Matrix(
+            SurfaceRotation.Rotate270 => new Matrix4x4(
                  0,  1, 0, 0,
                 -1,  0, 0, 0,
                  0,  0, 1, 0,
                  0,  0, 0, 1),
-            _ => Matrix.Identity,
+            _ => Matrix4x4.Identity,
         };
     }
 }

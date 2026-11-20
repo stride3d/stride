@@ -8,6 +8,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -69,11 +70,11 @@ namespace Stride.Physics
             if (other == null)
                 return false;
 
-            if (other.LocalOffset != LocalOffset || other.LocalRotation != LocalRotation)
+            if (!other.LocalOffset.NearEquals(LocalOffset) || !other.LocalRotation.NearEquals(LocalRotation))
                 return false;
 
             return other.Model == Model &&
-                   other.Scaling == Scaling &&
+                   other.Scaling.NearEquals(Scaling) &&
                    other.Decomposition.Match(Decomposition);
         }
 

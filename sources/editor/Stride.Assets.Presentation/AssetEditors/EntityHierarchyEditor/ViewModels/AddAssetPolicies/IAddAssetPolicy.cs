@@ -9,6 +9,7 @@ using Stride.Core.Mathematics;
 using Stride.Assets.Entities;
 using Stride.Engine;
 using Stride.Core.Assets.Presentation.ViewModels;
+using System.Numerics;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {

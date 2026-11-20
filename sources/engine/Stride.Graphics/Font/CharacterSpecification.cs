@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics.Font
 {
@@ -92,7 +93,7 @@ namespace Stride.Graphics.Font
 
             return Character == other.Character
                 && FontName == other.FontName
-                && Size == other.Size
+                && Size.NearEquals(other.Size)
                 && Style == other.Style
                 && AntiAlias == other.AntiAlias;
         }

@@ -14,6 +14,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 using Stride.Animations;
 using Stride.Assets.Materials;
+using System.Numerics;
 
 namespace Stride.Assets.Models
 {

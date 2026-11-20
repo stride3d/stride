@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Skyboxes;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests;
 
@@ -94,7 +95,7 @@ public class CubemapSceneRendererTests : EmissiveBoxCaptureTestBase
     /// </summary>
     private static Color3 QuadrantColor(Vector3 axis, float first, float second)
     {
-        var wall = Array.FindIndex(WallAxes, a => a == axis);
+        var wall = Array.FindIndex(WallAxes, a => a.NearEquals(axis));
 
         return new Color3(
             (wall + 1) / 6.0f,

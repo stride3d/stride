@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Runtime.InteropServices;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -20,13 +21,13 @@ public class TestMatrix
         var pitchRadians = MathUtil.DegreesToRadians(pitchDegrees);
         var rollRadians = MathUtil.DegreesToRadians(rollDegrees);
 
-        var rotQuat = Quaternion.RotationYawPitchRoll(yawRadians, pitchRadians, rollRadians);
-        var rotMatrix = Matrix.RotationQuaternion(rotQuat);
+        var rotQuat = Quaternion.CreateFromYawPitchRoll(yawRadians, pitchRadians, rollRadians);
+        var rotMatrix = Matrix4x4.CreateFromQuaternion(rotQuat);
         rotMatrix.Decompose(out float decomposedYaw, out float decomposedPitch, out float decomposedRoll);
 
         var expectedQuat = rotQuat;
-        var decompedQuat = Quaternion.RotationYawPitchRoll(decomposedYaw, decomposedPitch, decomposedRoll);
-        Assert.True(expectedQuat == decompedQuat || expectedQuat == -decompedQuat, $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
+        var decompedQuat = Quaternion.CreateFromYawPitchRoll(decomposedYaw, decomposedPitch, decomposedRoll);
+        Assert.True(expectedQuat.NearEquals(decompedQuat) || expectedQuat.NearEquals(-decompedQuat), $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
     }
 
     [Theory, ClassData(typeof(TestRotationsData.YRPTestData))]
@@ -36,12 +37,12 @@ public class TestMatrix
         var pitchRadians = MathUtil.DegreesToRadians(pitchDegrees);
         var rollRadians = MathUtil.DegreesToRadians(rollDegrees);
 
-        var rotMatrix = Matrix.RotationYawPitchRoll(yawRadians, pitchRadians, rollRadians);
+        var rotMatrix = Matrix4x4.CreateFromYawPitchRoll(yawRadians, pitchRadians, rollRadians);
         rotMatrix.Decompose(out float decomposedYaw, out float decomposedPitch, out float decomposedRoll);
 
-        var expectedQuat = Quaternion.RotationYawPitchRoll(yawRadians, pitchRadians, rollRadians);
-        var decompedQuat = Quaternion.RotationYawPitchRoll(decomposedYaw, decomposedPitch, decomposedRoll);
-        Assert.True(expectedQuat == decompedQuat || expectedQuat == -decompedQuat, $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
+        var expectedQuat = Quaternion.CreateFromYawPitchRoll(yawRadians, pitchRadians, rollRadians);
+        var decompedQuat = Quaternion.CreateFromYawPitchRoll(decomposedYaw, decomposedPitch, decomposedRoll);
+        Assert.True(expectedQuat.NearEquals(decompedQuat) || expectedQuat.NearEquals(-decompedQuat), $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
     }
 
     [Theory, ClassData(typeof(TestRotationsData.YRPTestData))]
@@ -52,12 +53,12 @@ public class TestMatrix
         var rollRadians = MathUtil.DegreesToRadians(rollDegrees);
 
         // Yaw-Pitch-Roll is the intrinsic rotation order, so extrinsic is the reverse (ie. Z-X-Y)
-        var rotMatrix = Matrix.RotationZ(rollRadians) * Matrix.RotationX(pitchRadians) * Matrix.RotationY(yawRadians);
+        var rotMatrix = Matrix4x4.CreateRotationZ(rollRadians) * Matrix4x4.CreateRotationX(pitchRadians) * Matrix4x4.CreateRotationY(yawRadians);
         rotMatrix.Decompose(out float decomposedYaw, out float decomposedPitch, out float decomposedRoll);
 
-        var expectedQuat = Quaternion.RotationYawPitchRoll(yawRadians, pitchRadians, rollRadians);
-        var decompedQuat = Quaternion.RotationYawPitchRoll(decomposedYaw, decomposedPitch, decomposedRoll);
-        Assert.True(expectedQuat == decompedQuat || expectedQuat == -decompedQuat, $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
+        var expectedQuat = Quaternion.CreateFromYawPitchRoll(yawRadians, pitchRadians, rollRadians);
+        var decompedQuat = Quaternion.CreateFromYawPitchRoll(decomposedYaw, decomposedPitch, decomposedRoll);
+        Assert.True(expectedQuat.NearEquals(decompedQuat) || expectedQuat.NearEquals(-decompedQuat), $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
     }
 
     [Theory, ClassData(typeof(TestRotationsData.XYZTestData))]
@@ -67,14 +68,14 @@ public class TestMatrix
         var pitchRadians = MathUtil.DegreesToRadians(pitchDegrees);
         var rollRadians = MathUtil.DegreesToRadians(rollDegrees);
 
-        var rotMatrix = Matrix.RotationX(pitchRadians) * Matrix.RotationY(yawRadians) * Matrix.RotationZ(rollRadians);
+        var rotMatrix = Matrix4x4.CreateRotationX(pitchRadians) * Matrix4x4.CreateRotationY(yawRadians) * Matrix4x4.CreateRotationZ(rollRadians);
         rotMatrix.DecomposeXYZ(out Vector3 eulerAngles);
 
-        var decompedRotMatrix = Matrix.RotationX(eulerAngles.X) * Matrix.RotationY(eulerAngles.Y) * Matrix.RotationZ(eulerAngles.Z);
-        var decompedQuat = Quaternion.RotationMatrix(decompedRotMatrix);
+        var decompedRotMatrix = Matrix4x4.CreateRotationX(eulerAngles.X) * Matrix4x4.CreateRotationY(eulerAngles.Y) * Matrix4x4.CreateRotationZ(eulerAngles.Z);
+        var decompedQuat = Quaternion.CreateFromRotationMatrix(decompedRotMatrix);
 
-        var expectedQuat = Quaternion.RotationX(pitchRadians) * Quaternion.RotationY(yawRadians) * Quaternion.RotationZ(rollRadians);
-        Assert.True(expectedQuat == decompedQuat || expectedQuat == -decompedQuat, $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
+        var expectedQuat = Quaternion.Concatenate(Quaternion.Concatenate(Quaternion.CreateRotationX(pitchRadians), Quaternion.CreateRotationY(yawRadians)), Quaternion.CreateRotationZ(rollRadians));
+        Assert.True(expectedQuat.NearEquals(decompedQuat) || expectedQuat.NearEquals(-decompedQuat), $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
     }
 
     [Fact]
@@ -86,20 +87,20 @@ public class TestMatrix
             9, 10, 11, 12,
             13, 14, 15, 16);
 
-        Matrix baseStrideMatrix = new Matrix(
+        Matrix4x4 baseStrideMatrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
             13, 14, 15, 16);
 
-        Matrix strideMatrix = matrix;
+        Matrix4x4 strideMatrix = matrix;
         Assert.Equal(baseStrideMatrix, strideMatrix);
     }
 
     [Fact]
     public void TestStrideConversion()
     {
-        Matrix matrix = new(
+        Matrix4x4 matrix = new(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
@@ -118,7 +119,7 @@ public class TestMatrix
     [Fact]
     public void TestMemoryIsRowByRow()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
@@ -130,7 +131,7 @@ public class TestMatrix
             13, 14, 15, 16);
 
         float[] expected = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-        Assert.Equal(expected, MemoryMarshal.Cast<Matrix, float>(new ReadOnlySpan<Matrix>(ref matrix)).ToArray());
+        Assert.Equal(expected, MemoryMarshal.Cast<Matrix4x4, float>(new ReadOnlySpan<Matrix4x4>(ref matrix)).ToArray());
         Assert.Equal(expected, MemoryMarshal.Cast<System.Numerics.Matrix4x4, float>(new ReadOnlySpan<System.Numerics.Matrix4x4>(ref numerics)).ToArray());
     }
 
@@ -139,13 +140,13 @@ public class TestMatrix
     [Fact]
     public void TestMatrixMultiplication()
     {
-        var m1 = new Matrix(
+        var m1 = new Matrix4x4(
             1, 2, 3, 0,
             4, 5, 6, 0,
             7, 8, 9, 0,
             0, 0, 0, 1);
 
-        var m2 = new Matrix(
+        var m2 = new Matrix4x4(
             2, 0, 0, 0,
             0, 2, 0, 0,
             0, 0, 2, 0,
@@ -168,14 +169,14 @@ public class TestMatrix
     [Fact]
     public void TestMatrixVectorMultiplication()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             2, 0, 0, 0,
             0, 3, 0, 0,
             0, 0, 4, 0,
             1, 2, 3, 1);
 
         var vector = new Vector3(1, 1, 1);
-        var result = Vector3.Transform(vector, matrix);
+        var result = Vector4.Transform(vector, matrix);
 
         Assert.Equal(3f, result.X); // 2*1 + 0*1 + 0*1 + 1*1
         Assert.Equal(5f, result.Y); // 0*1 + 3*1 + 0*1 + 2*1
@@ -185,26 +186,26 @@ public class TestMatrix
     [Fact]
     public void TestMatrixDeterminant()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 0, 0, 0,
             0, 2, 0, 0,
             0, 0, 3, 0,
             0, 0, 0, 1);
 
-        float det = matrix.Determinant();
+        float det = matrix.GetDeterminant();
         Assert.Equal(6f, det); // 1 * 2 * 3 * 1
     }
 
     [Fact]
     public void TestMatrixInverse()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             2, 0, 0, 0,
             0, 2, 0, 0,
             0, 0, 2, 0,
             1, 2, 3, 1);
 
-        Matrix.Invert(ref matrix, out var inverse);
+        Matrix4x4.InvertSafe(matrix, out var inverse);
         var identity = matrix * inverse;
 
         // Check if the result is approximately identity matrix
@@ -229,13 +230,13 @@ public class TestMatrix
     [Fact]
     public void TestMatrixTranspose()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
             13, 14, 15, 16);
 
-        Matrix.Transpose(ref matrix, out var transpose);
+        var transpose = Matrix4x4.Transpose(matrix);
 
         // Check diagonal elements remain the same
         Assert.Equal(matrix.M11, transpose.M11);
@@ -258,21 +259,21 @@ public class TestMatrix
         Assert.Equal(matrix.M43, transpose.M34);
 
         // Verify double transpose returns original matrix
-        Matrix.Transpose(ref transpose, out var doubleTranspose);
+        var doubleTranspose = Matrix4x4.Transpose(transpose);
         Assert.Equal(matrix, doubleTranspose);
     }
 
     [Fact]
     public void TestMatrixTransposeReturnsTranspose()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
             13, 14, 15, 16);
-        Matrix.Transpose(ref matrix, out var expected);
+        var expected = Matrix4x4.Transpose(matrix);
 
-        var transpose = Matrix.Transpose(matrix);
+        var transpose = Matrix4x4.Transpose(matrix);
 
         Assert.Equal(expected, transpose);
         Assert.NotEqual(matrix, transpose);
@@ -286,9 +287,9 @@ public class TestMatrix
     [InlineData(45, 45, 45)]
     public void TestRotationMatrixDecomposition(float x, float y, float z)
     {
-        var rotationMatrix = Matrix.RotationX(MathUtil.DegreesToRadians(x)) *
-                           Matrix.RotationY(MathUtil.DegreesToRadians(y)) *
-                           Matrix.RotationZ(MathUtil.DegreesToRadians(z));
+        var rotationMatrix = Matrix4x4.CreateRotationX(MathUtil.DegreesToRadians(x)) *
+                           Matrix4x4.CreateRotationY(MathUtil.DegreesToRadians(y)) *
+                           Matrix4x4.CreateRotationZ(MathUtil.DegreesToRadians(z));
 
         rotationMatrix.Decompose(out Vector3 scale, out Quaternion rotation, out Vector3 translation);
 
@@ -303,7 +304,7 @@ public class TestMatrix
         Assert.Equal(0f, translation.Z, 3);
 
         // Reconstruct matrix from decomposed parts and compare
-        var reconstructed = Matrix.Transformation(Vector3.Zero, Quaternion.Identity, scale, Vector3.Zero, rotation, translation);
+        var reconstructed = Matrix4x4.CreateTransformation(Vector3.Zero, Quaternion.Identity, scale, Vector3.Zero, rotation, translation);
 
         Assert.Equal(rotationMatrix.M11, reconstructed.M11, 3);
         Assert.Equal(rotationMatrix.M12, reconstructed.M12, 3);
@@ -320,37 +321,37 @@ public class TestMatrix
     public void TestMatrixTransformationWithScalingRotation()
     {
         var scalingCenter = new Vector3(1, -2, 3);
-        var scalingRotation = Quaternion.RotationYawPitchRoll(0.4f, 0.7f, -0.3f);
+        var scalingRotation = Quaternion.CreateFromYawPitchRoll(0.4f, 0.7f, -0.3f);
         var scaling = new Vector3(2, 3, 4);
         var rotationCenter = new Vector3(-3, 1, 2);
-        var rotation = Quaternion.RotationYawPitchRoll(-0.5f, 0.2f, 0.9f);
+        var rotation = Quaternion.CreateFromYawPitchRoll(-0.5f, 0.2f, 0.9f);
         var translation = new Vector3(5, 6, 7);
 
-        var actual = Matrix.Transformation(scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation);
+        var actual = Matrix4x4.CreateTransformation(scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation);
 
         // Scaling is applied along the axes turned by scalingRotation: the inverse rotation, then the scaling, then the rotation.
-        var sr = Matrix.RotationQuaternion(scalingRotation);
-        var srInverse = Matrix.Invert(sr);
-        var expected = Matrix.Translation(-scalingCenter) * srInverse * Matrix.Scaling(scaling) * sr * Matrix.Translation(scalingCenter)
-            * Matrix.Translation(-rotationCenter) * Matrix.RotationQuaternion(rotation) * Matrix.Translation(rotationCenter)
-            * Matrix.Translation(translation);
+        var sr = Matrix4x4.CreateFromQuaternion(scalingRotation);
+        Matrix4x4.InvertSafe(sr, out var srInverse);
+        var expected = Matrix4x4.CreateTranslation(-scalingCenter) * srInverse * Matrix4x4.CreateScale(scaling) * sr * Matrix4x4.CreateTranslation(scalingCenter)
+            * Matrix4x4.CreateTranslation(-rotationCenter) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(rotationCenter)
+            * Matrix4x4.CreateTranslation(translation);
 
         for (var i = 0; i < 16; i++)
-            Assert.Equal(expected[i], actual[i], 4);
+            Assert.Equal(expected[i / 4, i % 4], actual[i / 4, i % 4], 4);
     }
 
     [Fact]
     public void TestMatrixTransformation()
     {
         var scale = new Vector3(2, 3, 4);
-        var rotation = Quaternion.RotationYawPitchRoll(
+        var rotation = Quaternion.CreateFromYawPitchRoll(
             MathUtil.DegreesToRadians(30),
             MathUtil.DegreesToRadians(45),
             MathUtil.DegreesToRadians(60)
         );
         var translation = new Vector3(1, 2, 3);
 
-        var transform = Matrix.Transformation(
+        var transform = Matrix4x4.CreateTransformation(
             Vector3.Zero,    // scaling center
             Quaternion.Identity,  // scaling rotation
             scale,          // scale
@@ -361,7 +362,7 @@ public class TestMatrix
 
         // Test transformation of a point
         var point = new Vector3(1, 1, 1);
-        var transformed = Vector3.Transform(point, transform);
+        var transformed = Vector4.Transform(point, transform);
 
         // The point should be:
         // 1. Scaled
@@ -387,11 +388,11 @@ public class TestMatrix
     public void TestMatrixScaling()
     {
         var scale = new Vector3(2, 3, 4);
-        var scaleMatrix = Matrix.Scaling(scale);
+        var scaleMatrix = Matrix4x4.CreateScale(scale);
 
         // Test scaling of a point
         var point = new Vector3(1, 1, 1);
-        var scaled = Vector3.Transform(point, scaleMatrix);
+        var scaled = Vector4.Transform(point, scaleMatrix);
 
         Assert.Equal(2f, scaled.X);
         Assert.Equal(3f, scaled.Y);
@@ -402,14 +403,14 @@ public class TestMatrix
     public void TestMatrixConstruction()
     {
         // Test value constructor
-        var m1 = new Matrix(2.0f);
+        var m1 = Matrix4x4.Create(2.0f);
         Assert.Equal(2.0f, m1.M11);
         Assert.Equal(2.0f, m1.M22);
         Assert.Equal(2.0f, m1.M33);
         Assert.Equal(2.0f, m1.M44);
 
         // Test component constructor
-        var m2 = new Matrix(
+        var m2 = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
@@ -421,7 +422,7 @@ public class TestMatrix
 
         // Test array constructor
         float[] values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-        var m3 = new Matrix(values);
+        var m3 = Matrix4x4.Create(values);
         Assert.Equal(1f, m3.M11);
         Assert.Equal(16f, m3.M44);
     }
@@ -430,29 +431,29 @@ public class TestMatrix
     public void TestMatrixStaticFields()
     {
         // Test Zero matrix
-        Assert.Equal(0f, Matrix.Zero.M11);
-        Assert.Equal(0f, Matrix.Zero.M22);
-        Assert.Equal(0f, Matrix.Zero.M33);
-        Assert.Equal(0f, Matrix.Zero.M44);
+        Assert.Equal(0f, default(Matrix4x4).M11);
+        Assert.Equal(0f, default(Matrix4x4).M22);
+        Assert.Equal(0f, default(Matrix4x4).M33);
+        Assert.Equal(0f, default(Matrix4x4).M44);
 
         // Test Identity matrix
-        Assert.Equal(1f, Matrix.Identity.M11);
-        Assert.Equal(1f, Matrix.Identity.M22);
-        Assert.Equal(1f, Matrix.Identity.M33);
-        Assert.Equal(1f, Matrix.Identity.M44);
-        Assert.Equal(0f, Matrix.Identity.M12);
-        Assert.Equal(0f, Matrix.Identity.M41);
+        Assert.Equal(1f, Matrix4x4.Identity.M11);
+        Assert.Equal(1f, Matrix4x4.Identity.M22);
+        Assert.Equal(1f, Matrix4x4.Identity.M33);
+        Assert.Equal(1f, Matrix4x4.Identity.M44);
+        Assert.Equal(0f, Matrix4x4.Identity.M12);
+        Assert.Equal(0f, Matrix4x4.Identity.M41);
 
         // Test IsIdentity property
-        Assert.True(Matrix.Identity.IsIdentity);
-        Assert.False(Matrix.Zero.IsIdentity);
+        Assert.True(Matrix4x4.Identity.NearEquals(Matrix4x4.Identity));
+        Assert.False((default(Matrix4x4)).NearEquals(Matrix4x4.Identity));
     }
 
     [Fact]
     public void TestMatrixTranslation()
     {
         var translation = new Vector3(10, 20, 30);
-        var matrix = Matrix.Translation(translation);
+        var matrix = Matrix4x4.CreateTranslation(translation);
 
         Assert.Equal(10f, matrix.M41);
         Assert.Equal(20f, matrix.M42);
@@ -460,11 +461,11 @@ public class TestMatrix
         Assert.Equal(1f, matrix.M44);
 
         // Test TranslationVector property
-        Assert.Equal(translation, matrix.TranslationVector);
+        Assert.Equal(translation, matrix.Translation);
 
         // Test transforming a point
         var point = new Vector3(1, 2, 3);
-        var transformed = Vector3.Transform(point, matrix);
+        var transformed = Vector4.Transform(point, matrix);
         Assert.Equal(11f, transformed.X);
         Assert.Equal(22f, transformed.Y);
         Assert.Equal(33f, transformed.Z);
@@ -476,11 +477,11 @@ public class TestMatrix
         var light = new Vector4(0, 10, 0, 1); // Light above
         var plane = new Plane(Vector3.UnitY, 0); // Ground plane
 
-        var matrix = Matrix.Shadow(light, plane);
+        var matrix = Matrix4x4.CreateShadow(light, plane);
 
         // Shadow matrix should project points onto the plane
         var point = new Vector3(1, 5, 1);
-        var shadow = Vector3.Transform(point, matrix);
+        var shadow = Vector4.Transform(point, matrix);
 
         // Shadow should be on the ground plane (Y ≈ 0)
         Assert.Equal(0f, shadow.Y, 2);
@@ -493,13 +494,13 @@ public class TestMatrix
         float pitch = MathUtil.PiOverFour / 2;
         float roll = MathUtil.PiOverFour / 3;
 
-        var matrix = Matrix.RotationYawPitchRoll(yaw, pitch, roll);
+        var matrix = Matrix4x4.CreateFromYawPitchRoll(yaw, pitch, roll);
 
         // Should create a valid rotation matrix
-        Assert.NotEqual(0f, matrix.Determinant());
+        Assert.NotEqual(0f, matrix.GetDeterminant());
 
         // Rotation matrices should have determinant close to ±1
-        Assert.Equal(1f, Math.Abs(matrix.Determinant()), 1);
+        Assert.Equal(1f, Math.Abs(matrix.GetDeterminant()), 1);
     }
 
     [Fact]
@@ -512,27 +513,27 @@ public class TestMatrix
         float rotation = MathUtil.PiOverFour;
         var translation = new Vector2(10, 10);
 
-        var matrix = Matrix.Transformation2D(scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation);
+        var matrix = Matrix4x4.CreateTransformation2D(scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation);
 
         // Should create a valid 2D transformation matrix
-        Assert.NotEqual(0f, matrix.Determinant());
+        Assert.NotEqual(0f, matrix.GetDeterminant());
     }
 
     [Fact]
     public void TestMatrixArrayAccess()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
             13, 14, 15, 16);
 
-        Assert.Equal(1f, matrix[0]);
-        Assert.Equal(2f, matrix[1]);
-        Assert.Equal(16f, matrix[15]);
+        Assert.Equal(1f, matrix[0, 0]);
+        Assert.Equal(2f, matrix[0, 1]);
+        Assert.Equal(16f, matrix[3, 3]);
 
         // Test setter
-        matrix[0] = 100f;
+        matrix[0, 0] = 100f;
         Assert.Equal(100f, matrix.M11);
     }
 
@@ -545,7 +546,7 @@ public class TestMatrix
             9, 10, 11, 12,
             13, 14, 15, 16);
 
-        var matrix = (Matrix)numeric;
+        var matrix = (Matrix4x4)numeric;
 
         Assert.Equal(1f, matrix.M11);
         Assert.Equal(2f, matrix.M12);
@@ -555,7 +556,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixToNumeric()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
@@ -576,7 +577,7 @@ public class TestMatrix
         float znear = 0.1f;
         float zfar = 1000f;
 
-        var matrix = Matrix.OrthoRH(width, height, znear, zfar);
+        var matrix = Matrix4x4.CreateOrthographic(width, height, znear, zfar);
 
         // RH should have different characteristics than LH
         Assert.Equal(1f, matrix.M44);
@@ -595,7 +596,7 @@ public class TestMatrix
         float znear = 0.1f;
         float zfar = 1000f;
 
-        var matrix = Matrix.OrthoOffCenterLH(left, right, bottom, top, znear, zfar);
+        var matrix = Matrix4x4.CreateOrthographicOffCenterLeftHanded(left, right, bottom, top, znear, zfar);
 
         Assert.Equal(1f, matrix.M44);
         Assert.NotEqual(0f, matrix.M11);
@@ -610,7 +611,7 @@ public class TestMatrix
         float znear = 0.1f;
         float zfar = 1000f;
 
-        var matrix = Matrix.PerspectiveLH(width, height, znear, zfar);
+        var matrix = Matrix4x4.CreatePerspectiveLeftHanded(width, height, znear, zfar);
 
         // Perspective matrices have M44 = 0
         Assert.Equal(0f, matrix.M44);
@@ -625,20 +626,20 @@ public class TestMatrix
         var target = new Vector3(0, 0, 0);
         var up = new Vector3(0, 1, 0);
 
-        var matrix = Matrix.LookAtRH(eye, target, up);
+        var matrix = Matrix4x4.CreateLookAt(eye, target, up);
 
         // LookAt matrix should be invertible
-        Assert.NotEqual(0f, matrix.Determinant());
+        Assert.NotEqual(0f, matrix.GetDeterminant());
     }
 
     [Fact]
     public void TestMatrixSmoothStep()
     {
-        var start = Matrix.Identity;
-        var end = Matrix.Scaling(2f);
+        var start = Matrix4x4.Identity;
+        var end = Matrix4x4.CreateScale(2f);
         float amount = 0.5f;
 
-        var result = Matrix.SmoothStep(start, end, amount);
+        var result = Matrix4x4.SmoothStep(start, end, amount);
 
         // Result should be between start and end
         Assert.True(result.M11 > 1f && result.M11 < 2f);
@@ -648,10 +649,10 @@ public class TestMatrix
     public void TestMatrixOrthogonalize()
     {
         // Create a matrix that's slightly non-orthogonal
-        var matrix = Matrix.RotationY(0.1f);
+        var matrix = Matrix4x4.CreateRotationY(0.1f);
         matrix.M12 += 0.01f; // Perturb it slightly
 
-        var ortho = Matrix.Orthogonalize(matrix);
+        var ortho = Matrix4x4.Orthogonalize(matrix);
 
         // After orthogonalization, rows should be more perpendicular
         var row1 = new Vector3(ortho.M11, ortho.M12, ortho.M13);
@@ -665,13 +666,13 @@ public class TestMatrix
     public void TestMatrixOrthonormalize()
     {
         // Create a non-orthonormal matrix (scaled rotation)
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             2, 0, 0, 0,
             0, 2, 0, 0,
             0, 0, 2, 0,
             0, 0, 0, 1);
 
-        var orthonormal = Matrix.Orthonormalize(matrix);
+        var orthonormal = Matrix4x4.Orthonormalize(matrix);
 
         // After orthonormalization, row vectors should have unit length
         var row1 = new Vector3(orthonormal.M11, orthonormal.M12, orthonormal.M13);
@@ -685,7 +686,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixIdentity()
     {
-        var identity = Matrix.Identity;
+        var identity = Matrix4x4.Identity;
 
         Assert.Equal(1.0f, identity.M11);
         Assert.Equal(0.0f, identity.M12);
@@ -711,14 +712,14 @@ public class TestMatrix
     [Fact]
     public void TestMatrixMultiplicationByIdentity()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
             13, 14, 15, 16);
 
-        var result1 = matrix * Matrix.Identity;
-        var result2 = Matrix.Identity * matrix;
+        var result1 = matrix * Matrix4x4.Identity;
+        var result2 = Matrix4x4.Identity * matrix;
 
         Assert.Equal(matrix, result1);
         Assert.Equal(matrix, result2);
@@ -727,13 +728,13 @@ public class TestMatrix
     [Fact]
     public void TestMatrixTransposeEdgeCase()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
             13, 14, 15, 16);
 
-        Matrix.Transpose(ref matrix, out var transposed);
+        var transposed = Matrix4x4.Transpose(matrix);
 
         Assert.Equal(1f, transposed.M11);
         Assert.Equal(5f, transposed.M12);
@@ -749,8 +750,8 @@ public class TestMatrix
     [Fact]
     public void TestMatrixInverseIdentity()
     {
-        var identity = Matrix.Identity;
-        Matrix.Invert(ref identity, out var inverse);
+        var identity = Matrix4x4.Identity;
+        Matrix4x4.InvertSafe(identity, out var inverse);
 
         Assert.Equal(identity, inverse);
     }
@@ -759,13 +760,13 @@ public class TestMatrix
     public void TestMatrixInverseSingular()
     {
         // Singular matrix (determinant = 0)
-        var singular = new Matrix(
+        var singular = new Matrix4x4(
             1, 2, 3, 0,
             2, 4, 6, 0,
             3, 6, 9, 0,
             0, 0, 0, 1);
 
-        Matrix.Invert(ref singular, out var inverse);
+        Matrix4x4.InvertSafe(singular, out var inverse);
 
         // Inverse of singular matrix - implementation may return specific values
         // Just verify it doesn't crash
@@ -775,8 +776,8 @@ public class TestMatrix
     [Fact]
     public void TestMatrixDeterminantIdentity()
     {
-        var identity = Matrix.Identity;
-        var det = identity.Determinant();
+        var identity = Matrix4x4.Identity;
+        var det = identity.GetDeterminant();
 
         Assert.Equal(1.0f, det);
     }
@@ -785,13 +786,13 @@ public class TestMatrix
     public void TestMatrixDeterminantZero()
     {
         // Matrix with determinant 0
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 0,
             2, 4, 6, 0,
             3, 6, 9, 0,
             0, 0, 0, 1);
 
-        var det = matrix.Determinant();
+        var det = matrix.GetDeterminant();
 
         Assert.Equal(0.0f, det, 5);
     }
@@ -799,7 +800,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixTranslationEdgeCase()
     {
-        var translation = Matrix.Translation(5.0f, 10.0f, 15.0f);
+        var translation = Matrix4x4.CreateTranslation(5.0f, 10.0f, 15.0f);
         var point = new Vector3(1.0f, 1.0f, 1.0f);
 
         var transformed = Vector3.TransformCoordinate(point, translation);
@@ -812,7 +813,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixScalingEdgeCase()
     {
-        var scaling = Matrix.Scaling(2.0f, 3.0f, 4.0f);
+        var scaling = Matrix4x4.CreateScale(2.0f, 3.0f, 4.0f);
         var point = new Vector3(1.0f, 1.0f, 1.0f);
 
         var transformed = Vector3.TransformCoordinate(point, scaling);
@@ -825,7 +826,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixUniformScaling()
     {
-        var scaling = Matrix.Scaling(2.0f);
+        var scaling = Matrix4x4.CreateScale(2.0f);
         var point = new Vector3(1.0f, 2.0f, 3.0f);
 
         var transformed = Vector3.TransformCoordinate(point, scaling);
@@ -838,7 +839,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixRotationX90Degrees()
     {
-        var rotation = Matrix.RotationX(MathUtil.PiOverTwo);
+        var rotation = Matrix4x4.CreateRotationX(MathUtil.PiOverTwo);
         var point = new Vector3(0.0f, 1.0f, 0.0f);
 
         var transformed = Vector3.TransformCoordinate(point, rotation);
@@ -851,7 +852,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixRotationY90Degrees()
     {
-        var rotation = Matrix.RotationY(MathUtil.PiOverTwo);
+        var rotation = Matrix4x4.CreateRotationY(MathUtil.PiOverTwo);
         var point = new Vector3(1.0f, 0.0f, 0.0f);
 
         var transformed = Vector3.TransformCoordinate(point, rotation);
@@ -864,7 +865,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixRotationZ90Degrees()
     {
-        var rotation = Matrix.RotationZ(MathUtil.PiOverTwo);
+        var rotation = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
         var point = new Vector3(1.0f, 0.0f, 0.0f);
 
         var transformed = Vector3.TransformCoordinate(point, rotation);
@@ -877,33 +878,33 @@ public class TestMatrix
     [Fact]
     public void TestMatrixIsIdentity()
     {
-        var identity = Matrix.Identity;
-        Assert.True(identity.IsIdentity);
+        var identity = Matrix4x4.Identity;
+        Assert.True(identity.NearEquals(Matrix4x4.Identity));
 
-        var notIdentity = Matrix.Translation(1, 0, 0);
-        Assert.False(notIdentity.IsIdentity);
+        var notIdentity = Matrix4x4.CreateTranslation(1, 0, 0);
+        Assert.False(notIdentity.NearEquals(Matrix4x4.Identity));
     }
 
     [Fact]
     public void TestMatrixEquality()
     {
-        var m1 = new Matrix(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-        var m2 = new Matrix(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-        var m3 = Matrix.Identity;
+        var m1 = new Matrix4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        var m2 = new Matrix4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        var m3 = Matrix4x4.Identity;
 
-        Assert.True(m1 == m2);
-        Assert.False(m1 == m3);
-        Assert.False(m1 != m2);
-        Assert.True(m1 != m3);
+        Assert.True(m1.NearEquals(m2));
+        Assert.False(m1.NearEquals(m3));
+        Assert.False(!m1.NearEquals(m2));
+        Assert.True(!m1.NearEquals(m3));
 
-        Assert.True(m1.Equals(m2));
-        Assert.False(m1.Equals(m3));
+        Assert.True(m1.NearEquals(m2));
+        Assert.False(m1.NearEquals(m3));
     }
 
     [Fact]
     public void TestMatrixNegation()
     {
-        var matrix = new Matrix(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        var matrix = new Matrix4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
         var negated = -matrix;
 
         Assert.Equal(-1f, negated.M11);
@@ -914,8 +915,8 @@ public class TestMatrix
     [Fact]
     public void TestMatrixAddition()
     {
-        var m1 = Matrix.Identity;
-        var m2 = Matrix.Identity;
+        var m1 = Matrix4x4.Identity;
+        var m2 = Matrix4x4.Identity;
 
         var sum = m1 + m2;
 
@@ -929,8 +930,8 @@ public class TestMatrix
     [Fact]
     public void TestMatrixSubtraction()
     {
-        var m1 = Matrix.Scaling(2.0f);
-        var m2 = Matrix.Identity;
+        var m1 = Matrix4x4.CreateScale(2.0f);
+        var m2 = Matrix4x4.Identity;
 
         var diff = m1 - m2;
 
@@ -943,7 +944,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixScalarMultiplication()
     {
-        var matrix = Matrix.Identity;
+        var matrix = Matrix4x4.Identity;
         var scaled = matrix * 2.0f;
 
         Assert.Equal(2.0f, scaled.M11);
@@ -958,7 +959,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixScalarDivision()
     {
-        var matrix = Matrix.Scaling(4.0f);
+        var matrix = Matrix4x4.CreateScale(4.0f);
         matrix.M44 = 4.0f;
         var divided = matrix / 2.0f;
 
@@ -971,13 +972,13 @@ public class TestMatrix
     [Fact]
     public void TestMatrixRowColumn()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
             13, 14, 15, 16);
 
-        var row1 = matrix.Row1;
+        var row1 = matrix.X;
         Assert.Equal(1f, row1.X);
         Assert.Equal(2f, row1.Y);
         Assert.Equal(3f, row1.Z);
@@ -993,7 +994,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixDecomposeTranslationOnly()
     {
-        var translation = Matrix.Translation(5.0f, 10.0f, 15.0f);
+        var translation = Matrix4x4.CreateTranslation(5.0f, 10.0f, 15.0f);
 
         translation.Decompose(out Vector3 scale, out Quaternion rotation, out Vector3 trans);
 
@@ -1005,7 +1006,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixDecomposeScaleOnly()
     {
-        var scaling = Matrix.Scaling(2.0f, 3.0f, 4.0f);
+        var scaling = Matrix4x4.CreateScale(2.0f, 3.0f, 4.0f);
 
         scaling.Decompose(out Vector3 scale, out Quaternion rotation, out Vector3 trans);
 
@@ -1019,10 +1020,10 @@ public class TestMatrix
     [Fact]
     public void TestMatrixLerp()
     {
-        var start = Matrix.Identity;
-        var end = Matrix.Scaling(2.0f);
+        var start = Matrix4x4.Identity;
+        var end = Matrix4x4.CreateScale(2.0f);
 
-        var halfway = Matrix.Lerp(start, end, 0.5f);
+        var halfway = Matrix4x4.Lerp(start, end, 0.5f);
 
         // At 0.5, should be halfway between identity (1) and scaling (2)
         Assert.Equal(1.5f, halfway.M11, 5);
@@ -1031,11 +1032,11 @@ public class TestMatrix
         Assert.Equal(1.0f, halfway.M44, 5);
 
         // At 0, should equal start
-        var atStart = Matrix.Lerp(start, end, 0.0f);
+        var atStart = Matrix4x4.Lerp(start, end, 0.0f);
         Assert.Equal(start, atStart);
 
         // At 1, should equal end
-        var atEnd = Matrix.Lerp(start, end, 1.0f);
+        var atEnd = Matrix4x4.Lerp(start, end, 1.0f);
         Assert.Equal(end, atEnd);
     }
 
@@ -1047,10 +1048,10 @@ public class TestMatrix
         var cameraUp = Vector3.UnitY;
         var cameraForward = Vector3.UnitZ;
 
-        var billboard = Matrix.Billboard(objectPos, cameraPos, cameraUp, cameraForward);
+        var billboard = Matrix4x4.CreateBillboard(objectPos, cameraPos, cameraUp, cameraForward);
 
         // Billboard matrix should be invertible
-        Assert.NotEqual(0f, billboard.Determinant());
+        Assert.NotEqual(0f, billboard.GetDeterminant());
 
         // Translation should match object position
         Assert.Equal(objectPos.X, billboard.M41, 5);
@@ -1063,7 +1064,7 @@ public class TestMatrix
     {
         // Create a ground plane at Y=0
         var plane = new Plane(Vector3.UnitY, 0);
-        var reflection = Matrix.Reflection(plane);
+        var reflection = Matrix4x4.CreateReflection(plane);
 
         // Reflecting a point above the plane should give point below
         var point = new Vector3(1, 5, 1);
@@ -1082,7 +1083,7 @@ public class TestMatrix
         float znear = 0.1f;
         float zfar = 1000f;
 
-        var matrix = Matrix.PerspectiveFovLH(fov, aspect, znear, zfar);
+        var matrix = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(fov, aspect, znear, zfar);
 
         // Perspective matrices should have M34 = 1 (for LH)
         Assert.Equal(1f, matrix.M34, 5);
@@ -1097,7 +1098,7 @@ public class TestMatrix
         float znear = 0.1f;
         float zfar = 1000f;
 
-        var matrix = Matrix.PerspectiveFovRH(fov, aspect, znear, zfar);
+        var matrix = Matrix4x4.CreatePerspectiveFieldOfView(fov, aspect, znear, zfar);
 
         // Perspective matrices should have M34 = -1 (for RH)
         Assert.Equal(-1f, matrix.M34, 5);
@@ -1111,10 +1112,10 @@ public class TestMatrix
         var target = Vector3.Zero;
         var up = Vector3.UnitY;
 
-        var lookAt = Matrix.LookAtLH(eye, target, up);
+        var lookAt = Matrix4x4.CreateLookAtLeftHanded(eye, target, up);
 
         // LookAt matrix should be invertible
-        Assert.NotEqual(0f, lookAt.Determinant());
+        Assert.NotEqual(0f, lookAt.GetDeterminant());
     }
 
     [Fact]
@@ -1127,7 +1128,7 @@ public class TestMatrix
         float znear = 0.1f;
         float zfar = 100f;
 
-        var ortho = Matrix.OrthoOffCenterRH(left, right, bottom, top, znear, zfar);
+        var ortho = Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, znear, zfar);
 
         Assert.Equal(1f, ortho.M44, 5);
         Assert.NotEqual(0f, ortho.M11);
@@ -1143,7 +1144,7 @@ public class TestMatrix
         float znear = 0.1f;
         float zfar = 1000f;
 
-        var perspective = Matrix.PerspectiveRH(width, height, znear, zfar);
+        var perspective = Matrix4x4.CreatePerspective(width, height, znear, zfar);
 
         Assert.Equal(0f, perspective.M44);
         Assert.NotEqual(0f, perspective.M11);
@@ -1160,7 +1161,7 @@ public class TestMatrix
         float znear = 0.1f;
         float zfar = 1000f;
 
-        var perspective = Matrix.PerspectiveOffCenterLH(left, right, bottom, top, znear, zfar);
+        var perspective = Matrix4x4.CreatePerspectiveOffCenterLeftHanded(left, right, bottom, top, znear, zfar);
 
         Assert.Equal(0f, perspective.M44);
         Assert.NotEqual(0f, perspective.M11);
@@ -1177,7 +1178,7 @@ public class TestMatrix
         float znear = 0.1f;
         float zfar = 1000f;
 
-        var perspective = Matrix.PerspectiveOffCenterRH(left, right, bottom, top, znear, zfar);
+        var perspective = Matrix4x4.CreatePerspectiveOffCenter(left, right, bottom, top, znear, zfar);
 
         Assert.Equal(0f, perspective.M44);
         Assert.NotEqual(0f, perspective.M11);
@@ -1192,7 +1193,7 @@ public class TestMatrix
         float znear = 0.1f;
         float zfar = 1000f;
 
-        var ortho = Matrix.OrthoLH(width, height, znear, zfar);
+        var ortho = Matrix4x4.CreateOrthographicLeftHanded(width, height, znear, zfar);
 
         Assert.Equal(1f, ortho.M44);
         Assert.NotEqual(0f, ortho.M11);
@@ -1202,26 +1203,26 @@ public class TestMatrix
     [Fact]
     public void TestMatrixRotationAxis()
     {
-        var axis = Vector3.Normalize(new Vector3(1, 1, 0));
+        var axis = Vector3.NormalizeSafe(new Vector3(1, 1, 0));
         var angle = MathUtil.PiOverFour;
 
-        var rotation = Matrix.RotationAxis(axis, angle);
+        var rotation = Matrix4x4.CreateFromAxisAngle(axis, angle);
 
         // Should be a valid rotation matrix (determinant ≈ ±1)
-        Assert.Equal(1f, Math.Abs(rotation.Determinant()), 3);
+        Assert.Equal(1f, Math.Abs(rotation.GetDeterminant()), 3);
     }
 
     [Fact]
     public void TestMatrixAffineTransformation()
     {
         float scaling = 2.0f;
-        var rotation = Quaternion.RotationY(MathUtil.PiOverFour);
+        var rotation = Quaternion.CreateRotationY(MathUtil.PiOverFour);
         var translation = new Vector3(10, 20, 30);
 
-        var affine = Matrix.AffineTransformation(scaling, rotation, translation);
+        var affine = Matrix4x4.CreateAffineTransformation(scaling, rotation, translation);
 
         // Should create valid transformation
-        Assert.NotEqual(Matrix.Zero, affine);
+        Assert.NotEqual(default(Matrix4x4), affine);
         Assert.Equal(translation.X, affine.M41, 5);
         Assert.Equal(translation.Y, affine.M42, 5);
         Assert.Equal(translation.Z, affine.M43, 5);
@@ -1234,10 +1235,10 @@ public class TestMatrix
         float rotation = MathUtil.PiOverFour;
         var translation = new Vector2(100, 50);
 
-        var affine = Matrix.AffineTransformation2D(scaling, rotation, translation);
+        var affine = Matrix4x4.CreateAffineTransformation2D(scaling, rotation, translation);
 
         // Should create valid transformation
-        Assert.NotEqual(Matrix.Zero, affine);
+        Assert.NotEqual(default(Matrix4x4), affine);
         Assert.Equal(translation.X, affine.M41, 5);
         Assert.Equal(translation.Y, affine.M42, 5);
     }
@@ -1245,10 +1246,10 @@ public class TestMatrix
     [Fact]
     public void TestMatrixExponent()
     {
-        var matrix = Matrix.Scaling(2.0f);
+        var matrix = Matrix4x4.CreateScale(2.0f);
 
         // Matrix^2 should be Scaling(4.0f)
-        var squared = Matrix.Exponent(matrix, 2);
+        var squared = Matrix4x4.Exponent(matrix, 2);
 
         Assert.Equal(4.0f, squared.M11, 5);
         Assert.Equal(4.0f, squared.M22, 5);
@@ -1258,7 +1259,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixDivide()
     {
-        var matrix = Matrix.Scaling(10.0f);
+        var matrix = Matrix4x4.CreateScale(10.0f);
         var divisor = 2.0f;
 
         var result = matrix / divisor;
@@ -1271,7 +1272,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixToArray()
     {
-        var matrix = new Matrix(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        var matrix = new Matrix4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
         var array = matrix.ToArray();
 
         Assert.Equal(16, array.Length);
@@ -1282,8 +1283,8 @@ public class TestMatrix
     [Fact]
     public void TestMatrixGetHashCodeEdgeCase()
     {
-        var m1 = Matrix.Identity;
-        var m2 = Matrix.Identity;
+        var m1 = Matrix4x4.Identity;
+        var m2 = Matrix4x4.Identity;
 
         Assert.Equal(m1.GetHashCode(), m2.GetHashCode());
     }
@@ -1291,7 +1292,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixExchangeRows()
     {
-        var m = new Matrix(
+        var m = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
@@ -1312,7 +1313,7 @@ public class TestMatrix
     [Fact]
     public void TestMatrixExchangeColumns()
     {
-        var m = new Matrix(
+        var m = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
@@ -1333,23 +1334,23 @@ public class TestMatrix
     [Fact]
     public void TestMatrixInvertMethod()
     {
-        var m = Matrix.Translation(5, 10, 15);
-        m.Invert();
+        var m = Matrix4x4.CreateTranslation(5, 10, 15);
+        Matrix4x4.InvertSafe(m, out m);
 
-        var expected = Matrix.Invert(Matrix.Translation(5, 10, 15));
+        Matrix4x4.InvertSafe(Matrix4x4.CreateTranslation(5, 10, 15), out var expected);
         Assert.Equal(expected, m);
     }
 
     [Fact]
     public void TestMatrixTransposeMethod()
     {
-        var m = new Matrix(
+        var m = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
             13, 14, 15, 16);
 
-        m.Transpose();
+        m = Matrix4x4.Transpose(m);
 
         Assert.Equal(1, m.M11);
         Assert.Equal(5, m.M12);
@@ -1360,19 +1361,19 @@ public class TestMatrix
     [Fact]
     public void TestMatrixDecomposeLQ()
     {
-        var m = Matrix.RotationX(MathUtil.PiOverFour) * Matrix.Translation(1, 2, 3);
-        m.DecomposeLQ(out Matrix l, out Matrix q);
+        var m = Matrix4x4.CreateRotationX(MathUtil.PiOverFour) * Matrix4x4.CreateTranslation(1, 2, 3);
+        m.DecomposeLQ(out Matrix4x4 l, out Matrix4x4 q);
 
         // L should be lower triangular, Q should be orthogonal
-        Assert.NotEqual(Matrix.Zero, l);
-        Assert.NotEqual(Matrix.Zero, q);
+        Assert.NotEqual(default(Matrix4x4), l);
+        Assert.NotEqual(default(Matrix4x4), q);
     }
 
     [Fact]
     public void TestMatrixNegate()
     {
-        var m = new Matrix(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-        Matrix.Negate(ref m, out Matrix result);
+        var m = new Matrix4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        Matrix4x4 result = Matrix4x4.Negate(m);
 
         Assert.Equal(-1, result.M11);
         Assert.Equal(-2, result.M12);
@@ -1382,8 +1383,8 @@ public class TestMatrix
     [Fact]
     public void TestMatrixRotationQuaternion()
     {
-        var q = Quaternion.RotationAxis(Vector3.UnitY, MathUtil.PiOverTwo);
-        var m = Matrix.RotationQuaternion(q);
+        var q = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathUtil.PiOverTwo);
+        var m = Matrix4x4.CreateFromQuaternion(q);
 
         Assert.True(MathUtil.NearEqual(m.M22, 1f));
         Assert.True(MathUtil.NearEqual(m.M11, 0f));
@@ -1395,11 +1396,11 @@ public class TestMatrix
     {
         var scale = new Vector3(2, 3, 4);
         var translation = new Vector3(10, 20, 30);
-        var rotation = Quaternion.RotationY(MathUtil.PiOverFour);
+        var rotation = Quaternion.CreateRotationY(MathUtil.PiOverFour);
         var scalingCenter = Vector3.Zero;
         var rotationCenter = Vector3.Zero;
 
-        var m = Matrix.Transformation(scalingCenter, Quaternion.Identity, scale, rotationCenter, rotation, translation);
+        var m = Matrix4x4.CreateTransformation(scalingCenter, Quaternion.Identity, scale, rotationCenter, rotation, translation);
         m.Decompose(out Vector3 outScale, out Quaternion outRotation, out Vector3 outTranslation);
 
         Assert.True(MathUtil.NearEqual(scale.X, outScale.X));
@@ -1414,7 +1415,7 @@ public class TestMatrix
     public void TestMatrixDecomposeXYZ()
     {
         var rotation = new Vector3(0.1f, 0.2f, 0.3f);
-        var m = Matrix.RotationX(rotation.X) * Matrix.RotationY(rotation.Y) * Matrix.RotationZ(rotation.Z);
+        var m = Matrix4x4.CreateRotationX(rotation.X) * Matrix4x4.CreateRotationY(rotation.Y) * Matrix4x4.CreateRotationZ(rotation.Z);
 
         m.DecomposeXYZ(out Vector3 result);
 

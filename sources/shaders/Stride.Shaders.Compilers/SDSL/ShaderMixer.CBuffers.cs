@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using static Stride.Shaders.Spirv.Specification;
+using System.Numerics;
 
 namespace Stride.Shaders.Compilers.SDSL
 {

@@ -13,6 +13,7 @@ using Stride.Core.Mathematics;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Preview;
 

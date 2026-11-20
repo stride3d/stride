@@ -4,10 +4,11 @@
 using Avalonia;
 using Avalonia.Data;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
-using Matrix = Mathematics.Matrix;
+using Matrix = System.Numerics.Matrix4x4;
 
 public sealed class QuaternionEditor : VectorEditorBase<Quaternion?>
 {
@@ -61,10 +62,10 @@ public sealed class QuaternionEditor : VectorEditorBase<Quaternion?>
 
         // This allows iterating on the euler angles when resulting rotation are equivalent
         var current = Recompose(ref decomposedRotation);
-        if (current == quaternion && X.HasValue && Y.HasValue && Z.HasValue)
+        if (current.NearEquals(quaternion) && X.HasValue && Y.HasValue && Z.HasValue)
             return;
 
-        var rotationMatrix = Matrix.RotationQuaternion(quaternion);
+        var rotationMatrix = Matrix.CreateFromQuaternion(quaternion);
         rotationMatrix.Decompose(out decomposedRotation.Y, out decomposedRotation.X, out decomposedRotation.Z);
         SetCurrentValue(XProperty, GetDisplayValue(decomposedRotation.X));
         SetCurrentValue(YProperty, GetDisplayValue(decomposedRotation.Y));
@@ -115,6 +116,6 @@ public sealed class QuaternionEditor : VectorEditorBase<Quaternion?>
 
     private static Quaternion Recompose(ref Vector3 vector)
     {
-        return Quaternion.RotationYawPitchRoll(vector.Y, vector.X, vector.Z);
+        return Quaternion.CreateFromYawPitchRoll(vector.Y, vector.X, vector.Z);
     }
 }

@@ -11,6 +11,7 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests;
 

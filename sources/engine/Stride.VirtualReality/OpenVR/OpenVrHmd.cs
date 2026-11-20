@@ -6,6 +6,8 @@ using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
 
+using System.Numerics;
+
 namespace Stride.VirtualReality
 {
     internal class OpenVRHmd : VRDevice
@@ -20,7 +22,7 @@ namespace Stride.VirtualReality
         private OpenVRTouchController rightHandController;
         private OpenVRTrackedDevice[] trackedDevices;
         private bool needsMirror;
-        private Matrix currentHead;
+        private Matrix4x4 currentHead;
         private Vector3 currentHeadPos;
         private Vector3 currentHeadLinearVelocity;
         private Vector3 currentHeadAngularVelocity;
@@ -105,9 +107,9 @@ namespace Stride.VirtualReality
                 tracker.Update(gameTime);
         }
 
-        public override void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix view, out Matrix projection)
+        public override void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix4x4 cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix4x4 view, out Matrix4x4 projection)
         {
-            Matrix eyeMat, rot;
+            Matrix4x4 eyeMat, rot;
             Vector3 pos, scale;
 
             OpenVR.GetEyeToHead(eye == Eyes.Left ? 0 : 1, out eyeMat);
@@ -116,21 +118,21 @@ namespace Stride.VirtualReality
             var adjustedHeadMatrix = currentHead;
             if (ignoreHeadPosition)
             {
-                adjustedHeadMatrix.TranslationVector = Vector3.Zero;
+                adjustedHeadMatrix.Translation = Vector3.Zero;
             }
             if (ignoreHeadRotation)
             {
                 // keep the scale just in case
-                adjustedHeadMatrix.Row1 = new Vector4(adjustedHeadMatrix.Row1.Length(), 0, 0, 0);
-                adjustedHeadMatrix.Row2 = new Vector4(0, adjustedHeadMatrix.Row2.Length(), 0, 0);
-                adjustedHeadMatrix.Row3 = new Vector4(0, 0, adjustedHeadMatrix.Row3.Length(), 0);
+                adjustedHeadMatrix.X = new Vector4(adjustedHeadMatrix.X.Length(), 0, 0, 0);
+                adjustedHeadMatrix.Y = new Vector4(0, adjustedHeadMatrix.Y.Length(), 0, 0);
+                adjustedHeadMatrix.Z = new Vector4(0, 0, adjustedHeadMatrix.Z.Length(), 0);
             }
 
-            eyeMat = eyeMat * adjustedHeadMatrix * Matrix.Scaling(ViewScaling) * cameraRotation * Matrix.Translation(cameraPosition);
+            eyeMat = eyeMat * adjustedHeadMatrix * Matrix4x4.CreateScale(ViewScaling) * cameraRotation * Matrix4x4.CreateTranslation(cameraPosition);
             eyeMat.Decompose(out scale, out rot, out pos);
             var finalUp = Vector3.TransformCoordinate(new Vector3(0, 1, 0), rot);
             var finalForward = Vector3.TransformCoordinate(new Vector3(0, 0, -1), rot);
-            view = Matrix.LookAtRH(pos, pos + finalForward, finalUp);
+            view = Matrix4x4.CreateLookAt(pos, pos + finalForward, finalUp);
         }
 
         public override void Commit(CommandList commandList, Texture renderFrame)

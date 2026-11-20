@@ -10,6 +10,8 @@ using Stride.Core.Mathematics;
 using Stride.Input.RawInput;
 using Point = System.Drawing.Point;
 
+using System.Numerics;
+
 namespace Stride.Input
 {
     internal class MouseWinforms : MouseDeviceBase, IDisposable

@@ -7,6 +7,7 @@ using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -30,7 +31,7 @@ namespace Stride.Physics
             Radius = radiusParam;
             Orientation = orientationParam;
 
-            Matrix rotation;
+            Matrix4x4 rotation;
 
             cachedScaling = Vector3.One;
 
@@ -41,27 +42,27 @@ namespace Stride.Physics
                     {
                         LocalScaling = cachedScaling,
                     };
-                    rotation = Matrix.RotationZ(MathF.PI / 2.0f);
+                    rotation = Matrix4x4.CreateRotationZ(MathF.PI / 2.0f);
                     break;
                 case ShapeOrientation.UpY:
                     InternalShape = new BulletSharp.ConeShape(Radius, Height)
                     {
                         LocalScaling = cachedScaling,
                     };
-                    rotation = Matrix.Identity;
+                    rotation = Matrix4x4.Identity;
                     break;
                 case ShapeOrientation.UpZ:
                     InternalShape = new BulletSharp.ConeShapeZ(Radius, Height)
                     {
                         LocalScaling = cachedScaling,
                     };
-                    rotation = Matrix.RotationX(MathF.PI / 2.0f);
+                    rotation = Matrix4x4.CreateRotationX(MathF.PI / 2.0f);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Orientation));
             }
 
-            DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(Radius * 2, Height, Radius * 2) * DebugScaling) * rotation;
+            DebugPrimitiveMatrix = Matrix4x4.CreateScale(new Vector3(Radius * 2, Height, Radius * 2) * DebugScaling) * rotation;
         }
 
         public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)

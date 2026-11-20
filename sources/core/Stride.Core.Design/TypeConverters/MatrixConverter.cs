@@ -51,6 +51,7 @@ using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.TypeConverters;
 
@@ -64,25 +65,25 @@ public class MatrixConverter : BaseConverter
     /// </summary>
     public MatrixConverter()
     {
-        Type type = typeof(Matrix);
+        Type type = typeof(Matrix4x4);
         Properties = new PropertyDescriptorCollection(
         [
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M11))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M12))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M13))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M14))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M21))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M22))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M23))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M24))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M31))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M32))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M33))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M34))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M41))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M42))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M43))!),
-            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M44))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M11))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M12))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M13))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M14))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M21))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M22))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M23))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M24))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M31))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M32))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M33))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M34))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M41))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M42))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M43))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix4x4.M44))!),
         ]);
     }
 
@@ -95,14 +96,14 @@ public class MatrixConverter : BaseConverter
         if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
 #endif
 
-        if (value is Matrix matrix)
+        if (value is Matrix4x4 matrix)
         {
             if (destinationType == typeof(string))
                 return matrix.ToString();
 
             if (destinationType == typeof(InstanceDescriptor))
             {
-                var constructor = typeof(Matrix).GetConstructor(MathUtil.Array(typeof(float), 16));
+                var constructor = typeof(Matrix4x4).GetConstructor(MathUtil.Array(typeof(float), 16));
                 if (constructor != null)
                     return new InstanceDescriptor(constructor, matrix.ToArray());
             }
@@ -119,7 +120,7 @@ public class MatrixConverter : BaseConverter
             return null;
 
         str = str.Replace("[", string.Empty).Replace("]", string.Empty);
-        return ConvertFromString<Matrix, float>(context, culture, str);
+        return ConvertFromString<Matrix4x4, float>(context, culture, str);
     }
 
     /// <inheritdoc/>
@@ -130,24 +131,24 @@ public class MatrixConverter : BaseConverter
 #else
         if (propertyValues is null) throw new ArgumentNullException(nameof(propertyValues));
 #endif
-        return new Matrix
+        return new Matrix4x4
         {
-            M11 = (float)propertyValues[nameof(Matrix.M11)]!,
-            M12 = (float)propertyValues[nameof(Matrix.M12)]!,
-            M13 = (float)propertyValues[nameof(Matrix.M13)]!,
-            M14 = (float)propertyValues[nameof(Matrix.M14)]!,
-            M21 = (float)propertyValues[nameof(Matrix.M21)]!,
-            M22 = (float)propertyValues[nameof(Matrix.M22)]!,
-            M23 = (float)propertyValues[nameof(Matrix.M23)]!,
-            M24 = (float)propertyValues[nameof(Matrix.M24)]!,
-            M31 = (float)propertyValues[nameof(Matrix.M31)]!,
-            M32 = (float)propertyValues[nameof(Matrix.M32)]!,
-            M33 = (float)propertyValues[nameof(Matrix.M33)]!,
-            M34 = (float)propertyValues[nameof(Matrix.M34)]!,
-            M41 = (float)propertyValues[nameof(Matrix.M41)]!,
-            M42 = (float)propertyValues[nameof(Matrix.M42)]!,
-            M43 = (float)propertyValues[nameof(Matrix.M43)]!,
-            M44 = (float)propertyValues[nameof(Matrix.M44)]!,
+            M11 = (float)propertyValues[nameof(Matrix4x4.M11)]!,
+            M12 = (float)propertyValues[nameof(Matrix4x4.M12)]!,
+            M13 = (float)propertyValues[nameof(Matrix4x4.M13)]!,
+            M14 = (float)propertyValues[nameof(Matrix4x4.M14)]!,
+            M21 = (float)propertyValues[nameof(Matrix4x4.M21)]!,
+            M22 = (float)propertyValues[nameof(Matrix4x4.M22)]!,
+            M23 = (float)propertyValues[nameof(Matrix4x4.M23)]!,
+            M24 = (float)propertyValues[nameof(Matrix4x4.M24)]!,
+            M31 = (float)propertyValues[nameof(Matrix4x4.M31)]!,
+            M32 = (float)propertyValues[nameof(Matrix4x4.M32)]!,
+            M33 = (float)propertyValues[nameof(Matrix4x4.M33)]!,
+            M34 = (float)propertyValues[nameof(Matrix4x4.M34)]!,
+            M41 = (float)propertyValues[nameof(Matrix4x4.M41)]!,
+            M42 = (float)propertyValues[nameof(Matrix4x4.M42)]!,
+            M43 = (float)propertyValues[nameof(Matrix4x4.M43)]!,
+            M44 = (float)propertyValues[nameof(Matrix4x4.M44)]!,
         };
     }
 }

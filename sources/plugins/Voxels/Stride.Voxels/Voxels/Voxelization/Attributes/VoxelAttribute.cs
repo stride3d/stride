@@ -8,6 +8,7 @@ using Stride.Core.Annotations;
 using Stride.Shaders;
 using Stride.Rendering.Materials;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels
 {
@@ -18,7 +19,7 @@ namespace Stride.Rendering.Voxels
         public abstract void PrepareOutputStorage(VoxelStorageContext context, IVoxelStorage storage);
         public abstract void ClearOutputStorage();
 
-        public abstract void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, VoxelizationStage stage, bool output);
+        public abstract void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix4x4 view, Vector3 resolution, VoxelizationStage stage, bool output);
         public abstract void CollectAttributes(List<AttributeStream> attributes, VoxelizationStage stage, bool output);
 
         public virtual  bool RequiresColumns() => false;

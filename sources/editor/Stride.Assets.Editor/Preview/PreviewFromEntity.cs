@@ -20,6 +20,7 @@ using Stride.Rendering.Compositing;
 using Stride.Rendering;
 using Stride.Rendering.Sprites;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Preview
 {
@@ -79,7 +80,7 @@ namespace Stride.Assets.Editor.Preview
             var ambientLight = new Entity("Preview Ambient Light1") { new LightComponent { Type = new LightAmbient(), Intensity = 0.02f*factor } };
             var frontDirectionalLight = new Entity("Preview Directional Front") { new LightComponent { Intensity = 0.07f*factor } };
             var topDirectionalLight = new Entity("Preview Directional Top") { new LightComponent { Intensity = 0.8f*factor } };
-            topDirectionalLight.Transform.Rotation = Quaternion.RotationX(MathUtil.DegreesToRadians(-80));
+            topDirectionalLight.Transform.Rotation = Quaternion.CreateRotationX(MathUtil.DegreesToRadians(-80));
             camera.AddChild(ambientLight);
             camera.AddChild(frontDirectionalLight);
             camera.AddChild(topDirectionalLight);
@@ -235,7 +236,7 @@ namespace Stride.Assets.Editor.Preview
                 if (Input.IsMouseButtonDown(MouseButton.Right)) // translation
                 {
                     var viewMatrixInv = Entity.Transform.WorldMatrix;
-                    target -= distance * (translation.X * viewMatrixInv.Row1.XYZ() - translation.Y * viewMatrixInv.Row2.XYZ());
+                    target -= distance * (translation.X * viewMatrixInv.X.XYZ() - translation.Y * viewMatrixInv.Y.XYZ());
                 }
                 else if (Input.IsMouseButtonDown(MouseButton.Left)) // orbital rotation 
                 {
@@ -257,10 +258,10 @@ namespace Stride.Assets.Editor.Preview
                     pitch = MathUtil.Clamp(pitch, -maxPitch, maxPitch);
 
                     var offset = new Vector3(0, 0, distance);
-                    var cameraPosition = target + Vector3.Transform(offset, Quaternion.RotationYawPitchRoll(yaw, pitch, 0));
+                    var cameraPosition = target + Vector3.Transform(offset, Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0));
 
                     Entity.Transform.UseTRS = false;
-                    Entity.Transform.LocalMatrix = Matrix.Invert(Matrix.LookAtRH(cameraPosition, target, Vector3.UnitY));
+                    Matrix4x4.InvertSafe(Matrix4x4.CreateLookAt(cameraPosition, target, Vector3.UnitY), out Entity.Transform.LocalMatrix);
                     cameraComponent.FarClipPlane = 2.5f * Math.Max(distance, previousBoundingSphere.Radius);
                     cameraComponent.NearClipPlane = cameraComponent.FarClipPlane / 1000f;
                 }

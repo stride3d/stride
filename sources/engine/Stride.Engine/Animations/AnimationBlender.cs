@@ -8,6 +8,7 @@ using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Updater;
+using System.Numerics;
 
 namespace Stride.Animations
 {
@@ -211,13 +212,13 @@ namespace Stride.Animations
                                     *resultData = MathUtil.Lerp(*sourceLeftData, *sourceRightData, blendFactor);
                                     break;
                                 case BlendType.Float2:
-                                    Vector2.Lerp(ref *(Vector2*)sourceLeftData, ref *(Vector2*)sourceRightData, blendFactor, out *(Vector2*)resultData);
+                                    *(Vector2*)resultData = Vector2.Lerp(*(Vector2*)sourceLeftData, *(Vector2*)sourceRightData, blendFactor);
                                     break;
                                 case BlendType.Float3:
-                                    Vector3.Lerp(ref *(Vector3*)sourceLeftData, ref *(Vector3*)sourceRightData, blendFactor, out *(Vector3*)resultData);
+                                    *(Vector3*)resultData = Vector3.Lerp(*(Vector3*)sourceLeftData, *(Vector3*)sourceRightData, blendFactor);
                                     break;
                                 case BlendType.Quaternion:
-                                    Quaternion.Slerp(ref *(Quaternion*)sourceLeftData, ref *(Quaternion*)sourceRightData, blendFactor, out *(Quaternion*)resultData);
+                                    *(Quaternion*)resultData = Quaternion.Slerp(*(Quaternion*)sourceLeftData, *(Quaternion*)sourceRightData, blendFactor);
                                     break;
                                 default:
                                     throw new ArgumentOutOfRangeException();
@@ -233,19 +234,19 @@ namespace Stride.Animations
                                     break;
                                 case BlendType.Float2:
                                     Vector2 rightValue2;
-                                    Vector2.Add(ref *(Vector2*)sourceLeftData, ref *(Vector2*)sourceRightData, out rightValue2);
-                                    Vector2.Lerp(ref *(Vector2*)sourceLeftData, ref rightValue2, blendFactor, out *(Vector2*)resultData);
+                                    rightValue2 = Vector2.Add(*(Vector2*)sourceLeftData, *(Vector2*)sourceRightData);
+                                    *(Vector2*)resultData = Vector2.Lerp(*(Vector2*)sourceLeftData, rightValue2, blendFactor);
                                     break;
                                 case BlendType.Float3:
                                     Vector3 rightValue3;
-                                    Vector3.Add(ref *(Vector3*)sourceLeftData, ref *(Vector3*)sourceRightData, out rightValue3);
-                                    Vector3.Lerp(ref *(Vector3*)sourceLeftData, ref rightValue3, blendFactor, out *(Vector3*)resultData);
+                                    rightValue3 = Vector3.Add(*(Vector3*)sourceLeftData, *(Vector3*)sourceRightData);
+                                    *(Vector3*)resultData = Vector3.Lerp(*(Vector3*)sourceLeftData, rightValue3, blendFactor);
                                     break;
                                 case BlendType.Quaternion:
                                     Quaternion rightValueQ;
-                                    Quaternion.Multiply(ref *(Quaternion*)sourceLeftData, ref *(Quaternion*)sourceRightData, out rightValueQ);
-                                    Quaternion.Normalize(ref rightValueQ, out rightValueQ);
-                                    Quaternion.Slerp(ref *(Quaternion*)sourceLeftData, ref rightValueQ, blendFactor, out *(Quaternion*)resultData);
+                                    rightValueQ = Quaternion.Concatenate(*(Quaternion*)sourceLeftData, *(Quaternion*)sourceRightData);
+                                    rightValueQ = Quaternion.NormalizeSafe(rightValueQ);
+                                    *(Quaternion*)resultData = Quaternion.Slerp(*(Quaternion*)sourceLeftData, rightValueQ, blendFactor);
                                     break;
                                 default:
                                     throw new ArgumentOutOfRangeException();
@@ -261,22 +262,22 @@ namespace Stride.Animations
                                     break;
                                 case BlendType.Float2:
                                     Vector2 rightValue2;
-                                    Vector2.Subtract(ref *(Vector2*)sourceLeftData, ref *(Vector2*)sourceRightData, out rightValue2);
-                                    Vector2.Lerp(ref *(Vector2*)sourceLeftData, ref rightValue2, blendFactor, out *(Vector2*)resultData);
+                                    rightValue2 = Vector2.Subtract(*(Vector2*)sourceLeftData, *(Vector2*)sourceRightData);
+                                    *(Vector2*)resultData = Vector2.Lerp(*(Vector2*)sourceLeftData, rightValue2, blendFactor);
                                     break;
                                 case BlendType.Float3:
                                     Vector3 rightValue3;
-                                    Vector3.Subtract(ref *(Vector3*)sourceLeftData, ref *(Vector3*)sourceRightData, out rightValue3);
-                                    Vector3.Lerp(ref *(Vector3*)sourceLeftData, ref rightValue3, blendFactor, out *(Vector3*)resultData);
+                                    rightValue3 = Vector3.Subtract(*(Vector3*)sourceLeftData, *(Vector3*)sourceRightData);
+                                    *(Vector3*)resultData = Vector3.Lerp(*(Vector3*)sourceLeftData, rightValue3, blendFactor);
                                     break;
                                 case BlendType.Quaternion:
                                     Quaternion rightValueQ;
                                     // blend between left (0.0) and left * conjugate(right) (1.0)
-                                    Quaternion.Invert(ref *(Quaternion*)sourceRightData, out rightValueQ);
-                                    Quaternion.Multiply(ref rightValueQ, ref *(Quaternion*)sourceLeftData, out rightValueQ);
-                                    Quaternion.Normalize(ref rightValueQ, out rightValueQ);
+                                    rightValueQ = Quaternion.Inverse(*(Quaternion*)sourceRightData);
+                                    rightValueQ = Quaternion.Concatenate(rightValueQ, *(Quaternion*)sourceLeftData);
+                                    rightValueQ = Quaternion.NormalizeSafe(rightValueQ);
                                     //throw new NotImplementedException();
-                                    Quaternion.Slerp(ref *(Quaternion*)sourceLeftData, ref rightValueQ, blendFactor, out *(Quaternion*)resultData);
+                                    *(Quaternion*)resultData = Quaternion.Slerp(*(Quaternion*)sourceLeftData, rightValueQ, blendFactor);
                                     break;
                                 default:
                                     throw new ArgumentOutOfRangeException();

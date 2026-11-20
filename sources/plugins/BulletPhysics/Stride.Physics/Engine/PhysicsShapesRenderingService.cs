@@ -9,6 +9,7 @@ using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics.Engine
 {
@@ -141,7 +142,7 @@ namespace Stride.Physics.Engine
                             }
                         }
 
-                        entity.Transform.LocalMatrix = Matrix.Identity;
+                        entity.Transform.LocalMatrix = Matrix4x4.Identity;
                         entity.Transform.UseTRS = false;
 
                         compound.DebugEntity = entity;
@@ -204,9 +205,9 @@ namespace Stride.Physics.Engine
                             },
                         };
 
-                        var offset = addOffset ? Matrix.RotationQuaternion(shape.LocalRotation) * Matrix.Translation(shape.LocalOffset) : Matrix.Identity;
+                        var offset = addOffset ? Matrix4x4.CreateFromQuaternion(shape.LocalRotation) * Matrix4x4.CreateTranslation(shape.LocalOffset) : Matrix4x4.Identity;
 
-                        entity.Transform.LocalMatrix = shape.DebugPrimitiveMatrix * offset * Matrix.Scaling(shape.Scaling);
+                        entity.Transform.LocalMatrix = shape.DebugPrimitiveMatrix * offset * Matrix4x4.CreateScale(shape.Scaling);
 
                         entity.Transform.UseTRS = false;
 

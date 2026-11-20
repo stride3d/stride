@@ -11,6 +11,7 @@ using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -64,7 +65,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
                 // the end cone 
                 var coneEntity = new Entity("ArrowCone" + axis) { new ModelComponent { Model = new Model { material, new Mesh { Draw = coneMesh } }, RenderGroup = RenderGroup } };
-                coneEntity.Transform.Rotation = Quaternion.RotationZ(-MathUtil.Pi / 2);
+                coneEntity.Transform.Rotation = Quaternion.CreateRotationZ(-MathUtil.Pi / 2);
                 coneEntity.Transform.Position.X = AxisBodyLength + AxisConeHeight * 0.5f;
                 translationAxes[axis].Add(coneEntity);
 
@@ -157,7 +158,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             UpdateDrawOrder();
         }
 
-        protected override void UpdateShape(Matrix viewMatrix)
+        protected override void UpdateShape(Matrix4x4 viewMatrix)
         {
             base.UpdateShape(viewMatrix);
 
@@ -174,8 +175,8 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
                 if (isCameraBackfacing)
                 {
-                    translationPlaneRoots[(axis + 1) % 3].TransformValue.Rotation *= Quaternion.RotationY(MathUtil.Pi);
-                    translationPlaneRoots[(axis + 2) % 3].TransformValue.Rotation *= Quaternion.RotationZ(MathUtil.Pi);
+                    translationPlaneRoots[(axis + 1) % 3].TransformValue.Rotation = Quaternion.Concatenate(translationPlaneRoots[(axis + 1) % 3].TransformValue.Rotation, Quaternion.CreateRotationY(MathUtil.Pi));
+                    translationPlaneRoots[(axis + 2) % 3].TransformValue.Rotation = Quaternion.Concatenate(translationPlaneRoots[(axis + 2) % 3].TransformValue.Rotation, Quaternion.CreateRotationZ(MathUtil.Pi));
                 }
             }
         }
@@ -187,12 +188,12 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
             // calculate the ray in the gizmo space
             var gizmoMatrix = WorldMatrix;
-            var gizmoViewInverse = Matrix.Invert(gizmoMatrix * cameraService.ViewMatrix);
+            Matrix4x4.InvertSafe(gizmoMatrix * cameraService.ViewMatrix, out var gizmoViewInverse);
 
             // Check if the inverted View Matrix is valid (since it will be use for mouse picking, check the translation vector only)
-            if (float.IsNaN(gizmoViewInverse.TranslationVector.X)
-                || float.IsNaN(gizmoViewInverse.TranslationVector.Y)
-                || float.IsNaN(gizmoViewInverse.TranslationVector.Z))
+            if (float.IsNaN(gizmoViewInverse.Translation.X)
+                || float.IsNaN(gizmoViewInverse.Translation.Y)
+                || float.IsNaN(gizmoViewInverse.Translation.Z))
             {
                 return;
             }

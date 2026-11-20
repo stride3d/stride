@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -19,12 +20,12 @@ public class TestQuaternion
         var pitchRadians = MathUtil.DegreesToRadians(pitchDegrees);
         var rollRadians = MathUtil.DegreesToRadians(rollDegrees);
 
-        var rotQuat = Quaternion.RotationYawPitchRoll(yawRadians, pitchRadians, rollRadians);
-        Quaternion.RotationYawPitchRoll(ref rotQuat, out float decomposedYaw, out float decomposedPitch, out float decomposedRoll);
+        var rotQuat = Quaternion.CreateFromYawPitchRoll(yawRadians, pitchRadians, rollRadians);
+        (float decomposedYaw, float decomposedPitch, float decomposedRoll) = rotQuat.GetYawPitchRoll();
 
         var expectedQuat = rotQuat;
-        var decompedQuat = Quaternion.RotationYawPitchRoll(decomposedYaw, decomposedPitch, decomposedRoll);
-        Assert.True(expectedQuat == decompedQuat || expectedQuat == -decompedQuat, $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
+        var decompedQuat = Quaternion.CreateFromYawPitchRoll(decomposedYaw, decomposedPitch, decomposedRoll);
+        Assert.True(expectedQuat.NearEquals(decompedQuat) || expectedQuat.NearEquals(-decompedQuat), $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
     }
 
     [Theory, ClassData(typeof(TestRotationsData.YRPTestData))]
@@ -34,19 +35,19 @@ public class TestQuaternion
         var pitchRadians = MathUtil.DegreesToRadians(pitchDegrees);
         var rollRadians = MathUtil.DegreesToRadians(rollDegrees);
 
-        var rotX = Quaternion.RotationX(pitchRadians);
-        var rotY = Quaternion.RotationY(yawRadians);
-        var rotZ = Quaternion.RotationZ(rollRadians);
+        var rotX = Quaternion.CreateRotationX(pitchRadians);
+        var rotY = Quaternion.CreateRotationY(yawRadians);
+        var rotZ = Quaternion.CreateRotationZ(rollRadians);
         // Yaw-Pitch-Roll is the intrinsic rotation order, so extrinsic is the reverse (ie. Z-X-Y)
-        var rotQuat = rotZ * rotX * rotY;
-        Quaternion.RotationYawPitchRoll(ref rotQuat, out float decomposedYaw, out float decomposedPitch, out float decomposedRoll);
+        var rotQuat = Quaternion.Concatenate(Quaternion.Concatenate(rotZ, rotX), rotY);
+        (float decomposedYaw, float decomposedPitch, float decomposedRoll) = rotQuat.GetYawPitchRoll();
 
         var expectedQuat = rotQuat;
-        var decompRotX = Quaternion.RotationX(decomposedPitch);
-        var decompRotY = Quaternion.RotationY(decomposedYaw);
-        var decompRotZ = Quaternion.RotationZ(decomposedRoll);
-        var decompedQuat = decompRotZ * decompRotX * decompRotY;
-        Assert.True(expectedQuat == decompedQuat || expectedQuat == -decompedQuat, $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
+        var decompRotX = Quaternion.CreateRotationX(decomposedPitch);
+        var decompRotY = Quaternion.CreateRotationY(decomposedYaw);
+        var decompRotZ = Quaternion.CreateRotationZ(decomposedRoll);
+        var decompedQuat = Quaternion.Concatenate(Quaternion.Concatenate(decompRotZ, decompRotX), decompRotY);
+        Assert.True(expectedQuat.NearEquals(decompedQuat) || expectedQuat.NearEquals(-decompedQuat), $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
     }
 
     [Fact]
@@ -108,14 +109,14 @@ public class TestQuaternion
         Assert.Equal(8f, q2.W);
 
         // Test Vector4 constructor
-        var q3 = new Quaternion(new Vector4(9, 10, 11, 12));
+        var q3 = new Vector4(9, 10, 11, 12).AsQuaternion();
         Assert.Equal(9f, q3.X);
         Assert.Equal(10f, q3.Y);
         Assert.Equal(11f, q3.Z);
         Assert.Equal(12f, q3.W);
 
         // Test single value constructor
-        var q4 = new Quaternion(3.5f);
+        var q4 = new Quaternion(3.5f, 3.5f, 3.5f, 3.5f);
         Assert.Equal(3.5f, q4.X);
         Assert.Equal(3.5f, q4.Y);
         Assert.Equal(3.5f, q4.Z);
@@ -175,10 +176,10 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionMultiplyQuaternion()
     {
-        var q1 = Quaternion.RotationY(MathUtil.PiOverTwo);
-        var q2 = Quaternion.RotationZ(MathUtil.PiOverTwo);
+        var q1 = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
+        var q2 = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
 
-        var result = q1 * q2;
+        var result = Quaternion.Concatenate(q1, q2);
 
         // Multiplying quaternions should compose rotations
         Assert.NotEqual(Quaternion.Identity, result);
@@ -217,11 +218,11 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionInvert()
     {
-        var q = Quaternion.RotationY(MathUtil.PiOverFour);
-        var inverted = Quaternion.Invert(q);
+        var q = Quaternion.CreateRotationY(MathUtil.PiOverFour);
+        var inverted = Quaternion.Inverse(q);
 
         // q * q^-1 should equal identity
-        var product = q * inverted;
+        var product = Quaternion.Concatenate(q, inverted);
 
         Assert.Equal(Quaternion.Identity.X, product.X, 5);
         Assert.Equal(Quaternion.Identity.Y, product.Y, 5);
@@ -233,7 +234,7 @@ public class TestQuaternion
     public void TestQuaternionNormalize()
     {
         var q = new Quaternion(1, 2, 3, 4);
-        var normalized = Quaternion.Normalize(q);
+        var normalized = Quaternion.NormalizeSafe(q);
 
         // Normalized quaternion should have length 1
         var length = normalized.Length();
@@ -254,7 +255,7 @@ public class TestQuaternion
     public void TestQuaternionRotationX()
     {
         var angle = MathUtil.PiOverTwo;
-        var q = Quaternion.RotationX(angle);
+        var q = Quaternion.CreateRotationX(angle);
 
         // Rotation quaternions should have unit length
         Assert.Equal(1f, q.Length(), 5);
@@ -273,7 +274,7 @@ public class TestQuaternion
     public void TestQuaternionRotationY()
     {
         var angle = MathUtil.PiOverTwo;
-        var q = Quaternion.RotationY(angle);
+        var q = Quaternion.CreateRotationY(angle);
 
         Assert.Equal(1f, q.Length(), 5);
 
@@ -290,7 +291,7 @@ public class TestQuaternion
     public void TestQuaternionRotationZ()
     {
         var angle = MathUtil.PiOverTwo;
-        var q = Quaternion.RotationZ(angle);
+        var q = Quaternion.CreateRotationZ(angle);
 
         Assert.Equal(1f, q.Length(), 5);
 
@@ -309,13 +310,13 @@ public class TestQuaternion
         var axis = Vector3.UnitY;
         var angle = MathUtil.Pi;
 
-        var q = Quaternion.RotationAxis(axis, angle);
+        var q = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(axis), angle);
 
         // Should be a unit quaternion
         Assert.Equal(1f, q.Length(), 5);
 
         // 180° rotation around Y should be equivalent to RotationY
-        var qY = Quaternion.RotationY(angle);
+        var qY = Quaternion.CreateRotationY(angle);
 
         // Quaternions q and -q represent the same rotation
         Assert.True(
@@ -326,14 +327,14 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionRotationMatrix()
     {
-        var matrix = Matrix.RotationY(MathUtil.PiOverFour);
-        var q = Quaternion.RotationMatrix(matrix);
+        var matrix = Matrix4x4.CreateRotationY(MathUtil.PiOverFour);
+        var q = Quaternion.CreateFromRotationMatrix(matrix);
 
         // Should be a unit quaternion
         Assert.Equal(1f, q.Length(), 5);
 
         // Convert back to matrix and compare
-        var matrix2 = Matrix.RotationQuaternion(q);
+        var matrix2 = Matrix4x4.CreateFromQuaternion(q);
 
         // Matrices should be approximately equal
         Assert.Equal(matrix.M11, matrix2.M11, 4);
@@ -345,7 +346,7 @@ public class TestQuaternion
     public void TestQuaternionLerp()
     {
         var q1 = Quaternion.Identity;
-        var q2 = Quaternion.RotationY(MathUtil.Pi);
+        var q2 = Quaternion.CreateRotationY(MathUtil.Pi);
 
         // Lerp at 0 should return q1
         var lerp0 = Quaternion.Lerp(q1, q2, 0f);
@@ -368,7 +369,7 @@ public class TestQuaternion
     public void TestQuaternionSlerp()
     {
         var q1 = Quaternion.Identity;
-        var q2 = Quaternion.RotationY(MathUtil.PiOverTwo);
+        var q2 = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
 
         // Slerp at 0 should return q1
         var slerp0 = Quaternion.Slerp(q1, q2, 0f);
@@ -389,9 +390,9 @@ public class TestQuaternion
     public void TestQuaternionSquad()
     {
         var q1 = Quaternion.Identity;
-        var q2 = Quaternion.RotationY(MathUtil.PiOverFour);
-        var q3 = Quaternion.RotationY(MathUtil.PiOverTwo);
-        var q4 = Quaternion.RotationY(MathUtil.Pi);
+        var q2 = Quaternion.CreateRotationY(MathUtil.PiOverFour);
+        var q3 = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
+        var q4 = Quaternion.CreateRotationY(MathUtil.Pi);
 
         var result = Quaternion.Squad(q1, q2, q3, q4, 0.5f);
 
@@ -403,8 +404,8 @@ public class TestQuaternion
     public void TestQuaternionBaryCentric()
     {
         var q1 = Quaternion.Identity;
-        var q2 = Quaternion.RotationX(MathUtil.PiOverFour);
-        var q3 = Quaternion.RotationY(MathUtil.PiOverFour);
+        var q2 = Quaternion.CreateRotationX(MathUtil.PiOverFour);
+        var q3 = Quaternion.CreateRotationY(MathUtil.PiOverFour);
 
         var result = Quaternion.Barycentric(q1, q2, q3, 0.33f, 0.33f);
 
@@ -419,11 +420,11 @@ public class TestQuaternion
         var q2 = new Quaternion(1, 2, 3, 4);
         var q3 = new Quaternion(1, 2, 3, 5);
 
-        Assert.True(q1 == q2);
-        Assert.False(q1 == q3);
-        Assert.True(q1 != q3);
-        Assert.True(q1.Equals(q2));
-        Assert.False(q1.Equals(q3));
+        Assert.True(q1.NearEquals(q2));
+        Assert.False(q1.NearEquals(q3));
+        Assert.True(!q1.NearEquals(q3));
+        Assert.True(q1.NearEquals(q2));
+        Assert.False(q1.NearEquals(q3));
     }
 
     [Fact]
@@ -455,7 +456,7 @@ public class TestQuaternion
         var from = Vector3.UnitZ;
         var to = Vector3.UnitX;
 
-        var q = Quaternion.BetweenDirections(from, to);
+        var q = Quaternion.CreateFromDirections(from, to);
 
         // Apply rotation
         var rotated = Vector3.Transform(from, q);
@@ -469,21 +470,21 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionIsIdentity()
     {
-        Assert.True(Quaternion.Identity.IsIdentity);
-        Assert.False(Quaternion.Zero.IsIdentity);
-        Assert.False(new Quaternion(1, 2, 3, 4).IsIdentity);
+        Assert.True(Quaternion.Identity.NearEquals(Quaternion.Identity));
+        Assert.False(Quaternion.Zero.NearEquals(Quaternion.Identity));
+        Assert.False(new Quaternion(1, 2, 3, 4).NearEquals(Quaternion.Identity));
 
         // Normalized identity should still be identity
         var q = new Quaternion(0, 0, 0, 2);
-        var normalized = Quaternion.Normalize(q);
-        Assert.True(normalized.IsIdentity);
+        var normalized = Quaternion.NormalizeSafe(q);
+        Assert.True(normalized.NearEquals(Quaternion.Identity));
     }
 
     [Fact]
     public void TestQuaternionAngleBetween()
     {
         var q1 = Quaternion.Identity;
-        var q2 = Quaternion.RotationY(MathUtil.PiOverTwo);
+        var q2 = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
 
         var angle = Quaternion.AngleBetween(q1, q2);
 
@@ -497,8 +498,8 @@ public class TestQuaternion
         var axis = Vector3.UnitY;
         var angleIn = MathUtil.PiOverFour;
 
-        var q = Quaternion.RotationAxis(axis, angleIn);
-        var angleOut = q.Angle;
+        var q = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(axis), angleIn);
+        var angleOut = q.GetAngle();
 
         // Angle property should return the rotation angle
         Assert.Equal(angleIn, angleOut, 4);
@@ -517,7 +518,7 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionLogarithm()
     {
-        var q = Quaternion.RotationY(MathUtil.PiOverFour);
+        var q = Quaternion.CreateRotationY(MathUtil.PiOverFour);
         var log = Quaternion.Logarithm(q);
 
         // Log of a rotation should have W near 0
@@ -550,10 +551,10 @@ public class TestQuaternion
     {
         // Test identity quaternion multiplication
         var identity = Quaternion.Identity;
-        var rotation = Quaternion.RotationY(MathUtil.PiOverTwo);
+        var rotation = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
 
-        var result1 = identity * rotation;
-        var result2 = rotation * identity;
+        var result1 = Quaternion.Concatenate(identity, rotation);
+        var result2 = Quaternion.Concatenate(rotation, identity);
 
         // Multiplication with identity should not change the quaternion
         Assert.Equal(rotation.X, result1.X, 3);
@@ -582,7 +583,7 @@ public class TestQuaternion
         Assert.Equal(0.0f, doubleRotated.Z, 3);
 
         // Test that multiplication of quaternions equals applying rotations in sequence
-        var doubleRotation = rotation * rotation;
+        var doubleRotation = Quaternion.Concatenate(rotation, rotation);
         var doubleRotatedDirect = Vector3.Transform(v, doubleRotation);
 
         Assert.Equal(doubleRotated.X, doubleRotatedDirect.X, 3);
@@ -594,7 +595,7 @@ public class TestQuaternion
     public void TestQuaternionVectorRotation()
     {
         // Create a quaternion that rotates 90 degrees around Y axis
-        var rotation = Quaternion.RotationAxis(Vector3.UnitY, -MathUtil.PiOverTwo); // Negative for clockwise rotation
+        var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, -MathUtil.PiOverTwo); // Negative for clockwise rotation
 
         // Rotate a vector pointing along Z axis
         var vector = Vector3.UnitZ;
@@ -611,7 +612,7 @@ public class TestQuaternion
     {
         // Create two quaternions 90 degrees apart
         var start = Quaternion.Identity;
-        var end = Quaternion.RotationAxis(Vector3.UnitY, -MathUtil.PiOverTwo); // Negative for clockwise rotation
+        var end = Quaternion.CreateFromAxisAngle(Vector3.UnitY, -MathUtil.PiOverTwo); // Negative for clockwise rotation
 
         // Test interpolation at different points
         var halfway = Quaternion.Slerp(start, end, 0.5f);
@@ -646,11 +647,11 @@ public class TestQuaternion
         var roll = MathUtil.DegreesToRadians(rollDegrees);
 
         // Create quaternion from euler angles
-        var quat = Quaternion.RotationYawPitchRoll(yaw, pitch, roll);
+        var quat = Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll);
 
         // Create matrix from both quaternion and euler angles directly
-        var matFromQuat = Matrix.RotationQuaternion(quat);
-        var matFromEuler = Matrix.RotationYawPitchRoll(yaw, pitch, roll);
+        var matFromQuat = Matrix4x4.CreateFromQuaternion(quat);
+        var matFromEuler = Matrix4x4.CreateFromYawPitchRoll(yaw, pitch, roll);
 
         // Test vectors to verify rotations
         var vectors = new[]
@@ -663,8 +664,8 @@ public class TestQuaternion
 
         foreach (var vector in vectors)
         {
-            var rotatedByQuat = Vector3.Transform(vector, matFromQuat);
-            var rotatedByEuler = Vector3.Transform(vector, matFromEuler);
+            var rotatedByQuat = Vector4.Transform(vector, matFromQuat);
+            var rotatedByEuler = Vector4.Transform(vector, matFromEuler);
 
             // Both rotations should produce the same result
             Assert.Equal(rotatedByQuat.X, rotatedByEuler.X, 3);
@@ -678,7 +679,7 @@ public class TestQuaternion
     {
         // Create a non-normalized quaternion
         var q = new Quaternion(2.0f, 3.0f, 4.0f, 5.0f);
-        var normalized = Quaternion.Normalize(q);
+        var normalized = Quaternion.NormalizeSafe(q);
 
         // Length should be 1
         var length = (float)Math.Sqrt(
@@ -697,11 +698,11 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionInverseOperations()
     {
-        var q = Quaternion.RotationAxis(Vector3.UnitY, MathUtil.PiOverFour);
-        Quaternion.Invert(ref q, out var inverse);
+        var q = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathUtil.PiOverFour);
+        var inverse = Quaternion.Inverse(q);
 
         // q * q^-1 should equal identity
-        var product = q * inverse;
+        var product = Quaternion.Concatenate(q, inverse);
         Assert.Equal(0.0f, product.X, Epsilon);
         Assert.Equal(0.0f, product.Y, Epsilon);
         Assert.Equal(0.0f, product.Z, Epsilon);
@@ -721,18 +722,18 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionToRotationMatrix()
     {
-        var q = Quaternion.RotationYawPitchRoll(
+        var q = Quaternion.CreateFromYawPitchRoll(
             MathUtil.DegreesToRadians(30),
             MathUtil.DegreesToRadians(45),
             MathUtil.DegreesToRadians(60)
         );
 
-        var matrix = Matrix.RotationQuaternion(q);
+        var matrix = Matrix4x4.CreateFromQuaternion(q);
 
         // Test that both quaternion and matrix rotate a vector the same way
         var vector = new Vector3(1, 2, 3);
         var rotatedByQuaternion = Vector3.Transform(vector, q);
-        var rotatedByMatrix = Vector3.Transform(vector, matrix);
+        var rotatedByMatrix = Vector4.Transform(vector, matrix);
 
         Assert.Equal(rotatedByQuaternion.X, rotatedByMatrix.X, 3);
         Assert.Equal(rotatedByQuaternion.Y, rotatedByMatrix.Y, 3);
@@ -758,7 +759,7 @@ public class TestQuaternion
     public void TestQuaternionNormalizationEdgeCase()
     {
         var q = new Quaternion(1.0f, 2.0f, 3.0f, 4.0f);
-        q.Normalize();
+        q = Quaternion.NormalizeSafe(q);
 
         var length = MathF.Sqrt(q.X * q.X + q.Y * q.Y + q.Z * q.Z + q.W * q.W);
         Assert.Equal(1.0f, length, 5);
@@ -768,7 +769,7 @@ public class TestQuaternion
     public void TestQuaternionZeroLengthNormalization()
     {
         var q = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
-        var normalized = Quaternion.Normalize(q);
+        var normalized = Quaternion.NormalizeSafe(q);
 
         // Should not produce NaN
         Assert.False(float.IsNaN(normalized.X));
@@ -780,10 +781,10 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionInverseEdgeCase()
     {
-        var q = Quaternion.RotationY(MathUtil.PiOverTwo);
-        Quaternion.Invert(ref q, out var inverse);
+        var q = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
+        var inverse = Quaternion.Inverse(q);
 
-        var product = q * inverse;
+        var product = Quaternion.Concatenate(q, inverse);
 
         // q * q^-1 should be identity
         Assert.Equal(0.0f, product.X, 5);
@@ -796,8 +797,8 @@ public class TestQuaternion
     public void TestQuaternionMultiplicationIdentity()
     {
         var q = new Quaternion(1.0f, 2.0f, 3.0f, 4.0f);
-        var result1 = q * Quaternion.Identity;
-        var result2 = Quaternion.Identity * q;
+        var result1 = Quaternion.Concatenate(q, Quaternion.Identity);
+        var result2 = Quaternion.Concatenate(Quaternion.Identity, q);
 
         Assert.Equal(q, result1);
         Assert.Equal(q, result2);
@@ -806,7 +807,7 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionSlerpIdenticalInputs()
     {
-        var q = Quaternion.RotationY(MathUtil.PiOverTwo);
+        var q = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
         var result = Quaternion.Slerp(q, q, 0.5f);
 
         // Slerping between identical quaternions should return the same quaternion
@@ -820,7 +821,7 @@ public class TestQuaternion
     public void TestQuaternionSlerpBoundaries()
     {
         var q1 = Quaternion.Identity;
-        var q2 = Quaternion.RotationY(MathUtil.PiOverTwo);
+        var q2 = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
 
         // At t=0, should return q1
         var result0 = Quaternion.Slerp(q1, q2, 0.0f);
@@ -841,7 +842,7 @@ public class TestQuaternion
     public void TestQuaternionLerpBoundaries()
     {
         var q1 = Quaternion.Identity;
-        var q2 = Quaternion.RotationY(MathUtil.PiOverTwo);
+        var q2 = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
 
         // At t=0, should return q1 (normalized)
         var result0 = Quaternion.Lerp(q1, q2, 0.0f);
@@ -862,7 +863,7 @@ public class TestQuaternion
     public void TestQuaternionRotationZeroAxis()
     {
         var axis = Vector3.Zero;
-        var q = Quaternion.RotationAxis(axis, MathUtil.PiOverTwo);
+        var q = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(axis), MathUtil.PiOverTwo);
 
         // Rotation around zero axis should produce identity or be handled gracefully
         Assert.False(float.IsNaN(q.X));
@@ -875,7 +876,7 @@ public class TestQuaternion
     public void TestQuaternionRotationAxisNormalization()
     {
         var axis = new Vector3(2.0f, 0.0f, 0.0f); // Not normalized
-        var q = Quaternion.RotationAxis(axis, MathUtil.PiOverTwo);
+        var q = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(axis), MathUtil.PiOverTwo);
 
         // Should still produce valid rotation
         var vector = new Vector3(0.0f, 1.0f, 0.0f);
@@ -889,7 +890,7 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionRotationFullCircle()
     {
-        var q = Quaternion.RotationY(MathUtil.TwoPi);
+        var q = Quaternion.CreateRotationY(MathUtil.TwoPi);
         var vector = new Vector3(1.0f, 0.0f, 0.0f);
         var rotated = Vector3.Transform(vector, q);
 
@@ -906,13 +907,13 @@ public class TestQuaternion
         var q2 = new Quaternion(1.0f, 2.0f, 3.0f, 4.0f);
         var q3 = Quaternion.Identity;
 
-        Assert.True(q1 == q2);
-        Assert.False(q1 == q3);
-        Assert.False(q1 != q2);
-        Assert.True(q1 != q3);
+        Assert.True(q1.NearEquals(q2));
+        Assert.False(q1.NearEquals(q3));
+        Assert.False(!q1.NearEquals(q2));
+        Assert.True(!q1.NearEquals(q3));
 
-        Assert.True(q1.Equals(q2));
-        Assert.False(q1.Equals(q3));
+        Assert.True(q1.NearEquals(q2));
+        Assert.False(q1.NearEquals(q3));
     }
 
     [Fact]
@@ -984,9 +985,9 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionRotationMatrixConversion()
     {
-        var q = Quaternion.RotationY(MathUtil.PiOverTwo);
-        var matrix = Matrix.RotationQuaternion(q);
-        var qBack = Quaternion.RotationMatrix(matrix);
+        var q = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
+        var matrix = Matrix4x4.CreateFromQuaternion(q);
+        var qBack = Quaternion.CreateFromRotationMatrix(matrix);
 
         // Converting back and forth should preserve the rotation
         Assert.Equal(q.X, qBack.X, 4);
@@ -1001,9 +1002,9 @@ public class TestQuaternion
         var originalAxis = Vector3.UnitY;
         var originalAngle = MathUtil.PiOverTwo;
 
-        var q = Quaternion.RotationAxis(originalAxis, originalAngle);
-        var angle = q.Angle;
-        var axis = q.Axis;
+        var q = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(originalAxis), originalAngle);
+        var angle = q.GetAngle();
+        var axis = q.GetAxis();
 
         // The angle returned is the magnitude of the quaternion's rotation
         // which is calculated as 2 * acos(w), not necessarily the original angle
@@ -1022,8 +1023,8 @@ public class TestQuaternion
     public void TestQuaternionRotationBetweenParallelVectors()
     {
         // Test rotating from one vector to a parallel vector
-        var v1 = Vector3.Normalize(new Vector3(1.0f, 0.0f, 0.0f));
-        var v2 = Vector3.Normalize(new Vector3(2.0f, 0.0f, 0.0f)); // Parallel to v1
+        var v1 = Vector3.NormalizeSafe(new Vector3(1.0f, 0.0f, 0.0f));
+        var v2 = Vector3.NormalizeSafe(new Vector3(2.0f, 0.0f, 0.0f)); // Parallel to v1
 
         // Create rotation manually using axis-angle
         var axis = Vector3.Cross(v1, v2);
@@ -1043,7 +1044,7 @@ public class TestQuaternion
         var v2 = new Vector3(-1.0f, 0.0f, 0.0f);
 
         // Create a 180-degree rotation around Y axis
-        var q = Quaternion.RotationAxis(Vector3.UnitY, MathUtil.Pi);
+        var q = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathUtil.Pi);
 
         var rotated = Vector3.Transform(v1, q);
         Assert.Equal(-1.0f, rotated.X, 3);

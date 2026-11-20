@@ -13,6 +13,7 @@ using Stride.Graphics.Semantics;
 using Stride.Rendering;
 using BufferPool = BepuUtilities.Memory.BufferPool;
 using Mesh = BepuPhysics.Collidables.Mesh;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Systems;
 
@@ -163,9 +164,9 @@ internal class ShapeCacheSystem : IDisposable, IService
             {
                 for (int i = 0; i < vertSlice.Length; i++)
                 {
-                    Matrix posMatrix = Matrix.Translation(vertSlice[i]);
-                    Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out var finalMatrix);
-                    vertSlice[i] = finalMatrix.TranslationVector;
+                    Matrix4x4 posMatrix = Matrix4x4.CreateTranslation(vertSlice[i]);
+                    var finalMatrix = Matrix4x4.Multiply(posMatrix, nodeTransforms[meshData.NodeIndex]);
+                    vertSlice[i] = finalMatrix.Translation;
                 }
             }
 
@@ -204,9 +205,9 @@ internal class ShapeCacheSystem : IDisposable, IService
             {
                 for (int i = 0; i < vertSlice.Length; i++)
                 {
-                    Matrix posMatrix = Matrix.Translation(vertSlice[i]);
-                    Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out var finalMatrix);
-                    vertSlice[i] = finalMatrix.TranslationVector;
+                    Matrix4x4 posMatrix = Matrix4x4.CreateTranslation(vertSlice[i]);
+                    var finalMatrix = Matrix4x4.Multiply(posMatrix, nodeTransforms[meshData.NodeIndex]);
+                    vertSlice[i] = finalMatrix.Translation;
                 }
             }
 
@@ -224,27 +225,27 @@ internal class ShapeCacheSystem : IDisposable, IService
         indices = combinedIndices;
     }
 
-    private static Matrix[]? ExtractNodeTransforms(Model model)
+    private static Matrix4x4[]? ExtractNodeTransforms(Model model)
     {
-        Matrix[]? nodeTransforms = null;
+        Matrix4x4[]? nodeTransforms = null;
         if (model.Skeleton == null)
             return nodeTransforms;
 
         var nodesLength = model.Skeleton.Nodes.Length;
-        nodeTransforms = new Matrix[nodesLength];
-        nodeTransforms[0] = Matrix.Identity;
+        nodeTransforms = new Matrix4x4[nodesLength];
+        nodeTransforms[0] = Matrix4x4.Identity;
         for (var i = 0; i < nodesLength; i++)
         {
             var node = model.Skeleton.Nodes[i];
-            Matrix.Transformation(ref node.Transform.Scale, ref node.Transform.Rotation, ref node.Transform.Position, out var localMatrix);
+            Matrix4x4.CreateTransformation(node.Transform.Scale, node.Transform.Rotation, node.Transform.Position, out var localMatrix);
 
-            Matrix worldMatrix;
+            Matrix4x4 worldMatrix;
             if (node.ParentIndex != -1)
             {
                 if (node.ParentIndex >= i)
                     throw new InvalidOperationException("Skeleton nodes are not sorted");
                 var nodeTransform = nodeTransforms[node.ParentIndex];
-                Matrix.Multiply(ref localMatrix, ref nodeTransform, out worldMatrix);
+                worldMatrix = Matrix4x4.Multiply(localMatrix, nodeTransform);
             }
             else
             {
@@ -264,19 +265,19 @@ internal class ShapeCacheSystem : IDisposable, IService
     /// Matrices may not produce a valid local scale when decomposed into T,R,S; the basis of the matrix may be skewed/sheered depending on transformations
     /// coming from parents, sheering is by definition not on the local basis
     /// </summary>
-    internal static Vector3 GetClosestToDecomposableScale(Matrix matrix)
+    internal static Vector3 GetClosestToDecomposableScale(Matrix4x4 matrix)
     {
-        float d1 = Vector3.Dot((Vector3)matrix.Row1, (Vector3)matrix.Row2);
-        float d2 = Vector3.Dot((Vector3)matrix.Row2, (Vector3)matrix.Row3);
-        float d3 = Vector3.Dot((Vector3)matrix.Row1, (Vector3)matrix.Row3);
+        float d1 = Vector3.Dot(matrix.X.AsVector3(), matrix.Y.AsVector3());
+        float d2 = Vector3.Dot(matrix.Y.AsVector3(), matrix.Z.AsVector3());
+        float d3 = Vector3.Dot(matrix.X.AsVector3(), matrix.Z.AsVector3());
         Vector3 o;
         if (MathF.Abs(d1) > float.Epsilon || MathF.Abs(d2) > float.Epsilon || MathF.Abs(d3) > float.Epsilon) // Matrix is skewed, scale has to be axis aligned for physics
         {
             Span<Vector3> basisIn = stackalloc Vector3[]
             {
-                (Vector3)matrix.Row1,
-                (Vector3)matrix.Row2,
-                (Vector3)matrix.Row3,
+                matrix.X.AsVector3(),
+                matrix.Y.AsVector3(),
+                matrix.Z.AsVector3(),
             };
             Span<Vector3> basisOut = stackalloc Vector3[3];
             Orthogonalize(basisIn, basisOut);
@@ -286,9 +287,9 @@ internal class ShapeCacheSystem : IDisposable, IService
         }
         else
         {
-            o.X = matrix.Row1.Length();
-            o.Y = matrix.Row2.Length();
-            o.Z = matrix.Row3.Length();
+            o.X = matrix.X.Length();
+            o.Y = matrix.Y.Length();
+            o.Z = matrix.Z.Length();
         }
 
         return o;

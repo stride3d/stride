@@ -8,6 +8,7 @@ using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using System.Numerics;
 
 namespace Stride.Engine
 {
@@ -75,7 +76,7 @@ namespace Stride.Engine
         /// The absolute transform applied to all entities of the scene.
         /// </summary>
         /// <remarks>This field is overwritten by the transform processor each frame.</remarks>
-        public Matrix WorldMatrix;
+        public Matrix4x4 WorldMatrix;
 
         /// <summary>
         /// Updates the world transform of the scene.
@@ -98,10 +99,10 @@ namespace Stride.Engine
             }
             else
             {
-                WorldMatrix = Matrix.Identity;
+                WorldMatrix = Matrix4x4.Identity;
             }
 
-            WorldMatrix.TranslationVector += Offset;
+            WorldMatrix.Translation += Offset;
         }
 
         public override string ToString()

@@ -127,7 +127,7 @@ public class KeysGeneratorTests
     private static (string Generated, List<string> Errors) Build((string Path, string Text)[] files, string csharp)
     {
         // The assemblies the generated keys use
-        var references = new[] { typeof(object), typeof(Stride.Rendering.ParameterKeys), typeof(Stride.Core.Mathematics.Vector4), typeof(Stride.Graphics.Texture), typeof(Stride.Core.DataContractAttribute), typeof(Stride.Shaders.ShaderMixinSource) }
+        var references = new[] { typeof(object), typeof(Stride.Rendering.ParameterKeys), typeof(System.Numerics.Vector4), typeof(Stride.Graphics.Texture), typeof(Stride.Core.DataContractAttribute), typeof(Stride.Shaders.ShaderMixinSource) }
             .Select(x => x.Assembly.Location)
             .Concat(Directory.EnumerateFiles(Path.GetDirectoryName(typeof(object).Assembly.Location)!, "*.dll").Where(x => Path.GetFileName(x) is "System.Runtime.dll" or "netstandard.dll" or "System.Collections.dll"))
             .Distinct()

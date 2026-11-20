@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Mathematics;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI
 {

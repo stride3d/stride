@@ -12,6 +12,7 @@ using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Importer.ThreeD;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Assets.Tests;
 

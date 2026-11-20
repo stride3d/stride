@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Particles.Sorters;
 using Stride.Particles.VertexLayouts;
+using System.Numerics;
 
 namespace Stride.Particles.Materials
 {

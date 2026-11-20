@@ -6,6 +6,7 @@ using Xunit;
 
 using Stride.Core.Mathematics;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Layering
 {

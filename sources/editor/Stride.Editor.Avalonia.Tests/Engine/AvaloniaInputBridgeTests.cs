@@ -13,6 +13,7 @@ using Stride.Games;
 using Stride.Input;
 using MouseButton = Avalonia.Input.MouseButton;
 using Point = Avalonia.Point;
+using System.Numerics;
 
 namespace Stride.Editor.Avalonia.Tests.Engine;
 

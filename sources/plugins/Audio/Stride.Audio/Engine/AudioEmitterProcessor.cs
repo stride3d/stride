@@ -9,6 +9,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Media;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Audio
 {
@@ -103,7 +104,7 @@ namespace Stride.Audio
         {
             // initialize the AudioEmitter first position
             data.TransformComponent.UpdateWorldMatrix(); // ensure the worldMatrix is correct
-            data.AudioEmitter = new AudioEmitter { Position = data.TransformComponent.WorldMatrix.TranslationVector };
+            data.AudioEmitter = new AudioEmitter { Position = data.TransformComponent.WorldMatrix.Translation };
 
             // create a SoundInstance for each listener activated and for each sound controller of the EmitterComponent.
             foreach (var listener in audioSystem.Listeners.Keys)
@@ -144,7 +145,7 @@ namespace Stride.Audio
 
                 var emitter = associatedData.AudioEmitter;
                 emitter.WorldTransform = associatedData.TransformComponent.WorldMatrix;
-                var pos = emitter.WorldTransform.TranslationVector;
+                var pos = emitter.WorldTransform.Translation;
 
                 // Units per second, as the audio backends expect. No velocity without a previous frame to compare with.
                 emitter.Velocity = associatedData.HasPreviousPosition && elapsedSeconds > 0
@@ -154,11 +155,11 @@ namespace Stride.Audio
                 emitter.Position = pos;
 
                 // TODO: if the entity has just been added, part of the Transform update is done at the Draw and the world matrix might still be uninitialized
-                if (emitter.WorldTransform == Matrix.Zero)
+                if (emitter.WorldTransform.NearEquals(default(Matrix4x4)))
                     continue;
 
-                emitter.Forward = Vector3.Normalize((Vector3)emitter.WorldTransform.Row3);
-                emitter.Up = Vector3.Normalize((Vector3)emitter.WorldTransform.Row2);
+                emitter.Forward = Vector3.NormalizeSafe(emitter.WorldTransform.Z.AsVector3());
+                emitter.Up = Vector3.NormalizeSafe(emitter.WorldTransform.Y.AsVector3());
 
                 // Then apply 3D localization
                 foreach (var controller in associatedData.AudioEmitterComponent.SoundToController.Values)

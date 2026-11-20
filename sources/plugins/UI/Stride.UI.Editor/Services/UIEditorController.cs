@@ -30,6 +30,7 @@ using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
 using Stride.Assets.Editor.AssetEditors.PrefabEditor.Game;
+using System.Numerics;
 
 namespace Stride.UI.Editor.Services
 {
@@ -430,16 +431,16 @@ namespace Stride.UI.Editor.Services
 
             var uiEntity = GetEntityByName(AdornerEntityName);
             var uiComponent = uiEntity.Get<UIComponent>();
-            var worldMatrix = Matrix.Scaling(uiComponent.Size / uiComponent.Resolution) * uiEntity.Transform.WorldMatrix;
+            var worldMatrix = Matrix4x4.CreateScale(uiComponent.Size / uiComponent.Resolution) * uiEntity.Transform.WorldMatrix;
             // Rotation of Pi along 0x to go from UI space to world space
-            worldMatrix.Row2 = -worldMatrix.Row2;
-            worldMatrix.Row3 = -worldMatrix.Row3;
+            worldMatrix.Y = -worldMatrix.Y;
+            worldMatrix.Z = -worldMatrix.Z;
 
-            Matrix matrixInv;
-            Matrix.Invert(ref worldMatrix, out matrixInv);
+            Matrix4x4 matrixInv;
+            Matrix4x4.InvertSafe(worldMatrix, out matrixInv);
 
             Vector3 result;
-            Vector3.TransformCoordinate(ref scenePosition, ref matrixInv, out result);
+            result = Vector3.TransformCoordinate(scenePosition, matrixInv);
             return result;
         }
 

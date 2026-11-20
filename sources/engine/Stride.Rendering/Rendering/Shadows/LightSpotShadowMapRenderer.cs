@@ -8,6 +8,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Lights;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Shadows
 {
@@ -66,9 +67,9 @@ namespace Stride.Rendering.Shadows
             shaderData.DepthRange = new Vector2(nearClip, farClip); //////////////////////////////////////////
 
             // Update the shadow camera
-            Matrix.Invert(ref renderLight.WorldMatrix, out var viewMatrix);
-            Matrix.PerspectiveFovRH(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip, out var projectionMatrix); // Perspective Projection for spotlights
-            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out var viewProjectionMatrix);
+            Matrix4x4.InvertSafe(renderLight.WorldMatrix, out var viewMatrix);
+            var projectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip); // Perspective Projection for spotlights
+            var viewProjectionMatrix = Matrix4x4.Multiply(viewMatrix, projectionMatrix);
 
             var shadowMapRectangle = lightShadowMap.GetRectangle(0);
 
@@ -92,11 +93,11 @@ namespace Stride.Rendering.Shadows
             float centerY = 0.5f * (cascadeTextureCoords.Y + cascadeTextureCoords.W);
 
             // Compute receiver view proj matrix
-            Matrix.Scaling(leftX, -leftY, 1.0f, out var scaleMatrix);
-            Matrix.Translation(centerX, centerY, 0.0f, out var translationMatrix);
-            Matrix.Multiply(ref scaleMatrix, ref translationMatrix, out var adjustmentMatrix);
+            var scaleMatrix = Matrix4x4.CreateScale(leftX, -leftY, 1.0f);
+            var translationMatrix = Matrix4x4.CreateTranslation(centerX, centerY, 0.0f);
+            var adjustmentMatrix = Matrix4x4.Multiply(scaleMatrix, translationMatrix);
             // Calculate View Proj matrix from World space to Cascade space
-            Matrix.Multiply(ref viewProjectionMatrix, ref adjustmentMatrix, out shaderData.WorldToShadowCascadeUV);
+            shaderData.WorldToShadowCascadeUV = Matrix4x4.Multiply(viewProjectionMatrix, adjustmentMatrix);
 
             //Matrix rotationMatrix = Matrix.RotationZ(rotationZ);
             //Matrix.Multiply(ref viewProjectionMatrix, ref rotationMatrix, out shaderData.worldToShadowProjectiveTextureUV);
@@ -112,7 +113,7 @@ namespace Stride.Rendering.Shadows
             // Compute view parameters
             shadowRenderView.View = shaderData.ViewMatrix;
             shadowRenderView.Projection = shaderData.ProjectionMatrix;
-            Matrix.Multiply(ref shadowRenderView.View, ref shadowRenderView.Projection, out shadowRenderView.ViewProjection);
+            shadowRenderView.ViewProjection = Matrix4x4.Multiply(shadowRenderView.View, shadowRenderView.Projection);
             shadowRenderView.ViewSize = new Vector2(shadowMapRectangle.Width, shadowMapRectangle.Height);
             shadowRenderView.NearClipPlane = nearClip;
             shadowRenderView.FarClipPlane = farClip;
@@ -133,10 +134,10 @@ namespace Stride.Rendering.Shadows
 
             public Vector2 DepthRange;
 
-            public Matrix WorldToShadowCascadeUV;
+            public Matrix4x4 WorldToShadowCascadeUV;
 
-            public Matrix ViewMatrix;
-            public Matrix ProjectionMatrix;
+            public Matrix4x4 ViewMatrix;
+            public Matrix4x4 ProjectionMatrix;
         }
 
         private class LightSpotShadowMapGroupShaderData : LightShadowMapShaderGroupDataBase
@@ -144,9 +145,9 @@ namespace Stride.Rendering.Shadows
             private const string ShaderName = "ShadowMapReceiverSpot";
 
             // Values:
-            private Matrix[] worldToShadowCascadeUV;
+            private Matrix4x4[] worldToShadowCascadeUV;
 
-            private Matrix[] inverseWorldToShadowCascadeUV;
+            private Matrix4x4[] inverseWorldToShadowCascadeUV;
 
             private Vector2[] depthRanges;
 
@@ -161,9 +162,9 @@ namespace Stride.Rendering.Shadows
             // Keys:
             private ObjectParameterKey<Texture> shadowMapTextureKey;
 
-            private ValueParameterKey<Matrix> worldToShadowCascadeUVsKey;
+            private ValueParameterKey<Matrix4x4> worldToShadowCascadeUVsKey;
 
-            private ValueParameterKey<Matrix> inverseWorldToShadowCascadeUVsKey;
+            private ValueParameterKey<Matrix4x4> inverseWorldToShadowCascadeUVsKey;
 
             private ValueParameterKey<Vector2> depthRangesKey;
 
@@ -225,7 +226,7 @@ namespace Stride.Rendering.Shadows
                     {
                         var singleLightData = (LightSpotShadowMapShaderData)lightEntry.ShadowMapTexture.ShaderData;
                         worldToShadowCascadeUV[lightIndex] = singleLightData.WorldToShadowCascadeUV;
-                        Matrix.Invert(ref singleLightData.WorldToShadowCascadeUV, out inverseWorldToShadowCascadeUV[lightIndex]);
+                        Matrix4x4.InvertSafe(singleLightData.WorldToShadowCascadeUV, out inverseWorldToShadowCascadeUV[lightIndex]);
 
                         depthBiases[lightIndex] = singleLightData.DepthBias;
                         offsetScales[lightIndex] = singleLightData.OffsetScale;

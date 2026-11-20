@@ -3,6 +3,7 @@
 #nullable enable
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels.SpriteEditor;
 

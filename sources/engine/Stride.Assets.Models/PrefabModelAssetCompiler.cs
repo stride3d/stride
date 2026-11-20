@@ -21,6 +21,7 @@ using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Assets.Models
 {
@@ -392,7 +393,7 @@ namespace Stride.Assets.Models
                     if (vertexBuffers.Length > 0)
                     {
                         // Compute local mesh bounding box (no node transformation)
-                        var matrix = Matrix.Identity;
+                        var matrix = Matrix4x4.Identity;
                         mesh.BoundingBox = vertexBuffers[0].ComputeBounds(ref matrix, out mesh.BoundingSphere);
 
                         // Compute model bounding box (includes node transformation)

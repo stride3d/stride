@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.UI.Panels
 {
@@ -125,7 +126,7 @@ namespace Stride.UI.Panels
                 neededForOneCell = Vector3.Max(neededForOneCell, child.DesiredSizeWithMargins / childSpans);
             }
 
-            return Vector3.Modulate(gridSize, neededForOneCell) + totalGapSize;
+            return Vector3.Multiply(gridSize, neededForOneCell) + totalGapSize;
         }
 
         protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
@@ -153,12 +154,12 @@ namespace Stride.UI.Panels
 
                 // calculate child position accounting for gaps
                 var childGridPosition = GetElementGridPositionsAsFloat(child);
-                var childOffsetWithoutGaps = Vector3.Modulate(childGridPosition, finalForOneCell);
-                var childGapOffset = Vector3.Modulate(childGridPosition, gaps);
+                var childOffsetWithoutGaps = Vector3.Multiply(childGridPosition, finalForOneCell);
+                var childGapOffset = Vector3.Multiply(childGridPosition, gaps);
                 var childOffset = childOffsetWithoutGaps + childGapOffset;
 
                 // set the arrange matrix of the child
-                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(childOffset - finalSizeWithoutMargins / 2));
+                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix4x4.CreateTranslation(childOffset - finalSizeWithoutMargins / 2));
 
                 // arrange the child
                 child.Arrange(finalForChildWithMargin, IsCollapsed);

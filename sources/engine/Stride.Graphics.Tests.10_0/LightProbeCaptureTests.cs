@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.LightProbes;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests;
 
@@ -131,7 +132,7 @@ public class LightProbeCaptureTests : EmissiveBoxCaptureTestBase
 
                 var peak = Array.IndexOf(values, values.Max());
 
-                Assert.True(directions[peak] == litDirection,
+                Assert.True(directions[peak].NearEquals(litDirection),
                     $"The {name} channel peaks along {directions[peak]}, expected {litDirection} where its " +
                     $"wall is. Values per direction: " +
                     string.Join(", ", directions.Zip(values, (d, v) => $"{d}={v:F3}")));

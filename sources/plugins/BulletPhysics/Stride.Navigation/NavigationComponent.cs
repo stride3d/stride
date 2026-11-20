@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Navigation.Processors;
+using System.Numerics;
 
 namespace Stride.Navigation
 {
@@ -72,7 +73,7 @@ namespace Stride.Navigation
         /// <returns>The found path points or null</returns>
         public bool TryFindPath(Vector3 end, IList<Vector3> path)
         {
-            return TryFindPath(Entity.Transform.WorldMatrix.TranslationVector, end, path, NavigationQuerySettings.Default);
+            return TryFindPath(Entity.Transform.WorldMatrix.Translation, end, path, NavigationQuerySettings.Default);
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace Stride.Navigation
         /// <returns>True if a valid path was found</returns>
         public bool TryFindPath(Vector3 end, IList<Vector3> path, NavigationQuerySettings querySettings)
         {
-            return TryFindPath(Entity.Transform.WorldMatrix.TranslationVector, end, path, querySettings);
+            return TryFindPath(Entity.Transform.WorldMatrix.Translation, end, path, querySettings);
         }
 
         /// <summary>
@@ -133,7 +134,7 @@ namespace Stride.Navigation
         /// <returns>The found raycast hit if <see cref="NavigationRaycastResult.Hit"/> is true</returns>
         public NavigationRaycastResult Raycast(Vector3 end)
         {
-            return Raycast(Entity.Transform.WorldMatrix.TranslationVector, end, NavigationQuerySettings.Default);
+            return Raycast(Entity.Transform.WorldMatrix.Translation, end, NavigationQuerySettings.Default);
         }
 
         /// <summary>
@@ -144,7 +145,7 @@ namespace Stride.Navigation
         /// <returns>The found raycast hit if <see cref="NavigationRaycastResult.Hit"/> is true</returns>
         public NavigationRaycastResult Raycast(Vector3 end, NavigationQuerySettings querySettings)
         {
-            return Raycast(Entity.Transform.WorldMatrix.TranslationVector, end, querySettings);
+            return Raycast(Entity.Transform.WorldMatrix.Translation, end, querySettings);
         }
 
         /// <summary>

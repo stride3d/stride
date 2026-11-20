@@ -47,7 +47,7 @@
 using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
-using Half = Stride.Core.Mathematics.Half;
+using Half = System.Half;
 
 namespace Stride.Core.TypeConverters;
 
@@ -108,7 +108,7 @@ public class HalfConverter : ExpandableObjectConverter
             throw new ArgumentException("Invalid half format.");
         }
         float h = (float)TypeDescriptor.GetConverter(typeof(float)).ConvertFromString(context, culture, stringArray[0])!;
-        return new Half(h);
+        return (Half)h;
     }
 
     /// <summary>

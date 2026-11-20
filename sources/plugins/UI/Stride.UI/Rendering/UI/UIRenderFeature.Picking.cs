@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.UI;
+using System.Numerics;
 
 namespace Stride.Rendering.UI
 {
@@ -17,7 +18,7 @@ namespace Stride.Rendering.UI
         /// <param name="worldViewProj"></param>
         /// <param name="intersectionPoint">Intersection point between the ray and the element</param>
         /// <returns>The <see cref="UIElement"/> with which the ray intersects</returns>
-        public static UIElement GetElementAtScreenPosition(UIElement rootElement, ref Ray clickRay, ref Matrix worldViewProj, ref Vector3 intersectionPoint)
+        public static UIElement GetElementAtScreenPosition(UIElement rootElement, ref Ray clickRay, ref Matrix4x4 worldViewProj, ref Vector3 intersectionPoint)
         {
             UIElement clickedElement = null;
             var smallestDepth = float.PositiveInfinity;
@@ -34,14 +35,14 @@ namespace Stride.Rendering.UI
         /// <param name="ray"><see cref="Ray"/> from the click in object space of the ui component in (-Resolution.X/2 .. Resolution.X/2, -Resolution.Y/2 .. Resolution.Y/2) range</param>
         /// <param name="worldViewProj"></param>
         /// <returns>A collection of all elements hit by this ray, or an empty collection if no hit.</returns>
-        public static ICollection<HitTestResult> GetElementsAtPosition(UIElement rootElement, ref Ray ray, ref Matrix worldViewProj)
+        public static ICollection<HitTestResult> GetElementsAtPosition(UIElement rootElement, ref Ray ray, ref Matrix4x4 worldViewProj)
         {
             var results = new List<HitTestResult>();
             PerformRecursiveHitTest(rootElement, ref ray, ref worldViewProj, results);
             return results;
         }
         
-        private static void PerformRecursiveHitTest(UIElement element, ref Ray ray, ref Matrix worldViewProj, ref UIElement hitElement, ref Vector3 intersectionPoint, ref float smallestDepth, ref float highestDepthBias)
+        private static void PerformRecursiveHitTest(UIElement element, ref Ray ray, ref Matrix4x4 worldViewProj, ref UIElement hitElement, ref Vector3 intersectionPoint, ref float smallestDepth, ref float highestDepthBias)
         {
             // if the element is not visible, we also remove all its children
             if (!element.IsVisible)
@@ -60,7 +61,7 @@ namespace Stride.Rendering.UI
                 // Calculate the depth of the element with the depth bias so that hit test corresponds to visuals.
                 Vector4 projectedIntersection;
                 var intersection4 = new Vector4(intersection, 1);
-                Vector4.Transform(ref intersection4, ref worldViewProj, out projectedIntersection);
+                projectedIntersection = Vector4.Transform(intersection4, worldViewProj);
                 var depth = projectedIntersection.Z/projectedIntersection.W;
 
                 // update the closest element hit
@@ -81,7 +82,7 @@ namespace Stride.Rendering.UI
                 PerformRecursiveHitTest(child, ref ray, ref worldViewProj, ref hitElement, ref intersectionPoint, ref smallestDepth, ref highestDepthBias);
         }
 
-        private static void PerformRecursiveHitTest(UIElement element, ref Ray ray, ref Matrix worldViewProj, ICollection<HitTestResult> results)
+        private static void PerformRecursiveHitTest(UIElement element, ref Ray ray, ref Matrix4x4 worldViewProj, ICollection<HitTestResult> results)
         {
             // if the element is not visible, we also remove all its children
             if (!element.IsVisible)
@@ -100,7 +101,7 @@ namespace Stride.Rendering.UI
                 // Calculate the depth of the element with the depth bias so that hit test corresponds to visuals.
                 Vector4 projectedIntersection;
                 var intersection4 = new Vector4(intersection, 1);
-                Vector4.Transform(ref intersection4, ref worldViewProj, out projectedIntersection);
+                projectedIntersection = Vector4.Transform(intersection4, worldViewProj);
 
                 // update the hit results
                 if (canBeHit && intersect)

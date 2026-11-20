@@ -8,6 +8,7 @@ using Stride.Engine.Processors;
 using Stride.Input;
 using System;
 using System.Threading.Tasks;
+using System.Numerics;
 
 namespace Stride.Graphics.Regression
 {
@@ -92,7 +93,7 @@ namespace Stride.Graphics.Regression
 
         public void Reset()
         {
-            var rotationMatrix = Matrix.RotationQuaternion(Entity.Transform.Rotation);
+            var rotationMatrix = Matrix4x4.CreateFromQuaternion(Entity.Transform.Rotation);
             float roll;
             rotationMatrix.Decompose(out desiredYaw, out desiredPitch, out roll);
 
@@ -159,7 +160,7 @@ namespace Stride.Graphics.Regression
             }
 
             // Change rotation only if changed at least once (try to keep original one)
-            if (rotationDelta != Vector2.Zero)
+            if (!rotationDelta.NearEquals(Vector2.Zero))
             {
                 applyRotation = true;
             }
@@ -191,7 +192,7 @@ namespace Stride.Graphics.Regression
             if (!RotationOnly)
             {
                 // Compute base vectors for camera movement
-                var rotation = Matrix.RotationYawPitchRoll(Yaw, Pitch, 0);
+                var rotation = Matrix4x4.CreateFromYawPitchRoll(Yaw, Pitch, 0);
                 var forward = Vector3.TransformNormal(ForwardVector, rotation);
                 var up = Vector3.TransformNormal(UpVector, rotation);
                 var right = Vector3.Cross(forward, up);
@@ -211,15 +212,15 @@ namespace Stride.Graphics.Regression
                 if (Input.IsKeyDown(Keys.E))
                     movePosition += Component.Projection == CameraProjectionMode.Perspective ? up : forward;
 
-                position += (Vector3.Normalize(movePosition) * translationSpeed);
+                position += (Vector3.NormalizeSafe(movePosition) * translationSpeed);
 
                 if (doubleTapped)
                 {
                     desiredPitch = Pitch = oldPitch;
                     desiredYaw = Yaw;
 
-                    forward = -Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-                    var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z));
+                    forward = -Vector3.Transform(ForwardVector, Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0));
+                    var projectedForward = Vector3.NormalizeSafe(new Vector3(forward.X, 0, forward.Z));
                     position -= projectedForward * translationSpeed * MouseMoveSpeedFactor;
                 }
             }
@@ -237,7 +238,7 @@ namespace Stride.Graphics.Regression
 
             if (applyRotation)
             {
-                var rotation = Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0);
+                var rotation = Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0);
                 Entity.Transform.Rotation = rotation;
             }
         }

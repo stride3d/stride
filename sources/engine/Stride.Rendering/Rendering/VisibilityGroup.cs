@@ -11,6 +11,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -107,9 +108,9 @@ namespace Stride.Rendering
             view.MinimumDistance = float.PositiveInfinity;
             view.MaximumDistance = float.NegativeInfinity;
 
-            Matrix.Invert(ref view.View, out var viewInverse);
+            Matrix4x4.InvertSafe(view.View, out var viewInverse);
             var planeNormal = viewInverse.Forward;
-            var pointOnPlane = viewInverse.TranslationVector + viewInverse.Forward * view.NearClipPlane;
+            var pointOnPlane = viewInverse.Translation + viewInverse.Forward * view.NearClipPlane;
             var plane = new Plane(planeNormal, Vector3.Dot(pointOnPlane, planeNormal)); // TODO: Point-normal-constructor seems wrong. Check.
 
             // Prepare culling mask
@@ -187,7 +188,7 @@ namespace Stride.Rendering
                         // Fast AABB transform: http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
                         // Compute transformed AABB (by world)
                         if (cullingMode == CameraCullingMode.Frustum
-                            && renderObject.BoundingBox.Extent != Vector3.Zero
+                            && !renderObject.BoundingBox.Extent.NearEquals(Vector3.Zero)
                             && !FrustumContainsBox(in frustum, in renderObject.BoundingBox, view.VisiblityIgnoreDepthPlanes))
                         {
                             continue;
@@ -198,7 +199,7 @@ namespace Stride.Rendering
                         view.RenderObjects.Add(renderObject, cache);
 
                         // Calculate bounding box of all render objects in the view
-                        if (renderObject.BoundingBox.Extent != Vector3.Zero)
+                        if (!renderObject.BoundingBox.Extent.NearEquals(Vector3.Zero))
                         {
                             CalculateMinMaxDistance(in plane, in renderObject.BoundingBox, ref view.MinimumDistance, ref view.MaximumDistance);
                         }

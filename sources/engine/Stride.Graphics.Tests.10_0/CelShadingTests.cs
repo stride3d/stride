@@ -19,6 +19,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.ProceduralModels;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests;
 
@@ -118,7 +119,7 @@ public class CelShadingTests : GameTestBase
             new PlaneProceduralModel { Size = new Vector2(2.0f), MaterialInstance = { Material = material } }).GenerateModel(Services);
         var quad = new Entity("Quad") { new ModelComponent { Model = model } };
         // The plane is authored facing +Y, turn it to face the camera
-        quad.Transform.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo);
+        quad.Transform.Rotation = Quaternion.CreateRotationX(MathUtil.PiOverTwo);
         scene.Entities.Add(quad);
 
         scene.Entities.Add(testCase == Case.EnvironmentDiffuse

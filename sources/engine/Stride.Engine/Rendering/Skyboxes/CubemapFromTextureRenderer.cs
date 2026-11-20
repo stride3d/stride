@@ -4,6 +4,7 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Rendering.Skyboxes
 {
@@ -34,9 +35,9 @@ namespace Stride.Rendering.Skyboxes
             spriteBatch.Begin(DrawContext.GraphicsContext, depthStencilState: DepthStencilStates.None, effect: skyboxEffect);
             spriteBatch.Parameters.Set(SkyboxShaderTextureKeys.Texture, inputTexture);
             spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.Intensity, 1);
-            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ViewInverse, Matrix.Invert(Camera.ViewMatrix));
-            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ProjectionInverse, Matrix.Invert(Camera.ProjectionMatrix));
-            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.SkyMatrix, Matrix.Identity);
+            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ViewInverse, Matrix4x4.Invert(Camera.ViewMatrix, out var inverse) ? inverse : default);
+            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ProjectionInverse, Matrix4x4.Invert(Camera.ProjectionMatrix, out var inverse2) ? inverse2 : default);
+            spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.SkyMatrix, Matrix4x4.Identity);
             spriteBatch.Draw(inputTexture, new RectangleF(0, 0, 1, 1), null, Color.White, 0, Vector2.Zero);
             spriteBatch.End();
         }

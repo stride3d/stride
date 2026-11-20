@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Renderers
 {
@@ -65,9 +66,9 @@ namespace Stride.UI.Renderers
                 var worldMatrix = GetAdjustedWorldMatrix(ref slider.WorldMatrixInternal, shouldRotate180Degrees);
                 var halfSizeLeft = (slider.RenderSizeInternal[axis] - size[axis]) / 2;
                 var worldTranslation = GetAdjustedTranslation(isGaugeReverted ? halfSizeLeft - trackOffsets.Y : trackOffsets.X - halfSizeLeft, shouldRotate180Degrees);
-                worldMatrix.M41 += worldTranslation * worldMatrix[(axis << 2) + 0];
-                worldMatrix.M42 += worldTranslation * worldMatrix[(axis << 2) + 1];
-                worldMatrix.M43 += worldTranslation * worldMatrix[(axis << 2) + 2];
+                worldMatrix.M41 += worldTranslation * worldMatrix[((axis << 2) + 0) / 4, ((axis << 2) + 0) % 4];
+                worldMatrix.M42 += worldTranslation * worldMatrix[((axis << 2) + 1) / 4, ((axis << 2) + 1) % 4];
+                worldMatrix.M43 += worldTranslation * worldMatrix[((axis << 2) + 2) / 4, ((axis << 2) + 2) % 4];
 
                 var borders = image.BordersInternal;
                 var borderStartIndex = (imageAxis) + (slider.IsDirectionReversed? 2 : 0);
@@ -113,17 +114,17 @@ namespace Stride.UI.Renderers
                 var stepOffset = GetAdjustedTranslation(fullGaugeSize / slider.TickFrequency, shouldRotate180Degrees);
 
                 var worldMatrix = GetAdjustedWorldMatrix(ref slider.WorldMatrixInternal, shouldRotate180Degrees);
-                worldMatrix.M41 += startOffset[axis] * worldMatrix[(axis << 2) + 0] + startOffset[axisPrime] * worldMatrix[(axisPrime << 2) + 0];
-                worldMatrix.M42 += startOffset[axis] * worldMatrix[(axis << 2) + 1] + startOffset[axisPrime] * worldMatrix[(axisPrime << 2) + 1];
-                worldMatrix.M43 += startOffset[axis] * worldMatrix[(axis << 2) + 2] + startOffset[axisPrime] * worldMatrix[(axisPrime << 2) + 2];
+                worldMatrix.M41 += startOffset[axis] * worldMatrix[((axis << 2) + 0) / 4, ((axis << 2) + 0) % 4] + startOffset[axisPrime] * worldMatrix[((axisPrime << 2) + 0) / 4, ((axisPrime << 2) + 0) % 4];
+                worldMatrix.M42 += startOffset[axis] * worldMatrix[((axis << 2) + 1) / 4, ((axis << 2) + 1) % 4] + startOffset[axisPrime] * worldMatrix[((axisPrime << 2) + 1) / 4, ((axisPrime << 2) + 1) % 4];
+                worldMatrix.M43 += startOffset[axis] * worldMatrix[((axis << 2) + 2) / 4, ((axis << 2) + 2) % 4] + startOffset[axisPrime] * worldMatrix[((axisPrime << 2) + 2) / 4, ((axisPrime << 2) + 2) % 4];
                 
                 for (var i = 0; i < slider.TickFrequency + 1; i++)
                 {
                     Batch.DrawImage(image.Texture, ref worldMatrix, ref image.RegionInternal, ref size, ref image.BordersInternal, ref color, context.DepthBias, imageOrientation, SwizzleMode.None, true);
 
-                    worldMatrix.M41 += stepOffset * worldMatrix[(axis << 2) + 0];
-                    worldMatrix.M42 += stepOffset * worldMatrix[(axis << 2) + 1];
-                    worldMatrix.M43 += stepOffset * worldMatrix[(axis << 2) + 2];
+                    worldMatrix.M41 += stepOffset * worldMatrix[((axis << 2) + 0) / 4, ((axis << 2) + 0) % 4];
+                    worldMatrix.M42 += stepOffset * worldMatrix[((axis << 2) + 1) / 4, ((axis << 2) + 1) % 4];
+                    worldMatrix.M43 += stepOffset * worldMatrix[((axis << 2) + 2) / 4, ((axis << 2) + 2) % 4];
                 }
                 context.DepthBias += 1;
             }
@@ -145,9 +146,9 @@ namespace Stride.UI.Renderers
                 var revertedRatio = isGaugeReverted ? 1 - sliderRatio : sliderRatio;
                 var offset = GetAdjustedTranslation((revertedRatio - 0.5f) * fullGaugeSize, shouldRotate180Degrees);
                 var worldMatrix = GetAdjustedWorldMatrix(ref slider.WorldMatrixInternal, shouldRotate180Degrees);
-                worldMatrix.M41 += offset * worldMatrix[(axis << 2) + 0];
-                worldMatrix.M42 += offset * worldMatrix[(axis << 2) + 1];
-                worldMatrix.M43 += offset * worldMatrix[(axis << 2) + 2];
+                worldMatrix.M41 += offset * worldMatrix[((axis << 2) + 0) / 4, ((axis << 2) + 0) % 4];
+                worldMatrix.M42 += offset * worldMatrix[((axis << 2) + 1) / 4, ((axis << 2) + 1) % 4];
+                worldMatrix.M43 += offset * worldMatrix[((axis << 2) + 2) / 4, ((axis << 2) + 2) % 4];
 
                 Batch.DrawImage(image.Texture, ref worldMatrix, ref image.RegionInternal, ref size, ref image.BordersInternal, ref color, context.DepthBias, imageOrientation);
 
@@ -166,7 +167,7 @@ namespace Stride.UI.Renderers
         /// <param name="worldMatrix"></param>
         /// <param name="shouldRotate"></param>
         /// <returns></returns>
-        private static Matrix GetAdjustedWorldMatrix(ref Matrix worldMatrix, bool shouldRotate)
+        private static Matrix4x4 GetAdjustedWorldMatrix(ref Matrix4x4 worldMatrix, bool shouldRotate)
         {
             if (!shouldRotate)
                 return worldMatrix;

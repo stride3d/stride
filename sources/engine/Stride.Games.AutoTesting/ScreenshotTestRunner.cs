@@ -15,6 +15,7 @@ using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
+using System.Numerics;
 
 namespace Stride.Games.AutoTesting;
 

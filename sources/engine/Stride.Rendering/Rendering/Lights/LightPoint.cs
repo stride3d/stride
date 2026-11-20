@@ -7,6 +7,7 @@ using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.Rendering.Lights
 {
@@ -75,7 +76,7 @@ namespace Stride.Rendering.Lights
             // http://stackoverflow.com/questions/21648630/radius-of-projected-sphere-in-screen-space
             var targetPosition = new Vector4(position, 1.0f);
             Vector4 projectedTarget;
-            Vector4.Transform(ref targetPosition, ref renderView.ViewProjection, out projectedTarget);
+            projectedTarget = Vector4.Transform(targetPosition, renderView.ViewProjection);
 
             var d = Math.Abs(projectedTarget.W) + 0.00001f;
             var r = Radius;

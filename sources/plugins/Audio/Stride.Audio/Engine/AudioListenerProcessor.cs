@@ -6,6 +6,7 @@ using System.Linq;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Audio
 {
@@ -78,15 +79,15 @@ namespace Stride.Audio
 
                 var listener = listenerData.Listener;
                 listener.WorldTransform = listenerData.Entity.Transform.WorldMatrix;
-                var newPosition = listener.WorldTransform.TranslationVector;
+                var newPosition = listener.WorldTransform.Translation;
                 // Units per second, as the audio backends expect. No velocity without a previous frame to compare with.
                 listener.Velocity = listenersWithPosition.Contains(listenerData) && elapsedSeconds > 0
                     ? (newPosition - listener.Position) / elapsedSeconds
                     : Vector3.Zero;
                 listenersWithPosition.Add(listenerData);
                 listener.Position = newPosition;
-                listener.Forward = Vector3.Normalize((Vector3)listener.WorldTransform.Row3);
-                listener.Up = Vector3.Normalize((Vector3)listener.WorldTransform.Row2);
+                listener.Forward = Vector3.NormalizeSafe(listener.WorldTransform.Z.AsVector3());
+                listener.Up = Vector3.NormalizeSafe(listener.WorldTransform.Y.AsVector3());
 
                 listener.Update();
             }

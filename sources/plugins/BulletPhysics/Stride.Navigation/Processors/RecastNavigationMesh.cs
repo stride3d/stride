@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using DotRecast.Detour;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Navigation.Processors
 {

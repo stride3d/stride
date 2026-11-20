@@ -10,6 +10,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Numerics;
 
 namespace Stride.BepuPhysics;
 
@@ -431,7 +432,7 @@ public class BodyComponent : CollidableComponent
 
         float deltaTime = (float)Simulation.FixedTimeStep.TotalSeconds;
 
-        var quatDelta = Quaternion.Invert(Orientation) * targetOrientation;
+        var quatDelta = Quaternion.Concatenate(Quaternion.Inverse(Orientation), targetOrientation);
         if (quatDelta.W < 0f)
             quatDelta = -quatDelta; // q and -q are the same rotation, take the shortest arc
 

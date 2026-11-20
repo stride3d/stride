@@ -20,6 +20,7 @@ using Stride.Rendering.Compositing;
 using Stride.Rendering.Lights;
 using Stride.Rendering.Skyboxes;
 using Stride.Rendering.Sprites;
+using System.Numerics;
 
 namespace Stride.Engine.NextGen
 {
@@ -120,7 +121,7 @@ namespace Stride.Engine.NextGen
             //Scene.Entities.Add(ambientLight);
 
             var directionalLight = new Entity { new LightComponent { Type = new LightDirectional { Color = new ColorRgbProvider(Color.White), Shadow = { Enabled = true } }, Intensity = 1 }, };
-            directionalLight.Transform.Rotation = Quaternion.RotationY(MathUtil.PiOverTwo * 0.2f);
+            directionalLight.Transform.Rotation = Quaternion.CreateRotationY(MathUtil.PiOverTwo * 0.2f);
             Scene.Entities.Add(directionalLight);
 
             //var pointLight1 = new Entity { new LightComponent() { Type = new LightPoint { Color = new ColorRgbProvider(Color.Red), Radius = 100.0f, Shadow = { Enabled = false } }, Intensity = 1.0f } };

@@ -13,6 +13,8 @@ using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
 
+using System.Numerics;
+
 namespace Stride.Assets.Presentation.Test
 {
     public enum TestEnum
@@ -224,7 +226,7 @@ namespace Stride.Assets.Presentation.Test
 
         [DataMember(55)]
         [Display("Matrix", "Vector types")]
-        public Matrix Matrix { get; set; }
+        public Matrix4x4 Matrix { get; set; }
 
         // TODO: Add ImageEnum and ImageFlagEnum
         [DataMember(56)]

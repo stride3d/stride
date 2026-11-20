@@ -4,6 +4,7 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Particles.Spawners;
+using System.Numerics;
 
 namespace Stride.Particles.Initializers
 {
@@ -94,12 +95,12 @@ namespace Stride.Particles.Initializers
             var yAxis = new Vector3(0, VelocityMax.Y * WorldScale.Y - leftCorner.Y, 0);
             var zAxis = new Vector3(0, 0, VelocityMax.Z * WorldScale.Z - leftCorner.Z);
 
-            if (!WorldRotation.IsIdentity)
+            if (!WorldRotation.NearEquals(Quaternion.Identity))
             {
-                WorldRotation.Rotate(ref leftCorner);
-                WorldRotation.Rotate(ref xAxis);
-                WorldRotation.Rotate(ref yAxis);
-                WorldRotation.Rotate(ref zAxis);
+                leftCorner = Vector3.Transform(leftCorner, WorldRotation);
+                xAxis = Vector3.Transform(xAxis, WorldRotation);
+                yAxis = Vector3.Transform(yAxis, WorldRotation);
+                zAxis = Vector3.Transform(zAxis, WorldRotation);
             }
 
             var sequentialParentIndex = 0;
@@ -159,7 +160,7 @@ namespace Stride.Particles.Initializers
                     // Convert from Local -> World space if needed
                     if (Parent.SimulationSpace == EmitterSimulationSpace.Local)
                     {
-                        WorldRotation.Rotate(ref parentParticleVelocity);
+                        parentParticleVelocity = Vector3.Transform(parentParticleVelocity, WorldRotation);
                         parentParticleVelocity *= WorldScale.X;
                     }
 

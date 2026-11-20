@@ -18,6 +18,7 @@ using Stride.UI.Panels;
 using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
 using Stride.Assets.Editor.ViewModels;
+using System.Numerics;
 
 namespace Stride.UI.Editor.Game
 {
@@ -45,7 +46,7 @@ namespace Stride.UI.Editor.Game
             private Thickness prevMargin;
             private Guid? prevParentId;
             private Vector3 prevRenderSize;
-            private Matrix prevWorldMatrix;
+            private Matrix4x4 prevWorldMatrix;
 
             private HighlightAdorner highlightAdorner;
 #if DEBUG
@@ -89,8 +90,8 @@ namespace Stride.UI.Editor.Game
                 // compare some properties involved in layout with their previous "seen" values
                 if (prevMargin == gameSideElement.Margin &&
                     prevParentId == gameSideElement.VisualParent?.Id &&
-                    prevRenderSize == gameSideElement.RenderSize &&
-                    prevWorldMatrix == gameSideElement.WorldMatrix)
+                    prevRenderSize.NearEquals(gameSideElement.RenderSize) &&
+                    prevWorldMatrix.NearEquals(gameSideElement.WorldMatrix))
                 {
                     // still valid
                     return true;
@@ -146,7 +147,7 @@ namespace Stride.UI.Editor.Game
                 prevMargin = Thickness.UniformCuboid(float.NaN);
                 prevParentId = null;
                 prevRenderSize = new Vector3(float.NaN);
-                prevWorldMatrix = new Matrix(float.NaN);
+                prevWorldMatrix = Matrix4x4.Create(float.NaN);
             }
 
             public void SetHighlightAdorner(HighlightAdorner value)
@@ -184,29 +185,29 @@ namespace Stride.UI.Editor.Game
             {
                 Vector3 parentPosition;
                 Vector3 parentSize;
-                Matrix parentMatrixInv;
+                Matrix4x4 parentMatrixInv;
                 var parent = gameSideElement.VisualParent;
                 if (parent != null)
                 {
                     // parentCanvas is sized to the parent of the associated UIElement
                     var parentMatrix = parent.WorldMatrix;
-                    parentPosition = parentMatrix.TranslationVector + availableSize * 0.5f;
+                    parentPosition = parentMatrix.Translation + availableSize * 0.5f;
                     parentSize = parent.RenderSize;
-                    parentMatrixInv = Matrix.Invert(parent.WorldMatrix);
+                    Matrix4x4.InvertSafe(parent.WorldMatrix, out parentMatrixInv);
                 }
                 else
                 {
                     // or to the total available size if it doesn't have a parent.
                     parentPosition = availableSize * 0.5f;
                     parentSize = availableSize;
-                    parentMatrixInv = Matrix.Identity;
+                    parentMatrixInv = Matrix4x4.Identity;
                 }
                 parentCanvas.Size = parentSize;
                 parentCanvas.SetCanvasAbsolutePosition(parentPosition);
                 parentCanvas.SetCanvasPinOrigin(0.5f * Vector3.One); // centered on origin
 
-                var diffMatrix = Matrix.Multiply(parentMatrixInv, gameSideElement.WorldMatrix);
-                var position = diffMatrix.TranslationVector + parentSize * 0.5f;
+                var diffMatrix = Matrix4x4.Multiply(parentMatrixInv, gameSideElement.WorldMatrix);
+                var position = diffMatrix.Translation + parentSize * 0.5f;
                 // canvas is sized to the associated UIElement
                 canvas.Size = gameSideElement.RenderSize;
                 // canvas is z-offset by depth bias (+1 to differentiate with the adorner root canvas)

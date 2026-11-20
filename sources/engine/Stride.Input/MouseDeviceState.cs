@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Input
 {
@@ -87,7 +88,7 @@ namespace Stride.Input
         /// <param name="delta">The movement delta</param>
         public void HandleMouseDelta(Vector2 delta)
         {
-            if (delta == Vector2.Zero)
+            if (delta.NearEquals(Vector2.Zero))
                 return;
 
             // Normalize delta
@@ -172,7 +173,7 @@ namespace Stride.Input
             // Normalize position
             newPosition *= PointerState.InverseSurfaceSize;
 
-            if (newPosition != Position)
+            if (!newPosition.NearEquals(Position))
             {
                 nextDelta += newPosition - Position;
                 Position = newPosition;

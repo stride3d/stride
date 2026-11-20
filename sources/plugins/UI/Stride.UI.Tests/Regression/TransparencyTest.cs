@@ -12,6 +12,7 @@ using Stride.Input;
 using Stride.Rendering.Sprites;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {
@@ -62,7 +63,7 @@ namespace Stride.UI.Tests.Regression
             {
                 zValue = 100 * (1 + (float)Math.Sin(gameTime.Total.TotalSeconds));
 
-                element1.LocalMatrix = Matrix.Translation(0, 0, zValue);
+                element1.LocalMatrix = Matrix4x4.CreateTranslation(0, 0, zValue);
             }
         }
 
@@ -78,7 +79,7 @@ namespace Stride.UI.Tests.Regression
 
         private void Draw0()
         {
-            element1.LocalMatrix = Matrix.Translation(0, 0, 0);
+            element1.LocalMatrix = Matrix4x4.CreateTranslation(0, 0, 0);
         }
 
         private void Draw1()
@@ -94,7 +95,7 @@ namespace Stride.UI.Tests.Regression
             Input.Update(new GameTime());
             UI.Update(new GameTime());
 
-            element1.LocalMatrix = Matrix.Translation(0, 0, -100);
+            element1.LocalMatrix = Matrix4x4.CreateTranslation(0, 0, -100);
         }
 
         private void Draw3()

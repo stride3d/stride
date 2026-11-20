@@ -14,6 +14,7 @@ using Stride.Input;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.SceneEditor;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -95,8 +96,8 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
     /// <param name="targetOffset">An offset of the point to look at.</param>
     public void SetTarget(Entity target, bool keepActualTargetDistance, int meshIndex = -1, float deltaDistance = 0, Vector3? targetOffset = null)
     {
-        var ypr = Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0);
-        var direction = Vector3.TransformNormal(ForwardVector, Matrix.RotationQuaternion(ypr));
+        var ypr = Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0);
+        var direction = Vector3.TransformNormal(ForwardVector, Matrix4x4.CreateFromQuaternion(ypr));
         var sphere = meshIndex == -1 ? target.CalculateBoundSphere() : target.CalculateBoundSphere(false, model => [model.Meshes[meshIndex]]);
         targetPos = sphere.Center;
 
@@ -251,7 +252,7 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
                 pitch = MathUtil.Clamp(pitch - Game.Input.MouseDelta.Y * rotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
         }
 
-        var rotation = Quaternion.RotationYawPitchRoll(yaw, pitch, 0);
+        var rotation = Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0);
 
         // If scene has changed since last time
         if (asOrthographic && Game.ContentScene?.Entities != null)
@@ -265,7 +266,7 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
             }
             revolutionRadius = Math.Max(10f, sceneBounds.Radius * 2f);
 
-            position = targetPos - Vector3.Normalize(Vector3.Transform(ForwardVector, rotation)) * revolutionRadius;
+            position = targetPos - Vector3.NormalizeSafe(Vector3.Transform(ForwardVector, rotation)) * revolutionRadius;
         }
 
         // Dolly (WASD model/arrow keys)
@@ -304,7 +305,7 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
                     ChangeMovementSpeed(-1);
             }
 
-            var localDirection = Vector3.Normalize(new Vector3(x, y, -z));
+            var localDirection = Vector3.NormalizeSafe(new Vector3(x, y, -z));
             position += Vector3.Transform(localDirection, rotation) * baseSpeed * dt * 60f;
         }
 
@@ -330,7 +331,7 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
             else
             {
                 var forward = Vector3.Transform(ForwardVector, rotation);
-                var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // camera forward vector project on the XZ plane
+                var projectedForward = Vector3.NormalizeSafe(new Vector3(forward.X, 0, forward.Z)); // camera forward vector project on the XZ plane
                 position -= projectedForward * baseSpeed * MouseMoveSpeedFactor * Game.Input.MouseDelta.Y;
             }
         }

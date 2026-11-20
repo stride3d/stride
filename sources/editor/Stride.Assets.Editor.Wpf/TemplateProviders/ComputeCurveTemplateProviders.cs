@@ -5,6 +5,7 @@ using Stride.Animations;
 using Stride.Core.Assets.Editor.View;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Quantum.ViewModels;
+using System.Numerics;
 
 namespace Stride.Assets.Presentation.TemplateProviders
 {

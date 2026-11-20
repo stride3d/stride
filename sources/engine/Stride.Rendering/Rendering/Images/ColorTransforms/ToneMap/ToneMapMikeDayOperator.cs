@@ -3,6 +3,7 @@
 using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering.Images
 {

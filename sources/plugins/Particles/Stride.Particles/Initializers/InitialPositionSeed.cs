@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Particles.DebugDraw;
+using System.Numerics;
 
 namespace Stride.Particles.Initializers
 {
@@ -50,12 +51,12 @@ namespace Stride.Particles.Initializers
             var yAxis = new Vector3(0, PositionMax.Y * WorldScale.Y - leftCorner.Y, 0);
             var zAxis = new Vector3(0, 0, PositionMax.Z * WorldScale.Z - leftCorner.Z);
 
-            if (!WorldRotation.IsIdentity)
+            if (!WorldRotation.NearEquals(Quaternion.Identity))
             {
-                WorldRotation.Rotate(ref leftCorner);
-                WorldRotation.Rotate(ref xAxis);
-                WorldRotation.Rotate(ref yAxis);
-                WorldRotation.Rotate(ref zAxis);
+                leftCorner = Vector3.Transform(leftCorner, WorldRotation);
+                xAxis = Vector3.Transform(xAxis, WorldRotation);
+                yAxis = Vector3.Transform(yAxis, WorldRotation);
+                zAxis = Vector3.Transform(zAxis, WorldRotation);
             }
 
             leftCorner += WorldPosition;
@@ -188,7 +189,7 @@ namespace Stride.Particles.Initializers
             translation = (PositionMax + PositionMin) * 0.5f * WorldScale;
 
             scale *= WorldScale;
-            rotation.Rotate(ref translation);
+            translation = Vector3.Transform(translation, rotation);
             translation += WorldPosition;
 
             return true;

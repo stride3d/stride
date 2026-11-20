@@ -10,6 +10,7 @@ using Stride.Games;
 using Stride.Graphics;
 using Avalonia.Input;
 using AvaloniaPoint = Avalonia.Point;
+using System.Numerics;
 
 namespace Stride.Editor.Avalonia.Engine;
 

@@ -5,6 +5,7 @@ using System;
 using Xunit;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Audio.Tests
 {
@@ -23,12 +24,12 @@ namespace Stride.Audio.Tests
         {
             //////////////////////////////
             // 1. Check the default value
-            Assert.True(Vector3.Zero == defaultListener.Position, "The AudioListener defaul location is not 0");
+            Assert.True(Vector3.Zero.NearEquals(defaultListener.Position), "The AudioListener defaul location is not 0");
 
             ///////////////////////////////////////////
             // 2. Check for no crash and correct value
             defaultListener.Position = Vector3.One;
-            Assert.True(Vector3.One == defaultListener.Position, "AudioListener.Position value is not what it is supposed to be.");
+            Assert.True(Vector3.One.NearEquals(defaultListener.Position), "AudioListener.Position value is not what it is supposed to be.");
         }
 
         /// <summary>
@@ -39,12 +40,12 @@ namespace Stride.Audio.Tests
         {
             //////////////////////////////
             // 1. Check the default value
-            Assert.True(Vector3.Zero == defaultListener.Velocity, "The AudioListener defaul Velocity is not 0");
+            Assert.True(Vector3.Zero.NearEquals(defaultListener.Velocity), "The AudioListener defaul Velocity is not 0");
 
             ///////////////////////////////////////////
             // 2. Check for no crash and correct value
             defaultListener.Velocity = Vector3.One;
-            Assert.True(Vector3.One == defaultListener.Velocity, "AudioListener.Velocity value is not what it is supposed to be.");
+            Assert.True(Vector3.One.NearEquals(defaultListener.Velocity), "AudioListener.Velocity value is not what it is supposed to be.");
         }
 
         /// <summary>
@@ -55,18 +56,18 @@ namespace Stride.Audio.Tests
         {
             //////////////////////////////
             // 1. Check the default value
-            Assert.True(new Vector3(0,0,1) == defaultListener.Forward, "The AudioListener default Forward is not (0,0,1)");
+            Assert.True(new Vector3(0,0,1).NearEquals(defaultListener.Forward), "The AudioListener default Forward is not (0,0,1)");
 
             ///////////////////////////////////////////
             // 2. Check for no crash and correct value
-            var newVal = Vector3.Normalize(Vector3.One);
+            var newVal = Vector3.NormalizeSafe(Vector3.One);
             defaultListener.Forward = newVal;
-            Assert.True(newVal == defaultListener.Forward, "AudioListener.Forward value is not what it is supposed to be.");
+            Assert.True(newVal.NearEquals(defaultListener.Forward), "AudioListener.Forward value is not what it is supposed to be.");
 
             //////////////////////////////////////////////////
             // 3. Check that Forward set normalize the vector
             defaultListener.Forward = new Vector3(2, 0, 0);
-            Assert.True(new Vector3(1, 0, 0) == defaultListener.Forward, "AudioListener.Forward.Set has not properly normalized the vector.");
+            Assert.True(new Vector3(1, 0, 0).NearEquals(defaultListener.Forward), "AudioListener.Forward.Set has not properly normalized the vector.");
             
             //////////////////////////////////////////////////////////////////////////////
             // 4. Check that Forward throws InvalidOperationException when vector is Zero
@@ -81,18 +82,18 @@ namespace Stride.Audio.Tests
         {
             //////////////////////////////
             // 1. Check the default value
-            Assert.True(new Vector3(0, 1, 0) == defaultListener.Up, "The AudioListener default Up is not (0,0,1)");
+            Assert.True(new Vector3(0, 1, 0).NearEquals(defaultListener.Up), "The AudioListener default Up is not (0,0,1)");
 
             ///////////////////////////////////////////
             // 2. Check for no crash and correct value
-            var newVal = Vector3.Normalize(Vector3.One);
+            var newVal = Vector3.NormalizeSafe(Vector3.One);
             defaultListener.Up = newVal;
-            Assert.True(newVal == defaultListener.Up, "AudioListener.Up value is not what it is supposed to be.");
+            Assert.True(newVal.NearEquals(defaultListener.Up), "AudioListener.Up value is not what it is supposed to be.");
 
             //////////////////////////////////////////////////
             // 3. Check that Up set normalize the vector
             defaultListener.Up = new Vector3(2, 0, 0);
-            Assert.True(new Vector3(1, 0, 0) == defaultListener.Up, "AudioListener.Up.Set has not properly normalized the vector.");
+            Assert.True(new Vector3(1, 0, 0).NearEquals(defaultListener.Up), "AudioListener.Up.Set has not properly normalized the vector.");
 
             //////////////////////////////////////////////////////////////////////////////
             // 4. Check that Up throws InvalidOperationException when vector is Zero

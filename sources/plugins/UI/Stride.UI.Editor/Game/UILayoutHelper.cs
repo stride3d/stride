@@ -9,6 +9,7 @@ using Stride.UI.Controls;
 using Stride.UI.Panels;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
 using Stride.Assets.Editor.ViewModels;
+using System.Numerics;
 
 namespace Stride.UI.Editor.Game
 {

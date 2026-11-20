@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Physics
 {

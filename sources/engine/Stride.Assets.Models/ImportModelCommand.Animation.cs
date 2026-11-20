@@ -13,6 +13,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Updater;
 using Stride.Animations;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Assets.Models
 {
@@ -170,7 +171,7 @@ namespace Stride.Assets.Models
                             // Evaluate at every key frame
                             foreach (var animationKey in animationKeys)
                             {
-                                var matrix = Matrix.Identity;
+                                var matrix = Matrix4x4.Identity;
 
                                 // Evaluate node
                                 foreach (var node in nodesToMerge)
@@ -204,11 +205,11 @@ namespace Stride.Assets.Models
                                         }
                                     }
 
-                                    Matrix localMatrix;
+                                    Matrix4x4 localMatrix;
                                     var transformTRS = modelNodeDefinitions[0].Transform;
-                                    Matrix.Transformation(ref transformTRS.Scale, ref transformTRS.Rotation, ref transformTRS.Position,
+                                    Matrix4x4.CreateTransformation(transformTRS.Scale, transformTRS.Rotation, transformTRS.Position,
                                         out localMatrix);
-                                    matrix = Matrix.Multiply(localMatrix, matrix);
+                                    matrix = Matrix4x4.Multiply(localMatrix, matrix);
                                 }
 
                                 // Done evaluating, let's decompose matrix

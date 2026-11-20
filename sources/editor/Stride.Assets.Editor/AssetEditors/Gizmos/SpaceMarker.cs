@@ -15,6 +15,7 @@ using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -91,7 +92,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         private void UpdateCamera()
         {
             var view = Game.EditorServices.Get<IEditorGameCameraService>().ViewMatrix;
-            view.TranslationVector = new Vector3(0, 0, -BodyLength * CameraDistanceFactor);
+            view.Translation = new Vector3(0, 0, -BodyLength * CameraDistanceFactor);
             cameraComponent.ViewMatrix = view;
         }
 
@@ -189,7 +190,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
                 coneEntity.Transform.Position.X = BodyLength + ConeHeigth * 0.5f;
                 bodyEntity.Transform.Position.X = BodyLength / 2;
-                coneEntity.Transform.Rotation = Quaternion.RotationZ(-MathUtil.Pi / 2);
+                coneEntity.Transform.Rotation = Quaternion.CreateRotationZ(-MathUtil.Pi / 2);
                 bodyEntity.Transform.RotationEulerXYZ = -MathUtil.Pi / 2 * Vector3.UnitZ;
 
                 // create the arrow entity composed of the cone and bode

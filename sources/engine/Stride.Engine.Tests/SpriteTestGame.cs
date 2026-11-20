@@ -11,6 +11,7 @@ using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering.Sprites;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {
@@ -50,7 +51,7 @@ namespace Stride.Engine.Tests
 
             // Creates the camera
             CameraComponent.UseCustomProjectionMatrix = true;
-            CameraComponent.ProjectionMatrix = Matrix.OrthoRH(areaSize.X, areaSize.Y, -2, 2);
+            CameraComponent.ProjectionMatrix = Matrix4x4.CreateOrthographic(areaSize.X, areaSize.Y, -2, 2);
 
             // Load assets
             groundSprites = Content.Load<SpriteSheet>("GroundSprite");

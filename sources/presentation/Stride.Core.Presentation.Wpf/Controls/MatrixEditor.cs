@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Windows;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.Presentation.Controls
 {
-    public class MatrixEditor : VectorEditorBase<Matrix?>
+    public class MatrixEditor : VectorEditorBase<Matrix4x4?>
     {
         private static readonly Dictionary<DependencyProperty, int> PropertyToIndex;
 
@@ -182,19 +183,19 @@ namespace Stride.Core.Presentation.Controls
         public float? M44 { get { return (float?)GetValue(M44Property); } set { SetValue(M44Property, value); } }
 
         /// <inheritdoc/>
-        protected override void UpdateComponentsFromValue(Matrix? value)
+        protected override void UpdateComponentsFromValue(Matrix4x4? value)
         {
             if (value != null)
             {
                 foreach (var property in PropertyToIndex)
                 {
-                    SetCurrentValue(property.Key, value.Value[property.Value]);
+                    SetCurrentValue(property.Key, value.Value[property.Value / 4, property.Value % 4]);
                 }
             }
         }
 
         /// <inheritdoc/>
-        protected override Matrix? UpdateValueFromComponent(DependencyProperty property)
+        protected override Matrix4x4? UpdateValueFromComponent(DependencyProperty property)
         {
             if (!Value.HasValue || !((float?)GetValue(property)).HasValue)
                 return null;
@@ -202,14 +203,14 @@ namespace Stride.Core.Presentation.Controls
             var array = new float[16];
             foreach (var dependencyProperty in PropertyToIndex)
             {
-                array[dependencyProperty.Value] = property == dependencyProperty.Key ? ((float?)GetValue(dependencyProperty.Key)).Value : Value.Value[dependencyProperty.Value];
+                array[dependencyProperty.Value] = property == dependencyProperty.Key ? ((float?)GetValue(dependencyProperty.Key)).Value : Value.Value[dependencyProperty.Value / 4, dependencyProperty.Value % 4];
             }
-            return new Matrix(array);
+            return Matrix4x4.Create(array);
         }
 
-        protected override Matrix? UpdateValueFromFloat(float value)
+        protected override Matrix4x4? UpdateValueFromFloat(float value)
         {
-            return new Matrix(value);
+            return Matrix4x4.Create(value);
         }
     }
 }

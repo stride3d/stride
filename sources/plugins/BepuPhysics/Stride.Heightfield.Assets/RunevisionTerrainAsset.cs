@@ -15,8 +15,8 @@ using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.TextureConverter;
-using Vector2 = Stride.Core.Mathematics.Vector2;
-using Vector3 = Stride.Core.Mathematics.Vector3;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
 
 namespace Stride.Heightfield.Assets;
 

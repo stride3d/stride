@@ -4,6 +4,7 @@
 using System.Diagnostics.Contracts;
 using BepuPhysics.CollisionDetection;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Contacts;
 

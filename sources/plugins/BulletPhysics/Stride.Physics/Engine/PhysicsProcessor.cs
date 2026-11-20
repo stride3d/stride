@@ -9,6 +9,7 @@ using Stride.Engine;
 using Stride.Games;
 using Stride.Physics.Engine;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -233,7 +234,7 @@ namespace Stride.Physics
             {
                 if (!element.Enabled || element.ColliderShape == null) continue;
 
-                var worldTransform = Matrix.RotationQuaternion(element.Orientation) * element.PhysicsWorldTransform;
+                var worldTransform = Matrix4x4.CreateFromQuaternion(element.Orientation) * element.PhysicsWorldTransform;
                 element.UpdateTransformationComponent(ref worldTransform);
 
                 if (element.DebugEntity != null)

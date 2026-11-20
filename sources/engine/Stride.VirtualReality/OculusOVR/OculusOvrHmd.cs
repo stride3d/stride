@@ -12,6 +12,8 @@ using Stride.Games;
 using Stride.Graphics;
 using CommandList = Stride.Graphics.CommandList;
 
+using System.Numerics;
+
 namespace Stride.VirtualReality
 {
     internal class OculusOvrHmd : VRDevice
@@ -174,7 +176,7 @@ namespace Stride.VirtualReality
             OculusOvr.Recenter(ovrSession);
         }
 
-        public override void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix view, out Matrix projection)
+        public override void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix4x4 cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix4x4 view, out Matrix4x4 projection)
         {
             var frameProperties = new OculusOvr.FrameProperties
             {
@@ -184,7 +186,7 @@ namespace Stride.VirtualReality
             OculusOvr.GetFrameProperties(ovrSession, ref frameProperties);
 
             var isLeftEye = eye == Eyes.Left;
-            var camRot = Quaternion.RotationMatrix(cameraRotation);
+            var camRot = Quaternion.CreateFromRotationMatrix(cameraRotation);
             projection = isLeftEye ? frameProperties.ProjLeft : frameProperties.ProjRight;
 
             var eyePosition = isLeftEye ? frameProperties.PosLeft : frameProperties.PosRight;
@@ -196,10 +198,10 @@ namespace Stride.VirtualReality
                 eyeRotation = Quaternion.Identity;
 
             var position = cameraPosition + Vector3.Transform(eyePosition * ViewScaling, camRot);
-            var rotation = Matrix.RotationQuaternion(eyeRotation) * Matrix.Scaling(ViewScaling) * Matrix.RotationQuaternion(camRot);
+            var rotation = Matrix4x4.CreateFromQuaternion(eyeRotation) * Matrix4x4.CreateScale(ViewScaling) * Matrix4x4.CreateFromQuaternion(camRot);
             var finalUp = Vector3.TransformCoordinate(new Vector3(0, 1, 0), rotation);
             var finalForward = Vector3.TransformCoordinate(new Vector3(0, 0, -1), rotation);
-            view = Matrix.LookAtRH(position, position + finalForward, finalUp);
+            view = Matrix4x4.CreateLookAt(position, position + finalForward, finalUp);
         }
 
         public override void Commit(CommandList commandList, Texture renderFrame)

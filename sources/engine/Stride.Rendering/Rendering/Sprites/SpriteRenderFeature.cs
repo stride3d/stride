@@ -8,6 +8,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Rendering.Sprites
 {
@@ -70,8 +71,8 @@ namespace Stride.Rendering.Sprites
 
             var batchContext = threadContext.Value;
 
-            Matrix viewInverse;
-            Matrix.Invert(ref renderView.View, out viewInverse);
+            Matrix4x4 viewInverse;
+            Matrix4x4.InvertSafe(renderView.View, out viewInverse);
 
             uint previousBatchState = uint.MaxValue;
 
@@ -98,10 +99,10 @@ namespace Stride.Rendering.Sprites
                 // TODO: this should probably be moved to Prepare()
                 // Project the position
                 // TODO: This could be done in a SIMD batch, but we need to figure-out how to plugin in with RenderMesh object
-                var worldPosition = new Vector4(renderSprite.WorldMatrix.TranslationVector, 1.0f);
+                var worldPosition = new Vector4(renderSprite.WorldMatrix.Translation, 1.0f);
 
                 Vector4 projectedPosition;
-                Vector4.Transform(ref worldPosition, ref renderView.ViewProjection, out projectedPosition);
+                projectedPosition = Vector4.Transform(worldPosition, renderView.ViewProjection);
                 var projectedZ = projectedPosition.Z / projectedPosition.W;
                 
                 BlendModes blendMode;
@@ -193,27 +194,27 @@ namespace Stride.Rendering.Sprites
                 {
                     worldMatrix = viewInverse;
 
-                    var worldMatrixRow1 = worldMatrix.Row1;
-                    var worldMatrixRow2 = worldMatrix.Row2;
+                    var worldMatrixRow1 = worldMatrix.X;
+                    var worldMatrixRow2 = worldMatrix.Y;
 
                     // remove scale of the camera
-                    worldMatrixRow1 /= ((Vector3)viewInverse.Row1).Length();
-                    worldMatrixRow2 /= ((Vector3)viewInverse.Row2).Length();
+                    worldMatrixRow1 /= (viewInverse.X.AsVector3()).Length();
+                    worldMatrixRow2 /= (viewInverse.Y.AsVector3()).Length();
 
                     // set the scale of the object
-                    worldMatrixRow1 *= ((Vector3)renderSprite.WorldMatrix.Row1).Length();
-                    worldMatrixRow2 *= ((Vector3)renderSprite.WorldMatrix.Row2).Length();
+                    worldMatrixRow1 *= (renderSprite.WorldMatrix.X.AsVector3()).Length();
+                    worldMatrixRow2 *= (renderSprite.WorldMatrix.Y.AsVector3()).Length();
 
-                    worldMatrix.Row1 = worldMatrixRow1;
-                    worldMatrix.Row2 = worldMatrixRow2;
+                    worldMatrix.X = worldMatrixRow1;
+                    worldMatrix.Y = worldMatrixRow2;
 
                     // set the position
-                    worldMatrix.TranslationVector = renderSprite.WorldMatrix.TranslationVector;
+                    worldMatrix.Translation = renderSprite.WorldMatrix.Translation;
 
                     // set the rotation
                     var localRotationZ = renderSprite.RotationEulerZ;
                     if (localRotationZ != 0)
-                        worldMatrix = Matrix.RotationZ(localRotationZ) * worldMatrix;
+                        worldMatrix = Matrix4x4.CreateRotationZ(localRotationZ) * worldMatrix;
                 }
 
                 // calculate normalized position of the center of the sprite (takes into account the possible rotation of the image)
@@ -225,7 +226,7 @@ namespace Stride.Rendering.Sprites
                     normalizedCenter.Y = oldCenterX;
                 }
                 // apply the offset due to the center of the sprite
-                var centerOffset = Vector2.Modulate(normalizedCenter, sprite.SizeInternal);
+                var centerOffset = Vector2.Multiply(normalizedCenter, sprite.SizeInternal);
                 worldMatrix.M41 -= centerOffset.X * worldMatrix.M11 + centerOffset.Y * worldMatrix.M21;
                 worldMatrix.M42 -= centerOffset.X * worldMatrix.M12 + centerOffset.Y * worldMatrix.M22;
                 worldMatrix.M43 -= centerOffset.X * worldMatrix.M13 + centerOffset.Y * worldMatrix.M23;

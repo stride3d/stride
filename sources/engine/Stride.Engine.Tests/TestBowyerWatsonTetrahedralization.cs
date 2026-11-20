@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Rendering.LightProbes;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {

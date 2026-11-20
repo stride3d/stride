@@ -10,6 +10,7 @@ using Stride.Rendering;
 using Stride.Rendering.ComputeEffect;
 using Stride.Rendering.Images;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

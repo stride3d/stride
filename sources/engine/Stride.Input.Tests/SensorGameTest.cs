@@ -16,6 +16,7 @@ using Stride.Rendering.Sprites;
 using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.Input.Tests
 {
@@ -145,7 +146,7 @@ namespace Stride.Input.Tests
             entity.Transform.Scale = new Vector3(1);
             entity.Transform.Position = new Vector3(0);
             entity.Transform.Rotation = Quaternion.Identity;
-            entity.Transform.LocalMatrix = Matrix.Identity;
+            entity.Transform.LocalMatrix = Matrix4x4.Identity;
             entity.Transform.UseTRS = true;
             entity2.Transform.UseTRS = false;
 
@@ -223,9 +224,9 @@ namespace Stride.Input.Tests
                 case DebugScenes.Orientation:
                     if (Input.Orientation != null)
                     {
-                        entity.Transform.Rotation = Quaternion.Invert(Input.Orientation.Quaternion);
-                        entity2.Transform.LocalMatrix = Matrix.Scaling(0.5f)*Matrix.Invert(Input.Orientation.RotationMatrix);
-                        entity3.Transform.Rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(Input.Orientation.Yaw, Input.Orientation.Pitch, Input.Orientation.Roll));
+                        entity.Transform.Rotation = Quaternion.Inverse(Input.Orientation.Quaternion);
+                        entity2.Transform.LocalMatrix = Matrix4x4.CreateScale(0.5f)*(Matrix4x4.Invert(Input.Orientation.RotationMatrix, out var inverse) ? inverse : default);
+                        entity3.Transform.Rotation = Quaternion.Inverse(Quaternion.CreateFromYawPitchRoll(Input.Orientation.Yaw, Input.Orientation.Pitch, Input.Orientation.Roll));
                     }
                     break;
                 case DebugScenes.UserAccel:
@@ -234,13 +235,13 @@ namespace Stride.Input.Tests
                     var vectorStrength = vector.Length();
                     if (vectorStrength > MathUtil.ZeroTolerance)
                     {
-                        var newY = -Vector3.Normalize(vector);
-                        var newX = Vector3.Normalize(Vector3.Cross(Vector3.UnitY, newY));
+                        var newY = -Vector3.NormalizeSafe(vector);
+                        var newX = Vector3.NormalizeSafe(Vector3.Cross(Vector3.UnitY, newY));
                         var newZ = Vector3.Cross(newX, newY);
-                        var transformation = Matrix.Identity;
-                        transformation.Row1 = (Vector4)newX;
-                        transformation.Row2 = -vectorStrength / 15f * (Vector4)newY;
-                        transformation.Row3 = (Vector4)newZ;
+                        var transformation = Matrix4x4.Identity;
+                        transformation.X = newX.AsVector4();
+                        transformation.Y = -vectorStrength / 15f * newY.AsVector4();
+                        transformation.Z = newZ.AsVector4();
                         entity.Transform.LocalMatrix = transformation;
                     }
                     break;
@@ -248,7 +249,7 @@ namespace Stride.Input.Tests
                     if (Input.Gyroscope != null)
                     {
                         var rotation = Input.Gyroscope.RotationRate*(float)UpdateTime.Elapsed.TotalSeconds;
-                        entity.Transform.Rotation *= Quaternion.Invert(Quaternion.RotationYawPitchRoll(rotation.Y, rotation.X, rotation.Z));
+                        entity.Transform.Rotation = Quaternion.Concatenate(entity.Transform.Rotation, Quaternion.Inverse(Quaternion.CreateFromYawPitchRoll(rotation.Y, rotation.X, rotation.Z)));
                     }
                     break;
                 case DebugScenes.Compass:

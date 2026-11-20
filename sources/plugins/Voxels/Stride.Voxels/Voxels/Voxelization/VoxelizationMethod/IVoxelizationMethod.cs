@@ -15,13 +15,14 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Voxels;
 using Stride.Core.Extensions;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels
 {
     public interface IVoxelizationMethod
     {
         void Reset();
-        void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, VoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows);
+        void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix4x4 view, Vector3 resolution, VoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows);
         void Render(VoxelStorageContext storageContext, RenderDrawContext drawContext, RenderView view);
 
         bool RequireGeometryShader();

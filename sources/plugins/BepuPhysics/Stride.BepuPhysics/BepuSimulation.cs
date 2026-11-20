@@ -27,6 +27,7 @@ using BRigidPose = BepuPhysics.RigidPose;
 using SRigidPose = Stride.BepuPhysics.Definitions.RigidPose;
 using SBodyVelocity = Stride.BepuPhysics.Definitions.BodyVelocity;
 using Stride.BepuPhysics.Systems.Characters;
+using System.Numerics;
 
 namespace Stride.BepuPhysics;
 

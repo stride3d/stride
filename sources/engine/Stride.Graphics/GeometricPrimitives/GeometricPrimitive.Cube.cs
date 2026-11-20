@@ -75,6 +75,7 @@
 
 using System;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics.GeometricPrimitives
 {
@@ -229,10 +230,10 @@ namespace Stride.Graphics.GeometricPrimitives
                     Vector3 basis = (i >= 4) ? Vector3.UnitZ : Vector3.UnitY;
 
                     Vector3 side1;
-                    Vector3.Cross(ref normal, ref basis, out side1);
+                    side1 = Vector3.Cross(normal, basis);
 
                     Vector3 side2;
-                    Vector3.Cross(ref normal, ref side1, out side2);
+                    side2 = Vector3.Cross(normal, side1);
 
                     // Six indices (two triangles) per grid cell.
                     int vbase = i * faceVertexCount;

@@ -5,6 +5,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Particles.DebugDraw;
+using System.Numerics;
 
 namespace Stride.Particles.Updaters.FieldShapes
 {
@@ -74,7 +75,7 @@ namespace Stride.Particles.Updaters.FieldShapes
             inverseRotation = new Quaternion(-rotation.X, -rotation.Y, -rotation.Z, rotation.W);
 
             mainAxis = new Vector3(0, 1, 0);
-            rotation.Rotate(ref mainAxis);
+            mainAxis = Vector3.Transform(mainAxis, rotation);
         }
 
 
@@ -88,13 +89,13 @@ namespace Stride.Particles.Updaters.FieldShapes
             // Toward - tawards the main axis
             awayAxis = particlePosition - fieldPosition;
             awayAxis.Y = 0; // In case of cylinder the away vector should be flat (away from the axis rather than just a point)
-            awayAxis.Normalize();
+            awayAxis = Vector3.NormalizeSafe(awayAxis);
 
             // Around - around the main axis, following the right hand rule
             aroundAxis = Vector3.Cross(alongAxis, awayAxis);
 
             particlePosition -= fieldPosition;
-            inverseRotation.Rotate(ref particlePosition);
+            particlePosition = Vector3.Transform(particlePosition, inverseRotation);
             particlePosition /= fieldSize;
 
             // Start of code for Cylinder
@@ -115,7 +116,7 @@ namespace Stride.Particles.Updaters.FieldShapes
         public override bool IsPointInside(Vector3 particlePosition, out Vector3 surfacePoint, out Vector3 surfaceNormal)
         {
             particlePosition -= fieldPosition;
-            inverseRotation.Rotate(ref particlePosition);
+            particlePosition = Vector3.Transform(particlePosition, inverseRotation);
 //            particlePosition /= fieldSize;
 
             var maxDist = MathF.Sqrt(particlePosition.X * particlePosition.X + particlePosition.Z * particlePosition.Z);
@@ -128,7 +129,7 @@ namespace Stride.Particles.Updaters.FieldShapes
             roundSurface.Y = 0;
             roundSurface.X /= fieldX;
             roundSurface.Z /= fieldZ;
-            roundSurface.Normalize();
+            roundSurface = Vector3.NormalizeSafe(roundSurface);
             roundSurface.X *= fieldX;
             roundSurface.Z *= fieldZ;
 
@@ -177,10 +178,10 @@ namespace Stride.Particles.Updaters.FieldShapes
 
             // Fix the surface point and normal to world space
             surfaceNormal /= fieldSize;
-            fieldRotation.Rotate(ref surfaceNormal);
-            surfaceNormal.Normalize();
+            surfaceNormal = Vector3.Transform(surfaceNormal, fieldRotation);
+            surfaceNormal = Vector3.NormalizeSafe(surfaceNormal);
    
-            fieldRotation.Rotate(ref surfacePoint);
+            surfacePoint = Vector3.Transform(surfacePoint, fieldRotation);
 //            surfacePoint *= fieldSize;
             surfacePoint += fieldPosition;
 

@@ -9,6 +9,7 @@ using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -32,7 +33,7 @@ namespace Stride.Physics
                 LocalScaling = cachedScaling,
             };
 
-            DebugPrimitiveMatrix = Matrix.Scaling(Vector3.One * DebugScaling);
+            DebugPrimitiveMatrix = Matrix4x4.CreateScale(Vector3.One * DebugScaling);
         }
 
         public IReadOnlyList<Vector3> Points
@@ -67,7 +68,7 @@ namespace Stride.Physics
                 var b = verts[i2];
                 var c = verts[i3];
                 var n = Vector3.Cross((b.Position - a.Position), (c.Position - a.Position));
-                n.Normalize();
+                n = Vector3.NormalizeSafe(n);
                 verts[i1].Normal = verts[i2].Normal = verts[i3].Normal = n;
             }
 

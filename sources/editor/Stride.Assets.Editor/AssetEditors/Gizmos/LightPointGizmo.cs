@@ -11,6 +11,7 @@ using Stride.Rendering;
 using Stride.Rendering.Lights;
 using Buffer = Stride.Graphics.Buffer;
 using Material = Stride.Rendering.Material;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -117,14 +118,14 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 // the two rings
                 for (int j = 0; j < 3; j++)
                 {
-                    var rotation = Matrix.Identity;
+                    var rotation = Matrix4x4.Identity;
                     if (j == 1)
                     {
-                        rotation = Matrix.RotationX(MathF.PI / 2);
+                        rotation = Matrix4x4.CreateRotationX(MathF.PI / 2);
                     }
                     else if (j == 2)
                     {
-                        rotation = Matrix.RotationY(MathF.PI / 2);
+                        rotation = Matrix4x4.CreateRotationY(MathF.PI / 2);
                     }
 
                     for (int i = 0; i <= Tesselation; i++)
@@ -134,7 +135,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                         var dy = MathF.Sin(longitude);
 
                         var normal = new Vector3(dx, dy, 0);
-                        Vector3.TransformNormal(ref normal, ref rotation, out normal);
+                        normal = Vector3.TransformNormal(normal, rotation);
 
                         if (i < Tesselation)
                         {

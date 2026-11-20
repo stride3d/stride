@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 using Stride.Assets.Editor.SceneEditor;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 

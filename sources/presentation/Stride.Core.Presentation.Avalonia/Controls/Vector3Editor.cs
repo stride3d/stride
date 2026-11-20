@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Data;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
@@ -128,7 +129,7 @@ public sealed class Vector3Editor : VectorEditor<Vector3?>
     private static Vector3 FromLength(Vector3 value, float length)
     {
         var newValue = value;
-        newValue.Normalize();
+        newValue = Vector3.NormalizeSafe(newValue);
         newValue *= length;
         return newValue;
     }

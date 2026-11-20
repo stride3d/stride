@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable disable
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Editor.Preview.View
 {

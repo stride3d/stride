@@ -5,6 +5,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Font;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Renderers
 {
@@ -64,7 +65,7 @@ namespace Stride.UI.Renderers
 
                         var borderDrawCommand = drawCommand;
                         borderDrawCommand.Color = borderColor;
-                        borderDrawCommand.Matrix = drawCommand.Matrix * Matrix.Translation(offsetX, offsetY, 0);
+                        borderDrawCommand.Matrix = drawCommand.Matrix * Matrix4x4.CreateTranslation(offsetX, offsetY, 0);
 
                         Batch.DrawString(textBlock.Font, textBlock.TextToDisplay, ref borderDrawCommand);
                     }

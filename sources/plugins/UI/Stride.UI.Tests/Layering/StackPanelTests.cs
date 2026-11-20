@@ -8,6 +8,7 @@ using Xunit;
 
 using Stride.Core.Mathematics;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Layering
 {
@@ -101,13 +102,13 @@ namespace Stride.UI.Tests.Layering
             var child3Matrix = child3.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
 
             // Child 1 should be at top
-            Assert.Equal(-measureSize.Y / 2, child1Matrix.TranslationVector.Y);
+            Assert.Equal(-measureSize.Y / 2, child1Matrix.Translation.Y);
             
             // Child 2 should be at child1.height + gap
-            Assert.Equal(-measureSize.Y / 2 + 30 + 5, child2Matrix.TranslationVector.Y);
+            Assert.Equal(-measureSize.Y / 2 + 30 + 5, child2Matrix.Translation.Y);
             
             // Child 3 should be at child1.height + gap + child2.height + gap
-            Assert.Equal(-measureSize.Y / 2 + 30 + 5 + 20 + 5, child3Matrix.TranslationVector.Y);
+            Assert.Equal(-measureSize.Y / 2 + 30 + 5 + 20 + 5, child3Matrix.Translation.Y);
             
             // Test arrange with collapsed child
             child2.Visibility = Visibility.Collapsed;
@@ -118,13 +119,13 @@ namespace Stride.UI.Tests.Layering
             child3Matrix = child3.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
 
             // Child 1 should be at top
-            Assert.Equal(-measureSize.Y / 2, child1Matrix.TranslationVector.Y);
+            Assert.Equal(-measureSize.Y / 2, child1Matrix.Translation.Y);
             
             // Child 2 should be at child1.height
-            Assert.Equal(-measureSize.Y / 2 + 30, child2Matrix.TranslationVector.Y);
+            Assert.Equal(-measureSize.Y / 2 + 30, child2Matrix.Translation.Y);
             
             // Child 3 should be at child1.height + gap
-            Assert.Equal(-measureSize.Y / 2 + 30 + 5, child3Matrix.TranslationVector.Y);
+            Assert.Equal(-measureSize.Y / 2 + 30 + 5, child3Matrix.Translation.Y);
         }
 
         /// <summary>
@@ -462,7 +463,7 @@ namespace Stride.UI.Tests.Layering
                         throw new ArgumentOutOfRangeException(nameof(orientation));
                 }
 
-                Utilities.AssertAreNearlyEqual(Matrix.Translation(childOffsets), Children[i].DependencyProperties.Get(PanelArrangeMatrixPropertyKey));
+                Utilities.AssertAreNearlyEqual(Matrix4x4.CreateTranslation(childOffsets), Children[i].DependencyProperties.Get(PanelArrangeMatrixPropertyKey));
             }
         }
 

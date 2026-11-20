@@ -51,6 +51,7 @@ using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.TypeConverters;
 

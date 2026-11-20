@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Extensions
 {
@@ -24,7 +25,7 @@ namespace Stride.Extensions
             if (meshData.VertexBuffers.Length != 1)
                 throw new NotImplementedException("Sorting not implemented for multiple vertex buffers by submeshdata");
 
-            if (viewDirectionForSorting == Vector3.Zero)
+            if (viewDirectionForSorting.NearEquals(Vector3.Zero))
             {
                 // By default to -Z if sorting is set to null
                 viewDirectionForSorting = -Vector3.UnitZ;

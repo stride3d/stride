@@ -8,7 +8,8 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
-using Half = Stride.Core.Mathematics.Half;
+using Half = System.Half;
+using System.Numerics;
 
 namespace Stride.Rendering.Images
 {
@@ -393,7 +394,7 @@ namespace Stride.Rendering.Images
                 depthReadBack.SetInput(depthCenter1x1);
                 depthReadBack.Draw(context, "Center_Depth_Readback");
                 var centerDepth = depthReadBack.Result[0];
-                autoFocusDistanceTarget = centerDepth;
+                autoFocusDistanceTarget = (float)centerDepth;
             }
 
             // Find the smallest downscale we should go down to.

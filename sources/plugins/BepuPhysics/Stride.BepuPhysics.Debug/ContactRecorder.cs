@@ -9,6 +9,7 @@ using Stride.BepuPhysics.Debug.Effects;
 using Stride.Core.Mathematics;
 using NQuaternion = System.Numerics.Quaternion;
 using NVector3 = System.Numerics.Vector3;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Debug;
 

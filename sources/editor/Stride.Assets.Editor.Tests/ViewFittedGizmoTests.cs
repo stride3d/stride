@@ -6,6 +6,7 @@ using Stride.Assets.Editor.EditorGame;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Processors;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -51,13 +52,13 @@ public sealed class ViewFittedGizmoTests
         var perspective = CreateView(Selection + new Vector3(-4, 2, -4), CameraProjectionMode.Perspective, 10, 720, yaw: -3 * MathUtil.PiOverFour, pitch: -0.3f);
 
         // A gizmo in world space: the back view sees its Z axis from behind, while the front view sees none from behind
-        var worldSpace = Matrix.Translation(Selection);
+        var worldSpace = Matrix4x4.CreateTranslation(Selection);
         Assert.Equal(GizmoTransformationAxes.None, AxisTransformationGizmo.GetBackfacingAxes(worldSpace, front.ViewMatrix));
         Assert.Equal(GizmoTransformationAxes.Z, AxisTransformationGizmo.GetBackfacingAxes(worldSpace, back.ViewMatrix));
         Assert.Equal(GizmoTransformationAxes.X | GizmoTransformationAxes.Z, AxisTransformationGizmo.GetBackfacingAxes(worldSpace, perspective.ViewMatrix));
 
         // A gizmo in the space of an entity turned around the Y axis: its X and Z axes point the other way
-        var objectSpace = Matrix.RotationY(MathUtil.Pi) * Matrix.Translation(Selection);
+        var objectSpace = Matrix4x4.CreateRotationY(MathUtil.Pi) * Matrix4x4.CreateTranslation(Selection);
         Assert.Equal(GizmoTransformationAxes.X | GizmoTransformationAxes.Z, AxisTransformationGizmo.GetBackfacingAxes(objectSpace, front.ViewMatrix));
         Assert.Equal(GizmoTransformationAxes.X, AxisTransformationGizmo.GetBackfacingAxes(objectSpace, back.ViewMatrix));
     }

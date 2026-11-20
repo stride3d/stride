@@ -6,8 +6,9 @@ using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.TypeConverters;
-using Half = Stride.Core.Mathematics.Half;
+using Half = System.Half;
 using HalfConverter = Stride.Core.TypeConverters.HalfConverter;
+using System.Numerics;
 
 namespace Stride.Core;
 
@@ -26,7 +27,7 @@ internal class Module
         TypeDescriptor.AddAttributes(typeof(Half2), new TypeConverterAttribute(typeof(Half2Converter)));
         TypeDescriptor.AddAttributes(typeof(Half3), new TypeConverterAttribute(typeof(Half3Converter)));
         TypeDescriptor.AddAttributes(typeof(Half4), new TypeConverterAttribute(typeof(Half4Converter)));
-        TypeDescriptor.AddAttributes(typeof(Matrix), new TypeConverterAttribute(typeof(MatrixConverter)));
+        TypeDescriptor.AddAttributes(typeof(Matrix4x4), new TypeConverterAttribute(typeof(MatrixConverter)));
         TypeDescriptor.AddAttributes(typeof(Quaternion), new TypeConverterAttribute(typeof(QuaternionConverter)));
         TypeDescriptor.AddAttributes(typeof(Vector2), new TypeConverterAttribute(typeof(Vector2Converter)));
         TypeDescriptor.AddAttributes(typeof(Vector3), new TypeConverterAttribute(typeof(Vector3Converter)));

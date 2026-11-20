@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -180,10 +181,10 @@ namespace Stride.Graphics
         /// <param name="projection">The projection matrix.</param>
         /// <param name="view">The view matrix.</param>
         /// <param name="world">The world matrix.</param>
-        public readonly Vector3 Project(Vector3 source, Matrix projection, Matrix view, Matrix world)
+        public readonly Vector3 Project(Vector3 source, Matrix4x4 projection, Matrix4x4 view, Matrix4x4 world)
         {
-            Matrix worldViewProj = Matrix.Multiply(Matrix.Multiply(world, view), projection);
-            Vector4 vector = Vector3.Transform(source, worldViewProj);
+            Matrix4x4 worldViewProj = Matrix4x4.Multiply(Matrix4x4.Multiply(world, view), projection);
+            Vector4 vector = Vector4.Transform(source, worldViewProj);
 
             float w = (source.X * worldViewProj.M14) + (source.Y * worldViewProj.M24) + (source.Z * worldViewProj.M34) + worldViewProj.M44;
             if (!WithinEpsilon(w, 1))
@@ -203,9 +204,9 @@ namespace Stride.Graphics
         /// <param name="projection">The projection matrix.</param>
         /// <param name="view">The view matrix.</param>
         /// <param name="world">The world matrix.</param>
-        public Vector3 Unproject(Vector3 source, Matrix projection, Matrix view, Matrix world)
+        public Vector3 Unproject(Vector3 source, Matrix4x4 projection, Matrix4x4 view, Matrix4x4 world)
         {
-            Matrix worldViewProj = Matrix.Multiply(Matrix.Multiply(world, view), projection);
+            Matrix4x4 worldViewProj = Matrix4x4.Multiply(Matrix4x4.Multiply(world, view), projection);
             return Unproject(source, in worldViewProj);
         }
 
@@ -214,14 +215,14 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="source">The vector to unproject.</param>
         /// <param name="worldViewProjection">The World-View-Projection matrix.</param>
-        public readonly Vector3 Unproject(Vector3 source, ref readonly Matrix worldViewProjection)
+        public readonly Vector3 Unproject(Vector3 source, ref readonly Matrix4x4 worldViewProjection)
         {
-            Matrix invWorldViewProj = Matrix.Invert(worldViewProjection);
+            Matrix4x4.InvertSafe(worldViewProjection, out Matrix4x4 invWorldViewProj);
 
             source.X = ((source.X - X) / Width * 2) - 1;
             source.Y = -(((source.Y - Y) / Height * 2) - 1);
             source.Z = (source.Z - MinDepth) / (MaxDepth - MinDepth);
-            Vector4 vector = Vector3.Transform(source, invWorldViewProj);
+            Vector4 vector = Vector4.Transform(source, invWorldViewProj);
 
             float w = (source.X * invWorldViewProj.M14) + (source.Y * invWorldViewProj.M24) + (source.Z * invWorldViewProj.M34) + invWorldViewProj.M44;
             if (!WithinEpsilon(w, 1))

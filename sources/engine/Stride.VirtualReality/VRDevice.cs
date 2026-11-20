@@ -4,6 +4,7 @@ using System;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.VirtualReality
 {
@@ -91,7 +92,7 @@ namespace Stride.VirtualReality
         {
         }
 
-        public abstract void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix view, out Matrix projection);
+        public abstract void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix4x4 cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix4x4 view, out Matrix4x4 projection);
 
         public abstract void Commit(CommandList commandList, Texture renderFrame);
 

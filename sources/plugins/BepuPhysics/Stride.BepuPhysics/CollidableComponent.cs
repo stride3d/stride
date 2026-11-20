@@ -18,6 +18,7 @@ using Stride.Engine.Design;
 using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Definitions.SimTests;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Numerics;
 
 namespace Stride.BepuPhysics;
 
@@ -504,11 +505,11 @@ public abstract class CollidableComponent : EntityComponent
     internal void UpdateTransformationComponent(Vector3 worldPos, Quaternion worldRot)
     {
         var entityTransform = Entity.Transform;
-        var parentMatrix = entityTransform.Parent?.WorldMatrix ?? Entity.Scene?.WorldMatrix ?? Matrix.Identity;
+        var parentMatrix = entityTransform.Parent?.WorldMatrix ?? Entity.Scene?.WorldMatrix ?? Matrix4x4.Identity;
         parentMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
 
-        var invParentRot = Quaternion.Invert(parentEntityRotation);
-        var localRot = worldRot * invParentRot;
+        var invParentRot = Quaternion.Inverse(parentEntityRotation);
+        var localRot = Quaternion.Concatenate(worldRot, invParentRot);
         var localPos = Vector3.Transform(worldPos - parentEntityPosition, invParentRot) - Vector3.Transform(CenterOfMass, localRot);
 
         if (entityTransform.UseTRS)
@@ -522,7 +523,7 @@ public abstract class CollidableComponent : EntityComponent
             scale.X = entityTransform.LocalMatrix.Right.Length();
             scale.Y = entityTransform.LocalMatrix.Up.Length();
             scale.Z = entityTransform.LocalMatrix.Backward.Length();
-            Matrix.Transformation(ref scale, ref localRot, ref localPos, out entityTransform.LocalMatrix);
+            Matrix4x4.CreateTransformation(scale, localRot, localPos, out entityTransform.LocalMatrix);
         }
     }
 }

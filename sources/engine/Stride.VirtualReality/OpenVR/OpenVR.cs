@@ -12,6 +12,8 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 
+using System.Numerics;
+
 namespace Stride.VirtualReality
 {
     internal static unsafe class OpenVR
@@ -246,25 +248,25 @@ namespace Stride.VirtualReality
             return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
         }
 
-        public static void GetEyeToHead(int eyeIndex, out Matrix pose)
+        public static void GetEyeToHead(int eyeIndex, out Matrix4x4 pose)
         {
             GetEyeToHeadUnsafe(eyeIndex, out pose);
         }
 
-        private static void GetEyeToHeadUnsafe(int eyeIndex, out Matrix pose)
+        private static void GetEyeToHeadUnsafe(int eyeIndex, out Matrix4x4 pose)
         {
             var eye = eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right;
             pose = ToMatrix(Valve.VR.OpenVR.System.GetEyeToHeadTransform(eye));
         }
 
         // OpenVR puts the vector on the right of a matrix: its rows are the columns of a Matrix.
-        private static Matrix ToMatrix(in HmdMatrix34_t m) => new(
+        private static Matrix4x4 ToMatrix(in HmdMatrix34_t m) => new(
             m.m0, m.m4, m.m8, 0,
             m.m1, m.m5, m.m9, 0,
             m.m2, m.m6, m.m10, 0,
             m.m3, m.m7, m.m11, 1);
 
-        private static HmdMatrix34_t ToHmdMatrix34(in Matrix m) => new()
+        private static HmdMatrix34_t ToHmdMatrix34(in Matrix4x4 m) => new()
         {
             m0 = m.M11, m1 = m.M21, m2 = m.M31, m3 = m.M41,
             m4 = m.M12, m5 = m.M22, m6 = m.M32, m7 = m.M42,
@@ -286,18 +288,18 @@ namespace Stride.VirtualReality
             Valve.VR.OpenVR.Compositor.SetTrackingSpace(space);
         }
 
-        public static DeviceState GetControllerPose(int controllerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
+        public static DeviceState GetControllerPose(int controllerIndex, out Matrix4x4 pose, out Vector3 velocity, out Vector3 angVelocity)
         {
             return GetControllerPoseUnsafe(controllerIndex, out pose, out velocity, out angVelocity);
         }
 
-        private static unsafe DeviceState GetControllerPoseUnsafe(int controllerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
+        private static unsafe DeviceState GetControllerPoseUnsafe(int controllerIndex, out Matrix4x4 pose, out Vector3 velocity, out Vector3 angVelocity)
         {
             Debug.Assert(Unsafe.SizeOf<Vector3>() == Unsafe.SizeOf<HmdVector3_t>());
-            Debug.Assert(Unsafe.SizeOf<Matrix>() > Unsafe.SizeOf<HmdMatrix34_t>());
+            Debug.Assert(Unsafe.SizeOf<Matrix4x4>() > Unsafe.SizeOf<HmdMatrix34_t>());
             var currentIndex = 0;
 
-            pose = Matrix.Identity;
+            pose = Matrix4x4.Identity;
 
             for (uint index = 0; index < DevicePoses.Length; index++)
             {
@@ -330,12 +332,12 @@ namespace Stride.VirtualReality
             return DeviceState.Invalid;
         }
 
-        public static DeviceState GetTrackerPose(int trackerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
+        public static DeviceState GetTrackerPose(int trackerIndex, out Matrix4x4 pose, out Vector3 velocity, out Vector3 angVelocity)
         {
             return GetTrackerPoseUnsafe(trackerIndex, out pose, out velocity, out angVelocity);
         }
 
-        private static unsafe DeviceState GetTrackerPoseUnsafe(int trackerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
+        private static unsafe DeviceState GetTrackerPoseUnsafe(int trackerIndex, out Matrix4x4 pose, out Vector3 velocity, out Vector3 angVelocity)
         {
             Debug.Assert(Unsafe.SizeOf<Vector3>() == Unsafe.SizeOf<HmdVector3_t>());
             ref var devicePose = ref DevicePoses[trackerIndex];
@@ -357,16 +359,16 @@ namespace Stride.VirtualReality
             return state;
         }
 
-        public static DeviceState GetHeadPose(out Matrix pose, out Vector3 linearVelocity, out Vector3 angularVelocity)
+        public static DeviceState GetHeadPose(out Matrix4x4 pose, out Vector3 linearVelocity, out Vector3 angularVelocity)
         {
             return GetHeadPoseUnsafe(out pose, out linearVelocity, out angularVelocity);
         }
 
-        private static unsafe DeviceState GetHeadPoseUnsafe(out Matrix pose, out Vector3 linearVelocity, out Vector3 angularVelocity)
+        private static unsafe DeviceState GetHeadPoseUnsafe(out Matrix4x4 pose, out Vector3 linearVelocity, out Vector3 angularVelocity)
         {
             Debug.Assert(Unsafe.SizeOf<Vector3>() == Unsafe.SizeOf<HmdVector3_t>());
-            Debug.Assert(Unsafe.SizeOf<Matrix>() > Unsafe.SizeOf<HmdMatrix34_t>());
-            pose = Matrix.Identity;
+            Debug.Assert(Unsafe.SizeOf<Matrix4x4>() > Unsafe.SizeOf<HmdMatrix34_t>());
+            pose = Matrix4x4.Identity;
             for (uint index = 0; index < DevicePoses.Length; index++)
             {
                 ref var devicePose = ref DevicePoses[index];
@@ -395,18 +397,18 @@ namespace Stride.VirtualReality
             return DeviceState.Invalid;
         }
 
-        public static void GetProjection(int eyeIndex, float near, float far, out Matrix projection)
+        public static void GetProjection(int eyeIndex, float near, float far, out Matrix4x4 projection)
         {
             GetProjectionUnsafe(eyeIndex, near, far, out projection);
         }
 
-        private static unsafe void GetProjectionUnsafe(int eyeIndex, float near, float far, out Matrix projection)
+        private static unsafe void GetProjectionUnsafe(int eyeIndex, float near, float far, out Matrix4x4 projection)
         {
-            Debug.Assert(Unsafe.SizeOf<HmdMatrix44_t>() == Unsafe.SizeOf<Matrix>());
+            Debug.Assert(Unsafe.SizeOf<HmdMatrix44_t>() == Unsafe.SizeOf<Matrix4x4>());
             var eye = eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right;
             var proj = Valve.VR.OpenVR.System.GetProjectionMatrix(eye, near, far);
             // Same elements as a Matrix, stored for a vector on the right: the transpose
-            projection = Matrix.Transpose(Unsafe.As<HmdMatrix44_t, Matrix>(ref proj));
+            projection = Matrix4x4.Transpose(Unsafe.As<HmdMatrix44_t, Matrix4x4>(ref proj));
         }
 
         public static void ShowMirror()
@@ -469,11 +471,11 @@ namespace Stride.VirtualReality
             return Valve.VR.OpenVR.Overlay.SetOverlayTexture(overlayId, ref tex) == EVROverlayError.None;
         }
 
-        public static unsafe void SetOverlayParams(ulong overlayId, Matrix transform, bool followsHead, Vector2 surfaceSize)
+        public static unsafe void SetOverlayParams(ulong overlayId, Matrix4x4 transform, bool followsHead, Vector2 surfaceSize)
         {
             Valve.VR.OpenVR.Overlay.SetOverlayWidthInMeters(overlayId, 1.0f);
 
-            transform = Matrix.Scaling(new Vector3(surfaceSize.X, surfaceSize.Y, 1.0f)) * transform;
+            transform = Matrix4x4.CreateScale(new Vector3(surfaceSize.X, surfaceSize.Y, 1.0f)) * transform;
 
             var pose = ToHmdMatrix34(transform);
             if (followsHead)

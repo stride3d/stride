@@ -8,6 +8,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -400,7 +401,7 @@ namespace Stride.Physics
         }
 
         //This is called by the physics engine to update the transformation of Dynamic rigidbodies.
-        private void RigidBodySetWorldTransform(ref Matrix physicsTransform)
+        private void RigidBodySetWorldTransform(ref Matrix4x4 physicsTransform)
         {
             Data.PhysicsComponent.Simulation.SimulationProfiler.Mark();
             Data.PhysicsComponent.Simulation.UpdatedRigidbodies++;
@@ -417,7 +418,7 @@ namespace Stride.Physics
 
         //This is valid for Dynamic rigidbodies (called once at initialization)
         //and Kinematic rigidbodies, called every simulation tick (if body not sleeping) to let the physics engine know where the kinematic body is.
-        private void RigidBodyGetWorldTransform(out Matrix physicsTransform)
+        private void RigidBodyGetWorldTransform(out Matrix4x4 physicsTransform)
         {
             Data.PhysicsComponent.Simulation.SimulationProfiler.Mark();
             Data.PhysicsComponent.Simulation.UpdatedRigidbodies++;
@@ -662,7 +663,7 @@ namespace Stride.Physics
 
             public override void SetWorldTransform(ref BulletSharp.Math.Matrix transform)
             {
-                Matrix asStrideMatrix = transform;
+                Matrix4x4 asStrideMatrix = transform;
                 rigidBody.RigidBodySetWorldTransform(ref asStrideMatrix);
             }
         }

@@ -4,6 +4,7 @@ using System;
 
 using Stride.Core.Mathematics;
 using Stride.UI.Events;
+using System.Numerics;
 
 namespace Stride.UI
 {

@@ -15,6 +15,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Voxels;
 using Stride.Core.Extensions;
 using Stride.Rendering;
+using System.Numerics;
 
 
 namespace Stride.Rendering.Voxels
@@ -64,7 +65,7 @@ namespace Stride.Rendering.Voxels
             return MultisampleCount.GetHashCode();
         }
 
-        public void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, VoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)
+        public void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix4x4 view, Vector3 resolution, VoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)
         {
             while (VoxelizationViews.Count <= currentViewIndex)
             {
@@ -73,12 +74,12 @@ namespace Stride.Rendering.Voxels
             }
             RenderView voxelizationView = VoxelizationViews[currentViewIndex];
 
-            voxelizationView.View = Matrix.Identity;
+            voxelizationView.View = Matrix4x4.Identity;
             voxelizationView.Projection = view;
             voxelizationView.ViewProjection = view;
 
             float maxRes = Math.Max(resolution.X, Math.Max(resolution.Y, resolution.Z));
-            Matrix aspectScale = Matrix.Scaling(resolution / maxRes);
+            Matrix4x4 aspectScale = Matrix4x4.CreateScale(resolution / maxRes);
             voxelizationView.Projection *= aspectScale;
             voxelizationView.ViewProjection = voxelizationView.View * voxelizationView.Projection;
 
@@ -87,7 +88,7 @@ namespace Stride.Rendering.Voxels
 
 
             //The BoundingFrustum constructor doesn't end up calculating the correct Near Plane for the symmetric matrix, squish it so the Z is from 0 to 1
-            Matrix SquishedMatrix = voxelizationView.ViewProjection * Matrix.Scaling(1f, 1f, 0.5f) * Matrix.Translation(new Vector3(0, 0, 0.5f));
+            Matrix4x4 SquishedMatrix = voxelizationView.ViewProjection * Matrix4x4.CreateScale(1f, 1f, 0.5f) * Matrix4x4.CreateTranslation(new Vector3(0, 0, 0.5f));
             voxelizationView.Frustum = new BoundingFrustum(ref SquishedMatrix);
 
             voxelizationView.CullingMode = CameraCullingMode.None;

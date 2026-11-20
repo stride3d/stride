@@ -4,6 +4,7 @@
 using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Audio
 {
@@ -48,10 +49,10 @@ namespace Stride.Audio
             }
             set
             {
-                if (value == Vector3.Zero)
+                if (value.NearEquals(Vector3.Zero))
                     throw new InvalidOperationException("The value of the Up vector can not be (0,0,0)");
 
-                up = Vector3.Normalize(value);
+                up = Vector3.NormalizeSafe(value);
             }
         }
 
@@ -76,14 +77,14 @@ namespace Stride.Audio
             }
             set
             {
-                if (value == Vector3.Zero)
+                if (value.NearEquals(Vector3.Zero))
                     throw new InvalidOperationException("The value of the Forward vector can not be (0,0,0)");
 
-                forward = Vector3.Normalize(value);
+                forward = Vector3.NormalizeSafe(value);
             }
         }
 
-        internal Matrix WorldTransform;
+        internal Matrix4x4 WorldTransform;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AudioEmitter"/> class.

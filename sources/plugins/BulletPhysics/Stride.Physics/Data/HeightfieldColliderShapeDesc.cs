@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -53,7 +54,7 @@ namespace Stride.Physics
                 return false;
             }
 
-            if (LocalOffset != other.LocalOffset || LocalRotation != other.LocalRotation)
+            if (!LocalOffset.NearEquals(other.LocalOffset) || !LocalRotation.NearEquals(other.LocalRotation))
             {
                 return false;
             }

@@ -25,6 +25,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -157,7 +158,7 @@ public struct Half3 : IEquatable<Half3>, ISpanFormattable
     /// <c>true</c> if <paramref name="left" /> has the same value as <paramref name="right" />; otherwise, <c>false</c>.</returns>
     public static bool operator ==(Half3 left, Half3 right)
     {
-        return Equals(ref left, ref right);
+        return left.Equals(right);
     }
 
     /// <summary>
@@ -170,7 +171,7 @@ public struct Half3 : IEquatable<Half3>, ISpanFormattable
     [return: MarshalAs(UnmanagedType.U1)]
     public static bool operator !=(Half3 left, Half3 right)
     {
-        return !Equals(ref left, ref right);
+        return !left.Equals(right);
     }
     
     /// <summary>
@@ -224,19 +225,6 @@ public struct Half3 : IEquatable<Half3>, ISpanFormattable
     }
 
     /// <summary>
-    /// Determines whether the specified object instances are considered equal.
-    /// </summary>
-    /// <param name="value1">The first value.</param>
-    /// <param name="value2">The second value.</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="value1" /> is the same instance as <paramref name="value2" /> or
-    /// if both are <c>null</c> references or if <c>value1.Equals(value2)</c> returns <c>true</c>; otherwise, <c>false</c>.</returns>
-    public static bool Equals(ref readonly Half3 value1, ref readonly Half3 value2)
-    {
-        return (value1.X == value2.X) && (value1.Y == value2.Y) && (value1.Z == value2.Z);
-    }
-
-    /// <summary>
     /// Returns a value that indicates whether the current instance is equal to the specified object.
     /// </summary>
     /// <param name="other">Object to make the comparison with.</param>
@@ -264,7 +252,7 @@ public struct Half3 : IEquatable<Half3>, ISpanFormattable
     /// <returns>The result of the conversion.</returns>
     public static explicit operator Vector3(Half3 value)
     {
-        return new Vector3(value.X, value.Y, value.Z);
+        return new Vector3((float)value.X, (float)value.Y, (float)value.Z);
     }
 
     /// <summary>

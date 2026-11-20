@@ -5,6 +5,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering.Skyboxes;
+using System.Numerics;
 
 namespace Stride.Rendering.Lights
 {
@@ -26,7 +27,7 @@ namespace Stride.Rendering.Lights
 
         public bool Update(RenderLight light)
         {
-            Rotation = Quaternion.RotationMatrix(light.WorldMatrix);
+            Rotation = Quaternion.CreateFromRotationMatrix(light.WorldMatrix);
             return Skybox != null;
         }
     }

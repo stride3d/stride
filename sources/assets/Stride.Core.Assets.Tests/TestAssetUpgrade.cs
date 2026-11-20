@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Yaml;
 using Stride.Core.Yaml.Events;
 using Stride.Core.Yaml.Serialization;
+using System.Numerics;
 
 namespace Stride.Core.Assets.Tests;
 

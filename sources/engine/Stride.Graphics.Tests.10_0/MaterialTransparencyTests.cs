@@ -24,6 +24,7 @@ using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.ProceduralModels;
 using Stride.Rendering.Voxels;
 using Stride.Rendering.Voxels.VoxelGI;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests;
 
@@ -187,7 +188,7 @@ public class MaterialTransparencyTests : GameTestBase
         var entity = new Entity { new ModelComponent { Model = model } };
         entity.Transform.Position = position;
         // The plane is authored facing +Y, turn it to face the camera
-        entity.Transform.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo);
+        entity.Transform.Rotation = Quaternion.CreateRotationX(MathUtil.PiOverTwo);
         scene.Entities.Add(entity);
     }
 
@@ -283,7 +284,7 @@ public class MaterialTransparencyTests : GameTestBase
             new PlaneProceduralModel { Size = new Vector2(16.0f), MaterialInstance = { Material = wallMaterial } }).GenerateModel(Services);
         var wall = new Entity("Wall") { new ModelComponent { Model = wallModel, RenderGroup = RenderGroup.Group1 } };
         wall.Transform.Position = new Vector3(0.0f, 0.0f, 2.0f);
-        wall.Transform.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo);
+        wall.Transform.Rotation = Quaternion.CreateRotationX(MathUtil.PiOverTwo);
         scene.Entities.Add(wall);
         cameraRenderer.RenderMask = RenderGroupMask.All & ~RenderGroupMask.Group1;
     }

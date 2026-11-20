@@ -20,6 +20,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Rendering.Images
 {
@@ -261,7 +262,7 @@ namespace Stride.Rendering.Images
             public RenderView RenderView;
             public int LastUsageFrame;
             public Texture TemporalBuffer;
-            public Matrix PrevViewProjection;
+            public Matrix4x4 PrevViewProjection;
 
             public void Resize(RenderDrawContext context, ref Size3 size)
             {
@@ -373,12 +374,12 @@ namespace Stride.Rendering.Images
             TemporalFrameCache cache = null;
 
             var renderView = context.RenderContext.RenderView;
-            Matrix viewMatrix = renderView.View;
-            Matrix projectionMatrix = renderView.Projection;
-            Matrix viewProjectionMatrix = renderView.ViewProjection;
-            Matrix inverseViewMatrix = Matrix.Invert(viewMatrix);
-            Matrix inverseViewProjectionMatrix = Matrix.Invert(viewProjectionMatrix);
-            Vector4 eye = inverseViewMatrix.Row4;
+            Matrix4x4 viewMatrix = renderView.View;
+            Matrix4x4 projectionMatrix = renderView.Projection;
+            Matrix4x4 viewProjectionMatrix = renderView.ViewProjection;
+            Matrix4x4.InvertSafe(viewMatrix, out Matrix4x4 inverseViewMatrix);
+            Matrix4x4.InvertSafe(viewProjectionMatrix, out Matrix4x4 inverseViewProjectionMatrix);
+            Vector4 eye = inverseViewMatrix.W;
             float nearclip = renderView.NearClipPlane;
             float farclip = renderView.FarClipPlane;
             Vector4 viewInfo = new Vector4(1.0f / projectionMatrix.M11, 1.0f / projectionMatrix.M22, farclip / (farclip - nearclip), (-farclip * nearclip) / (farclip - nearclip) / farclip);

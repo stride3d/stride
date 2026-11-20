@@ -6,6 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Graphics.Semantics;
+using System.Numerics;
 
 namespace Stride.Extensions
 {
@@ -18,7 +19,7 @@ namespace Stride.Extensions
         /// <param name="vertexBufferBinding">The vertex container to transform</param>
         /// <param name="bufferData">The source/destination data array to transform</param>
         /// <param name="matrix">The matrix to use for the transform</param>
-        public static void TransformBuffer(this VertexBufferBinding vertexBufferBinding, byte[] bufferData, ref Matrix matrix)
+        public static void TransformBuffer(this VertexBufferBinding vertexBufferBinding, byte[] bufferData, ref Matrix4x4 matrix)
         {
             var helper = new VertexBufferHelper(vertexBufferBinding, bufferData, out _);
             
@@ -26,9 +27,9 @@ namespace Stride.Extensions
             helper.Write<PositionSemantic, Vector3, Transform>(new Transform { Matrix = matrix });
 
             // compute matrix inverse transpose
-            Matrix inverseTransposeMatrix;
-            Matrix.Invert(ref matrix, out inverseTransposeMatrix);
-            Matrix.Transpose(ref inverseTransposeMatrix, out inverseTransposeMatrix);
+            Matrix4x4 inverseTransposeMatrix;
+            Matrix4x4.InvertSafe(matrix, out inverseTransposeMatrix);
+            inverseTransposeMatrix = Matrix4x4.Transpose(inverseTransposeMatrix);
 
             // List of items that need to be transformed by the inverse transpose matrix
             var inverseTransposeTransform = new InverseTranspose { InverseTransposeMatrix = inverseTransposeMatrix };
@@ -42,7 +43,7 @@ namespace Stride.Extensions
         
         private struct Transform : VertexBufferHelper.IWriter<Vector3>
         {
-            public required Matrix Matrix;
+            public required Matrix4x4 Matrix;
             
             public unsafe void Write<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride)
                 where TConverter : IConverter<TSource, Vector3>, IConverter<Vector3, TSource> where TSource : unmanaged
@@ -51,12 +52,12 @@ namespace Stride.Extensions
                 {
                     if (typeof(TSource) == typeof(Vector4))
                     {
-                        Vector4.Transform(ref *(Vector4*)sourcePointer, ref Matrix, out *(Vector4*)sourcePointer);
+                        *(Vector4*)sourcePointer = Vector4.Transform(*(Vector4*)sourcePointer, Matrix);
                     }
                     else
                     {
                         TConverter.Convert(*(TSource*)sourcePointer, out var val);
-                        Vector3.TransformCoordinate(ref val, ref Matrix, out val);
+                        val = Vector3.TransformCoordinate(val, Matrix);
                         TConverter.Convert(val, out *(TSource*)sourcePointer);
                     }
                 }
@@ -65,7 +66,7 @@ namespace Stride.Extensions
 
         private struct InverseTranspose : VertexBufferHelper.IWriter<Vector4>
         {
-            public required Matrix InverseTransposeMatrix;
+            public required Matrix4x4 InverseTransposeMatrix;
             
             public unsafe void Write<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride)
                 where TConverter : IConverter<TSource, Vector4>, IConverter<Vector4, TSource> where TSource : unmanaged
@@ -75,8 +76,8 @@ namespace Stride.Extensions
                     TConverter.Convert(*(TSource*)sourcePointer, out var val);
 
                     var v3Pointer = (Vector3*)&val;
-                    Vector3.TransformNormal(ref *v3Pointer, ref InverseTransposeMatrix, out *v3Pointer);
-                    v3Pointer->Normalize();
+                    *v3Pointer = Vector3.TransformNormal(*v3Pointer, InverseTransposeMatrix);
+                    *v3Pointer = Vector3.NormalizeSafe(*v3Pointer);
                     
                     TConverter.Convert(val, out *(TSource*)sourcePointer);
                 }
@@ -102,7 +103,7 @@ namespace Stride.Extensions
         /// </summary>
         /// <param name="vertexBufferBinding">The vertex container to transform</param>
         /// <param name="matrix">The matrix to use for the transform</param>
-        public static void TransformBuffer(this VertexBufferBinding vertexBufferBinding, ref Matrix matrix)
+        public static void TransformBuffer(this VertexBufferBinding vertexBufferBinding, ref Matrix4x4 matrix)
         {
             var bufferData = vertexBufferBinding.Buffer.GetSerializationData().Content;
             vertexBufferBinding.TransformBuffer(bufferData, ref matrix);

@@ -5,6 +5,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.Particles.Initializers
 {
@@ -121,9 +122,9 @@ namespace Stride.Particles.Initializers
             var rndField = pool.GetField(ParticleFields.RandomSeed);
 
             var arcOffset = new Vector3(0, ArcHeight, 0);
-            if (!WorldRotation.IsIdentity)
+            if (!WorldRotation.NearEquals(Quaternion.Identity))
             {
-                WorldRotation.Rotate(ref arcOffset);
+                arcOffset = Vector3.Transform(arcOffset, WorldRotation);
             }
 
             var leftCorner = PositionMin * WorldScale;
@@ -131,15 +132,15 @@ namespace Stride.Particles.Initializers
             var yAxis = new Vector3(0, PositionMax.Y * WorldScale.Y - leftCorner.Y, 0);
             var zAxis = new Vector3(0, 0, PositionMax.Z * WorldScale.Z - leftCorner.Z);
 
-            if (!WorldRotation.IsIdentity)
+            if (!WorldRotation.NearEquals(Quaternion.Identity))
             {
-                WorldRotation.Rotate(ref leftCorner);
-                WorldRotation.Rotate(ref xAxis);
-                WorldRotation.Rotate(ref yAxis);
-                WorldRotation.Rotate(ref zAxis);
+                leftCorner = Vector3.Transform(leftCorner, WorldRotation);
+                xAxis = Vector3.Transform(xAxis, WorldRotation);
+                yAxis = Vector3.Transform(yAxis, WorldRotation);
+                zAxis = Vector3.Transform(zAxis, WorldRotation);
             }
 
-            var targetCornerAdd = Target?.WorldMatrix.TranslationVector - WorldPosition ?? FallbackTarget;
+            var targetCornerAdd = Target?.WorldMatrix.Translation - WorldPosition ?? FallbackTarget;
 
             var totalCountLessOne = (FixedLength > 0) ? (FixedLength - 1) : (startIdx < endIdx) ? (endIdx - startIdx - 1) : (endIdx - startIdx + maxCapacity - 1);
             var stepF = (totalCountLessOne > 1) ? (1f / totalCountLessOne) : 1f;

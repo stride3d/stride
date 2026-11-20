@@ -78,6 +78,7 @@ using System.Collections.Generic;
 
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics.GeometricPrimitives
 {
@@ -259,7 +260,7 @@ namespace Stride.Graphics.GeometricPrimitives
                         var vertexValue = vertexPositions[i];
 
                         var normal = vertexValue;
-                        normal.Normalize();
+                        normal = Vector3.NormalizeSafe(normal);
 
                         var pos = normal * radius;
 

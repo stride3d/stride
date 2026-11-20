@@ -18,6 +18,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.ProceduralModels;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests;
 
@@ -53,7 +54,7 @@ public class LightProbeTests : GameTestBase
 
         var camera = new Entity("Camera") { new CameraComponent { Slot = compositor.Cameras[0].ToSlotId() } };
         camera.Transform.Position = new Vector3(0.0f, 3.5f, 9.0f);
-        camera.Transform.Rotation = Quaternion.RotationYawPitchRoll(0.0f, MathUtil.DegreesToRadians(-15.0f), 0.0f);
+        camera.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(0.0f, MathUtil.DegreesToRadians(-15.0f), 0.0f);
         scene.Entities.Add(camera);
 
         var material = Material.New(GraphicsDevice, new MaterialDescriptor
@@ -89,7 +90,7 @@ public class LightProbeTests : GameTestBase
                 },
             },
         };
-        light.Transform.Rotation = Quaternion.RotationYawPitchRoll(
+        light.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(
             MathUtil.DegreesToRadians(30.0f), MathUtil.DegreesToRadians(-60.0f), 0.0f);
         scene.Entities.Add(light);
 

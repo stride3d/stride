@@ -11,6 +11,7 @@ using Stride.Graphics;
 using Stride.Rendering.Shadows;
 using Stride.Shaders;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Rendering.Lights
 {
@@ -327,7 +328,7 @@ namespace Stride.Rendering.Lights
                     var radius = MathF.Sqrt(1.0f / spotLightData.AngleOffsetAndInvSquareRadius.Z);
 
                     Vector3 positionVS;
-                    Vector3.TransformCoordinate(ref spotLightData.PositionWS, ref renderView.View, out positionVS);
+                    positionVS = Vector3.TransformCoordinate(spotLightData.PositionWS, renderView.View);
 
                     // TODO: culling (first do it on PointLight, then backport it to SpotLight and improve for SpotLight case)
                     // Find x/y ranges
@@ -381,7 +382,7 @@ namespace Stride.Rendering.Lights
                     var radius = MathF.Sqrt(1.0f / pointLightData.InvSquareRadius);
 
                     Vector3 positionVS;
-                    Vector3.TransformCoordinate(ref pointLightData.PositionWS, ref renderView.View, out positionVS);
+                    positionVS = Vector3.TransformCoordinate(pointLightData.PositionWS, renderView.View);
 
                     //Vector3 positionScreen;
                     //Vector3.TransformCoordinate(ref pointLightData.PositionWS, ref renderView.ViewProjection, out positionScreen);
@@ -700,7 +701,7 @@ namespace Stride.Rendering.Lights
                 }
             }
 
-            private static void ComputeClipRegion(ref Vector3 lightPosView, float lightRadius, ref Matrix projection, out Vector2 clipMin, out Vector2 clipMax)
+            private static void ComputeClipRegion(ref Vector3 lightPosView, float lightRadius, ref Matrix4x4 projection, out Vector2 clipMin, out Vector2 clipMax)
             {
                 clipMin = new Vector2(-1.0f, -1.0f);
                 clipMax = new Vector2(1.0f, 1.0f);

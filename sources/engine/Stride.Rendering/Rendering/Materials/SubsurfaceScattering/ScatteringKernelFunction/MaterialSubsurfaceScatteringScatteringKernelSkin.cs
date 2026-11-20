@@ -5,6 +5,7 @@ using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Materials
 {

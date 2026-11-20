@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Rectangle = Stride.Core.Mathematics.Rectangle;
-using Vector2 = Stride.Core.Mathematics.Vector2;
+using Vector2 = System.Numerics.Vector2;
 
 namespace Stride.Graphics;
 

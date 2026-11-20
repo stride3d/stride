@@ -13,6 +13,7 @@ using BepuPhysics.Trees;
 using Stride.BepuPhysics.Systems;
 using Mesh = BepuPhysics.Collidables.Mesh;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 

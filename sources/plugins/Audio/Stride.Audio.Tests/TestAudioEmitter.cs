@@ -5,6 +5,7 @@ using System;
 using Xunit;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Audio.Tests
 {
@@ -23,12 +24,12 @@ namespace Stride.Audio.Tests
         {
             //////////////////////////////
             // 1. Check the default value
-            Assert.True(Vector3.Zero == defaultEmitter.Position, "The AudioEmitter defaul location is not 0");
+            Assert.True(Vector3.Zero.NearEquals(defaultEmitter.Position), "The AudioEmitter defaul location is not 0");
 
             ///////////////////////////////////////////
             // 2. Check for no crash and correct value
             defaultEmitter.Position = Vector3.One;
-            Assert.True(Vector3.One == defaultEmitter.Position, "AudioEmitter.Position value is not what it is supposed to be.");
+            Assert.True(Vector3.One.NearEquals(defaultEmitter.Position), "AudioEmitter.Position value is not what it is supposed to be.");
         }
 
         /// <summary>
@@ -39,12 +40,12 @@ namespace Stride.Audio.Tests
         {
             //////////////////////////////
             // 1. Check the default value
-            Assert.True(Vector3.Zero == defaultEmitter.Velocity, "The AudioEmitter defaul Velocity is not 0");
+            Assert.True(Vector3.Zero.NearEquals(defaultEmitter.Velocity), "The AudioEmitter defaul Velocity is not 0");
 
             ///////////////////////////////////////////
             // 2. Check for no crash and correct value
             defaultEmitter.Velocity = Vector3.One;
-            Assert.True(Vector3.One == defaultEmitter.Velocity, "AudioEmitter.Velocity value is not what it is supposed to be.");
+            Assert.True(Vector3.One.NearEquals(defaultEmitter.Velocity), "AudioEmitter.Velocity value is not what it is supposed to be.");
         }
 
 //        /// <summary>

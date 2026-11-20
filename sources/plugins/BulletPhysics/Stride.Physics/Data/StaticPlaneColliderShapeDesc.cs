@@ -5,6 +5,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -29,7 +30,7 @@ namespace Stride.Physics
         {
             var other = obj as StaticPlaneColliderShapeDesc;
             if (other == null) return false;
-            return other.Normal == Normal && Math.Abs(other.Offset - Offset) < float.Epsilon;
+            return other.Normal.NearEquals(Normal) && Math.Abs(other.Offset - Offset) < float.Epsilon;
         }
 
         public ColliderShape CreateShape(IServiceRegistry services)

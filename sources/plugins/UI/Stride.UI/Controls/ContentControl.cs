@@ -7,6 +7,7 @@ using System.Diagnostics;
 
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.UI.Controls
 {
@@ -24,9 +25,9 @@ namespace Stride.UI.Controls
         /// <summary>
         /// The key to the ContentArrangeMatrix dependency property.
         /// </summary>
-        protected static readonly PropertyKey<Matrix> ContentArrangeMatrixPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(ContentArrangeMatrixPropertyKey), typeof(ContentControl), Matrix.Identity);
+        protected static readonly PropertyKey<Matrix4x4> ContentArrangeMatrixPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(ContentArrangeMatrixPropertyKey), typeof(ContentControl), Matrix4x4.Identity);
 
-        private Matrix contentWorldMatrix;
+        private Matrix4x4 contentWorldMatrix;
 
         /// <summary>
         /// Gets or sets the content of the ContentControl.
@@ -118,13 +119,13 @@ namespace Stride.UI.Controls
                 var childOffsets = new Vector3(Padding.Left, Padding.Top, Padding.Front) - finalSizeWithoutMargins / 2;
 
                 // set the arrange matrix of the child.
-                VisualContent.DependencyProperties.Set(ContentArrangeMatrixPropertyKey, Matrix.Translation(childOffsets));
+                VisualContent.DependencyProperties.Set(ContentArrangeMatrixPropertyKey, Matrix4x4.CreateTranslation(childOffsets));
             }
 
             return finalSizeWithoutMargins;
         }
 
-        protected override void UpdateWorldMatrix(ref Matrix parentWorldMatrix, bool parentWorldChanged)
+        protected override void UpdateWorldMatrix(ref Matrix4x4 parentWorldMatrix, bool parentWorldChanged)
         {
             var contentMatrixChanged = parentWorldChanged || ArrangeChanged || LocalMatrixChanged;
 
@@ -135,7 +136,7 @@ namespace Stride.UI.Controls
                 if (contentMatrixChanged)
                 {
                     var contentMatrix = VisualContent.DependencyProperties.Get(ContentArrangeMatrixPropertyKey);
-                    Matrix.Multiply(ref contentMatrix, ref WorldMatrixInternal, out contentWorldMatrix);
+                    contentWorldMatrix = Matrix4x4.Multiply(contentMatrix, WorldMatrixInternal);
                 }
 
                 ((IUIElementUpdate)VisualContent).UpdateWorldMatrix(ref contentWorldMatrix, contentMatrixChanged);

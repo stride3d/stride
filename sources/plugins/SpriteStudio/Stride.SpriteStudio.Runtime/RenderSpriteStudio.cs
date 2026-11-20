@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.SpriteStudio.Runtime
 {
     public class RenderSpriteStudio : RenderObject
     {
-        public Matrix WorldMatrix;
+        public Matrix4x4 WorldMatrix;
 
         public SpriteStudioSheet Sheet;
         public List<SpriteStudioNodeState> SortedNodes = new List<SpriteStudioNodeState>();

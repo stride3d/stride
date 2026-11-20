@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games;
 
+using System.Numerics;
+
 namespace Stride.VirtualReality
 {
     internal class OpenVRTouchController : TouchController
@@ -45,7 +47,7 @@ namespace Stride.VirtualReality
             {
                 controller.Update();
 
-                Matrix mat;
+                Matrix4x4 mat;
                 Vector3 vel, angVel;
                 internalState = OpenVR.GetControllerPose(controllerIndex, out mat, out vel, out angVel);
                 if (internalState != DeviceState.Invalid)

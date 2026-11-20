@@ -4,6 +4,7 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Particles.DebugDraw;
+using System.Numerics;
 
 namespace Stride.Particles.BoundingShapes
 {
@@ -36,7 +37,7 @@ namespace Stride.Particles.BoundingShapes
 
         private static void AddCornerToAabb(Vector3 corner, Quaternion rotation, ref Vector3 min, ref Vector3 max)
         {
-            rotation.Rotate(ref corner);
+            corner = Vector3.Transform(corner, rotation);
             min.X = (corner.X < min.X) ? corner.X : min.X;
             min.Y = (corner.Y < min.Y) ? corner.Y : min.Y;
             min.Z = (corner.Z < min.Z) ? corner.Z : min.Z;

@@ -11,6 +11,8 @@ using Stride.Core.Mathematics;
 using Stride.Games;
 using Window = Stride.Graphics.SDL.Window;
 
+using System.Numerics;
+
 namespace Stride.Input
 {
     /// <summary>
@@ -150,7 +152,7 @@ namespace Stride.Input
                     quaternion.X = -quaternionArray[1];
                     quaternion.Y = +quaternionArray[3];
                     quaternion.Z = +quaternionArray[2];
-                    quaternion = Quaternion.RotationY(MathUtil.Pi) * quaternion; // align the orientation with north.
+                    quaternion = Quaternion.Concatenate(Quaternion.CreateRotationY(MathUtil.Pi), quaternion); // align the orientation with north.
                     orientationSensor.FromQuaternion(quaternion);
 
                     // Update compass

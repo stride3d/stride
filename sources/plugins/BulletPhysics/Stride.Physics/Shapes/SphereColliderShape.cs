@@ -6,6 +6,7 @@ using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -40,7 +41,7 @@ namespace Stride.Physics
                 InternalShape = shape;
             }
 
-            DebugPrimitiveMatrix = Matrix.Scaling(2 * Radius * DebugScaling);
+            DebugPrimitiveMatrix = Matrix4x4.CreateScale(2 * Radius * DebugScaling);
             if (Is2D)
             {
                 DebugPrimitiveMatrix.M33 = 0f;

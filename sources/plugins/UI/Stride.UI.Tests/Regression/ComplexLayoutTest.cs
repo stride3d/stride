@@ -12,6 +12,7 @@ using Stride.Input;
 using Stride.Rendering.Sprites;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {
@@ -50,7 +51,7 @@ namespace Stride.UI.Tests.Regression
             scrollViewer.DependencyProperties.Set(Canvas.AbsolutePositionPropertyKey, new Vector3(resolution.X / 4, 0, 0));
             scrollViewer.Content = stackPanel;
 
-            var button1 = new Button { Margin = Thickness.UniformRectangle(5), Padding = Thickness.UniformRectangle(5), LocalMatrix = Matrix.Scaling(2, 2, 2) };
+            var button1 = new Button { Margin = Thickness.UniformRectangle(5), Padding = Thickness.UniformRectangle(5), LocalMatrix = Matrix4x4.CreateScale(2, 2, 2) };
             ApplyButtonDefaultStyle(button1);
             var textOnly = new TextBlock { Text = "Text only button", Font = Content.Load<SpriteFont>("NotoSans15"), TextColor = new Color(1f, 0, 0, 0.5f) };
             button1.Content = textOnly;

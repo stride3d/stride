@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering;
 
@@ -156,13 +157,13 @@ public sealed class MeshMorphData
     /// tangent deltas are rebuilt as the difference of the transformed target and base directions.
     /// </remarks>
     /// <exception cref="ArgumentException">A required base attribute is missing or has the wrong length.</exception>
-    public MeshMorphData Transform(Matrix transform, ReadOnlySpan<Vector3> baseNormals, ReadOnlySpan<Vector3> baseTangents)
+    public MeshMorphData Transform(Matrix4x4 transform, ReadOnlySpan<Vector3> baseNormals, ReadOnlySpan<Vector3> baseTangents)
     {
         Validate();
         if ((HasNormalDeltas && baseNormals.Length != VertexCount) || (HasTangentDeltas && baseTangents.Length != VertexCount))
             throw new ArgumentException("Morph transforms require matching base direction attributes.");
-        Matrix.Invert(ref transform, out var inverse);
-        Matrix.Transpose(ref inverse, out var normalMatrix);
+        Matrix4x4.InvertSafe(transform, out var inverse);
+        var normalMatrix = Matrix4x4.Transpose(inverse);
         var entries = new MeshMorphEntry[Entries.Length];
         for (int i = 0; i < entries.Length; i++)
         {
@@ -175,9 +176,9 @@ public sealed class MeshMorphData
         return Create(VertexCount, TargetNames, entries, HasNormalDeltas, HasTangentDeltas);
     }
 
-    private static Vector3 TransformDirection(Vector3 basis, Vector3 delta, Matrix matrix)
+    private static Vector3 TransformDirection(Vector3 basis, Vector3 delta, Matrix4x4 matrix)
     {
-        return Vector3.Normalize(Vector3.TransformNormal(basis + delta, matrix)) - Vector3.Normalize(Vector3.TransformNormal(basis, matrix));
+        return Vector3.NormalizeSafe(Vector3.TransformNormal(basis + delta, matrix)) - Vector3.NormalizeSafe(Vector3.TransformNormal(basis, matrix));
     }
 
     private static void Prefix(uint[] offsets)

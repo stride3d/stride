@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Particles.Sorters;
 using Stride.Particles.VertexLayouts;
+using System.Numerics;
 
 namespace Stride.Particles.ShapeBuilders
 {
@@ -41,7 +42,7 @@ namespace Stride.Particles.ShapeBuilders
 
         /// <inheritdoc />
         public override unsafe int BuildVertexBuffer(ref ParticleBufferState bufferState, Vector3 invViewX, Vector3 invViewY,
-            ref Vector3 spaceTranslation, ref Quaternion spaceRotation, float spaceScale, ref ParticleList sorter, ref Matrix viewProj)
+            ref Vector3 spaceTranslation, ref Quaternion spaceRotation, float spaceScale, ref ParticleList sorter, ref Matrix4x4 viewProj)
         {
             // Update the curve samplers if required
             base.BuildVertexBuffer(ref bufferState, invViewX, invViewY, ref spaceTranslation, ref spaceRotation, spaceScale, ref sorter, ref viewProj);
@@ -56,8 +57,8 @@ namespace Stride.Particles.ShapeBuilders
 
             // Check if the draw space is identity - in this case we don't need to transform the position, scale and rotation vectors
             var trsIdentity = (spaceScale == 1f);
-            trsIdentity = trsIdentity && (spaceTranslation.Equals(Vector3.Zero));
-            trsIdentity = trsIdentity && (spaceRotation.Equals(Quaternion.Identity));
+            trsIdentity = trsIdentity && (spaceTranslation.NearEquals(Vector3.Zero));
+            trsIdentity = trsIdentity && (spaceRotation.NearEquals(Quaternion.Identity));
 
 
             var renderedParticles = 0;
@@ -67,8 +68,8 @@ namespace Stride.Particles.ShapeBuilders
 
             // TODO Use viewProj
             Vector3 invViewZ;
-            Vector3.Cross(ref invViewX, ref invViewY, out invViewZ);
-            invViewZ.Normalize();
+            invViewZ = Vector3.Cross(invViewX, invViewY);
+            invViewZ = Vector3.NormalizeSafe(invViewZ);
 
             foreach (var particle in sorter)
             {
@@ -80,10 +81,10 @@ namespace Stride.Particles.ShapeBuilders
 
                 if (!trsIdentity)
                 {
-                    spaceRotation.Rotate(ref centralPos);
+                    centralPos = Vector3.Transform(centralPos, spaceRotation);
                     centralPos = centralPos * spaceScale + spaceTranslation;
 
-                    spaceRotation.Rotate(ref centralOffset);
+                    centralOffset = Vector3.Transform(centralOffset, spaceRotation);
                     centralOffset = centralOffset * spaceScale;
 
                     particleSize *= spaceScale;
@@ -96,18 +97,18 @@ namespace Stride.Particles.ShapeBuilders
                     var centralAxis = centralOffset;
 
                     float dotZ;
-                    Vector3.Dot(ref centralAxis, ref invViewZ, out dotZ);
+                    dotZ = Vector3.Dot(centralAxis, invViewZ);
                     centralAxis -= invViewZ*dotZ;
-                    centralAxis.Normalize();
+                    centralAxis = Vector3.NormalizeSafe(centralAxis);
 
                     float dotX;
-                    Vector3.Dot(ref centralAxis, ref unitX, out dotX);
+                    dotX = Vector3.Dot(centralAxis, unitX);
 
                     float dotY;
-                    Vector3.Dot(ref centralAxis, ref unitY, out dotY);
+                    dotY = Vector3.Dot(centralAxis, unitY);
 
                     unitX = unitX*dotY - unitY*dotX;
-                    unitX.Normalize();
+                    unitX = Vector3.NormalizeSafe(unitX);
 
                     unitY = centralOffset;
                 }

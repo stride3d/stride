@@ -10,6 +10,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Lights;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Shadows
 {
@@ -19,14 +20,14 @@ namespace Stride.Rendering.Shadows
     public class LightPointShadowMapRendererCubeMap : LightShadowMapRendererBase
     {
         // Face based on index in this array
-        private static readonly Matrix[] ViewFaceRotationMatrices = new[]
+        private static readonly Matrix4x4[] ViewFaceRotationMatrices = new[]
         {
-            Matrix.RotationY(MathUtil.Pi),          // Front
-            Matrix.Identity,                        // Back
-            Matrix.RotationY(MathUtil.PiOverTwo),   // Right
-            Matrix.RotationY(-MathUtil.PiOverTwo),  // Left
-            Matrix.RotationX(-MathUtil.PiOverTwo),  // Up
-            Matrix.RotationX(MathUtil.PiOverTwo),   // Down
+            Matrix4x4.CreateRotationY(MathUtil.Pi),          // Front
+            Matrix4x4.Identity,                        // Back
+            Matrix4x4.CreateRotationY(MathUtil.PiOverTwo),   // Right
+            Matrix4x4.CreateRotationY(-MathUtil.PiOverTwo),  // Left
+            Matrix4x4.CreateRotationX(-MathUtil.PiOverTwo),  // Up
+            Matrix4x4.CreateRotationX(MathUtil.PiOverTwo),   // Down
         };
 
         // Number of border pixels to add to the cube map in order to allow filtering
@@ -71,12 +72,12 @@ namespace Stride.Rendering.Shadows
             return new Vector2(0.1f, pointLight.Radius * 2);
         }
 
-        private static void GetViewParameters(LightShadowMapTexture shadowMapTexture, int index, out Matrix view)
+        private static void GetViewParameters(LightShadowMapTexture shadowMapTexture, int index, out Matrix4x4 view)
         {
             // Apply light position
-            var translationMatrix = Matrix.Translation(-shadowMapTexture.RenderLight.Position);
+            var translationMatrix = Matrix4x4.CreateTranslation(-shadowMapTexture.RenderLight.Position);
 
-            Matrix.Multiply(ref translationMatrix, ref ViewFaceRotationMatrices[index], out view);
+            view = Matrix4x4.Multiply(translationMatrix, ViewFaceRotationMatrices[index]);
         }
 
         /// <returns>
@@ -106,7 +107,7 @@ namespace Stride.Rendering.Shadows
             // Calculate angle of the projection with border pixels taken into account to allow filtering
             float halfMapSize = (float)textureMapSize.Width / 2;
             float halfFov = MathF.Atan((halfMapSize + BorderPixels) / halfMapSize);
-            shaderData.Projection = Matrix.PerspectiveFovRH(halfFov * 2, 1.0f, clippingPlanes.X, clippingPlanes.Y);
+            shaderData.Projection = Matrix4x4.CreatePerspectiveFieldOfView(halfFov * 2, 1.0f, clippingPlanes.X, clippingPlanes.Y);
 
             Vector2 atlasSize = new Vector2(lightShadowMap.Atlas.Width, lightShadowMap.Atlas.Height);
 
@@ -130,7 +131,7 @@ namespace Stride.Rendering.Shadows
 
                 shadowRenderView.View = shaderData.View[i];
                 shadowRenderView.Projection = shaderData.Projection;
-                Matrix.Multiply(ref shadowRenderView.View, ref shadowRenderView.Projection, out shadowRenderView.ViewProjection);
+                shadowRenderView.ViewProjection = Matrix4x4.Multiply(shadowRenderView.View, shadowRenderView.Projection);
 
                 // Create projection matrix with adjustment
                 var textureCoords = new Vector4(
@@ -143,8 +144,8 @@ namespace Stride.Rendering.Shadows
                 float centerX = 0.5f * (textureCoords.X + textureCoords.Z);
                 float centerY = 0.5f * (textureCoords.Y + textureCoords.W);
 
-                var projectionToShadow = Matrix.Scaling(leftX, -leftY, 1.0f) * Matrix.Translation(centerX, centerY, 0.0f);
-                Matrix.Multiply(ref shadowRenderView.ViewProjection, ref projectionToShadow, out shaderData.WorldToShadow[i]);
+                var projectionToShadow = Matrix4x4.CreateScale(leftX, -leftY, 1.0f) * Matrix4x4.CreateTranslation(centerX, centerY, 0.0f);
+                shaderData.WorldToShadow[i] = Matrix4x4.Multiply(shadowRenderView.ViewProjection, projectionToShadow);
 
                 shadowRenderView.VisiblityIgnoreDepthPlanes = false;
 
@@ -170,17 +171,17 @@ namespace Stride.Rendering.Shadows
             /// <summary>
             /// Projection matrix used for each cubemap face
             /// </summary>
-            public Matrix Projection;
+            public Matrix4x4 Projection;
 
             /// <summary>
             /// View matrices for all the faces
             /// </summary>
-            public Matrix[] View = new Matrix[6];
+            public Matrix4x4[] View = new Matrix4x4[6];
 
             /// <summary>
             /// Converts from world space to uv space
             /// </summary>
-            public Matrix[] WorldToShadow = new Matrix[6];
+            public Matrix4x4[] WorldToShadow = new Matrix4x4[6];
 
             public float DepthBias;
             public float OffsetScale;
@@ -194,16 +195,16 @@ namespace Stride.Rendering.Shadows
             private Vector2 shadowMapTextureSize;
             private Vector2 shadowMapTextureTexelSize;
 
-            private Matrix[] worldToShadow;
-            private Matrix[] inverseWorldToShadow;
+            private Matrix4x4[] worldToShadow;
+            private Matrix4x4[] inverseWorldToShadow;
             private float[] depthBiases;
             private float[] offsetScales;
             private Vector2[] depthParameters;
 
             private ValueParameterKey<float> depthBiasesKey;
             private ValueParameterKey<float> offsetScalesKey;
-            private ValueParameterKey<Matrix> worldToShadowKey;
-            private ValueParameterKey<Matrix> inverseWorldToShadowKey;
+            private ValueParameterKey<Matrix4x4> worldToShadowKey;
+            private ValueParameterKey<Matrix4x4> inverseWorldToShadowKey;
             private ValueParameterKey<Vector2> depthParametersKey;
 
             private ObjectParameterKey<Texture> shadowMapTextureKey;
@@ -260,7 +261,7 @@ namespace Stride.Rendering.Shadows
                         for (int j = 0; j < 6; j++)
                         {
                             worldToShadow[lightIndex * 6 + j] = shaderData.WorldToShadow[j];
-                            inverseWorldToShadow[lightIndex * 6 + j] = Matrix.Invert(shaderData.WorldToShadow[j]);
+                            Matrix4x4.InvertSafe(shaderData.WorldToShadow[j], out inverseWorldToShadow[lightIndex * 6 + j]);
                         }
 
                         depthBiases[lightIndex] = shaderData.DepthBias;

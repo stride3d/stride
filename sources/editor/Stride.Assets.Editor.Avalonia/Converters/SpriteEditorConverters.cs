@@ -14,6 +14,7 @@ using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Editor.Avalonia.Converters;
 using Image = Stride.Graphics.Image;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Avalonia.Converters;
 

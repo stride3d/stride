@@ -15,6 +15,7 @@ using Stride.Engine.Gizmos;
 using Stride.Physics;
 using Stride.Physics.Engine;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Engine
 {
@@ -393,7 +394,7 @@ namespace Stride.Engine
         public bool CanScaleShape { get; set; }
 
         [DataMemberIgnore]
-        public Matrix PhysicsWorldTransform
+        public Matrix4x4 PhysicsWorldTransform
         {
             get
             {
@@ -415,10 +416,10 @@ namespace Stride.Engine
         public string Tag { get; set; }
 
         [DataMemberIgnore]
-        public Matrix BoneWorldMatrix;
+        public Matrix4x4 BoneWorldMatrix;
 
         [DataMemberIgnore]
-        public Matrix BoneWorldMatrixOut;
+        public Matrix4x4 BoneWorldMatrixOut;
 
         [DataMemberIgnore]
         public int BoneIndex = -1;
@@ -458,7 +459,7 @@ namespace Stride.Engine
         /// </summary>
         /// <param name="derivedTransformation">The resulting transformation matrix</param>
         /// <param name="forceUpdateTransform">Ensure that the Transform.WorldMatrix we are reading from is up to date</param>
-        internal void DerivePhysicsTransformation(out Matrix derivedTransformation, bool forceUpdateTransform = true)
+        internal void DerivePhysicsTransformation(out Matrix4x4 derivedTransformation, bool forceUpdateTransform = true)
         {
             if (BoneIndex == -1)
             {
@@ -471,24 +472,24 @@ namespace Stride.Engine
                 derivedTransformation = BoneWorldMatrix;
             }
             
-            derivedTransformation.Decompose(out Vector3 scale, out Matrix rotation, out Vector3 translation);
+            derivedTransformation.Decompose(out Vector3 scale, out Matrix4x4 rotation, out Vector3 translation);
             
-            var translationMatrix = Matrix.Translation(translation);
-            Matrix.Multiply(ref rotation, ref translationMatrix, out derivedTransformation);
+            var translationMatrix = Matrix4x4.CreateTranslation(translation);
+            derivedTransformation = Matrix4x4.Multiply(rotation, translationMatrix);
 
             //handle dynamic scaling if allowed (aka not using assets)
             if (CanScaleShape)
             {
-                if (ColliderShape.Scaling != scale)
+                if (!ColliderShape.Scaling.NearEquals(scale))
                 {
                     ColliderShape.Scaling = scale;
                 }
             }
 
             //Handle collider shape offset
-            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
+            if (!ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
             {
-                derivedTransformation = Matrix.Multiply(ColliderShape.PositiveCenterMatrix, derivedTransformation);
+                derivedTransformation = Matrix4x4.Multiply(ColliderShape.PositiveCenterMatrix, derivedTransformation);
             }
         }
 
@@ -496,22 +497,22 @@ namespace Stride.Engine
         /// Updates the graphics transformation from the given physics transformation
         /// </summary>
         /// <param name="physicsTransform"></param>
-        internal void UpdateTransformationComponent(ref Matrix physicsTransform)
+        internal void UpdateTransformationComponent(ref Matrix4x4 physicsTransform)
         {
             var entity = Entity;
 
-            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
+            if (!ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
             {
-                physicsTransform = Matrix.Multiply(ColliderShape.NegativeCenterMatrix, physicsTransform);
+                physicsTransform = Matrix4x4.Multiply(ColliderShape.NegativeCenterMatrix, physicsTransform);
             }
 
             //we need to extract scale only..
             Vector3 scale, translation;
-            Matrix rotation;
+            Matrix4x4 rotation;
             entity.Transform.WorldMatrix.Decompose(out scale, out rotation, out translation);
 
-            var scaling = Matrix.Scaling(scale);
-            Matrix.Multiply(ref scaling, ref physicsTransform, out entity.Transform.WorldMatrix);
+            var scaling = Matrix4x4.CreateScale(scale);
+            entity.Transform.WorldMatrix = Matrix4x4.Multiply(scaling, physicsTransform);
 
             entity.Transform.UpdateLocalFromWorld();
 
@@ -522,47 +523,47 @@ namespace Stride.Engine
 
             if (DebugEntity == null) return;
 
-            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
+            if (!ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
             {
-                physicsTransform = Matrix.Multiply(ColliderShape.PositiveCenterMatrix, physicsTransform);
+                physicsTransform = Matrix4x4.Multiply(ColliderShape.PositiveCenterMatrix, physicsTransform);
             }
 
             physicsTransform.Decompose(out scale, out rotation, out translation);
             DebugEntity.Transform.Position = translation;
-            DebugEntity.Transform.Rotation = Quaternion.RotationMatrix(rotation);
+            DebugEntity.Transform.Rotation = Quaternion.CreateFromRotationMatrix(rotation);
         }
 
         /// <summary>
         /// Updates the graphics transformation from the given physics transformation
         /// </summary>
         /// <param name="physicsTransform"></param>
-        internal void UpdateBoneTransformation(ref Matrix physicsTransform)
+        internal void UpdateBoneTransformation(ref Matrix4x4 physicsTransform)
         {
-            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
+            if (!ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
             {
-                physicsTransform = Matrix.Multiply(ColliderShape.NegativeCenterMatrix, physicsTransform);
+                physicsTransform = Matrix4x4.Multiply(ColliderShape.NegativeCenterMatrix, physicsTransform);
             }
 
             //we need to extract scale only..
             Vector3 scale, translation;
-            Matrix rotation;
+            Matrix4x4 rotation;
             BoneWorldMatrix.Decompose(out scale, out rotation, out translation);
 
-            var scaling = Matrix.Scaling(scale);
-            Matrix.Multiply(ref scaling, ref physicsTransform, out BoneWorldMatrixOut);
+            var scaling = Matrix4x4.CreateScale(scale);
+            BoneWorldMatrixOut = Matrix4x4.Multiply(scaling, physicsTransform);
 
             //todo propagate to other bones? need to review this.
 
             if (DebugEntity == null) return;
 
-            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
+            if (!ColliderShape.LocalOffset.NearEquals(Vector3.Zero) || !ColliderShape.LocalRotation.NearEquals(Quaternion.Identity))
             {
-                physicsTransform = Matrix.Multiply(ColliderShape.PositiveCenterMatrix, physicsTransform);
+                physicsTransform = Matrix4x4.Multiply(ColliderShape.PositiveCenterMatrix, physicsTransform);
             }
 
             physicsTransform.Decompose(out scale, out rotation, out translation);
             DebugEntity.Transform.Position = translation;
-            DebugEntity.Transform.Rotation = Quaternion.RotationMatrix(rotation);
+            DebugEntity.Transform.Rotation = Quaternion.CreateFromRotationMatrix(rotation);
         }
 
         /// <summary>

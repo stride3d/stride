@@ -18,6 +18,7 @@ using Stride.Rendering.Colors;
 using Stride.Rendering.Lights;
 using Stride.Rendering.ProceduralModels;
 using Stride.Rendering.Tessellation;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {

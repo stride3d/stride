@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -38,9 +39,9 @@ namespace Stride.Physics
             return ((ColliderA == other.ColliderA && ColliderB == other.ColliderB)
                     || (ColliderA == other.ColliderB && ColliderB == other.ColliderA))
                    && Distance == other.Distance
-                   && Normal == other.Normal
-                   && PositionOnA == other.PositionOnA
-                   && PositionOnB == other.PositionOnB
+                   && Normal.NearEquals(other.Normal)
+                   && PositionOnA.NearEquals(other.PositionOnA)
+                   && PositionOnB.NearEquals(other.PositionOnB)
                    && AppliedImpulse == other.AppliedImpulse
                    && AppliedImpulseLateral1 == other.AppliedImpulseLateral1
                    && AppliedImpulseLateral2 == other.AppliedImpulseLateral2;

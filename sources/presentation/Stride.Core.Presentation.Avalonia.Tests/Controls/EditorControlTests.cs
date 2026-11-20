@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Avalonia.Controls;
+using System.Numerics;
 
 namespace Stride.Core.Presentation.Avalonia.Tests.Controls;
 
@@ -347,7 +348,7 @@ public sealed class EditorControlTests
     [AvaloniaFact]
     public void MatrixEditorComponentsUpdateTheValue()
     {
-        var editor = Show(new MatrixEditor { Value = Matrix.Identity });
+        var editor = Show(new MatrixEditor { Value = Matrix4x4.Identity });
 
         Assert.Equal(1f, editor.M11);
         Assert.Equal(0f, editor.M12);

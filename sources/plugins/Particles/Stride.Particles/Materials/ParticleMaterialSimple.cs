@@ -10,6 +10,7 @@ using Stride.Graphics;
 using Stride.Particles.Sorters;
 using Stride.Particles.VertexLayouts;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Particles.Materials
 {

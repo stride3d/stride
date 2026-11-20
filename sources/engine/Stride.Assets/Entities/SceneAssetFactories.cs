@@ -11,6 +11,7 @@ using Stride.Rendering.Colors;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Images;
 using Stride.Rendering.Lights;
+using System.Numerics;
 
 namespace Stride.Assets.Entities
 {
@@ -32,7 +33,7 @@ namespace Stride.Assets.Entities
             // Create default camera
             var cameraEntity = new Entity(CameraEntityName) { new CameraComponent { Projection = CameraProjectionMode.Perspective } };
             cameraEntity.Transform.Position = new Vector3(2.6f, 0.6f, -1.0f);
-            cameraEntity.Transform.Rotation = Quaternion.RotationX(MathUtil.DegreesToRadians(0)) * Quaternion.RotationY(MathUtil.DegreesToRadians(112.0f));
+            cameraEntity.Transform.Rotation = Quaternion.Concatenate(Quaternion.CreateRotationX(MathUtil.DegreesToRadians(0)), Quaternion.CreateRotationY(MathUtil.DegreesToRadians(112.0f)));
 
             // Create default light (with shadows)
             var lightEntity = new Entity(SunEntityName) { new LightComponent
@@ -49,7 +50,7 @@ namespace Stride.Assets.Entities
                 }
             } };
             lightEntity.Transform.Position = new Vector3(0, 2.0f, 0);
-            lightEntity.Transform.Rotation = Quaternion.RotationX(MathUtil.DegreesToRadians(-30.0f)) * Quaternion.RotationY(MathUtil.DegreesToRadians(-180.0f));
+            lightEntity.Transform.Rotation = Quaternion.Concatenate(Quaternion.CreateRotationX(MathUtil.DegreesToRadians(-30.0f)), Quaternion.CreateRotationY(MathUtil.DegreesToRadians(-180.0f)));
 
             var sceneAsset = new SceneAsset();
 

@@ -35,6 +35,7 @@ using Stride.Assets.Editor.AssetEditors.GameEditor;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.SceneEditor;
 using Stride.Assets.Editor.ViewModels.CopyPasteProcessors;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels;
 
@@ -454,11 +455,11 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
 
         var node = Session.AssetNodeContainer.GetNode(entity.AssetSideEntity.Transform);
         // Update properties only when they actually changed
-        if ((Vector3)node[nameof(TransformComponent.Position)].Retrieve()! != transformation.Position)
+        if (!((Vector3)node[nameof(TransformComponent.Position)].Retrieve()!).NearEquals(transformation.Position))
             node[nameof(TransformComponent.Position)].Update(transformation.Position);
-        if ((Quaternion)node[nameof(TransformComponent.Rotation)].Retrieve()! != transformation.Rotation)
+        if (!((Quaternion)node[nameof(TransformComponent.Rotation)].Retrieve()!).NearEquals(transformation.Rotation))
             node[nameof(TransformComponent.Rotation)].Update(transformation.Rotation);
-        if ((Vector3)node[nameof(TransformComponent.Scale)].Retrieve()! != transformation.Scale)
+        if (!((Vector3)node[nameof(TransformComponent.Scale)].Retrieve()!).NearEquals(transformation.Scale))
             node[nameof(TransformComponent.Scale)].Update(transformation.Scale);
     }
 

@@ -6,6 +6,7 @@ using System.Text;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Rendering.Images;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels.Debug
 {
