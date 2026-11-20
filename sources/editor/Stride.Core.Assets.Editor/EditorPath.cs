@@ -26,6 +26,21 @@ public static class EditorPath
         set => userDataPath = value;
     }
 
+    /// <summary>
+    /// Gets or sets the folder of the recovery copies of the sessions (<see cref="Components.Recovery.SessionRecoveryService"/>).
+    /// </summary>
+    /// <remarks>
+    /// The <c>stride/Recovery</c> folder of the user's local application data unless set, outside of any project; under
+    /// <see cref="UserDataPath"/> when the tests have set it.
+    /// </remarks>
+    public static string RecoveryPath
+    {
+        get => field ?? (userDataPath is not null
+            ? Path.Combine(userDataPath, "Recovery")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), ProductNameDirectory, "Recovery"));
+        set => field = value;
+    }
+
     public static string DefaultTempPath => Path.Combine(
         Path.GetTempPath(),
         ProductNameDirectory);
