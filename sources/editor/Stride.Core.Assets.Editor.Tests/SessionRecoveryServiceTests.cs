@@ -11,7 +11,7 @@ namespace Stride.Core.Assets.Editor.Tests;
 
 /// <summary>
 /// The recovery copies of a session: written outside of the project for its unsaved changes only, without changing the session,
-/// removed by a save or a clean close.
+/// removed by a save or a clean close, and restored as unsaved changes when the session is opened after a crash.
 /// </summary>
 public sealed class SessionRecoveryServiceTests : IDisposable
 {
@@ -147,6 +147,101 @@ public sealed class SessionRecoveryServiceTests : IDisposable
         recovery.IsEnabled = true;
         Assert.False(clock.Timer.IsDisposed);
         Assert.Equal(TimeSpan.FromMinutes(1), clock.Timer.Period);
+    }
+
+    [Fact]
+    public async Task ARestoreBringsBackEachChangeAsUnsaved()
+    {
+        await using var crashed = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Textures/Sand", "sand"));
+        var before = Start(crashed);
+        await EditAsync(crashed, Asset(crashed, "Wood"), "oak");
+        CreateAsset(crashed, "Trees/Pine", "pine");
+        DeleteAsset(crashed, Asset(crashed, "Stone"));
+        crashed.OnUiThread(() => Asset(crashed, "Sand").Name = "Dune");
+        Assert.True(await before.WriteCopiesAsync());
+
+        // The editor is gone without closing the session: its copies stay
+        await using var fixture = await crashed.ReopenAsync();
+        using var recovery = Start(fixture);
+        recovery.IsProcessAlive = _ => false;
+        var found = recovery.FindRecovery();
+        Assert.NotNull(found);
+        Assert.Equal(4, found.AssetCount);
+
+        Assert.True(await recovery.RestoreAsync(found));
+
+        var session = fixture.Session;
+        var wood = Asset(fixture, "Wood");
+        Assert.Equal("oak", ((TestEditorAsset)wood.Asset).Value);
+        Assert.True(wood.IsDirty);
+        var pine = Asset(fixture, "Pine");
+        Assert.Equal(EditorSessionFixture.Url("Trees/Pine"), pine.AssetItem.Location.FullPath);
+        Assert.True(pine.IsDirty);
+        Assert.DoesNotContain(session.AllAssets, x => x.Name == "Stone");
+        var dune = Asset(fixture, "Dune");
+        Assert.Equal(EditorSessionFixture.Url("Textures/Dune"), dune.AssetItem.Location.FullPath);
+        Assert.True(session.HasUnsavedAssets());
+        // Nothing written to the project
+        Assert.Equal(["Textures/Sand.sdtesteditor", "Textures/Stone.sdtesteditor", "Textures/Wood.sdtesteditor"], fixture.AssetFiles());
+        // The copies are this editor's now
+        Assert.Null(recovery.FindRecovery());
+        Assert.Equal(4, ReadManifest(recovery).Packages.Single().Assets.Count + ReadManifest(recovery).Packages.Single().DeletedAssets.Count);
+
+        // One step of the history, which undoes the restore (the history records it asynchronously)
+        await ExclusiveDispatcherService.WaitUntilAsync(() => session.ActionHistory.Transactions.Count > 0, "the restore in the history");
+        var transaction = Assert.Single(session.ActionHistory.Transactions);
+        Assert.Equal("Restore the recovered changes", transaction.Name);
+        session.UndoRedoService.Undo();
+        Assert.Equal("wood", ((TestEditorAsset)wood.Asset).Value);
+        Assert.Contains(session.AllAssets, x => x.Name == "Stone");
+        Assert.DoesNotContain(session.AllAssets, x => x.Name == "Pine");
+        Assert.Contains(session.AllAssets, x => x.Name == "Sand");
+        session.UndoRedoService.Redo();
+
+        // A save writes them and removes the copies
+        Assert.True(await session.SaveSessionAsync());
+        Assert.Equal(["Textures/Dune.sdtesteditor", "Textures/Wood.sdtesteditor", "Trees/Pine.sdtesteditor"], fixture.AssetFiles());
+        Assert.Equal("oak", fixture.ReadAsset("Textures/Wood").Value);
+        Assert.False(File.Exists(Path.Combine(recovery.ProcessFolder!, RecoveryStore.ManifestFileName)));
+    }
+
+    [Fact]
+    public async Task DiscardingRemovesTheCopiesAndChangesNothing()
+    {
+        await using var crashed = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        var before = Start(crashed);
+        await EditAsync(crashed, Asset(crashed, "Wood"), "oak");
+        Assert.True(await before.WriteCopiesAsync());
+
+        await using var fixture = await crashed.ReopenAsync();
+        using var recovery = Start(fixture);
+        recovery.IsProcessAlive = _ => false;
+        var found = recovery.FindRecovery();
+        Assert.NotNull(found);
+
+        recovery.Discard(found);
+
+        Assert.Null(recovery.FindRecovery());
+        Assert.False(Directory.Exists(before.ProcessFolder));
+        Assert.Equal("wood", ((TestEditorAsset)Asset(fixture, "Wood").Asset).Value);
+        Assert.False(fixture.Session.HasUnsavedAssets());
+    }
+
+    [Fact]
+    public async Task AnotherEditorDoesNotTakeTheCopiesOfAnEditorThatRuns()
+    {
+        await using var first = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        var running = Start(first);
+        await EditAsync(first, Asset(first, "Wood"), "oak");
+        Assert.True(await running.WriteCopiesAsync());
+
+        // The same session in another editor: the process of the first one runs (it is this one)
+        await using var second = await first.ReopenAsync();
+        using var other = Start(second);
+
+        Assert.Null(other.FindRecovery());
+        Assert.NotEqual(running.ProcessFolder, other.ProcessFolder);
+        Assert.True(File.Exists(Path.Combine(running.ProcessFolder!, RecoveryStore.ManifestFileName)));
     }
 
     private SessionRecoveryService Start(EditorSessionFixture fixture)

@@ -21,6 +21,10 @@ namespace Stride.Core.Assets.Editor.Components.Recovery;
 /// the files of the project, changes no dirty flag and adds nothing to the undo history. A save of the session or a clean close removes
 /// the copies.
 /// </para>
+/// <para>
+/// When the session is opened again, the copies left by a process that is gone (<see cref="FindRecovery"/>) can be restored as unsaved
+/// changes (<see cref="RestoreAsync"/>), or discarded (<see cref="Discard"/>). The copies of an editor that runs are never taken.
+/// </para>
 /// </remarks>
 public sealed class SessionRecoveryService : IDisposable
 {
@@ -102,6 +106,11 @@ public sealed class SessionRecoveryService : IDisposable
     /// Gets the folder of the recovery copies of this editor, once <see cref="Start"/> has been called.
     /// </summary>
     public string? ProcessFolder { get; private set; }
+
+    /// <summary>
+    /// Gets or sets whether the editor process of a recovery folder runs; the tests make an editor of their process look gone.
+    /// </summary>
+    internal Func<RecoveryMarker, bool> IsProcessAlive { get; set; } = RecoveryStore.IsProcessAlive;
 
     /// <summary>
     /// Gets or sets the clock of the timer; the tests give one that they drive.
@@ -206,6 +215,71 @@ public sealed class SessionRecoveryService : IDisposable
         {
             isWriting = false;
         }
+    }
+
+    /// <summary>
+    /// Gets the recovery copies that editors which are gone left for this session, or <c>null</c> if there are none.
+    /// </summary>
+    public SessionRecovery? FindRecovery()
+    {
+        var copies = store.FindOrphanedCopies(IsProcessAlive, ProcessFolder);
+        return copies.Count > 0 ? new SessionRecovery(copies) : null;
+    }
+
+    /// <summary>
+    /// Brings back the changes of the given recovery copies as unsaved changes of the session, in one transaction that can be undone:
+    /// the changed assets take their recovered content (and location), the new assets are created and the deleted ones deleted. The
+    /// files of the project are not written. The copies become the copies of this editor.
+    /// </summary>
+    /// <returns><c>true</c> if every recovered change was applied; the changes that could not be are logged.</returns>
+    public async Task<bool> RestoreAsync(SessionRecovery recovery)
+    {
+        ArgumentNullException.ThrowIfNull(recovery);
+        session.Dispatcher.EnsureAccess();
+        // The references of the assets are known once the session is at rest
+        await session.Initialization;
+
+        var logger = new LoggerResult();
+        var createdAssets = new List<AssetViewModel>();
+        var undoRedoService = session.UndoRedoService;
+        using (var transaction = undoRedoService.CreateTransaction())
+        {
+            foreach (var recoveredPackage in Merge(recovery.Copies))
+            {
+                var package = FindPackage(recoveredPackage.Package);
+                if (package is null)
+                {
+                    logger.Warning($"The recovered changes of package [{recoveredPackage.Package.Name}] were not restored: the package is not in the session.");
+                    continue;
+                }
+                RestorePackage(package, recoveredPackage, logger, createdAssets);
+            }
+            undoRedoService.SetName(transaction, "Restore the recovered changes");
+        }
+
+        if (createdAssets.Count > 0)
+            session.NotifyAssetPropertiesChanged(createdAssets);
+        foreach (var message in logger.Messages)
+            Log.Log(message);
+
+        // The changes are in the session now: the copies of this editor hold them before the others go
+        if (ProcessFolder is not null && IsEnabled)
+        {
+            Interlocked.Increment(ref changeCount);
+            await WriteCopiesAsync();
+        }
+        Discard(recovery);
+        return !logger.HasErrors && !logger.Messages.Any(x => x.Type == LogMessageType.Warning);
+    }
+
+    /// <summary>
+    /// Removes the given recovery copies.
+    /// </summary>
+    public void Discard(SessionRecovery recovery)
+    {
+        ArgumentNullException.ThrowIfNull(recovery);
+        foreach (var copies in recovery.Copies)
+            store.DeleteProcessFolder(copies.Folder);
     }
 
     /// <summary>
@@ -354,5 +428,145 @@ public sealed class SessionRecoveryService : IDisposable
         }
         return (manifest, contents);
     }
+
+    private PackageViewModel? FindPackage(RecoveredPackage recoveredPackage)
+    {
+        var packages = EditablePackages.ToList();
+        return packages.FirstOrDefault(x => string.Equals(x.PackagePath.ToOSPath(), recoveredPackage.Path, StringComparison.OrdinalIgnoreCase))
+               ?? packages.FirstOrDefault(x => string.Equals(x.Name, recoveredPackage.Name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    // The changes of several editors that are gone, oldest first: a later copy of an asset replaces an earlier one
+    private static IEnumerable<MergedPackage> Merge(IReadOnlyList<RecoveredCopies> copies)
+    {
+        var packages = new Dictionary<string, MergedPackage>(StringComparer.OrdinalIgnoreCase);
+        foreach (var copy in copies)
+        {
+            foreach (var recoveredPackage in copy.Manifest.Packages)
+            {
+                var key = recoveredPackage.Path ?? recoveredPackage.Name ?? string.Empty;
+                if (!packages.TryGetValue(key, out var merged))
+                    packages.Add(key, merged = new MergedPackage(recoveredPackage));
+                foreach (var asset in recoveredPackage.DeletedAssets)
+                {
+                    merged.Assets.Remove(asset.Id);
+                    merged.DeletedAssets[asset.Id] = asset;
+                }
+                foreach (var asset in recoveredPackage.Assets)
+                {
+                    merged.DeletedAssets.Remove(asset.Id);
+                    merged.Assets[asset.Id] = (copy, asset);
+                }
+                if (recoveredPackage.RootAssets is not null)
+                    merged.RootAssets = recoveredPackage.RootAssets;
+            }
+        }
+        return packages.Values;
+    }
+
+    private void RestorePackage(PackageViewModel package, MergedPackage recovered, LoggerResult logger, List<AssetViewModel> createdAssets)
+    {
+        // The deleted assets first, so that their locations are free; the assets referencing them were recovered with their references fixed
+        var deleted = recovered.DeletedAssets.Keys.Select(x => session.GetAssetById(new AssetId(x))).NotNull().Where(x => x.Directory?.Package == package).ToList();
+        if (deleted.Count > 0)
+            session.AssetCollection.DeleteAssets(deleted, forceDelete: true);
+
+        var packageFolder = package.PackagePath.GetFullDirectory();
+        foreach (var (copies, recoveredAsset) in recovered.Assets.Values)
+        {
+            byte[] content;
+            try
+            {
+                content = RecoveryStore.ReadContent(copies, recoveredAsset);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                logger.Error($"The recovered content of [{recoveredAsset.Location}] could not be read.", e);
+                continue;
+            }
+
+            var filePath = UPath.Combine(packageFolder, new UFile(recoveredAsset.FilePath));
+            var assetItem = package.Package.LoadAssetFromContent(filePath, content, logger);
+            if (assetItem is null)
+                continue;
+
+            var existing = session.GetAssetById(assetItem.Id);
+            if (existing is not null)
+            {
+                if (existing.Directory?.Package != package)
+                {
+                    logger.Warning($"The recovered changes of [{assetItem.Location}] were not restored: the asset is in another package now.");
+                    continue;
+                }
+                if (existing.AssetType != assetItem.Asset.GetType())
+                {
+                    logger.Warning($"The recovered changes of [{assetItem.Location}] were not restored: the asset has another type now.");
+                    continue;
+                }
+                if (existing.AssetItem.Location != assetItem.Location)
+                    MoveAsset(package, existing, assetItem.Location);
+                session.ExternalAssetChanges?.ReplaceAssetContent(existing, assetItem.Asset, assetItem.YamlMetadata);
+            }
+            else
+            {
+                var directory = package.GetOrCreateAssetDirectory(package.GetDisplayDirectory(assetItem.Location), true);
+                createdAssets.Add(package.CreateAsset(directory, assetItem, true, logger));
+            }
+        }
+
+        if (recovered.RootAssets is { } rootIds)
+        {
+            var roots = rootIds.Select(x => session.GetAssetById(new AssetId(x))).NotNull().ToHashSet();
+            foreach (var asset in package.RootAssets.Where(x => !roots.Contains(x)).ToList())
+                package.RootAssets.Remove(asset);
+            foreach (var asset in roots.Where(x => !package.RootAssets.Contains(x)))
+                package.RootAssets.Add(asset);
+        }
+    }
+
+    private static void MoveAsset(PackageViewModel package, AssetViewModel asset, UFile location)
+    {
+        var directory = package.GetOrCreateAssetDirectory(package.GetDisplayDirectory(location), true);
+        if (asset.Directory != directory)
+            asset.MoveAsset(package.Package, directory);
+        var name = location.GetFileNameWithoutExtension();
+        if (!string.IsNullOrEmpty(name) && asset.Name != name)
+            asset.Name = name;
+    }
+
+    private sealed class MergedPackage(RecoveredPackage package)
+    {
+        public RecoveredPackage Package { get; } = package;
+
+        public Dictionary<Guid, (RecoveredCopies Copies, RecoveredAsset Asset)> Assets { get; } = [];
+
+        public Dictionary<Guid, RecoveredAsset> DeletedAssets { get; } = [];
+
+        public List<Guid>? RootAssets { get; set; }
+    }
 }
 
+/// <summary>
+/// The recovery copies that editors which are gone left for a session, found by <see cref="SessionRecoveryService.FindRecovery"/>.
+/// </summary>
+public sealed class SessionRecovery
+{
+    internal SessionRecovery(IReadOnlyList<RecoveredCopies> copies)
+    {
+        Copies = copies;
+        Time = copies.Max(x => x.Manifest.Time).ToLocalTime();
+        AssetCount = copies.SelectMany(x => x.Manifest.Packages).SelectMany(x => x.Assets.Concat(x.DeletedAssets)).Select(x => x.Id).Distinct().Count();
+    }
+
+    /// <summary>
+    /// Gets when the last of the copies were written (local time).
+    /// </summary>
+    public DateTime Time { get; }
+
+    /// <summary>
+    /// Gets how many assets the copies change, create or delete.
+    /// </summary>
+    public int AssetCount { get; }
+
+    internal IReadOnlyList<RecoveredCopies> Copies { get; }
+}
