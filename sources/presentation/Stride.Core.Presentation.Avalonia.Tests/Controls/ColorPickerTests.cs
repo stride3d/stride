@@ -130,6 +130,99 @@ public sealed class ColorPickerTests
     }
 
     [AvaloniaFact]
+    public void DraggingAComponentBoxShowsEachStepAndWritesOnceWhenReleased()
+    {
+        var (window, picker, source) = Show(new Color4(1f, 1f, 1f, 1f));
+        var red = Box(picker, "RedTextBox");
+        var start = TextCenter(window, red);
+
+        window.MouseDown(start, MouseButton.Left);
+        // The first move past the drag distance starts the drag, then a step every 3 pixels
+        window.MouseMove(start - new Point(5, 0));
+        window.MouseMove(start - new Point(35, 0));
+        Dispatcher.UIThread.RunJobs();
+
+        // The picker shows the step, the other boxes follow, and nothing is written
+        Assert.Equal(245.0, red.Value);
+        Assert.Equal(0, source.Writes);
+        AssertColor(new Color4(245f / 255f, 1f, 1f, 1f), picker.ShownColor);
+        Assert.Equal(180f, picker.Hue, Tolerance);
+        Assert.Equal((1f - 245f / 255f) * 100f, (float)Box(picker, "SaturationTextBox").Value!.Value, Tolerance);
+        Assert.Equal(255.0, Box(picker, "GreenTextBox").Value);
+        AssertColor(new Color4(1f, 1f, 1f, 1f), picker.Color);
+
+        window.MouseUp(start - new Point(35, 0), MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(1, source.Writes);
+        AssertColor(new Color4(245f / 255f, 1f, 1f, 1f), (Color4)source.Value);
+        Assert.Equal((byte)245, picker.Red);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task AHeldSpinButtonOfAComponentShowsEachRepeatAndWritesOnceWhenReleased()
+    {
+        var (window, picker, source) = Show(new ColorHSV(200f, 0.5f, 0.5f, 1f).ToColor());
+        var saturation = Box(picker, "SaturationTextBox");
+        var button = saturation.GetVisualDescendants().OfType<RepeatButton>().Single(x => x.Name == "PART_IncreaseButton");
+        var center = button.TranslatePoint(new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), window)!.Value;
+
+        window.MouseDown(center, MouseButton.Left);
+        for (var i = 0; i < 100 && saturation.Value < 53; ++i)
+        {
+            await Task.Delay(20);
+            Dispatcher.UIThread.RunJobs();
+        }
+
+        var held = (float)saturation.Value!.Value;
+        Assert.True(held >= 53f);
+        Assert.Equal(0, source.Writes);
+        var shown = new ColorHSV(200f, held / 100f, 0.5f, 1f).ToColor();
+        AssertColor(shown, picker.ShownColor);
+        // The RGBA boxes follow
+        Assert.Equal((double)(byte)MathF.Round(shown.R * 255f), Box(picker, "RedTextBox").Value);
+
+        window.MouseUp(center, MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+
+        var released = (float)saturation.Value!.Value;
+        Assert.Equal(1, source.Writes);
+        AssertColor(new ColorHSV(200f, released / 100f, 0.5f, 1f).ToColor(), (Color4)source.Value);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void ACancelledDragOnAComponentBoxShowsTheColorAgain()
+    {
+        var (window, picker, source) = Show(new Color4(1f, 1f, 1f, 1f));
+        var red = Box(picker, "RedTextBox");
+        var start = TextCenter(window, red);
+        var hue = picker.Hue;
+
+        window.MouseDown(start, MouseButton.Left);
+        window.MouseMove(start - new Point(5, 0));
+        window.MouseMove(start - new Point(35, 0));
+        Dispatcher.UIThread.RunJobs();
+        Assert.NotEqual(1f, picker.ShownColor.R);
+
+        // The box loses the mouse, as when another window opens
+        red.RaiseEvent(new PointerCaptureLostEventArgs(red, new Pointer(Pointer.GetNextFreeId(), PointerType.Mouse, true)));
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(255.0, red.Value);
+        AssertColor(new Color4(1f, 1f, 1f, 1f), picker.ShownColor);
+        // White has no hue: the one shown before comes back
+        Assert.Equal(hue, picker.Hue, Tolerance);
+        Assert.Equal(0f, picker.Saturation, Tolerance);
+        Assert.Equal(0, source.Writes);
+        window.MouseUp(start - new Point(35, 0), MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(0, source.Writes);
+        window.Close();
+    }
+
+    [AvaloniaFact]
     public void PickingAGrayKeepsTheHue()
     {
         var (window, picker, source) = Show(new ColorHSV(200f, 0.5f, 0.5f, 1f).ToColor());
@@ -236,6 +329,16 @@ public sealed class ColorPickerTests
     private static TextBox TextBox(ColorPicker picker, string name)
         => picker.GetVisualDescendants().OfType<NumericTextBox>().Single(x => x.Name == name)
             .GetVisualDescendants().OfType<TextBox>().Single();
+
+    private static NumericTextBox Box(ColorPicker picker, string name)
+        => picker.GetVisualDescendants().OfType<NumericTextBox>().Single(x => x.Name == name);
+
+    private static Point TextCenter(Visual window, NumericTextBox box)
+    {
+        var textBox = box.GetVisualDescendants().OfType<TextBox>().Single();
+        // Left of the spin buttons
+        return textBox.TranslatePoint(new Point(textBox.Bounds.Width / 3, textBox.Bounds.Height / 2), window)!.Value;
+    }
 
     private static Control Part(ColorPicker picker, string name)
         => picker.GetVisualDescendants().OfType<Control>().Single(x => x.Name == name);
