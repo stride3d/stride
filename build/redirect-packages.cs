@@ -91,9 +91,9 @@ if (disable)
     // target stays as the safety net for a flag flipped by hand.
     var stamp = Path.Combine(nugetDevDir, $".devpackages-{version}");
     var removed = 0;
-    if (File.Exists(stamp))
+    using (new StampLock())
     {
-        foreach (var name in File.ReadAllLines(stamp).Where(l => !string.IsNullOrWhiteSpace(l)))
+        foreach (var name in Lines(stamp))
             foreach (var dir in new[] { nugetDevDir, Path.Combine(strideRoot, "bin", "packages") })
                 if (File.Exists(Path.Combine(dir, name))) { File.Delete(Path.Combine(dir, name)); removed++; }
         foreach (var side in new[] { "", ".inputs", ".stubs" })
@@ -118,7 +118,14 @@ var fixedInputs = new[]
     Path.Combine(strideRoot, "sources", "Directory.Packages.props"),
     solution,
 };
-var previousStamp = File.Exists(stampPath) ? File.ReadAllLines(stampPath).Where(l => !string.IsNullOrWhiteSpace(l)).ToList() : new List<string>();
+// What was deployed before, which a full run compares with what it packs. An adopt touches one project: it has
+// nothing to compare, so nothing to read.
+var previousStamp = new List<string>();
+if (adopt.Length == 0)
+{
+    using (new StampLock())
+        previousStamp = Lines(stampPath);
+}
 // Every stub depends on the fixed inputs; each stub records the fingerprint it was generated with (the .stubs
 // file), and a project's build compares its own stub's against the current one (StrideCheckDevPackageInputs).
 var fixedFingerprint = Fingerprint(fixedInputs);
@@ -134,10 +141,9 @@ static (string Id, string Version)? SplitPackageFile(string nupkgFileName)
 }
 
 
-// Stubs of projects that left the solution go (full runs only; an adopt touches one project). A deployed file
-// whose name doesn't carry the engine version comes from a package versioned on its own, which no stub name
-// predicts: left to the version prune.
-var removedStubs = adopt.Length > 0 ? new List<string>() : previousStamp
+// Stubs of projects that left the solution go. A deployed file whose name doesn't carry the engine version comes
+// from a package versioned on its own, which no stub name predicts: left to the version prune.
+var removedStubs = previousStamp
     .Where(name => !name.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase)
                    && name.EndsWith($".{version}.nupkg", StringComparison.OrdinalIgnoreCase)
                    && !projects.Any(p => string.Equals(StubName(p), name, StringComparison.OrdinalIgnoreCase)))
@@ -270,7 +276,7 @@ var freshIds = freshPackages.Select(p => SplitPackageFile(Path.GetFileName(p))?.
     .OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
 // The content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks) are only packed on request
 // (StridePackContentTemplates), so a stamp that lists them from such a build says nothing about this pack.
-var missing = (adopt.Length > 0 ? new List<ProjectInfo>() : projects)
+var missing = projects
     .Where(p => !p.PackageId.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase))
     .Where(p => previousStamp.Contains(StubName(p), StringComparer.OrdinalIgnoreCase) && !freshIds.Contains(p.PackageId))
     .Select(StubName)
@@ -358,45 +364,35 @@ foreach (var tplPath in freshPackages.Where(p => Path.GetFileName(p).StartsWith(
 // (against the project's own stub) and confirms a newer file by content hash, so a touch, a checkout or a
 // rebase that leaves the content unchanged changes nothing. Line endings are normalized before hashing (autocrlf
 // must not count as a change).
-// A full run rewrites all three from scratch. An adopt adds or replaces its own lines, under a process-wide
-// mutex: several projects of one build may adopt at the same time. ---
+// A full run rewrites all three from scratch. An adopt adds or replaces its own lines. ---
 var binPackagesDir = Path.Combine(strideRoot, "bin", "packages");
 string ManifestLine(string path) => ContentHash(path) + "\t" + Path.GetFullPath(path);
 string StubLine(string name) => name + "\t" + fixedFingerprint;
-using (var mutex = new Mutex(false, @"Global\StrideDevPackages"))
+using (new StampLock())
 {
-    try { mutex.WaitOne(); } catch (AbandonedMutexException) { /* the holder died; the files are whole lines, so proceed */ }
-    try
+    if (adopt.Length == 0)
     {
-        if (adopt.Length == 0)
+        foreach (var name in removedStubs)
         {
-            foreach (var name in removedStubs)
-            {
-                foreach (var dir in new[] { nugetDevDir, binPackagesDir })
-                    if (File.Exists(Path.Combine(dir, name)))
-                        File.Delete(Path.Combine(dir, name));
-                Console.WriteLine($"  removed {name} (project no longer in the solution)");
-            }
-            File.WriteAllLines(stampPath, generatedStubs);
-            File.WriteAllLines(stampPath + ".stubs", generatedStubs.Select(StubLine));
-            File.WriteAllLines(stampPath + ".inputs",
-                projects.Select(p => p.CsprojPath).Concat(projects.SelectMany(BuildAssets)).Distinct().Select(ManifestLine));
+            foreach (var dir in new[] { nugetDevDir, binPackagesDir })
+                if (File.Exists(Path.Combine(dir, name)))
+                    File.Delete(Path.Combine(dir, name));
+            Console.WriteLine($"  removed {name} (project no longer in the solution)");
         }
-        else
-        {
-            IEnumerable<string> Lines(string path) => File.Exists(path) ? File.ReadAllLines(path).Where(l => !string.IsNullOrWhiteSpace(l)) : Enumerable.Empty<string>();
-            bool Mine(string line) => generatedStubs.Contains(line.Split('\t', 2)[0], StringComparer.OrdinalIgnoreCase);
-            File.WriteAllLines(stampPath, Lines(stampPath).Union(generatedStubs, StringComparer.OrdinalIgnoreCase));
-            File.WriteAllLines(stampPath + ".stubs", Lines(stampPath + ".stubs").Where(l => !Mine(l)).Concat(generatedStubs.Select(StubLine)));
-            if (adoptedProject != null)
-                File.WriteAllLines(stampPath + ".inputs",
-                    Lines(stampPath + ".inputs").Where(l => !l.Contains('\t') || !UnderDir(l.Split('\t', 2)[1], adoptedProject.ProjectDir))
-                        .Concat(new[] { adoptedProject.CsprojPath }.Concat(BuildAssets(adoptedProject)).Select(ManifestLine)));
-        }
+        File.WriteAllLines(stampPath, generatedStubs);
+        File.WriteAllLines(stampPath + ".stubs", generatedStubs.Select(StubLine));
+        File.WriteAllLines(stampPath + ".inputs",
+            projects.Select(p => p.CsprojPath).Concat(projects.SelectMany(BuildAssets)).Distinct().Select(ManifestLine));
     }
-    finally
+    else
     {
-        mutex.ReleaseMutex();
+        bool Mine(string line) => generatedStubs.Contains(line.Split('\t', 2)[0], StringComparer.OrdinalIgnoreCase);
+        File.WriteAllLines(stampPath, Lines(stampPath).Union(generatedStubs, StringComparer.OrdinalIgnoreCase));
+        File.WriteAllLines(stampPath + ".stubs", Lines(stampPath + ".stubs").Where(l => !Mine(l)).Concat(generatedStubs.Select(StubLine)));
+        if (adoptedProject != null)
+            File.WriteAllLines(stampPath + ".inputs",
+                Lines(stampPath + ".inputs").Where(l => !l.Contains('\t') || !UnderDir(l.Split('\t', 2)[1], adoptedProject.ProjectDir))
+                    .Concat(new[] { adoptedProject.CsprojPath }.Concat(BuildAssets(adoptedProject)).Select(ManifestLine)));
     }
 }
 
@@ -417,9 +413,7 @@ var suffixIdx = version.IndexOf('-');
 if (suffixIdx >= 0)
 {
     var suffix = version[suffixIdx..];
-    using var mutex = new Mutex(false, @"Global\StrideDevPackages");
-    try { mutex.WaitOne(); } catch (AbandonedMutexException) { /* the holder died; what's left is pruned again next time */ }
-    try
+    using (new StampLock())
     {
         foreach (var oldStamp in Directory.GetFiles(nugetDevDir, ".devpackages-*"))
         {
@@ -430,7 +424,7 @@ if (suffixIdx >= 0)
 
             var removed = 0;
             var inUse = new List<string>();
-            foreach (var pkgName in File.ReadAllLines(oldStamp).Where(l => !string.IsNullOrWhiteSpace(l)))
+            foreach (var pkgName in Lines(oldStamp))
             {
                 var left = false;
                 foreach (var dir in new[] { nugetDevDir, binPackagesDir })
@@ -491,10 +485,6 @@ if (suffixIdx >= 0)
             if (removed > 0)
                 Console.WriteLine($"Pruned {removed} other {suffix} version(s) of {made.Id} (package files and NuGet cache folders)");
         }
-    }
-    finally
-    {
-        mutex.ReleaseMutex();
     }
 }
 
@@ -593,6 +583,10 @@ static bool TryDeleteWholeFolder(string folder)
         return false;
     }
 }
+
+// The lines of a stamp, stubs or manifest file that are not blank; none when the file doesn't exist.
+static List<string> Lines(string path)
+    => File.Exists(path) ? File.ReadAllLines(path).Where(l => !string.IsNullOrWhiteSpace(l)).ToList() : [];
 
 // Is <path> inside <dir>? Separator-terminated so a sibling whose name merely extends dir's (Stride.Core vs
 // Stride.Core.Design) does not match.
@@ -1129,3 +1123,22 @@ static string AnalyzerRedirects(string pkgId, string safeId, string version, Lis
 }
 
 record ProjectInfo(string ProjectDir, string AssemblyName, bool IsGraphicsDependent, string CsprojPath, string PackageId);
+
+// The lock on the stamp, stubs and manifest files, held around every read and write of them here: several projects
+// of one build adopt at the same time, next to a full run, a --disable or the build's own check
+// (StrideCheckDevPackageInputs, which takes the same mutex).
+sealed class StampLock : IDisposable
+{
+    private readonly Mutex mutex = new(false, @"Global\StrideDevPackages");
+
+    public StampLock()
+    {
+        try { mutex.WaitOne(); } catch (AbandonedMutexException) { /* the holder died; the files are whole lines, so proceed */ }
+    }
+
+    public void Dispose()
+    {
+        mutex.ReleaseMutex();
+        mutex.Dispose();
+    }
+}
