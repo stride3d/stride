@@ -1267,14 +1267,17 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         try
         {
             // Restore the whole solution once up front (one project-graph evaluation) instead of one
-            // restore per project; without a solution, restore its projects up front the same way. The code
+            // restore per project; without a solution file, restore its projects up front the same way. The code
             // upgrade detection then evaluates each project after its restore, and the asset listing reuses that
             // evaluation. The per-project restore in PreLoadPackageDependencies then only runs as a fallback (a
             // failed restore, or a project whose references an upgrade rewrote). Skip when no project needs loading
             // (this is called again after everything is already DependenciesReady).
             dependenciesRestoredUpFront = false;
             var projectsToLoad = Projects.OfType<SolutionProject>().Where(x => x.Package.State < PackageState.DependenciesReady).ToList();
-            if (projectsToLoad.Count > 0 && loadParameters.AutoCompileProjects && HasSolution && File.Exists(SolutionPath.ToOSPath()))
+            // A new session names its solution before its first save writes the file: until then, the restore and the
+            // source-code migration go by project
+            var solutionOnDisk = HasSolution && File.Exists(SolutionPath.ToOSPath());
+            if (projectsToLoad.Count > 0 && loadParameters.AutoCompileProjects && solutionOnDisk)
             {
                 try
                 {
@@ -1287,7 +1290,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                     log.Warning($"Unable to restore NuGet packages for solution [{SolutionPath}]", ex);
                 }
             }
-            else if (projectsToLoad.Count > 0 && loadParameters.AutoCompileProjects && !HasSolution)
+            else if (projectsToLoad.Count > 0 && loadParameters.AutoCompileProjects && !solutionOnDisk)
             {
                 dependenciesRestoredUpFront = true;
                 foreach (var project in projectsToLoad)
@@ -1308,7 +1311,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             }
 
             // Source-code migration pre-pass: rewrite user .cs against the old closure before refs are bumped. When source
-            // migrations apply, it needs a restored solution, or a standalone project (no .sln). When it can't run, the upgrade
+            // migrations apply, it needs a restored solution, or projects without a solution file. When it can't run, the upgrade
             // of the projects it covers, and of the projects that reference them, stops before anything is written (see
             // IsUpgradeStopped).
             if (CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
@@ -1321,9 +1324,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                     pendingCodeUpgrades = DetectPendingCodeUpgrades(log, loadParameters);
                     if (pendingCodeUpgrades.Count > 0 && codeUpgradeRunner.HasSourceMigrations(pendingCodeUpgrades))
                     {
-                        if (HasSolution && !dependenciesRestoredUpFront)
+                        if (solutionOnDisk && !dependenciesRestoredUpFront)
                             stopReason = $"the solution [{SolutionPath.GetFileName()}] isn't restored, so its source code can't be migrated: restore it and upgrade again";
-                        else if (!codeUpgradeRunner.Run(HasSolution ? SolutionPath : null, pendingCodeUpgrades, UpgradeBackup, log))
+                        else if (!codeUpgradeRunner.Run(solutionOnDisk ? SolutionPath : null, pendingCodeUpgrades, UpgradeBackup, log))
                             stopReason = "its source code could not be migrated (see the errors above): fix them and upgrade again";
                     }
                 }

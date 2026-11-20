@@ -205,6 +205,27 @@ public class TestUpgradedVersionRecord : IDisposable
         Assert.Equal(new Dictionary<string, string> { ["Succeeds"] = "2.0.0" }, ReadRecords(windows));
     }
 
+    [Fact]
+    public void AProjectAddedBeforeTheSolutionIsSavedIsUpgraded()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.CodeRules" Version="1.0.0" />""");
+
+        // As a new session does: it names its solution, and its first save writes the file
+        var solution = Path.Combine(directory, "Game.slnx");
+        var result = new LoggerResult();
+        using (var session = new PackageSession { SolutionPath = solution })
+        {
+            session.AddExistingProject(game, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false });
+            Assert.False(File.Exists(solution));
+            session.Save(result);
+        }
+
+        // The source migration ran on the project alone
+        Assert.Contains(new UFile(game), CodeRunner.MigratedProjects);
+        Assert.Equal(new Dictionary<string, string> { ["UpgradeRecord.CodeRules"] = "2.0.0" }, ReadRecords(game));
+        Assert.DoesNotContain(result.Messages, x => x.Type == LogMessageType.Error);
+    }
+
     [Theory]
     [InlineData("UpgradeRecord.CodeNotRun", "The upgrade of [Game] is stopped: its source code could not be migrated")]
     [InlineData("UpgradeRecord.CodeThrows", "The upgrade of [Game] is stopped: the source-code migration failed")]

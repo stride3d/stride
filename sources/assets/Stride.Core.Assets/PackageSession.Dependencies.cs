@@ -17,7 +17,7 @@ partial class PackageSession
     private readonly Dictionary<string, Microsoft.Build.Evaluation.Project> projectLoadCache = new(StringComparer.OrdinalIgnoreCase);
     // Track projects being processed to avoid infinite recursion
     private readonly HashSet<string> processingProjects = new(StringComparer.OrdinalIgnoreCase);
-    // Set when LoadMissingDependencies restored the solution, or the projects without a solution, once up front, so the
+    // Set when LoadMissingDependencies restored the solution, or the projects without a solution file, once up front, so the
     // per-project restore below can be skipped (kept only as a fallback after a failed restore or an upgrade).
     private bool dependenciesRestoredUpFront;
     // During a session load, the files of the projects that the dependency phase evaluated as they are now (after the
