@@ -506,12 +506,14 @@ public static class ScreenshotRunner
     /// substituting the in-tree engine version so the harness PackageReference resolves to the
     /// locally built dev package. MSBuild auto-imports it for every regenerated sample under it.
     /// Lives above the per-sample dir because SampleGenerator wipes the sample dir at the start of
-    /// regeneration.
+    /// regeneration. Next to it goes the NuGet config of the repository's samples: a sample written for an
+    /// older engine restores that release before its upgrade, so Stride.* also comes from nuget.org there.
     /// </summary>
     private static void EnsureSamplesGeneratedTargets(string worktreeRoot)
     {
         var samplesGeneratedDir = Path.Combine(worktreeRoot, SamplesGeneratedDirName);
         Directory.CreateDirectory(samplesGeneratedDir);
+        File.Copy(Path.Combine(worktreeRoot, "samples", "nuget.config"), Path.Combine(samplesGeneratedDir, "nuget.config"), overwrite: true);
 
         var templatePath = Path.Combine(worktreeRoot, "tests", "enduser", "Stride.Samples.Tests", "Templates", "SampleAutoTesting.targets.template");
         var content = File.ReadAllText(templatePath)

@@ -81,9 +81,6 @@
     <StrideTemplatesPackMode Condition="'$(StridePackageBuild)' == 'true'">preprocessed</StrideTemplatesPackMode>
     <StrideTemplatesPackMode Condition="'$(StrideTemplatesPackMode)' == ''">minimal</StrideTemplatesPackMode>
     <_StrideTemplatesSkipPruneFlag Condition="'$(StrideTemplatesPackMode)' == 'minimal'">--skip-prune</_StrideTemplatesSkipPruneFlag>
-    <!-- A release pack keeps each sample's version, which records the upgrader gates it had. Local and CI packs stamp
-         it: their engine only exists under the version being built. -->
-    <_StrideTemplatesKeepVersionsFlag Condition="'$(StridePackageBuild)' == 'true' And '$(StrideTemplateContentVersioned)' == 'true'">--keep-sample-versions</_StrideTemplatesKeepVersionsFlag>
   </PropertyGroup>
 
   <!-- Per-checkout NuGet version suffix; mirrors StrideAppendWorktreeVersion in
@@ -104,7 +101,7 @@
     </PropertyGroup>
     <!-- The engine version stamped into template content (the engine-version flag below). Distinct
          from PackageVersion: content-versioned packages (Samples/Starters) follow StrideSamplesVersion,
-         but their PackageReferences must name engine packages that actually exist. -->
+         but the PackageReferences of a sample on this engine's number must name the build of it that exists. -->
     <PropertyGroup>
       <_StrideTemplatesEngineVersion>$(StrideNuGetVersionWithoutMetadata)</_StrideTemplatesEngineVersion>
       <_StrideTemplatesEngineVersion Condition="'$(StrideWorktreeSuffix)' != '' And !$(_StrideTemplatesEngineVersion.EndsWith('$(StrideWorktreeSuffix)'))">$(_StrideTemplatesEngineVersion)$(StrideWorktreeSuffix)</_StrideTemplatesEngineVersion>
@@ -250,12 +247,14 @@
 
     <!-- Per-template preprocess. MSBuild's per-item Exec batching runs one command per item.
          The engine-version flag stamps the engine version into template content ($EngineVersion$
-         literals + concrete Stride.* PackageReference versions), so packed content instantiates
-         against the engine it shipped with — including via plain `dotnet new`, which has no
-         Stride-side rewrite hook. platform-template-path points the preprocessor at the NewGame
+         literals + concrete Stride.* PackageReference versions of this engine's number), so that
+         content instantiates against the engine it shipped with — including via plain `dotnet new`,
+         which has no Stride-side rewrite hook. A sample on another number keeps it: that number records
+         the upgrader gates it had, and a project made from it goes through the upgrade.
+         platform-template-path points the preprocessor at the NewGame
          scaffold so samples that ship only Windows (most of them) gain Linux/macOS/iOS/Android
          exec projects in the packed output. -->
-    <Exec Command="dotnet &quot;$(StrideTemplatesDll)&quot; preprocess-template --input-path=&quot;%(StrideSampleTemplate.SamplePath)&quot; --output-path=&quot;$(TemplateContentRoot)/%(StrideSampleTemplate.Identity)&quot; --template-name=%(StrideSampleTemplate.Identity) --engine-version=&quot;$(_StrideTemplatesEngineVersion)&quot; --platform-template-path=&quot;$(StrideRoot)samples/NewGame/NewGame&quot; $(_StrideTemplatesSkipPruneFlag) $(_StrideTemplatesKeepVersionsFlag)" />
+    <Exec Command="dotnet &quot;$(StrideTemplatesDll)&quot; preprocess-template --input-path=&quot;%(StrideSampleTemplate.SamplePath)&quot; --output-path=&quot;$(TemplateContentRoot)/%(StrideSampleTemplate.Identity)&quot; --template-name=%(StrideSampleTemplate.Identity) --engine-version=&quot;$(_StrideTemplatesEngineVersion)&quot; --platform-template-path=&quot;$(StrideRoot)samples/NewGame/NewGame&quot; $(_StrideTemplatesSkipPruneFlag)" />
 
     <!-- Aggregate every wrapped template's .sdtpl into a single multi-doc YAML at the package
          root. GameStudio's bridge reads this one file for display metadata. -->

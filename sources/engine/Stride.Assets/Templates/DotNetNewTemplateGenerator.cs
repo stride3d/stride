@@ -110,9 +110,9 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         if (sdpkg == null)
             return false;
         InstantiateAssetPacks(parameters, sdpkg);
-        // Content packed for an older engine keeps its version here: IntegrateIntoSession runs the package
+        // Content written for an older engine keeps its version here: IntegrateIntoSession runs the package
         // upgraders on it, which migrate the assets and the code and stamp the version themselves.
-        if (!UpgradeGeneratedProjects(parameters, stampOlderContent: false))
+        if (!UpgradeGeneratedProjects(parameters))
             return false;
         return IntegrateIntoSession(sdpkg, parameters);
     }
@@ -122,6 +122,10 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     /// without touching the session graph or the <see cref="Stride.Core.Reflection.AssemblyContainer"/>.
     /// For test runners and CLI tools that only need the files on disk.
     /// </summary>
+    /// <remarks>
+    /// Content written for an older engine keeps its version (see <see cref="IsOlderContent"/>): the caller runs the
+    /// package upgraders on it, with the asset compiler's <c>upgrade</c> verb.
+    /// </remarks>
     public bool GenerateFilesOnly(SessionTemplateGeneratorParameters parameters)
     {
         var sdpkg = InstantiateFiles(parameters);
@@ -244,34 +248,31 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     }
 
     /// <summary>
-    /// Phase 2 — fresh templates ship with Stride.* <c>PackageReference</c>s pinned to the
-    /// previous release (samples track stable versions, not dev1/dev2 suffixes); this rewrites
-    /// them to <see cref="StridePackageUpgrader.CurrentVersion"/>, and records that version in each project
-    /// (<see cref="PackageUpgrader.UpgradeRecordItem"/>) unless the content was written for an older engine. Runs without a session or
+    /// Phase 2 — moves the generated projects to this build of the engine: rewrites their Stride.*
+    /// <c>PackageReference</c>s to <see cref="StridePackageUpgrader.CurrentVersion"/> (content of this engine's number
+    /// names the release, which a <c>-devN</c> build is not), and records that version in each project
+    /// (<see cref="PackageUpgrader.UpgradeRecordItem"/>). Runs without a session or
     /// AssemblyContainer — same standalone path the legacy session-load uses internally.
     /// </summary>
-    /// <param name="stampOlderContent">
-    /// Whether content packed for an older engine is stamped too. False when a session load follows: the package
-    /// upgraders it runs need the version the content came from, and stamping would leave the content looking
-    /// current and never upgraded.
-    /// </param>
-    protected virtual bool UpgradeGeneratedProjects(SessionTemplateGeneratorParameters parameters, bool stampOlderContent = true)
+    /// <remarks>
+    /// Content written for an older engine is left as it is: the package upgraders need the version it came from, and
+    /// with this engine's version it would look current and never be upgraded.
+    /// </remarks>
+    protected virtual bool UpgradeGeneratedProjects(SessionTemplateGeneratorParameters parameters)
     {
         var log = parameters.Logger;
         var csprojs = Directory.EnumerateFiles(parameters.OutputDirectory, "*.csproj", SearchOption.AllDirectories).ToList();
 
         var contentVersion = GetContentEngineVersion(csprojs);
-        var olderContent = contentVersion is not null && contentVersion.Version < new PackageVersion(StridePackageUpgrader.CurrentVersion).Version;
-        if (!stampOlderContent && olderContent)
+        if (IsOlder(contentVersion))
         {
-            log.Info($"Template content is written for Stride {contentVersion}; it is upgraded to {StridePackageUpgrader.CurrentVersion} as it is loaded.");
+            log.Info($"Template content is written for Stride {contentVersion}; the package upgrade brings it to {StridePackageUpgrader.CurrentVersion}.");
             return true;
         }
 
         foreach (var csproj in csprojs)
         {
-            // Stamped older content didn't go through the upgrade: its record keeps the version it was written for
-            if (!StridePackageUpgrader.UpgradeProjectVersions(csproj, log) || olderContent)
+            if (!StridePackageUpgrader.UpgradeProjectVersions(csproj, log))
                 continue;
             try
             {
@@ -284,6 +285,17 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         }
         return true;
     }
+
+    /// <summary>
+    /// Gets whether the projects under <paramref name="directory"/> are written for an older engine than this one, so
+    /// that the package upgraders have to run on them.
+    /// </summary>
+    public static bool IsOlderContent(string directory)
+        => IsOlder(GetContentEngineVersion(Directory.EnumerateFiles(directory, "*.csproj", SearchOption.AllDirectories)));
+
+    // Upgrades compare the numbers only: a release and a -devN build of one number hold the same content
+    private static bool IsOlder(PackageVersion contentVersion)
+        => contentVersion is not null && contentVersion.Version < new PackageVersion(StridePackageUpgrader.CurrentVersion).Version;
 
     /// <summary>
     /// The Stride.Engine version the instantiated content names, null when none of its projects references it

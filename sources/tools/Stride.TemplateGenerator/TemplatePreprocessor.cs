@@ -84,20 +84,16 @@ internal class TemplatePreprocessor
     /// <summary>
     /// When set, staged <c>.csproj</c> files get this engine version stamped in: every literal
     /// <c>$EngineVersion$</c> (NewGame starter) and every concrete engine-family <c>Stride.*</c>
-    /// <c>PackageReference</c> version (samples commit the samples-authority version, which may
-    /// not match — or even restore against — the engine being packed). Stamping at pack time
-    /// makes the content instantiable as-is by every consumer, including plain <c>dotnet new</c>,
-    /// which has no Stride-side rewrite hook; instantiation-side upgrading remains only for
-    /// running a template against a newer engine than it was packed with.
+    /// <c>PackageReference</c> version of this engine's number (a sample commits the release, as
+    /// <c>4.5.4-beta</c>, which doesn't restore against a <c>4.5.4-dev2</c> build of it). That content
+    /// instantiates as it is for every consumer, including plain <c>dotnet new</c>, which has no
+    /// Stride-side rewrite hook.
     /// </summary>
+    /// <remarks>
+    /// A version of another number stays as the sample commits it: it records the upgrader gates the sample had, so
+    /// a project made from a sample behind the engine runs the gates above its version when it is upgraded.
+    /// </remarks>
     public string? EngineVersion { get; set; }
-
-    /// <summary>
-    /// With <see cref="EngineVersion"/>, stamps only the <c>$EngineVersion$</c> literals: concrete versions stay as the
-    /// sample commits them. A release pack does this, as a sample's version records the upgrader gates it had, so a
-    /// sample behind the engine still runs the gates above its version when it is upgraded.
-    /// </summary>
-    public bool KeepSampleVersions { get; set; }
 
     /// <summary>
     /// Parsed from the input's <c>.sdtpl</c> file (if present). Drives template.json metadata
@@ -472,6 +468,9 @@ internal class TemplatePreprocessor
 
     private static string GetValue(XObject node) => node is XAttribute attribute ? attribute.Value : ((XElement)node).Value;
 
+    /// <summary>The number of a version, without its prerelease label and build metadata: <c>4.5.4</c> of <c>4.5.4-beta</c>.</summary>
+    private static string NumberPart(string version) => version.Split('-', '+')[0];
+
     /// <summary>Writes a project parsed from <paramref name="content"/> as authored: no added declaration, no reformatting, same newlines.</summary>
     private static void SaveProject(string path, XDocument doc, string content)
     {
@@ -504,8 +503,8 @@ internal class TemplatePreprocessor
             {
                 var value = GetValue(version);
                 // A remaining $placeholder$ is someone else's substitution point; community
-                // packages keep their committed version.
-                if (KeepSampleVersions || value.Contains('$') || value == EngineVersion || IsNonEnginePackage(include))
+                // packages keep their committed version, and so does a sample on another number.
+                if (value.Contains('$') || value == EngineVersion || IsNonEnginePackage(include) || NumberPart(value) != NumberPart(EngineVersion!))
                     continue;
                 if (version is XAttribute versionAttribute)
                     versionAttribute.Value = EngineVersion;

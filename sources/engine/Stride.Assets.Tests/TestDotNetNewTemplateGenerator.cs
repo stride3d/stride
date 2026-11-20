@@ -41,6 +41,7 @@ namespace Stride.Assets.Tests
             var (game, windows) = Generate(StridePackageUpgrader.CurrentVersion);
             try
             {
+                Assert.False(DotNetNewTemplateGenerator.IsOlderContent(Path.GetDirectoryName(Path.GetDirectoryName(game))!));
                 Assert.Equal(StridePackageUpgrader.CurrentVersion, ReadRecord(game));
                 Assert.Equal(StridePackageUpgrader.CurrentVersion, ReadRecord(windows));
             }
@@ -51,13 +52,13 @@ namespace Stride.Assets.Tests
         }
 
         [Fact]
-        public void StampedOlderContentKeepsTheVersionItWasWrittenFor()
+        public void OlderContentKeepsItsVersionForTheUpgrade()
         {
             var (game, windows) = Generate("4.4.0");
             try
             {
-                // Its references move to the current engine, but no upgrade ran: the record still says 4.4.0
-                Assert.Equal(StridePackageUpgrader.CurrentVersion, XDocument.Load(game).Descendants("PackageReference").Single().Attribute("Version")?.Value);
+                Assert.True(DotNetNewTemplateGenerator.IsOlderContent(Path.GetDirectoryName(Path.GetDirectoryName(game))!));
+                Assert.Equal("4.4.0", XDocument.Load(game).Descendants("PackageReference").Single().Attribute("Version")?.Value);
                 Assert.Equal("4.4.0", ReadRecord(game));
                 Assert.Null(ReadRecord(windows));
             }
