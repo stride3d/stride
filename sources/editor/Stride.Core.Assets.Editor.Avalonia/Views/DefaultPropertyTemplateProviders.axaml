@@ -214,6 +214,7 @@
             <ColumnDefinition Width="16"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
           <ToggleButton Grid.Column="1"
                         Width="8" Height="8" HorizontalAlignment="Left"
@@ -246,6 +247,15 @@
                     IsChecked="{ReflectionBinding [Enabled]?.NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, TargetNullValue={x:False}}"
                     IsThreeState="{ReflectionBinding [Enabled]?.NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, TargetNullValue={x:False}}"
                     IsVisible="{Binding [HasChild_Enabled], FallbackValue={x:False}}"/>
+          <!-- Revert to the default value: shown when the value differs from the value a new object has -->
+          <Button Grid.Column="4" x:Name="RevertToDefaultButton"
+                  Margin="2,0" Padding="1" VerticalAlignment="Center"
+                  Background="Transparent" BorderThickness="0" Cursor="Hand"
+                  Command="{Binding [ResetToDefault]}"
+                  IsVisible="{Binding [DiffersFromDefault], Converter={sd:IsEqualToParam}, ConverterParameter={sd:True}, FallbackValue={sd:False}}"
+                  ToolTip.Tip="{sd:LocalizeString Revert to default value, Context=ToolTip}">
+            <Image Source="{StaticResource ImageUndo}" Width="12" Height="12"/>
+          </Button>
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
                                                            {Binding ConverterParameter=[Enabled].[IsOverridden], Converter={caec:NodePathToObject}},

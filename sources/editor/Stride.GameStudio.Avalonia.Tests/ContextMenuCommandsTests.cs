@@ -86,7 +86,7 @@ public sealed class ContextMenuCommandsTests
                 // A property of the property grid
                 var item = await ShowPropertyAsync(fixture, window, asset, nameof(TextPropertiesAsset.Label));
                 await OpenAsync(item.ContextMenu!, item);
-                Assert.Equal([PropertyGridCommands.ResetToBaseId, GameStudioCommands.CopyId, GameStudioCommands.PasteId, PropertyGridCommands.ReplaceId], BoundIds(item.ContextMenu!));
+                Assert.Equal([PropertyGridCommands.ResetToBaseId, PropertyGridCommands.ResetToDefaultId, GameStudioCommands.CopyId, GameStudioCommands.PasteId, PropertyGridCommands.ReplaceId], BoundIds(item.ContextMenu!));
                 AssertBound(item.ContextMenu!, host);
                 var replace = MenuItems(item.ContextMenu!).Single(x => x.Command is CommandReference { Id: PropertyGridCommands.ReplaceId });
                 Assert.Equal(new KeyGesture(Key.V, KeyModifiers.Control | KeyModifiers.Shift), replace.InputGesture);
@@ -346,6 +346,7 @@ public sealed class ContextMenuCommandsTests
             Assert.Contains(SpriteSheetEditorCommands.ToggleMagicWandId, ids);
             // Those that act on what their menu opened on
             Assert.DoesNotContain(PropertyGridCommands.ResetToBaseId, ids);
+            Assert.DoesNotContain(PropertyGridCommands.ResetToDefaultId, ids);
             Assert.DoesNotContain(PropertyGridCommands.ReplaceId, ids);
             Assert.DoesNotContain(SceneEditorCommands.PasteInRootId, ids);
             Assert.DoesNotContain(SceneEditorCommands.NewEntityAtCursorId, ids);

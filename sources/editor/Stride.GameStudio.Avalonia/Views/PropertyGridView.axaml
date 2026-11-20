@@ -39,6 +39,13 @@
                        cmd:CommandSlot.Location="{x:Static cmdl:CommandLocations.PropertyGridContext}"
                        cmd:CommandSlot.Selection="{Binding}">
             <MenuItem Command="{cmd:Command Stride.PropertyGrid.ResetToBase}"/>
+            <!-- Not on a property that has a base, or no default (a collection) -->
+            <MenuItem Command="{cmd:Command Stride.PropertyGrid.ResetToDefault}"
+                      IsVisible="{Binding [HasCommand_ResetToDefault]}">
+              <MenuItem.Icon>
+                <Image Source="{StaticResource ImageUndo}"/>
+              </MenuItem.Icon>
+            </MenuItem>
             <Separator/>
             <!-- The Edit commands act on the property the menu opened on -->
             <MenuItem Command="{cmd:Command Stride.Edit.Copy}">
