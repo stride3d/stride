@@ -436,9 +436,11 @@ namespace Stride.Core.Assets.Editor.ViewModels
             Log.Info($"[{asset.Url}] has been reloaded: it has been changed outside of Game Studio.");
         }
 
-        // The content the session writes when it saves the asset: its paths are absolute in memory, relative in its file
+        /// <summary>
+        /// Gets the content the session writes when it saves the asset: its paths are absolute in memory, relative in its file.
+        /// </summary>
         [NotNull]
-        private static byte[] SerializeAsSaved([NotNull] AssetItem assetItem, ILogger logger)
+        internal static byte[] SerializeAsSaved([NotNull] AssetItem assetItem, ILogger logger)
         {
             AssetAnalysis.ConvertUPaths(assetItem, UPathType.Relative);
             try
