@@ -80,16 +80,36 @@
                PlaceholderText="{sd:LocalizeString Add new tag}"
                IsVisible="{sd:MultiBinding {Binding ((caevm:SessionViewModel)Session).AssetCollection.SelectedAssets.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}, {Binding IsAssetSelection}, Converter={sd:AndMulti}}"
                KeyDown="OnNewTagKeyDown"/>
-      <!-- Navigation; Alt+Left and Alt+Right are the shortcuts of the commands Stride.Edit.PreviousSelection and NextSelection -->
+      <!-- Navigation; Alt+Left and Alt+Right are the shortcuts of the commands Stride.Edit.PreviousSelection and NextSelection.
+           A locked grid keeps its objects: its buttons don't move in the selection history, which goes on recording. -->
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,6,0" VerticalAlignment="Center">
+        <!-- The lock: the grid keeps showing its objects when the selection changes -->
+        <ToggleButton x:Name="LockButton"
+                      Padding="2" Margin="0,0,2,0" Background="Transparent"
+                      IsChecked="{Binding IsLocked}"
+                      IsEnabled="{sd:MultiBinding {Binding CanDisplayProperties}, {Binding IsLocked}, Converter={sd:OrMulti}}"
+                      ToolTip.ShowOnDisabled="True">
+          <Panel>
+            <Image Source="{StaticResource ImageLock}" Width="16" Height="16" IsVisible="{Binding IsLocked}"/>
+            <Image Source="{StaticResource ImageUnlock}" Width="16" Height="16" IsVisible="{Binding !IsLocked}"/>
+          </Panel>
+          <ToolTip.Tip>
+            <Panel>
+              <TextBlock Text="{sd:LocalizeString Unlock the properties: show the selection, Context=ToolTip}" IsVisible="{Binding IsLocked}"/>
+              <TextBlock Text="{sd:LocalizeString Lock the properties: keep showing these objects when the selection changes, Context=ToolTip}" IsVisible="{Binding !IsLocked}"/>
+            </Panel>
+          </ToolTip.Tip>
+        </ToggleButton>
         <Button x:Name="PreviousSelectionButton"
                 Padding="2" Background="Transparent"
+                IsEnabled="{Binding !IsLocked}"
                 Command="{Binding ((caevm:SessionViewModel)Session).PreviousSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
                 ToolTip.Tip="{sd:LocalizeString Previous selection, Context=ToolTip}" ToolTip.ShowOnDisabled="True">
           <Image Source="{StaticResource ImagePrevious}" Width="16" Height="16"/>
         </Button>
         <Button x:Name="NextSelectionButton"
                 Padding="2" Background="Transparent"
+                IsEnabled="{Binding !IsLocked}"
                 Command="{Binding ((caevm:SessionViewModel)Session).NextSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
                 ToolTip.Tip="{sd:LocalizeString Next selection, Context=ToolTip}" ToolTip.ShowOnDisabled="True">
           <Image Source="{StaticResource ImageNext}" Width="16" Height="16"/>

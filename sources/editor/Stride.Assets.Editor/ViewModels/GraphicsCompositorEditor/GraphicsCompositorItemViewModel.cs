@@ -31,7 +31,7 @@ namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 
         #region IPropertyProviderViewModel
         /// <inheritdoc/>
-        public bool CanProvidePropertiesViewModel => true;
+        public bool CanProvidePropertiesViewModel => !IsDestroyed;
 
         /// <inheritdoc/>
         public abstract IObjectNode GetRootNode();
