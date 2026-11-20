@@ -1,4 +1,6 @@
 Plugin: Stride.Core.Assets.Editor.Avalonia.StrideCoreEditorViewPlugin
 Services:
 NodePresenterCommands:
+  Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands.ResetToDefaultCommand
 NodePresenterUpdaters:
+  Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters.DefaultValueNodeUpdater
