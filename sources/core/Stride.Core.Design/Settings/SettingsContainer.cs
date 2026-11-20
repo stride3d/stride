@@ -313,7 +313,7 @@ public class SettingsContainer
                 {
                     finalValue = key.ConvertValue(value);
                 }
-                profile.SetValue(settings.Key, finalValue);
+                profile.LoadValue(settings.Key, finalValue);
             }
         }
     }

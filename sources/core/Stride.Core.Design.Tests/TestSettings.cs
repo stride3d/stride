@@ -218,6 +218,84 @@ public class TestSettings
         Assert.Contains("IntValue: 30", File.ReadAllText(path));
     }
 
+    [Fact]
+    public void TestFirstChangeRaisesChangesValidated()
+    {
+        // A key that still has its default value has no entry in the profile: its first change creates one
+        var container = new SettingsContainer();
+        var key = new SettingsKey<int>("Test/Simple/IntValue", container, 10);
+        var profile = container.CreateSettingsProfile(true);
+        var validatedCount = 0;
+        key.ChangesValidated += (_, _) => ++validatedCount;
+        Assert.False(profile.ContainsKey(key));
+
+        key.SetValue(20, profile);
+        profile.ValidateSettingsChanges();
+
+        Assert.Equal(1, validatedCount);
+        Assert.Equal(20, key.GetValue(profile, true));
+        profile.ValidateSettingsChanges();
+        Assert.Equal(1, validatedCount);
+    }
+
+    [Fact]
+    public void TestFirstChangeDiscarded()
+    {
+        var container = new SettingsContainer();
+        var key = new SettingsKey<int>("Test/Simple/IntValue", container, 10);
+        var profile = container.CreateSettingsProfile(true);
+        var validatedCount = 0;
+        key.ChangesValidated += (_, _) => ++validatedCount;
+
+        key.SetValue(20, profile);
+        key.SetValue(30, profile);
+        profile.DiscardSettingsChanges();
+
+        Assert.False(profile.ContainsKey(key));
+        Assert.Equal(10, key.GetValue(profile, true));
+        profile.ValidateSettingsChanges();
+        Assert.Equal(0, validatedCount);
+    }
+
+    [Fact]
+    public void TestValidatedFirstChangeIsNotDiscarded()
+    {
+        var container = new SettingsContainer();
+        var key = new SettingsKey<int>("Test/Simple/IntValue", container, 10);
+        var profile = container.CreateSettingsProfile(true);
+        key.SetValue(20, profile);
+        profile.ValidateSettingsChanges();
+
+        key.SetValue(30, profile);
+        profile.DiscardSettingsChanges();
+
+        Assert.True(profile.ContainsKey(key));
+        Assert.Equal(20, key.GetValue(profile, true));
+    }
+
+    [Fact]
+    public async Task TestLoadedValuesAreNotChanges()
+    {
+        // The values read from a file are not changes to validate or to discard
+        var container = new SettingsContainer();
+        var key = new SettingsKey<int>("Test/Simple/IntValue", container, 10);
+        var path = TempPath("TestLoadedValuesAreNotChanges.txt");
+        await File.WriteAllTextAsync(path, """
+            !SettingsFile
+            Settings:
+                Test/Simple/IntValue: 45
+            """);
+        var validatedCount = 0;
+        key.ChangesValidated += (_, _) => ++validatedCount;
+        var profile = container.LoadSettingsProfile(path, false);
+        Assert.NotNull(profile);
+
+        profile.ValidateSettingsChanges();
+        Assert.Equal(0, validatedCount);
+        profile.DiscardSettingsChanges();
+        Assert.Equal(45, key.GetValue(profile, true));
+    }
+
     const string TestSettingsLoadFileText ="""
         !SettingsFile
         Settings:
