@@ -31,6 +31,7 @@ public sealed class EditCommandRouter : IDisposable
     private readonly RoutedEditCommand[] commands;
     private readonly List<ICommand> watchedCommands = [];
     private Visual? target;
+    private TextBox? shortcutPassedOn;
     private bool disposed;
 
     /// <summary>
@@ -43,6 +44,8 @@ public sealed class EditCommandRouter : IDisposable
         this.root = root;
         commands = [.. Enum.GetValues<EditCommandKind>().Select(kind => new RoutedEditCommand(this, kind))];
         root.AddHandler(InputElement.GotFocusEvent, OnGotFocus, RoutingStrategies.Bubble, handledEventsToo: true);
+        root.AddHandler(InputElement.KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+        root.AddHandler(InputElement.KeyDownEvent, OnKeyDownRouted, RoutingStrategies.Bubble, handledEventsToo: true);
     }
 
     /// <summary>
@@ -147,8 +150,37 @@ public sealed class EditCommandRouter : IDisposable
             return;
         disposed = true;
         root.RemoveHandler(InputElement.GotFocusEvent, OnGotFocus);
+        root.RemoveHandler(InputElement.KeyDownEvent, OnPreviewKeyDown);
+        root.RemoveHandler(InputElement.KeyDownEvent, OnKeyDownRouted);
         WatchResolvedCommands(false);
     }
+
+    /// <summary>
+    /// A text box takes its Undo and Redo shortcuts even when it has no typing to undo or redo: then its undo is turned off
+    /// while the key goes through, so that the shortcut reaches the window and undoes or redoes in the panel.
+    /// </summary>
+    private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Handled || e.Source is not TextBox { IsUndoEnabled: true, CanUndo: false, CanRedo: false } textBox)
+            return;
+        if (!IsGestureOf(EditCommandKind.Undo, e) && !IsGestureOf(EditCommandKind.Redo, e))
+            return;
+
+        // Its history is empty: turning its undo off loses nothing
+        textBox.SetCurrentValue(TextBox.IsUndoEnabledProperty, false);
+        shortcutPassedOn = textBox;
+    }
+
+    private void OnKeyDownRouted(object? sender, KeyEventArgs e)
+    {
+        if (shortcutPassedOn is not { } textBox)
+            return;
+
+        shortcutPassedOn = null;
+        textBox.SetCurrentValue(TextBox.IsUndoEnabledProperty, true);
+    }
+
+    private static bool IsGestureOf(EditCommandKind kind, KeyEventArgs e) => EditCommands.GesturesOf(kind).Any(gesture => gesture.Matches(e));
 
     private void OnGotFocus(object? sender, FocusChangedEventArgs e)
     {
@@ -221,7 +253,9 @@ public sealed class EditCommandRouter : IDisposable
     }
 
     /// <summary>
-    /// A text box keeps the commands it handles itself: it undoes, cuts, copies, pastes and deletes its own text.
+    /// A text box keeps the commands it handles itself: it undoes, cuts, copies, pastes and deletes its own text. It keeps Undo
+    /// and Redo only while it has typing to undo or redo: otherwise they go on to the panel, so that Undo in a field whose edit
+    /// was written undoes that edit.
     /// </summary>
     private sealed class TextBoxEditCommandHandler : IEditCommandHandler
     {
@@ -232,7 +266,15 @@ public sealed class EditCommandRouter : IDisposable
             this.textBox = textBox;
         }
 
-        public bool Handles(EditCommandKind kind) => kind != EditCommandKind.Rename;
+        public bool Handles(EditCommandKind kind)
+        {
+            return kind switch
+            {
+                EditCommandKind.Rename => false,
+                EditCommandKind.Undo or EditCommandKind.Redo => textBox.CanUndo || textBox.CanRedo,
+                _ => true,
+            };
+        }
 
         public bool CanExecute(EditCommandKind kind)
         {
