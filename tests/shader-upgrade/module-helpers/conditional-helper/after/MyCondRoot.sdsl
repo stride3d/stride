@@ -1,0 +1,4 @@
+shader MyCondRoot
+{
+    compose MyCondSlot Slot;
+};

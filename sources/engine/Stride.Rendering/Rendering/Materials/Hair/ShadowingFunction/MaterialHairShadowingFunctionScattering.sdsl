@@ -3,8 +3,10 @@
 
 namespace Stride.Rendering.Materials
 {
-    class MaterialHairShadowingFunctionScattering<LinkType TExtinctionStrength> : IMaterialHairShadowingFunction, ShadowStream
+    shader MaterialHairShadowingFunctionScattering<LinkType TExtinctionStrength> : IMaterialHairShadowingFunction
     {
+        import ShadowStream;
+
         cbuffer PerMaterial
         {
             [Link("TExtinctionStrength")]

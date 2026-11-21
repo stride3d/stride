@@ -2,11 +2,11 @@
 
 namespace Stride.Shaders.Tests;
 
-shader ExternalClass
+module ExternalClass
 {
     cbuffer PerView
     {
-        module float Eye;
+        float Eye;
     };
 }
 

@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Voxels.Debug
 {
-    shader VoxelVisualizationViewShader : ImageEffectShader
+    shader VoxelVisualizationViewShader
     {
+        import ImageEffectShader;
+
         compose VoxelMarchMethod marcher;
 
         float4 background;

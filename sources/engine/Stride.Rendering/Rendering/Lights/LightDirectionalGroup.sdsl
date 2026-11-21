@@ -5,8 +5,10 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a group of directional lights
     /// </summary>
-    shader LightDirectionalGroup<int TMaxLightCount> : DirectLightGroupPerView, LightDirectional
+    shader LightDirectionalGroup<int TMaxLightCount> : DirectLightGroupPerView
     {
+        import LightDirectional;
+
         cbuffer PerView.Lighting
         {
             DirectionalLightData Lights[TMaxLightCount];

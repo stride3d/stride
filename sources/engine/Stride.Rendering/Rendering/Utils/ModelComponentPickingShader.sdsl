@@ -5,8 +5,10 @@ namespace Stride.Rendering.Utils
     /// <summary>
     /// A shader used to output the id of the model component, mesh and material for a particular RenderMesh
     /// </summary>
-    shader ModelComponentPickingShader : ShaderBase
+    shader ModelComponentPickingShader
     {
+        import ShaderBase;
+
         [Color]
         module float4 ModelComponentId;
 

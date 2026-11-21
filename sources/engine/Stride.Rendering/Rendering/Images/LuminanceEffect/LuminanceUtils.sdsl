@@ -6,7 +6,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A utility shader for luminance.
     /// </summary>
-    shader LuminanceUtils
+    module LuminanceUtils
     {
         /// <summary>
         /// Calculate the perceptive luminance (601Y')

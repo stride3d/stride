@@ -6,8 +6,10 @@ namespace Stride.Graphics.Tests
     /// <summary>
     /// Fills the triangle with a color read from a per-instance vertex stream.
     /// </summary>
-    shader InstancedDrawTestShader : ShaderBase
+    shader InstancedDrawTestShader
     {
+        import ShaderBase;
+
         module stream float2 Position : POSITION;
         module stream float4 InstanceColor : COLOR;
 

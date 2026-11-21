@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Constantlty outputs the depth of a given point in the image. 
     /// </summary>
-    shader PointDepth: ImageEffectShader
+    shader PointDepth
     {
+        import ImageEffectShader;
+
         float2 Coordinate;
 
         module override float4 Shading()

@@ -7,8 +7,10 @@ namespace Stride.Graphics.Tests
     /// Increments each element of a read-write structured buffer, last element first: the first thread groups read
     /// what the last thread groups of a previous dispatch wrote.
     /// </summary>
-    internal shader UnorderedAccessReverseIncrementTestShader : ComputeShaderBase
+    internal shader UnorderedAccessReverseIncrementTestShader
     {
+        import ComputeShaderBase;
+
         module RWStructuredBuffer<uint> Data;
         module uint Count;
 

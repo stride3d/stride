@@ -8,8 +8,9 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Combines the different blur levels depending on the pixel's CoC. (Front area only.)
     /// </summary>
-    shader CombineFrontCoCShader<int TLevelCount> : ImageEffectShader
+    shader CombineFrontCoCShader<int TLevelCount>
     {
+        import ImageEffectShader;
 
         module override float4 Shading()
         {

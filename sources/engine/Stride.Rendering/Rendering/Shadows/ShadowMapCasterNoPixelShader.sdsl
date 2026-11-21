@@ -5,8 +5,12 @@ namespace Stride.Rendering.Shadows
     /// <summary>
     /// Shadow map caster without pixel shader color outputs (only depth).
     /// </summary>
-    shader ShadowMapCasterNoPixelShader : Transformation, ShaderBase, PositionStream
+    shader ShadowMapCasterNoPixelShader
     {
+        import Transformation;
+        import ShaderBase;
+        import PositionStream;
+
         override module void PSMain()
         {
             // no code = null pixel shader, as we are outputing depth only

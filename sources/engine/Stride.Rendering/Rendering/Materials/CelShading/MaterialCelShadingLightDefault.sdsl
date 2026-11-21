@@ -3,7 +3,7 @@
 
 namespace Stride.Rendering.Materials
 {
-    class MaterialCelShadingLightDefault<bool IsBlackAndWhite> : IMaterialCelShadingLightFunction
+    shader MaterialCelShadingLightDefault<bool IsBlackAndWhite> : IMaterialCelShadingLightFunction
     {
         override float3 Compute(float lightIn)
         {

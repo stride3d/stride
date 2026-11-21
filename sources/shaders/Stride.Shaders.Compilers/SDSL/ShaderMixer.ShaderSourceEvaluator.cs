@@ -85,7 +85,7 @@ public partial class ShaderMixer
 
     /// <summary>
     /// Whether a class has a module part: <c>module</c> members (variables, streams, compositions, methods) or struct types,
-    /// or it is a module (static references only) as a whole.
+    /// or it is a module (<c>module X</c>) as a whole.
     /// </summary>
     private static bool HasModulePart(ShaderClassInstantiation shaderClass)
     {

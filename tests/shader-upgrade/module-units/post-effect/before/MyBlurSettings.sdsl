@@ -1,0 +1,6 @@
+// Settings shared by the blur passes, inherited to see them
+shader MyBlurSettings
+{
+    stage float BlurRadius;
+    stage float2 Direction;
+};

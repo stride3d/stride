@@ -3,7 +3,7 @@
 /// <summary>
 /// Various helper functions to perform blending.
 /// </summary>
-shader BlendUtils
+module BlendUtils
 {
     // Performs an overlay operation between the two colors.
     float4 Overlay(float4 col1, float4 col2)

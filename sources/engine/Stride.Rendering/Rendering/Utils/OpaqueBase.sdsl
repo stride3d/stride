@@ -4,8 +4,10 @@
 /// Defines a texture for the output of the opaque render pass
 /// and a helper function to extract the color of it.
 /// </summary>
-shader OpaqueBase : Texturing
+shader OpaqueBase
 {
+    import Texturing;
+
     // -------------------------------------
     // Resources
     // -------------------------------------

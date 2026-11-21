@@ -4,8 +4,10 @@
 //  In addition to ComputeColor this shader also inherits Texturing so it can use texture coordinates
 //  ColorCenter and ColorEdge are design time permutations and appear in the shader dictionary when you choose ComputeColorRadial from the proeprty grid
 
-shader ComputeColorRadial<float4 ColorCenter, float4 ColorEdge> : ComputeColor, Texturing
+shader ComputeColorRadial<float4 ColorCenter, float4 ColorEdge> : ComputeColor
 {
+    import Texturing;
+
     override float4 Compute()
     {
         float radialDistance = length(streams.TexCoord - float2(0.5, 0.5)) * 2;

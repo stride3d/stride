@@ -6,8 +6,10 @@ namespace Stride.Rendering.Skyboxes
     /// <summary>
     /// Sample a cubemap using the MaterialPixelShadingStream roughness parameter.
     /// </summary>
-    shader LevelCubeMapEnvironmentColor : IComputeEnvironmentColor, Texturing
+    shader LevelCubeMapEnvironmentColor : IComputeEnvironmentColor
     {
+        import Texturing;
+
         TextureCube CubeMap;
         float MipLevel;
 

@@ -3,8 +3,8 @@
 /// <summary>
 /// Defines a color stream.
 /// </summary>
-shader ColorBase
+module ColorBase
 {
     // A color attribute
-    module stream float4 Color : COLOR;
+    stream float4 Color : COLOR;
 };

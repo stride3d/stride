@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-shader ParticleUtilities
+module ParticleUtilities
 {
 
     // -------------------------------------
@@ -12,17 +12,17 @@ shader ParticleUtilities
     // Declare the uniforms in the order float4x4 > float4 > float > uint
     cbuffer PerView
     {
-        module float4x4 ViewMatrix;
-        module float4x4 ProjectionMatrix;
-        module float4x4 ViewProjectionMatrix;
+        float4x4 ViewMatrix;
+        float4x4 ProjectionMatrix;
+        float4x4 ViewProjectionMatrix;
 
         // .x - Width, .y - Height, .z - Near, .w - Far
-        module float4   ViewFrustum;
+        float4   ViewFrustum;
 
-        module float4 Viewport;
+        float4 Viewport;
     }
 
-    module float GetLinearDepth(float z)
+    float GetLinearDepth(float z)
     {
     	float fastA = -ProjectionMatrix._33;    // = zFar / (zFar - zNear);
 	    float fastB = ProjectionMatrix._43;     // = (-zFar * zNear) / (zFar - zNear);

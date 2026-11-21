@@ -129,7 +129,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
             }
         }
         // Only emit immutable sampler state when the declaration has explicit parameters.
-        // Samplers without inline state (e.g. "stage SamplerState Sampler;") are dynamic
+        // Samplers without inline state (e.g. "module SamplerState Sampler;") are dynamic
         // and set at runtime via Parameters.Set().
         if (Parameters.Count > 0)
         {
@@ -725,8 +725,6 @@ public partial class ShaderMethod(
                 parentSymbol = parentSymbol.GroupMembers.Last(x => x.IdRef != function.Id && (FunctionType)x.Type == function.FunctionType);
 
             parentSymbol = ShaderDefinition.ImportSymbol(table, context, parentSymbol);
-            if (parentSymbol.OwnerType != null)
-                ShaderClass.MakeModuleAMixin(table, context, parentSymbol.OwnerType);
             functionInfo.Parent = parentSymbol.IdRef;
             functionInfo.Flags |= Specification.FunctionFlagsMask.Override;
         }

@@ -8,9 +8,10 @@ namespace Stride.Rendering.Images
     /// A blur with uniform weights applied along one direction. (depth-aware blur to avoid artifacts)
     /// </summary>
 
-    shader DepthAwareDirectionalBlurShader<int TWeightNumber, int TTapNumber> 
-        :  DepthAwareDirectionalBlurUtil<TWeightNumber, TTapNumber>, ImageEffectShader
+    shader DepthAwareDirectionalBlurShader<int TWeightNumber, int TTapNumber> : DepthAwareDirectionalBlurUtil<TWeightNumber, TTapNumber>
     {
+        import ImageEffectShader;
+
         module override float4 Shading()
         {
             return Compute();

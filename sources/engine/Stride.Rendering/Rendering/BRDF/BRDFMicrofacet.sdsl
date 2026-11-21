@@ -6,8 +6,10 @@ namespace Stride.Rendering.BRDF
     /// Utility shader for calculating the various variations of the functions 
     /// (Fresnel, NDF and Visibility) involved in a Microfacet shading model.
     /// </summary>
-    shader BRDFMicrofacet : Math
+    module BRDFMicrofacet
     {
+        import Math;
+
         // References:
         // http://graphicrants.blogspot.jp/2013/08/specular-brdf-reference.html
         // TODO: Add reference to original papers here

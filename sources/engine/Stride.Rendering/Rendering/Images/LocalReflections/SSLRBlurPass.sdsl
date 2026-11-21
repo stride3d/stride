@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
 	/// Screen Space Local Reflections shader for Blur Pass
     /// </summary>
-    shader SSLRBlurPass : ImageEffectShader
+    shader SSLRBlurPass
     {			
+		import ImageEffectShader;
+
 		// Options:
 		// 3 - 5-tap blur
 		// 5 - 9-tap blur

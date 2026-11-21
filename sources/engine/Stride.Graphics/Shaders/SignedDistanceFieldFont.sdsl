@@ -1,8 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-shader SignedDistanceFieldFont : Texturing
+module SignedDistanceFieldFont
 {
+    import Texturing;
 
     // Gets the median of 3 values
     float median(float r, float g, float b)
@@ -11,7 +12,7 @@ shader SignedDistanceFieldFont : Texturing
     }
 
     // Retrieves the pixel's color sampled from a signed distance field font texture, with font color, border and shadows
-    module float4 FontColor(float4 sampledColor, float4 textColor, float4 borderColor, float borderThickness)
+    float4 FontColor(float4 sampledColor, float4 textColor, float4 borderColor, float borderThickness)
     {
         // -0.5 to +0.5 is the maximum distance msdfgen can produce, but it's blurry so cap the border at 0.25
         borderThickness = clamp(borderThickness, 0, 0.2);

@@ -1,5 +1,10 @@
-﻿shader SinglePassWireframeShader : ShaderBase, Transformation, Texturing, PositionStream4
+﻿shader SinglePassWireframeShader
 {
+    import ShaderBase;
+    import Transformation;
+    import Texturing;
+    import PositionStream4;
+
     noperspective module stream float4 EdgeA;
     noperspective module stream float4 EdgeB;
     module stream float3 Normal : NORMAL;

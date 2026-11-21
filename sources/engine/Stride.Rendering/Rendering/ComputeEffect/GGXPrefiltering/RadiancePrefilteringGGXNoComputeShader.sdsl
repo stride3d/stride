@@ -6,8 +6,11 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Shader performing radiance GGX pre-filtering
     /// </summary>
-    shader RadiancePrefilteringGGXNoComputeShader<int TNbOfSamples> : Math, ImageEffectShader
+    shader RadiancePrefilteringGGXNoComputeShader<int TNbOfSamples>
     {            
+        import Math;
+        import ImageEffectShader;
+
         // the input texture containing the radiance
         int RadianceMapSize;
 

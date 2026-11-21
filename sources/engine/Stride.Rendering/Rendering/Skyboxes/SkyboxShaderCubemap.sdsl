@@ -3,8 +3,10 @@
 
 namespace Stride.Rendering.Skyboxes
 {
-    shader SkyboxShaderCubemap : SkyboxShaderBase
+    shader SkyboxShaderCubemap
     {
+        import SkyboxShaderBase;
+
         module TextureCube CubeMap;
 
         override module float4 Shading()

@@ -5,10 +5,11 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Material glossiness map (for a metal flakes layer)
     /// </summary>
-    shader MaterialSurfaceGlossinessMapMetalFlakes<bool TInvert> : MaterialSurfaceGlossinessMap<TInvert>,
-                                                                   Transformation,
-                                                                   PositionStream4
+    shader MaterialSurfaceGlossinessMapMetalFlakes<bool TInvert> : MaterialSurfaceGlossinessMap<TInvert>
     {
+        import Transformation;
+        import PositionStream4;
+
         compose ComputeColor surfaceToEyeDistanceFactor;
 
         override void Compute()

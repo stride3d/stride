@@ -6,7 +6,7 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines common function for direct lights
     /// </summary>
-    shader LightUtil
+    module LightUtil
     {
         // Code from "Moving Frostbite to Physically Based Rendering"  Rousiers, Charles De Lagarde, Sébastien p32
         float SmoothDistanceAttenuation(float squaredDistance, float lightInvSquareRadius) 

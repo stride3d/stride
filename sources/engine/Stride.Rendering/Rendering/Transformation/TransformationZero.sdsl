@@ -3,8 +3,11 @@
 /// <summary>
 /// Resets the position to the origin.
 /// </summary>
-shader TransformationZero : TransformationBase, PositionStream4
+shader TransformationZero
 {
+    import TransformationBase;
+    import PositionStream4;
+
     module override void BaseTransformVS()
     {
         streams.Position = float4(0.0f, 0.0f, 0.0f, 1.0f);

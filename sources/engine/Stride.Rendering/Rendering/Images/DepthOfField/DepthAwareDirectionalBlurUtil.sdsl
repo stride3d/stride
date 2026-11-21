@@ -13,8 +13,10 @@ namespace Stride.Rendering.Images
     /// <typeparam name="TWeightCount">The number of weights along a direction.</typeparam>
     /// <typeparam name="TTotalNumber">Total number of tpas. The value is always 2 * TWeightCount - 1.</typeparam>
 
-    shader DepthAwareDirectionalBlurUtil<int TWeightCount, int TTotalNumber> : Texturing, ComputeColor
+    shader DepthAwareDirectionalBlurUtil<int TWeightCount, int TTotalNumber> : ComputeColor
     {
+        import Texturing;
+
         // Direction to apply the blur. (normalized vector)
         float2 Direction;
 

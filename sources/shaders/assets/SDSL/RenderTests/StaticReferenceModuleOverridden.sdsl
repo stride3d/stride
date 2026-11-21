@@ -2,7 +2,7 @@
 
 namespace Stride.Shaders.Tests;
 
-shader StaticReferenceModuleOverriddenHelper
+module StaticReferenceModuleOverriddenHelper
 {
     float Value()
     {
@@ -10,7 +10,7 @@ shader StaticReferenceModuleOverriddenHelper
     }
 }
 
-shader StaticReferenceModuleOverriddenUser
+module StaticReferenceModuleOverriddenUser
 {
     float Get()
     {
@@ -18,10 +18,12 @@ shader StaticReferenceModuleOverriddenUser
     }
 }
 
-// Overrides a method of the helper, which it sees through the static reference of its parent: the helper is then a mixin,
-// and the static call selects the override, as with any inherited method
-shader StaticReferenceModuleOverridden : StaticReferenceModuleOverriddenUser
+// Overrides a function of the helper, which it sees through the static reference of an imported module: the static call
+// selects the override, as a call to an inherited method does
+shader StaticReferenceModuleOverridden
 {
+    import StaticReferenceModuleOverriddenUser;
+
     stream float4 ColorTarget : SV_Target0;
     stream float4 Position : POSITION;
     stream float4 ShadingPosition : SV_Position;

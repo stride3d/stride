@@ -1,0 +1,10 @@
+// Uses a shader it doesn't inherit through a static reference: an error
+namespace Stride.Shaders.Tests;
+
+shader ModuleStaticReferenceToShader
+{
+    float Read()
+    {
+        return ModuleShaderTarget.Get();
+    }
+};

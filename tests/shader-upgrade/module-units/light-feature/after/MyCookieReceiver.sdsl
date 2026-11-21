@@ -1,0 +1,10 @@
+// Mixed by C# into the light group's composition node, beside the group: doesn't inherit the compose type
+shader MyCookieReceiver : MyCookieGroup
+{
+    float3 CookieColor;
+
+    override float3 ComputeCookie(float3 positionWS, int lightIndex)
+    {
+        return CookieColor;
+    }
+};

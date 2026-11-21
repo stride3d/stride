@@ -3,8 +3,11 @@
 /// <summary>
 /// Outputs the result of a compute color (useful to perform offline texture creation).
 /// </summary>
-shader FlattenLayers : ShaderBase, PositionStream4
+shader FlattenLayers
 {
+    import ShaderBase;
+    import PositionStream4;
+
     compose ComputeColor outColor;
     
     module override void VSMain()

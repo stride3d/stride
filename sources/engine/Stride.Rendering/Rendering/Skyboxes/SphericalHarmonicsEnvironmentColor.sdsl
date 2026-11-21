@@ -6,8 +6,10 @@ namespace Stride.Rendering.Skyboxes
     /// <summary>
     /// Base shader to sample an environment
     /// </summary>
-    shader SphericalHarmonicsEnvironmentColor<int TOrder> : SphericalHarmonicsUtils<TOrder>, IComputeEnvironmentColor
+    shader SphericalHarmonicsEnvironmentColor<int TOrder> : IComputeEnvironmentColor
     {
+        import SphericalHarmonicsUtils<TOrder>;
+
         cbuffer PerView.Lighting
         {
             [Color]

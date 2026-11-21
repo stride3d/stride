@@ -5,8 +5,10 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Interface for a microfacet IBL environment (DFG) function
     /// </summary>
-    shader IMaterialSpecularMicrofacetEnvironmentFunction : MaterialPixelShadingStream, BRDFMicrofacet
+    shader IMaterialSpecularMicrofacetEnvironmentFunction : MaterialPixelShadingStream
     {
+        import BRDFMicrofacet;
+
         float3 Compute(float3 specularColor, float alphaR, float nDotV)
         {
             return 0;

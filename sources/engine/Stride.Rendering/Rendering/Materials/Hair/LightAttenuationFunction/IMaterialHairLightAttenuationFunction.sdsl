@@ -3,7 +3,7 @@
 
 namespace Stride.Rendering.Materials
 {
-    class IMaterialHairLightAttenuationFunction
+    shader IMaterialHairLightAttenuationFunction
     {
         abstract float Compute(void);
     };

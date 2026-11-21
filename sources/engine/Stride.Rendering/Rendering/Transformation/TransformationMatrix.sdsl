@@ -6,8 +6,11 @@
 /// <remarks>
 /// TRANSFORMATION_MATRIX: generic float4x4 - The transformation matrix.
 /// </remarks>
-shader TransformationMatrix<MemberName TRANSFORMATION_MATRIX> : TransformationBase, PositionStream4, PositionHStream4
+shader TransformationMatrix<MemberName TRANSFORMATION_MATRIX> : PositionHStream4
 {
+    import TransformationBase;
+    import PositionStream4;
+
     module override void PostTransformPosition()
     {
         base.PostTransformPosition();

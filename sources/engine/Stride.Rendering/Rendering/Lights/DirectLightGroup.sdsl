@@ -5,14 +5,14 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a group of similar lights (directional, spot...etc.)
     /// </summary>
-    shader DirectLightGroup :
-        LightStream,
-        ShadowGroup,    // Required for "ComputeShadow()".
-        TextureProjectionGroup,    // Required for "ComputeTextureProjection()".
+    shader DirectLightGroup : ShadowGroup, // Required for "ComputeShadow()".
+        TextureProjectionGroup, // Required for "ComputeTextureProjection()".
         NormalStream, // Required for "streams.normalWS".
         PositionStream4, // Required for "streams.PositionWS".
         MaterialPixelStream // Required for "streams.viewWS"
     {
+        import LightStream;
+
         int GetMaxLightCount()
         {
             return 0;

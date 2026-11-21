@@ -7,11 +7,13 @@
 /// PDX_USE_FLOAT_INPUT: Macro - Switch between float2 of float4 position attribute.
 /// </remarks>
 #ifdef PDX_USE_FLOAT2_INPUT_INPUT
-shader PositionStream : PositionStream2
+module PositionStream
 {
+    import PositionStream2;
 };
 #else
-shader PositionStream : PositionStream4
+module PositionStream
 {
+    import PositionStream4;
 };
 #endif

@@ -10,25 +10,29 @@
 # define SkinningMaxBones 4
 #endif
 
-shader TransformationSkinning : TransformationBase, PositionStream4, Transformation
+module TransformationSkinning
 {
+    import TransformationBase;
+    import PositionStream4;
+    import Transformation;
+
     cbuffer PerDraw
     {
         // TODO switch to float4x3 in a way compatible with ES 2.0
-        module float4x4 BlendMatrixArray[SkinningMaxBones];
+        float4x4 BlendMatrixArray[SkinningMaxBones];
     }
 
-    module stream float4 BlendWeights : BLENDWEIGHT;
-    module stream uint4 BlendIndices : BLENDINDICES;
+    stream float4 BlendWeights : BLENDWEIGHT;
+    stream uint4 BlendIndices : BLENDINDICES;
 
-    module stream float4x4 skinningBlendMatrix;
+    stream float4x4 skinningBlendMatrix;
 
     float4x4 GetBlendMatrix(int index)
     {
         return BlendMatrixArray[index];
     }
 
-    override module void PreTransformPosition()
+    override void PreTransformPosition()
     {
         base.PreTransformPosition();
 

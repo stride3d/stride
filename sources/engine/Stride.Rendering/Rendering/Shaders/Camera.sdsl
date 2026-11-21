@@ -1,19 +1,19 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-shader Camera
+module Camera
 {
     cbuffer PerView {
         // Camera Z NearClipPlane value.
-        module float NearClipPlane = 1.0f;
+        float NearClipPlane = 1.0f;
         // Camera Z FarClipPlane value.
-        module float FarClipPlane = 100.0f;
+        float FarClipPlane = 100.0f;
         // Z Retro projection factor used retro project a non-linear 1/z depth in the range [0.0 - 1.0] to a linear-depth in view space.
         // Remarks: ZInViewSpace = ZProjection.y / (depth - ZProjection.x)
-        module float2 ZProjection;
+        float2 ZProjection;
 
         // Camera View size
-        module float2 ViewSize;
+        float2 ViewSize;
         // Camera aspect ratio.
-        module float AspectRatio;
+        float AspectRatio;
     };
 };

@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A tonemap shader
     /// </summary>
-    internal shader ToneMapShader<bool TAutoKeyValue, bool TAutoExposure, bool TUseLocalLuminance> : ColorTransformShader, Texturing
+    internal shader ToneMapShader<bool TAutoKeyValue, bool TAutoExposure, bool TUseLocalLuminance> : ColorTransformShader
     {
+        import Texturing;
+
         // Luminance texture
         Texture2D LuminanceTexture;
 

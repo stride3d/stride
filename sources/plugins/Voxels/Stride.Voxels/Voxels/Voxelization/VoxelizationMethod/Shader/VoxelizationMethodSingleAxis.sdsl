@@ -5,8 +5,15 @@ namespace Stride.Rendering.Voxels
     /// <summary>
     /// Voxelization, projects to axis of largest area and writes fragments to buffer
     /// </summary>
-    shader VoxelizationMethodSingleAxis : VoxelizationMethod, Math, Transformation, ShaderBase, NormalStream, PositionStream4, VoxelPositionStream
+    shader VoxelizationMethodSingleAxis : VoxelizationMethod
     {
+        import Math;
+        import Transformation;
+        import ShaderBase;
+        import NormalStream;
+        import PositionStream4;
+        import VoxelPositionStream;
+
         centroid stream float3 centroidPositionWS;
         override void PrepareFragment()
         {

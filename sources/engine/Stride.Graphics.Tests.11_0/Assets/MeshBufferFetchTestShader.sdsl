@@ -7,8 +7,10 @@ namespace Stride.Graphics.Tests
     /// Fetches vertex positions through an index buffer, both read as raw buffers.
     /// Thread n writes (position, index) of the vertex that index n points to.
     /// </summary>
-    internal shader MeshBufferFetchTestShader : ComputeShaderBase
+    internal shader MeshBufferFetchTestShader
     {
+        import ComputeShaderBase;
+
         module ByteAddressBuffer Vertices;
         module ByteAddressBuffer Indices;
         module RWStructuredBuffer<float4> Output;

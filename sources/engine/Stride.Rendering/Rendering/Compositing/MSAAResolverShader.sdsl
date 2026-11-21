@@ -6,8 +6,11 @@ namespace Stride.Rendering.Compositing
 	/// <summary>
     /// A MSAA textures resolver shader
     /// </summary>
-    internal shader MSAAResolverShader<int MSAASamples, int ResolveFilterType, float ResolveFilterDiameter> : ImageEffectShader, Math
+    internal shader MSAAResolverShader<int MSAASamples, int ResolveFilterType, float ResolveFilterDiameter>
     {
+        import ImageEffectShader;
+        import Math;
+
         // Reference: https://github.com/TheRealMJP/MSAAFilter
 
         module float4 SvPosUnpack;

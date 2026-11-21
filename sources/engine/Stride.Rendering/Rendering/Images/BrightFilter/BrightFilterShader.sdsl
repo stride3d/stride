@@ -10,8 +10,10 @@ namespace Stride.Rendering.Images
     ///   `ThresholdOffset` shifts the point where pixels start contributing.
     ///   `BrightPassSteepness` makes the filter more selective by requiring stronger luminance to reach full contribution.
     /// </summary>
-    internal shader BrightFilterShader : ImageEffectShader
+    internal shader BrightFilterShader
     {
+        import ImageEffectShader;
+
         [Color]
         module float3 ColorModulator;
 

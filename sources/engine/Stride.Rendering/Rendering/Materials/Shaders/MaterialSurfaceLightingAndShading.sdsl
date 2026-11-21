@@ -5,8 +5,15 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Performs the shading of a material according to the lights
     /// </summary>
-    shader MaterialSurfaceLightingAndShading : IMaterialSurfacePixel, DirectLightGroupArray, EnvironmentLightArray, MaterialPixelShadingStream, Math, Transformation, ShaderBaseStream, NormalUpdate
+    shader MaterialSurfaceLightingAndShading : IMaterialSurfacePixel, MaterialPixelShadingStream
     {
+        import DirectLightGroupArray;
+        import EnvironmentLightArray;
+        import Math;
+        import Transformation;
+        import ShaderBaseStream;
+        import NormalUpdate;
+
         compose IMaterialSurfaceShading surfaces[];
 
         override void Compute()

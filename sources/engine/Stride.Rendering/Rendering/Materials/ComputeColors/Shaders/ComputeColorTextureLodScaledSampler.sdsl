@@ -14,11 +14,11 @@ shader ComputeColorTextureLodScaledSampler<LinkType TTextureName,
                                        LinkType TSampler, 
                                        MemberName TRgba, 
                                        float2 TScale,
-								       float TLod> : ComputeColor, 
-                                                        DynamicTexture<TTextureName, PerMaterial>, 
-                                                        DynamicSampler<TSampler, PerMaterial>, 
-                                                        DynamicTextureStream<TStream>
+								       float TLod> : ComputeColor, DynamicTextureStream<TStream>
 {
+    import DynamicTexture<TTextureName, PerMaterial>;
+    import DynamicSampler<TSampler, PerMaterial>;
+
     override float4 Compute() 
     {
         return Texture.SampleLevel(Sampler, streams.TexCoord * TScale, TLod).TRgba;

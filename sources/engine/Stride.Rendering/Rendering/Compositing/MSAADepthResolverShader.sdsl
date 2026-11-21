@@ -6,8 +6,12 @@ namespace Stride.Rendering.Compositing
     /// <summary>
     /// A MSAA depth textures resolver shader
     /// </summary>
-    internal shader MSAADepthResolverShader : ShaderBase, Texturing, Math
+    internal shader MSAADepthResolverShader
     {
+        import ShaderBase;
+        import Texturing;
+        import Math;
+
         module stream float4 Position : POSITION;
 
         module float4 SvPosUnpack;

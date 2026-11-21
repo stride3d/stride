@@ -5,21 +5,21 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines light streams variable.
     /// </summary>
-    shader LightStream
+    module LightStream
     {
-        module stream float3 lightPositionWS;
-        module stream float3 lightDirectionWS;
-        module stream float3 lightColor;
-        module stream float3 lightColorNdotL;
-        module stream float3 lightSpecularColorNdotL;
-        module stream float lightAttenuation;
-        module stream float3 envLightDiffuseColor;
-        module stream float3 envLightSpecularColor;
+        stream float3 lightPositionWS;
+        stream float3 lightDirectionWS;
+        stream float3 lightColor;
+        stream float3 lightColorNdotL;
+        stream float3 lightSpecularColorNdotL;
+        stream float lightAttenuation;
+        stream float3 envLightDiffuseColor;
+        stream float3 envLightSpecularColor;
 
         // normal dot light
-        module stream float NdotL;
+        stream float NdotL;
 
-        module stream float lightDirectAmbientOcclusion;
+        stream float lightDirectAmbientOcclusion;
 
         void ResetLightStream()
         {

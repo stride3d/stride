@@ -5,8 +5,10 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a white environment light
     /// </summary>
-    shader LightConstantWhite : EnvironmentLight, LightStream
+    shader LightConstantWhite : EnvironmentLight
     {
+        import LightStream;
+
         override void PrepareEnvironmentLight()
         {
             base.PrepareEnvironmentLight();

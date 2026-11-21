@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A shader performing Lambertian pre-filtering.
     /// </summary>
-    internal shader SphericalHarmonicsUtils<int TOrder> : Math
+    internal module SphericalHarmonicsUtils<int TOrder>
     {    
+        import Math;
+
         static const int CoefficientsCount = TOrder * TOrder;
 
         float4 EvaluateSphericalHarmonics(float3 sphericalColors[TOrder * TOrder], float3 direction)

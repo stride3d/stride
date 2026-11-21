@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A log luminance shader (by default using luma/Perceptive luminance Y'601)
     /// </summary>
-    shader LuminanceLogShader : ImageEffectShader
+    shader LuminanceLogShader
     {
+        import ImageEffectShader;
+
         float GetLuminance(float3 color)
         {
             return LuminanceUtils.Luma(color);

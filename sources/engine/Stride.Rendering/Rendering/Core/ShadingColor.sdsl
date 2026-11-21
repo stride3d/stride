@@ -3,8 +3,10 @@
 /// <summary>
 /// Class outputing color from a single ComputeColor and overriding any previous color computations.
 /// </summary>
-shader ShadingColor : ShaderBase
+shader ShadingColor
 {
+    import ShaderBase;
+
     compose ComputeColor Color;
 
     override void PSMain()

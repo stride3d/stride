@@ -3,8 +3,11 @@
 
 namespace Stride.Rendering.Skyboxes
 {
-    shader SkyboxShaderTexture : SkyboxShaderBase, Math
+    shader SkyboxShaderTexture
     {
+        import SkyboxShaderBase;
+        import Math;
+
         module Texture2D Texture;
 
         override module float4 Shading()

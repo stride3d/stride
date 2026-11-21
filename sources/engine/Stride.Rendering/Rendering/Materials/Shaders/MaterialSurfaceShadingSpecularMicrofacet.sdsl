@@ -5,8 +5,11 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Performs a Microfacet shading
     /// </summary>
-    shader MaterialSurfaceShadingSpecularMicrofacet : IMaterialSurfaceShading, MaterialPixelShadingStream, Math, BRDFMicrofacet
+    shader MaterialSurfaceShadingSpecularMicrofacet : IMaterialSurfaceShading, MaterialPixelShadingStream
     {
+        import Math;
+        import BRDFMicrofacet;
+
         compose IMaterialSpecularMicrofacetFresnelFunction fresnelFunction;
 
         compose IMaterialSpecularMicrofacetVisibilityFunction geometricShadowingFunction;

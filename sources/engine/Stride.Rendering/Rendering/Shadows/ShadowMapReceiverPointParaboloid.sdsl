@@ -6,8 +6,11 @@ namespace Stride.Rendering.Shadows
     /// <summary>
     /// Selects the shadow map and computes the shadow factor.
     /// </summary>
-    internal shader ShadowMapReceiverPointParaboloid<int TLightCount> : ShadowMapGroup<PerDraw.Lighting>, ShadowMapFilterBase<PerDraw.Lighting>, PositionStream4, ShaderBaseStream
+    internal shader ShadowMapReceiverPointParaboloid<int TLightCount> : ShadowMapGroup<PerDraw.Lighting>, ShadowMapFilterBase<PerDraw.Lighting>
     {
+        import PositionStream4;
+        import ShaderBaseStream;
+
         cbuffer PerDraw.Lighting
         {
             float4x4 View[TLightCount];

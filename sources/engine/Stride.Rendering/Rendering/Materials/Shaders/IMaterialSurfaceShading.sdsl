@@ -5,8 +5,10 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Base interface for a material layer shading.
     /// </summary>
-    shader IMaterialSurfaceShading : MaterialPixelStream, LightStream
+    shader IMaterialSurfaceShading : MaterialPixelStream
     {
+        import LightStream;
+
         void PrepareForLightingAndShading()
         {
         }

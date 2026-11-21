@@ -6,8 +6,12 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Material displacement map
     /// </summary>
-    shader MaterialSurfaceDisplacement<MemberName TPosition, MemberName TNormal, bool TScaleNormal> : IMaterialSurface, MaterialDisplacementStream, PositionStream, NormalStream, Transformation
+    shader MaterialSurfaceDisplacement<MemberName TPosition, MemberName TNormal, bool TScaleNormal> : IMaterialSurface, MaterialDisplacementStream
     {
+        import PositionStream;
+        import NormalStream;
+        import Transformation;
+
         override void Compute()
         {
             float3 scaledNormal = streams.TNormal;

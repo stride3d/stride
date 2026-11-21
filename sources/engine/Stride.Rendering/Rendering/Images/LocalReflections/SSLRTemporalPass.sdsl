@@ -6,8 +6,11 @@ namespace Stride.Rendering.Images
     /// <summary>
 	/// Screen Space Local Reflections shader for Temporal Pass
     /// </summary>
-    shader SSLRTemporalPass : ImageEffectShader, Texturing
+    shader SSLRTemporalPass
     {
+        import ImageEffectShader;
+        import Texturing;
+
         module float TemporalResponse;
         module float TemporalScale;
         module float4x4 IVP; // Current frame inverse view*projection matrix

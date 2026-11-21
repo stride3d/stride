@@ -1,11 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-shader SpriteBase : ShaderBase, Texturing
+module SpriteBase
 {
+    import ShaderBase;
+    import Texturing;
+
     // -------------------------------------
     // streams
     // -------------------------------------
-    module stream float4 Position : POSITION;
+    stream float4 Position : POSITION;
 
     cbuffer PerDraw
     {
@@ -13,24 +16,24 @@ shader SpriteBase : ShaderBase, Texturing
         // uniforms
         // -------------------------------------
         // A general transformation matrix
-        module float4x4 MatrixTransform = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+        float4x4 MatrixTransform = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     }
         
     // -------------------------------------
     // VertexShader
     // -------------------------------------
-    module override void VSMain()
+    override void VSMain()
     {
         streams.ShadingPosition = mul(streams.Position, MatrixTransform);
     }
 
     // Shading of the sprite
-    module override void PSMain()
+    override void PSMain()
     {
         streams.ColorTarget = Shading();
     }
 
-    module float4 Shading()
+    float4 Shading()
     {
         return Texture0.Sample(Sampler, streams.TexCoord);
     }

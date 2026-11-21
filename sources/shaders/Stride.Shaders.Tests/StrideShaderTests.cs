@@ -1454,22 +1454,22 @@ new ShaderMacro("class", "shader"),
 
     static int CountLines(string text, string line) => text.Split('\n').Count(x => x.TrimEnd('\r') == line);
 
-    // A static reference to a shader of functions and constants imports it as a module, not as a mixin
+    // A static reference to a module imports it, not as a mixin
     [Fact]
-    public void StaticReferenceToPureShaderIsAModule()
+    public void StaticReferenceToModuleImportsIt()
     {
         var explanation = ExplainRenderTest("StaticReferenceModule", new());
         Assert.Equal(1, CountLines(explanation, "  module StaticReferenceModuleHelper"));
         Assert.Equal(0, CountLines(explanation, "  mixin StaticReferenceModuleHelper"));
     }
 
-    // A shader used through a static reference, then inherited, is one mixin: the static reference links to it
+    // A module used through a static reference, then imported, is one module: the static reference links to it
     [Fact]
-    public void StaticReferenceThenInheritIsOneMixin()
+    public void StaticReferenceThenImportIsOneModule()
     {
         var explanation = ExplainRenderTest("StaticReferenceThenInherit", new());
-        Assert.Equal(1, CountLines(explanation, "  mixin StaticReferenceThenInheritHelper"));
-        Assert.Equal(0, CountLines(explanation, "  module StaticReferenceThenInheritHelper"));
+        Assert.Equal(1, CountLines(explanation, "  module StaticReferenceThenInheritHelper"));
+        Assert.Equal(0, CountLines(explanation, "  mixin StaticReferenceThenInheritHelper"));
     }
 
     // Static references from two compositions import one module at the root, not one copy per composition
@@ -1483,13 +1483,15 @@ new ShaderMacro("class", "shader"),
         Assert.Equal(0, CountLines(explanation, "  mixin StaticReferenceInCompositionHelper"));
     }
 
-    // A shader that overrides a method of a module seen through its parent's static reference mixes that module in
+    // A shader can override a module function seen through a static reference: the module stays a module, and the static call
+    // takes the override chain
     [Fact]
-    public void OverriddenModuleIsMixedIn()
+    public void OverriddenModuleFunctionStaysInTheModule()
     {
         var explanation = ExplainRenderTest("StaticReferenceModuleOverridden", new());
-        Assert.Equal(1, CountLines(explanation, "  mixin StaticReferenceModuleOverriddenHelper"));
-        Assert.Equal(0, CountLines(explanation, "  module StaticReferenceModuleOverriddenHelper"));
+        Assert.Equal(1, CountLines(explanation, "  module StaticReferenceModuleOverriddenHelper"));
+        Assert.Equal(0, CountLines(explanation, "  mixin StaticReferenceModuleOverriddenHelper"));
+        Assert.True(explanation.Contains("StaticReferenceModuleOverriddenHelper > StaticReferenceModuleOverridden"), explanation);
     }
 
     // A module override of a shader in two composition slots is one companion module in the root
@@ -1595,16 +1597,61 @@ new ShaderMacro("class", "shader"),
             string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
     }
 
-    // A shader with an override can't be a module: a static reference mixes it in as before, and says why
-    [Fact]
-    public void StaticReferenceToShaderWithOverrideIsMixedIn()
+    // Compiles a CompilerTests shader and returns the messages
+    static (bool Success, string Messages) CompileCompilerTest(string name)
     {
-        var log = new Stride.Core.Diagnostics.LoggerResult();
-        var explanation = ExplainRenderTest("StaticReferenceToMixin", log);
-        Assert.Equal(1, CountLines(explanation, "  mixin StaticReferenceToMixinHelper"));
-        Assert.Equal(0, CountLines(explanation, "  module StaticReferenceToMixinHelper"));
-        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Debug
-            && m.Text.Contains("Static reference to 'StaticReferenceToMixinHelper'") && m.Text.Contains("'StaticReferenceToMixinHelper.Value' is an override"));
+        try
+        {
+            var success = new ShaderLoader("./assets/SDSL/CompilerTests").LoadExternalBuffer(name, [], out _, out _, out _);
+            return (success, "");
+        }
+        catch (InvalidOperationException e)
+        {
+            return (false, e.Message);
+        }
+    }
+
+    // A static reference to a shader the class doesn't inherit is an error: the compiler can't tell a static use from a mixin
+    [Fact]
+    public void StaticReferenceToShaderIsAnError()
+    {
+        var (success, messages) = CompileCompilerTest("ModuleStaticReferenceToShader");
+        Assert.False(success);
+        Assert.Contains("SDSL0197: ModuleShaderTarget is a shader, not a module: inherit it to use its members, or make it a module", messages);
+    }
+
+    // `import` takes a module
+    [Fact]
+    public void ImportOfShaderIsAnError()
+    {
+        var (success, messages) = CompileCompilerTest("ModuleImportsShader");
+        Assert.False(success);
+        Assert.Contains("SDSL0198: ModuleShaderTarget is a shader, not a module: inherit it (`: ModuleShaderTarget`) instead of importing it", messages);
+    }
+
+    // A module has no instance part, so it can't inherit a shader
+    [Fact]
+    public void ModuleInheritingShaderIsAnError()
+    {
+        var (success, messages) = CompileCompilerTest("ModuleInheritsShader");
+        Assert.False(success);
+        Assert.Contains("SDSL0199: module ModuleInheritsShader can't inherit the shader ModuleShaderTarget: a module only imports other modules", messages);
+    }
+
+    // In a module unit every member is a module member, and the class says it is a module
+    [Fact]
+    public void ModuleUnitMembersAreModuleMembers()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        Assert.True(loader.LoadExternalBuffer("ModuleUnit", [], out var buffer, out _, out _));
+        Assert.True(Stride.Shaders.Spirv.Building.SpirvBuilder.IsModule(buffer));
+        foreach (var i in buffer.Buffer)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpVariableSDSL && (Stride.Shaders.Spirv.Core.OpVariableSDSL)i is { StorageClass: not Stride.Shaders.Spirv.Specification.StorageClass.Function } variable)
+                Assert.True(variable.Flags.HasFlag(Stride.Shaders.Spirv.Specification.VariableFlagsMask.Stage));
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpFunctionMetadataSDSL)
+                Assert.True(((Stride.Shaders.Spirv.Core.OpFunctionMetadataSDSL)i).Flags.HasFlag(Stride.Shaders.Spirv.Specification.FunctionFlagsMask.Stage));
+        }
     }
 
     // [loop] and [unroll] must reach OpLoopMerge's loop control; SPIRV-Cross turns them back into HLSL attributes.

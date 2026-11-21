@@ -1,0 +1,8 @@
+// Helpers of a Stride 4.1 game
+class MyOldMath
+{
+    stage float Square(float x)
+    {
+        return x * x;
+    }
+};

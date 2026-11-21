@@ -8,6 +8,10 @@
         {
           "kind": "LiteralString",
           "name": "shaderName"
+        },
+        {
+          "kind": "ShaderFlags",
+          "name": "flags"
         }
       ]
     },
@@ -35,10 +39,6 @@
         {
           "kind": "IdRef",
           "name": "shader"
-        },
-        {
-          "kind": "MixinInheritFlags",
-          "name": "flags"
         }
       ]
     },
@@ -468,7 +468,7 @@
   "operand_kinds": [
     {
       "category": "BitEnum",
-      "kind": "MixinInheritFlags",
+      "kind": "ShaderFlags",
       "enumerants": [
         {
           "enumerant": "None",
@@ -476,7 +476,7 @@
         },
         {
           "enumerant": "Module",
-          "value": "0x0002"
+          "value": "0x0001"
         }
       ]
     },

@@ -5,15 +5,15 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Calculates the diffuse lighting for hair.
     /// </summary>
-    shader MaterialSurfaceShadingDiffuseHair<bool TIsEnergyConservative, int ShadingModel, bool DebugRenderPasses> :
-        IMaterialSurfaceShading, // Required for "ComputeDirectLightContribution()" and the like.
-        MaterialPixelShadingStream,
-        Math,   // Required for "PI".
-        LightStream,    // Required for "streams.lightColor" and "streams.lightDirectionWS". 
-        MaterialHairShared,
-        Transformation, // Required for "WorldInverseTranspose".
+    shader MaterialSurfaceShadingDiffuseHair<bool TIsEnergyConservative, int ShadingModel, bool DebugRenderPasses> : IMaterialSurfaceShading, // Required for "ComputeDirectLightContribution()" and the like.
+        MaterialPixelShadingStream, // Required for "PI".
+        LightStream, // Required for "streams.lightColor" and "streams.lightDirectionWS". 
+        MaterialHairShared, // Required for "WorldInverseTranspose".
         NormalStream // Required for "streams.normalWS", "streams.meshNormal", "streams.meshTangent".
     {
+        import Math;
+        import Transformation;
+
         compose IMaterialHairLightAttenuationFunction hairLightAttenuationFunction;
         compose IMaterialHairDirectionFunction hairDirectionFunction;
         compose IMaterialHairShadowingFunction hairShadowingFunction;

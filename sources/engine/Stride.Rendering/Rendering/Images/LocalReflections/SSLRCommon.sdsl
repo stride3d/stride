@@ -6,27 +6,31 @@ namespace Stride.Rendering.Images
     /// <summary>
 	/// Screen Space Local Reflections shader with common variables and functions
     /// </summary>
-    shader SSLRCommon : ImageEffectShader, Utilities, NormalPack
+    module SSLRCommon
     {	
+		import ImageEffectShader;
+		import Utilities;
+		import NormalPack;
+
 		cbuffer Data
         {
-            module float MaxColorMiplevel;
-            module float TraceSizeMax;
-            module float MaxTraceSamples;
+            float MaxColorMiplevel;
+            float TraceSizeMax;
+            float MaxTraceSamples;
             //stage float Padding0;
 
-            module float RoughnessFade;
-            module float TemporalTime;
-            module float BRDFBias;
-            module float ViewFarPlane;
+            float RoughnessFade;
+            float TemporalTime;
+            float BRDFBias;
+            float ViewFarPlane;
             
-            module float4 ViewInfo;
+            float4 ViewInfo;
 			
-            module float3 CameraPosWS;
-            module float WorldAntiSelfOcclusionBias;
+            float3 CameraPosWS;
+            float WorldAntiSelfOcclusionBias;
 
-            module float4x4 V;
-            module float4x4 IVP;
+            float4x4 V;
+            float4x4 IVP;
         };
 		
 		// Sample raw device depth buffer

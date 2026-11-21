@@ -2,8 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Voxels
 {
-    shader Voxel2x2x2Mipmap : Math, Texturing, ComputeShaderBase
+    shader Voxel2x2x2Mipmap
     {
+        import Math;
+        import Texturing;
+        import ComputeShaderBase;
+
         module float3 ReadOffset;
         module float3 WriteOffset;
         module Texture3D<half4> ReadTex;

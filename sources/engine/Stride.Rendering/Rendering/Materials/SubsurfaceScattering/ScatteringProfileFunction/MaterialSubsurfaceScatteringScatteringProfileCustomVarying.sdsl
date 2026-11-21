@@ -3,7 +3,7 @@
 
 namespace Stride.Rendering.Materials
 {
-    class MaterialSubsurfaceScatteringScatteringProfileCustomVarying : IMaterialSubsurfaceScatteringScatteringProfile
+    shader MaterialSubsurfaceScatteringScatteringProfileCustomVarying : IMaterialSubsurfaceScatteringScatteringProfile
     {
         compose ComputeColor FalloffMap;
         

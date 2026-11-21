@@ -6,8 +6,9 @@
 #ifndef FXAA_QUALITY__PRESET
 #define FXAA_QUALITY__PRESET 15
 #endif
-shader FXAAShader : ImageEffectShader
+shader FXAAShader
 {
+import ImageEffectShader;
 
 /*============================================================================
 

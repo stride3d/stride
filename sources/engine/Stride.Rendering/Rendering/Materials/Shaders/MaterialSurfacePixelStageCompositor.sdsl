@@ -3,8 +3,13 @@
 namespace Stride.Rendering.Materials
 {
     // Temporary code for testing IMaterialSurface
-    shader MaterialSurfacePixelStageCompositor : ShadingBase, Transformation, PositionStream, MaterialPixelShadingStream, DirectLightGroupArray, EnvironmentLightArray
+    shader MaterialSurfacePixelStageCompositor : ShadingBase, MaterialPixelShadingStream
     {
+        import Transformation;
+        import PositionStream;
+        import DirectLightGroupArray;
+        import EnvironmentLightArray;
+
         compose IMaterialSurface materialPixelStage;
         compose IStreamInitializer streamInitializerPixelStage;
 

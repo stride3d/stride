@@ -6,8 +6,9 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Replicates lens flare artifacts around. 
     /// </summary>
-    internal shader FlareReplicate : ImageEffectShader
+    internal shader FlareReplicate
     {
+        import ImageEffectShader;
 
         // Amount of blending
         float Amount;

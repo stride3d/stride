@@ -3,7 +3,7 @@
 /// <summary>
 /// Various helper functions.
 /// </summary>
-shader Utilities
+module Utilities
 {
     // Converts a Half2 to a float2
     float2 UnpackHalf2ToFloat2(uint value) 

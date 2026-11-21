@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Materials
 {
-    shader MaterialHairShared
+    module MaterialHairShared
     {
         static const int HAIR_SHADING_SCHEUERMANN_APPROXIMATION = 0;    // These values must correspond to the ones defined in "MaterialHairShared.cs".
         static const int HAIR_SHADING_SCHEUERMANN_IMPROVED = 1;
@@ -14,7 +14,7 @@ namespace Stride.Rendering.Materials
         
         cbuffer PerMaterial // Changed to "PerMaterial" because otherwise PassID contains garbage, as we don't require nor execute the HairRenderFeature anymore.
         {
-            module int PassID;   // 0 == Opaque, 1 == Transparent back, 2 = Transparent front
+            int PassID;   // 0 == Opaque, 1 == Transparent back, 2 = Transparent front
         }
 
         float3 GetDebugColor(int passID)

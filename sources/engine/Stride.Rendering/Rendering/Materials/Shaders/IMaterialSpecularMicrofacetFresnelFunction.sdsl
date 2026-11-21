@@ -5,8 +5,10 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Interface for a microfacet Fresnel function
     /// </summary>
-    shader IMaterialSpecularMicrofacetFresnelFunction : MaterialPixelShadingStream, BRDFMicrofacet
+    shader IMaterialSpecularMicrofacetFresnelFunction : MaterialPixelShadingStream
     {
+        import BRDFMicrofacet;
+
         // TODO: We could provide f90 as well
         float3 Compute(float3 f0)
         {

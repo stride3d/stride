@@ -5,8 +5,11 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines an environment light (ambient, IBL... etc.)
     /// </summary>
-    shader EnvironmentLight : LightStream, ShadowGroup, NormalStream
+    shader EnvironmentLight : ShadowGroup
     {
+        import LightStream;
+        import NormalStream;
+
         void PrepareEnvironmentLight()
         {
             streams.envLightDiffuseColor = 0;

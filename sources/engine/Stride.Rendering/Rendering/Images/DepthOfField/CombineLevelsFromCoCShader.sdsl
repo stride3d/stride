@@ -17,8 +17,10 @@ namespace Stride.Rendering.Images
     ///
     /// <typeparam name="TLevelCount">Total number of layers used, including the original non-blurred image.</typeparam>
 
-    shader CombineLevelsFromCoCShader<int TLevelCount> : ImageEffectShader
+    shader CombineLevelsFromCoCShader<int TLevelCount>
     {
+        import ImageEffectShader;
+
         // The CoC corresponding to each level of blur
         module float CoCLevelValues[TLevelCount];
 

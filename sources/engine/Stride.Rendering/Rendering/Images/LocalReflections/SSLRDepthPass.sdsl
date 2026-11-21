@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
 	/// Screen Space Local Reflections shader for Depth Pass
     /// </summary>
-    shader SSLRDepthPass : ImageEffectShader
+    shader SSLRDepthPass
     {			
+		import ImageEffectShader;
+
 		override module float4 Shading()
 		{
 			float depth = Texture0.Sample(PointSampler, streams.TexCoord).r;

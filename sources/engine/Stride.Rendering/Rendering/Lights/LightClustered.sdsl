@@ -2,22 +2,26 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Lights
 {
-    shader LightClustered : ScreenPositionBase, ShaderBaseStream, Camera
+    module LightClustered
     {
-        module stream uint2 lightData;
-        module stream int lightIndex;
+        import ScreenPositionBase;
+        import ShaderBaseStream;
+        import Camera;
+
+        stream uint2 lightData;
+        stream int lightIndex;
 
         rgroup PerView.Lighting
         {
-            module Texture3D<uint2> LightClusters;
-            module Buffer<uint> LightIndices;
+            Texture3D<uint2> LightClusters;
+            Buffer<uint> LightIndices;
         }
 
         cbuffer PerView.Lighting
         {
-            module float ClusterDepthScale;
-            module float ClusterDepthBias;
-            module float2 ClusterStride;
+            float ClusterDepthScale;
+            float ClusterDepthBias;
+            float2 ClusterStride;
         }
 
         void PrepareLightData()

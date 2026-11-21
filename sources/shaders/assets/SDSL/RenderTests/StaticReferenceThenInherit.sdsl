@@ -2,7 +2,7 @@
 
 namespace Stride.Shaders.Tests;
 
-shader StaticReferenceThenInheritHelper
+module StaticReferenceThenInheritHelper
 {
     float Twice(float value)
     {
@@ -10,8 +10,8 @@ shader StaticReferenceThenInheritHelper
     }
 }
 
-// Uses the helper through a static reference only
-shader StaticReferenceThenInheritUser
+// Uses the helper through a static reference
+module StaticReferenceThenInheritUser
 {
     float Six()
     {
@@ -19,9 +19,12 @@ shader StaticReferenceThenInheritUser
     }
 }
 
-// Inherits the helper after the user: the helper is one mixin, which the static reference uses too (no second copy)
-shader StaticReferenceThenInherit : StaticReferenceThenInheritUser, StaticReferenceThenInheritHelper
+// Imports the helper after the user: the helper is one module, which the static reference uses too (no second copy)
+shader StaticReferenceThenInherit
 {
+    import StaticReferenceThenInheritUser;
+    import StaticReferenceThenInheritHelper;
+
     stream float4 ColorTarget : SV_Target0;
     stream float4 Position : POSITION;
     stream float4 ShadingPosition : SV_Position;

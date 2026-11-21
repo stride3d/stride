@@ -5,8 +5,11 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Performs a Cel shading
     /// </summary>
-    class MaterialSurfaceShadingDiffuseCelShading<bool TIsEnergyConservative, float FakeNDotL> : IMaterialSurfaceShading, Math, MaterialPixelShadingStream, LightStream, ShadowGroup
+    shader MaterialSurfaceShadingDiffuseCelShading<bool TIsEnergyConservative, float FakeNDotL> : IMaterialSurfaceShading, MaterialPixelShadingStream, ShadowGroup
     {
+        import Math;
+        import LightStream;
+
         compose IMaterialCelShadingLightFunction celLightFunction;
 
         override float3 ComputeDirectLightContribution()

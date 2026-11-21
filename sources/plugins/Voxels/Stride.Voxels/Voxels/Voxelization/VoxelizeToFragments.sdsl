@@ -5,8 +5,16 @@ namespace Stride.Rendering.Voxels
     /// <summary>
     /// Voxelization, projects to axis of largest area and writes fragments to buffer
     /// </summary>
-    shader VoxelizeToFragments : Math, Transformation, ShaderBase, Texturing, NormalStream, PositionStream4, VoxelPositionStream, MaterialPixelStream, MaterialPixelShadingStream
+    shader VoxelizeToFragments : MaterialPixelStream, MaterialPixelShadingStream
     {
+        import Math;
+        import Transformation;
+        import ShaderBase;
+        import Texturing;
+        import NormalStream;
+        import PositionStream4;
+        import VoxelPositionStream;
+
         compose VoxelStorageShader Storage;
         override module void PSMain()
         {

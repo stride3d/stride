@@ -1,0 +1,12 @@
+// A shader (it has an instance member), used by the module error tests
+namespace Stride.Shaders.Tests;
+
+shader ModuleShaderTarget
+{
+    float Value;
+
+    float Get()
+    {
+        return Value;
+    }
+};

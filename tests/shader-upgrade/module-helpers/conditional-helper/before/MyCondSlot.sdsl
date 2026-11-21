@@ -1,0 +1,8 @@
+// The compose type
+shader MyCondSlot
+{
+    float4 Compute()
+    {
+        return 0;
+    }
+};

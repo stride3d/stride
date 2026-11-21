@@ -3,16 +3,19 @@
 /// <summary>
 /// Computes normals in view space.
 /// </summary>
-shader NormalFromMesh : NormalBase, Transformation
+module NormalFromMesh
 {
-    override module void GenerateNormal_VS()
+    import NormalBase;
+    import Transformation;
+
+    override void GenerateNormal_VS()
     {
         // Perform normal generation at the end in case meshNormal is modified
         streams.meshNormalWS = mul(streams.meshNormal, (float3x3)WorldInverseTranspose);    // TODO: PERFORMANCE: Normalization required?
         streams.normalWS = streams.meshNormalWS;
     }
 
-    override module void GenerateNormal_PS()
+    override void GenerateNormal_PS()
     {
         // Normalize just once the normal coming from the vertex shader
         if (dot(streams.normalWS, streams.normalWS) > 0)
@@ -20,7 +23,7 @@ shader NormalFromMesh : NormalBase, Transformation
         streams.meshNormalWS = streams.normalWS;
     }
     
-    module override void UpdateNormalFromTangentSpace(float3 normalInTangentSpace)
+    override void UpdateNormalFromTangentSpace(float3 normalInTangentSpace)
     {
         // Override the default behavior, as we are not changing the NormalVS calculated at vertex stage when normal mapping is not used
     }

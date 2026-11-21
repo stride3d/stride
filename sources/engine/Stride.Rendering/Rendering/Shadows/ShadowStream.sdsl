@@ -4,8 +4,8 @@
 /// <summary>
 /// Defines shadow stream variables.
 /// </summary>
-shader ShadowStream
+module ShadowStream
 {
-    module stream float3 shadowColor;
-    module stream float thicknessWS;
+    stream float3 shadowColor;
+    stream float thicknessWS;
 };

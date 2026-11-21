@@ -1,7 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-shader VoxelAttributeDirectionalCoverageShader : VoxelAttribute, ShaderBaseStream, NormalStream, DataPacking
+shader VoxelAttributeDirectionalCoverageShader : VoxelAttribute
 {
+    import ShaderBaseStream;
+    import NormalStream;
+    import DataPacking;
+
     stream uint Voxel_Coverage;
     stream float3 Voxel_CoverageResolved;
     stream uint coverage : SV_Coverage;
