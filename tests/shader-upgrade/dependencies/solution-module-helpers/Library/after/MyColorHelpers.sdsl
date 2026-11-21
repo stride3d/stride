@@ -1,0 +1,8 @@
+// A library of the solution: helpers only
+module MyColorHelpers
+{
+    float3 Brighten(float3 color)
+    {
+        return saturate(color * 2);
+    }
+};

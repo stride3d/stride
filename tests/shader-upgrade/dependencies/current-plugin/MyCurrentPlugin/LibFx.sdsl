@@ -1,0 +1,7 @@
+shader LibFx : ComputeColor, LibHelpers
+{
+    override float4 Compute()
+    {
+        return float4(Tint(1), 1);
+    }
+};

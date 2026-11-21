@@ -1,0 +1,14 @@
+namespace MyGame.Text
+{
+    // A shader on those effects: root-only through its parent
+    shader MyGlyphShader : MyGlyphEffects
+    {
+        import SpriteBase;
+
+        module override void PSMain()
+        {
+            ApplyEffects();
+            streams.ColorTarget = Shading();
+        }
+    };
+}

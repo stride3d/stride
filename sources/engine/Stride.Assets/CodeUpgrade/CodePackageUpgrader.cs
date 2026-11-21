@@ -101,24 +101,65 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
     }
 
     /// <inheritdoc/>
+    public override bool CheckUpgrade(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
+    {
+        // The shader upgrade reads the shaders of the packages the project uses: without them it would write other files, which no later
+        // upgrade fixes once the references name this version
+        if ((dependentPackage.Container as SolutionProject)?.FullPath is not { } projectFullPath || !ShaderGates(dependency).Any()
+            || ShaderSourceUpgrade.UnreadablePackages(projectFullPath, log) is not { } reason)
+            return true;
+        log.Error($"Unable to upgrade project [{projectFullPath.GetFileNameWithoutExtension()}]: {reason}. Its shader upgrade reads the shaders of its packages, and would write other files without them. Restore the project, then upgrade it again.");
+        return false;
+    }
+
+    // The shader gates a project upgraded from the version of dependency crosses, in the order of their versions; and all of them
+    private IReadOnlyList<ShaderUpgradeRegistration> ShaderGates(PackageDependency dependency, bool all = false)
+    {
+        var registry = new UpgradeRegistry();
+        DeclareUpgrades(registry);
+        return registry.ShaderUpgrades.Where(x => all || UpgradingFromBefore(dependency, x.GateVersion)).OrderBy(x => x.GateVersion.Version).ToList();
+    }
+
+    /// <inheritdoc/>
     public override bool UpgradeAfterRestore(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
     {
         if ((dependentPackage.Container as SolutionProject)?.FullPath is not { } projectFullPath)
             return true;
 
-        var registry = new UpgradeRegistry();
-        DeclareUpgrades(registry);
-
-        // Shader language changes (r.Shader): the shader files of the package, gate by gate in the order of their versions
-        var gates = registry.ShaderUpgrades.Where(x => UpgradingFromBefore(dependency, x.GateVersion)).OrderBy(x => x.GateVersion.Version).ToList();
+        // Shader language changes (r.Shader): the shader files of the package, gate by gate in the order of their versions. What it uses is read,
+        // never changed: the session upgrades a referenced project before the projects that use it, and a library written for an older
+        // version is read at each gate as the gates up to it would write it
+        var gates = ShaderGates(dependency);
         if (gates.Count > 0)
         {
-            var folders = ShaderSourceUpgrade.Folders(projectFullPath, dependentPackage);
-            foreach (var gate in gates)
+            // CheckUpgrade passed before the references moved: only the restore that followed can have broken it
+            var name = projectFullPath.GetFileNameWithoutExtension();
+            if (ShaderSourceUpgrade.UnreadablePackages(projectFullPath, log) is { } reason)
             {
-                if (!ShaderSourceUpgrade.Run(folders, gate.Steps, session.UpgradeBackup, log))
+                log.Error($"Unable to upgrade the shaders of project [{name}]: {reason}. Its references already name this version, so a later upgrade won't do it.");
+                return false;
+            }
+
+            // Every file it uses is read, for every gate, before any of its own is written
+            var folders = ShaderSourceUpgrade.Folders(projectFullPath, dependentPackage);
+            ShaderSourceUpgrade.DependencyReader dependencies;
+            List<IReadOnlyDictionary<string, string>> used;
+            try
+            {
+                dependencies = new ShaderSourceUpgrade.DependencyReader(ShaderSourceUpgrade.Dependencies(projectFullPath, session, log), ShaderGates(dependency, all: true));
+                used = gates.Select(dependencies.Read).ToList();
+            }
+            catch (Exception e)
+            {
+                log.Error($"Unable to read the shaders that project [{name}] uses", e);
+                return false;
+            }
+            foreach (var (gate, gateDependencies) in gates.Zip(used))
+            {
+                if (!ShaderSourceUpgrade.Run(folders, gateDependencies, gate.Steps, session.UpgradeBackup, log))
                     return false;
             }
+            dependencies.WriteNotes(log);
         }
         return true;
     }

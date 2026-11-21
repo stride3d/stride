@@ -1,0 +1,11 @@
+// Written for 4.4, when TransformationBase was a shader inheriting ShaderBase: its stage override reads an instance member, so
+// it relies on being mixed at the root
+shader MyOffsetTransform : TransformationBase, PositionStream4
+{
+    float4 Offset;
+
+    stage override void PreTransformPosition()
+    {
+        streams.Position += Offset;
+    }
+};

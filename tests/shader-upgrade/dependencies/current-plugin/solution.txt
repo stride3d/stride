@@ -1,0 +1,3 @@
+# A plugin for Stride 4.5.5, whose helpers are a shader, and a game made for Stride 4.4.1 that inherits them: the plugin is read as it is
+plugin MyCurrentPlugin 4.5.5
+Game

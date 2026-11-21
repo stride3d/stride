@@ -1,0 +1,10 @@
+// A library, already upgraded: a filter whose Filter method is abstract
+shader MyLibFilter : ComputeColor
+{
+    abstract float4 Filter(float4 color);
+
+    override float4 Compute()
+    {
+        return Filter(1);
+    }
+};

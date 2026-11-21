@@ -1,0 +1,22 @@
+// A composition and a stream declared inside cbuffer / rgroup blocks, which Stride 4.3 compiled as declared after the block
+shader MyShrinkFX : ComputeColor
+{
+    cbuffer PerMaterial
+    {
+        stage float ShrinkScale; // the scale
+        // where it is read
+        stage stream float2 ObjectUV;
+    }
+
+    rgroup PerMaterial
+    {
+        stage Texture2D ShrinkTexture;
+        //stage compose ComputeColor Disabled;
+        stage compose ComputeColor ShrinkStrength;
+    }
+
+    override float4 Compute()
+    {
+        return ShrinkScale * ShrinkStrength.Compute();
+    }
+};

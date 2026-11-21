@@ -1,0 +1,4 @@
+# A plugin for Stride 4.4.1 (a NuGet package, read only) and the game that uses it. The game is upgraded against the plugin as its author's
+# upgrade writes it: PkgHelpers is a module there, and its Shade, which PkgWarm replaces, has a kind once modules have kinds
+plugin MyOldPlugin 4.4.1
+Game

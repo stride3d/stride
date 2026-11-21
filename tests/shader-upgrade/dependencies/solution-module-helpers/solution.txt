@@ -1,0 +1,3 @@
+# A library of the solution, upgraded first, and the game that uses it: each project references the projects and the plugins before it
+Library
+Game

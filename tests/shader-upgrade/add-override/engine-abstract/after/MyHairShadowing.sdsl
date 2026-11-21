@@ -1,0 +1,8 @@
+// Implements an abstract method of an engine class without 'override'
+shader MyHairShadowing : IMaterialHairShadowingFunction
+{
+    override float3 Compute()
+    {
+        return 1;
+    }
+};

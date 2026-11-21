@@ -1,0 +1,8 @@
+// The plugin replaces its own helper: once upgraded, the helper has a kind
+shader PkgWarm : PkgShading
+{
+    stage override float3 Shade(float3 color)
+    {
+        return color * 2;
+    }
+};

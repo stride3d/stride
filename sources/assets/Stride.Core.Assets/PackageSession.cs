@@ -615,10 +615,13 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// </summary>
     public UpgradeBackup? UpgradeBackup { get; private set; }
 
-    // Why the source-code migration pre-pass stops the upgrade of a project before anything is written, by project, or of
-    // every project when it could not tell which
+    // Why the source-code migration pre-pass, or the check of an upgrader before it (PackageUpgrader.CheckUpgrade), stops the upgrade
+    // of a project before anything is written, by project, or of every project when it could not tell which
     private readonly Dictionary<SolutionProject, string> stoppedUpgrades = [];
     private string? stoppedSessionUpgrade;
+
+    // The projects whose source code the pre-pass migrated
+    private readonly HashSet<UFile> codeMigratedProjects = [];
 
     // The packages whose upgrade failed or was stopped, and those whose upgrade the user refused: the projects that reference
     // them are not upgraded
@@ -1307,7 +1310,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 }
             }
 
-            // Source-code migration pre-pass: rewrite user .cs against the old closure before refs are bumped. When source
+            // Source-code migration pre-pass: rewrite user .cs against the old closure before refs are bumped. It leaves out a
+            // project whose upgrader can't do its migration (CheckUpgrade), and the projects that reference it. When source
             // migrations apply, it needs a restored solution, or a standalone project (no .sln). When it can't run, the upgrade
             // of the projects it covers, and of the projects that reference them, stops before anything is written (see
             // IsUpgradeStopped).
@@ -1325,6 +1329,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                             stopReason = $"the solution [{SolutionPath.GetFileName()}] isn't restored, so its source code can't be migrated: restore it and upgrade again";
                         else if (!codeUpgradeRunner.Run(HasSolution ? SolutionPath : null, pendingCodeUpgrades, UpgradeBackup, log))
                             stopReason = "its source code could not be migrated (see the errors above): fix them and upgrade again";
+                        else
+                            codeMigratedProjects.UnionWith(pendingCodeUpgrades.Select(x => x.ProjectFullPath));
                     }
                 }
                 catch (NotImplementedException)
@@ -1918,6 +1924,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// <summary>
     /// The packages with the ones they depend on first (the session's order otherwise): an assembly's initializer
     /// binds to its dependencies, and those must be the copies their own packages load, not the ones found next to it.
+    /// A project comes after the projects it references, also when it has no restore output to list them.
     /// </summary>
     public static List<Package> OrderDependenciesFirst(IReadOnlyList<Package> packages)
     {
@@ -1929,6 +1936,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             sameName.Add(package);
         }
 
+        var listed = packages.ToHashSet();
         var ordered = new List<Package>(packages.Count);
         var visited = new HashSet<Package>();
         foreach (var package in packages)
@@ -1946,6 +1954,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                     foreach (var dependency in dependencies)
                         Visit(dependency);
                 }
+            }
+            if (package.Container is SolutionProject project)
+            {
+                foreach (var referenced in project.ReferencedProjects.Where(x => listed.Contains(x.Package)))
+                    Visit(referenced.Package);
             }
             ordered.Add(package);
         }

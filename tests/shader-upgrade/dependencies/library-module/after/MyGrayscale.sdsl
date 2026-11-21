@@ -1,0 +1,10 @@
+// Written before 4.5 on the library: inherits its module, and implements its abstract method without 'override'
+shader MyGrayscale : MyLibFilter
+{
+    import MyLibMath;
+
+    override float4 Filter(float4 color)
+    {
+        return Luma(color.rgb);
+    }
+};

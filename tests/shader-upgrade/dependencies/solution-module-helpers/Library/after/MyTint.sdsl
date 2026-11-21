@@ -1,0 +1,10 @@
+// Uses the helpers in the library: MyColorHelpers becomes a module there
+shader MyTint : ComputeColor
+{
+    import MyColorHelpers;
+
+    override float4 Compute()
+    {
+        return float4(Brighten(float3(0.5, 0.5, 0.5)), 1);
+    }
+};

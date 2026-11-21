@@ -6,14 +6,14 @@ using Stride.Shaders.Parsing.SDSL.AST;
 namespace Stride.Shaders.Parsing.Upgrade;
 
 /// <summary>
-/// What the upgrade steps know about a class: from its parsed code for a project class, from <see cref="EngineShaderClasses"/>
-/// for an engine class.
+/// What the upgrade steps know about a class: from its parsed code for a project class or a dependency class, from
+/// <see cref="EngineShaderClasses"/> for an engine class.
 /// </summary>
 internal sealed class ShaderUpgradeClass
 {
     public required string Name { get; init; }
 
-    /// <summary>The file of a project class; null for an engine class.</summary>
+    /// <summary>The file of a project or dependency class; null for an engine class.</summary>
     public string? Path { get; init; }
 
     public int GenericParameterCount { get; init; }
@@ -41,10 +41,13 @@ internal sealed class ShaderUpgradeClass
     public Dictionary<string, string> StaticReferences { get; } = [];
 
     public bool IsEngine => Path == null;
+
+    /// <summary>A class of a library the project uses: known to the steps, never changed, and never made a module.</summary>
+    public bool IsDependency { get; init; }
 }
 
 /// <summary>
-/// The classes of a project (its <c>.sdsl</c> files) and of the engine, with the rules the upgrade steps share.
+/// The classes of a project (its <c>.sdsl</c> files), of the libraries it uses and of the engine, with the rules the upgrade steps share.
 /// </summary>
 internal sealed class ShaderUpgradeProject
 {
@@ -57,13 +60,24 @@ internal sealed class ShaderUpgradeProject
     private readonly HashSet<string> rootMarkers;
     private readonly Dictionary<string, bool> rootOnly = [];
 
-    public ShaderUpgradeProject(IReadOnlyDictionary<string, string> files, EngineShaderClasses? engine, List<string> notes)
+    /// <param name="dependencies">The sources of the libraries the files use (path → text), already upgraded.</param>
+    public ShaderUpgradeProject(IReadOnlyDictionary<string, string> files, EngineShaderClasses? engine, List<string> notes, IReadOnlyDictionary<string, string>? dependencies = null)
     {
         foreach (var engineClass in engine?.Classes ?? [])
             Classes[engineClass.Name] = engineClass;
 
         // The engine's [Root] classes by name, also when the files are the engine itself, written before the markers existed
         rootMarkers = (engine ?? EngineShaderClasses.Current).Classes.Where(x => x.IsRoot).Select(x => x.Name).ToHashSet();
+
+        foreach (var (path, text) in (dependencies ?? new Dictionary<string, string>()).OrderBy(x => x.Key, StringComparer.Ordinal))
+        {
+            foreach (var shaderClass in Parse(path, text, notes, isDependency: true))
+            {
+                Classes[shaderClass.Name] = shaderClass;
+                if (shaderClass.IsRoot)
+                    rootMarkers.Add(shaderClass.Name);
+            }
+        }
 
         // A class that two files of the project declare: which one the build uses doesn't depend on its file name, so the upgrade decides
         // nothing for it, and reads it as unknown where it is used
@@ -80,12 +94,19 @@ internal sealed class ShaderUpgradeProject
                     paths.Add(path);
                     continue;
                 }
-                // A project class wins over an engine class of the same name
+                // A project class wins over an engine or dependency class of the same name
                 if (Classes.TryGetValue(shaderClass.Name, out var existing) && !existing.IsEngine)
                 {
-                    ambiguous[shaderClass.Name] = [existing.Path!, path];
-                    Classes.Remove(shaderClass.Name);
-                    continue;
+                    if (existing.IsDependency)
+                    {
+                        notes.Add($"{path}: class {shaderClass.Name} is also declared in {existing.Path}; this one is used");
+                    }
+                    else
+                    {
+                        ambiguous[shaderClass.Name] = [existing.Path!, path];
+                        Classes.Remove(shaderClass.Name);
+                        continue;
+                    }
                 }
                 Classes[shaderClass.Name] = shaderClass;
                 if (shaderClass.IsRoot)
@@ -121,7 +142,8 @@ internal sealed class ShaderUpgradeProject
 
     public Dictionary<string, ShaderUpgradeClass> Classes { get; } = [];
 
-    public IEnumerable<ShaderUpgradeClass> ProjectClasses => Classes.Values.Where(x => !x.IsEngine);
+    /// <summary>The classes the upgrade changes: neither engine nor dependency classes.</summary>
+    public IEnumerable<ShaderUpgradeClass> ProjectClasses => Classes.Values.Where(x => !x.IsEngine && !x.IsDependency);
 
     public HashSet<string> Ancestors(string name)
     {
@@ -157,8 +179,10 @@ internal sealed class ShaderUpgradeProject
     }
 
     /// <summary>
-    /// Can be mixed only at the root, as the compiler decides it: <c>[Root]</c>, or a shader whose parent or import is root-only;
-    /// a module passes on only its own <c>[Root]</c>. In code written before modules, every parent is a shader.
+    /// Can be mixed only at the root, as the compiler decides it for the code before the upgrade: <c>[Root]</c>, or a shader whose
+    /// parent or import is root-only; a module passes on only its own <c>[Root]</c>. In code written before modules, every parent is a
+    /// shader: an engine or dependency class that is a module now was a shader in the version the project was written for, so its
+    /// imports pass on as parents did (TransformationBase imports ShaderBase).
     /// </summary>
     public bool IsRootOnly(string name)
     {
@@ -166,27 +190,34 @@ internal sealed class ShaderUpgradeProject
             return result;
         rootOnly[name] = false;
         result = rootMarkers.Contains(name)
-            || Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsModule
+            || Classes.TryGetValue(name, out var shaderClass) && (!shaderClass.IsModule || !IsProjectClass(shaderClass))
                 && shaderClass.Parents.Any(parent => StreamsModuleFor(name, parent) == null
-                    && (Classes.TryGetValue(parent, out var parentClass) && parentClass.IsModule ? rootMarkers.Contains(parent) : IsRootOnly(parent)));
+                    && (Classes.TryGetValue(parent, out var parentClass) && parentClass.IsModule && IsProjectClass(parentClass) ? rootMarkers.Contains(parent) : IsRootOnly(parent)));
         return rootOnly[name] = result;
     }
 
+    private static bool IsProjectClass(ShaderUpgradeClass shaderClass) => !shaderClass.IsEngine && !shaderClass.IsDependency;
+
     /// <summary>
-    /// A shader that was root-only through a parent that becomes a module, and whose code relies on being mixed at the root, gets its
-    /// own <c>[Root]</c>: a module passes on only its own, so without it the shader would be checked as a shader used in compositions
-    /// (SDSL0204-0206). Relies on being root-only = its module code reads instance state of the shader or its shader parents, or calls
-    /// an instance method, or it overrides a module method with a plain override. Shaders used in compositions don't get it.
+    /// A shader whose code relies on being mixed at the root gets its own <c>[Root]</c> when nothing else makes it root-only: without
+    /// it the shader would be checked as a shader used in compositions (SDSL0204-0206). Relies on being root-only = its module code reads
+    /// instance state of the shader or its shader parents, or calls an instance method, or it overrides a module method with a plain
+    /// override. A shader used in compositions doesn't get it.
     /// </summary>
     public bool NeedsRootMarker(string name)
     {
         if (needsRoot.TryGetValue(name, out var result))
             return result;
         needsRoot[name] = false;
-        result = Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsEngine && !shaderClass.IsModule && !BecomesModule(name)
-            && !IsInstance(name) && IsRootOnly(name) && !IsRootOnlyAfterUpgrade(name) && ReliesOnRoot(shaderClass);
+        result = Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsEngine && !shaderClass.IsDependency && !shaderClass.IsModule && !BecomesModule(name)
+            && !IsInstance(name) && !IsRootOnlyAfterUpgrade(name) && ReliesOnRoot(shaderClass)
+            && (IsRootOnly(name) || !MayBeInComposition(name));
         return needsRoot[name] = result;
     }
+
+    // A parent this upgrade doesn't know may be a compose type; a class inheriting this one may be one
+    private bool MayBeInComposition(string name)
+        => Ancestors(name).Any(x => !Classes.ContainsKey(x)) || ProjectClasses.Any(x => IsInstance(x.Name) && Ancestors(x.Name).Contains(name));
 
     // As the compiler decides it once the upgrade is done: module parents are imports, which pass on only their own [Root]
     private bool IsRootOnlyAfterUpgrade(string name)
@@ -231,7 +262,7 @@ internal sealed class ShaderUpgradeProject
     /// </summary>
     public string? StreamsModuleFor(string name, string parent)
         => RootStreamModules.TryGetValue(parent, out var streams)
-            && Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsEngine && !shaderClass.IsModule
+            && Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsEngine && !shaderClass.IsDependency && !shaderClass.IsModule
             && shaderClass.Parents.Contains(parent) && IsInstance(name) && !shaderClass.Methods.Any(x => EntryPoints.Contains(x.Name))
             ? streams : null;
 
@@ -243,7 +274,7 @@ internal sealed class ShaderUpgradeProject
 
     /// <summary>
     /// The class has no instance part: not used in compositions, no instance member, no plain method an instance class overrides,
-    /// and its parents are the same. Engine classes: declared <c>module</c>.
+    /// and its parents are the same. Engine and dependency classes: declared <c>module</c> (their own upgrade decides).
     /// </summary>
     public bool CanBeModule(string name)
     {
@@ -252,7 +283,7 @@ internal sealed class ShaderUpgradeProject
         candidates[name] = false;
         if (!Classes.TryGetValue(name, out var shaderClass))
             return false;
-        result = shaderClass.IsModule || (!shaderClass.IsEngine
+        result = shaderClass.IsModule || (!shaderClass.IsEngine && !shaderClass.IsDependency
             && !IsInstance(name)
             && shaderClass.InstanceMembers.Count == 0
             && !shaderClass.Methods.Any(x => !x.IsModule && !x.IsOverride && IsOverriddenByInstance(name, x.Name))
@@ -265,7 +296,7 @@ internal sealed class ShaderUpgradeProject
     /// A project class that becomes <c>module X</c>: it can be one, and another class inherits it or refers to it by name.
     /// Classes nothing imports stay shaders (post effects, effect features).
     /// </summary>
-    public bool BecomesModule(string name) => Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsEngine && !shaderClass.IsModule && imported.Contains(name) && CanBeModule(name);
+    public bool BecomesModule(string name) => Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsEngine && !shaderClass.IsDependency && !shaderClass.IsModule && imported.Contains(name) && CanBeModule(name);
 
     /// <summary>
     /// A module once the upgrade is done.
@@ -289,7 +320,7 @@ internal sealed class ShaderUpgradeProject
         return null;
     }
 
-    private static IEnumerable<ShaderUpgradeClass> Parse(string path, string text, List<string> notes)
+    private static IEnumerable<ShaderUpgradeClass> Parse(string path, string text, List<string> notes, bool isDependency = false)
     {
         string code;
         try
@@ -298,7 +329,7 @@ internal sealed class ShaderUpgradeProject
         }
         catch (Exception e)
         {
-            notes.Add($"{path}: not upgraded, preprocessing failed: {e.Message}");
+            notes.Add($"{path}: {(isDependency ? "not read" : "not upgraded")}, preprocessing failed: {e.Message}");
             yield break;
         }
 
@@ -306,7 +337,7 @@ internal sealed class ShaderUpgradeProject
         var result = SDSLParser.Parse(code, upgrade: true);
         if (result.AST is not ShaderFile file || result.Errors.Count > 0)
         {
-            notes.Add($"{path}: not upgraded, parsing failed: {(result.Errors.Count > 0 ? result.Errors[0].Message : "no code")}");
+            notes.Add($"{path}: {(isDependency ? "not read" : "not upgraded")}, parsing failed: {(result.Errors.Count > 0 ? result.Errors[0].Message : "no code")}");
             yield break;
         }
         foreach (var recovered in result.Recovered)
@@ -318,6 +349,7 @@ internal sealed class ShaderUpgradeProject
             {
                 Name = declaration.Name.Name,
                 Path = path,
+                IsDependency = isDependency,
                 GenericParameterCount = declaration.Generics?.Parameters.Count ?? 0,
                 IsModule = declaration.IsModule,
                 IsRoot = declaration.FindAttribute("Root") != null,

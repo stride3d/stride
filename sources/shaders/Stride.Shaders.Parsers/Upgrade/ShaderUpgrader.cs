@@ -22,6 +22,11 @@ public static class ShaderUpgrader
         "drop-clone",
         // 4.5: `stage` is now spelled `module`
         "stage-to-module",
+        // 4.4: a `compose` or a `stream` declared inside a `cbuffer` or `rgroup` is not a member of it (SDSL0050); 4.3 compiled it as
+        // declared after the block
+        "compose-out-of-buffer",
+        // 4.5: the value of a composition (`compose ComputeFloat C = 0.5;`) never did anything (SDSL0236)
+        "drop-compose-value",
         // 4.4: an implementation of an abstract method is marked `override` (SDSL0114); after the rename, the parser rejects `stage`
         "add-override",
         // 4.5: module code of a class used in compositions can only call module methods
@@ -31,48 +36,65 @@ public static class ShaderUpgrader
     ];
 
     /// <summary>
-    /// Runs the steps up to <paramref name="lastStep"/> (all by default) on <paramref name="files"/> (path → text).
+    /// Runs the steps up to <paramref name="lastStep"/> (all by default) on <paramref name="files"/> (path → text). The result has
+    /// the same files; running it again changes nothing.
     /// </summary>
     /// <param name="engine">The engine classes the project uses (<see cref="EngineShaderClasses.Current"/>); null when the files are the engine.</param>
+    /// <param name="dependencies">
+    /// The sources of the libraries the files use (path → text): read to know their classes (parents, modules, methods), never
+    /// changed. They are expected to be upgraded already; one written for an older version gets a note.
+    /// </param>
     /// <param name="steps">The steps to run (all by default), in the order of <see cref="Steps"/>: the steps of one gate of the project upgrade.</param>
-    public static ShaderUpgradeResult Upgrade(IReadOnlyDictionary<string, string> files, EngineShaderClasses? engine, string? lastStep = null, IReadOnlyCollection<string>? steps = null)
+    public static ShaderUpgradeResult Upgrade(IReadOnlyDictionary<string, string> files, EngineShaderClasses? engine, string? lastStep = null,
+        IReadOnlyDictionary<string, string>? dependencies = null, IReadOnlyCollection<string>? steps = null)
     {
         var texts = new Dictionary<string, string>(files);
         var notes = new List<string>();
         var stepCount = lastStep == null ? Steps.Count : Steps.ToList().IndexOf(lastStep) + 1;
         if (stepCount == 0)
             throw new ArgumentException($"Unknown step {lastStep}", nameof(lastStep));
-        bool Runs(int index) => index < stepCount && (steps == null || steps.Contains(Steps[index]));
 
-        if (Runs(0))
+        // Dependencies are read with the text steps done, so that an older spelling still parses
+        var dependencyTexts = new Dictionary<string, string>();
+        foreach (var (path, text) in dependencies ?? new Dictionary<string, string>())
         {
-            foreach (var path in texts.Keys.ToList())
-                texts[path] = ClassToShader(texts[path]);
+            var read = TextSteps.Aggregate(text, (current, step) => step(current));
+            if (read != text)
+                notes.Add($"{path}: dependency written for an older Stride version, read as if upgraded but not changed; upgrade it first");
+            dependencyTexts[path] = read;
         }
-        if (Runs(1))
-        {
-            foreach (var path in texts.Keys.ToList())
-                texts[path] = DropClone(texts[path]);
-        }
-        if (Runs(2))
-        {
-            foreach (var path in texts.Keys.ToList())
-                texts[path] = StageToModule(texts[path]);
-        }
-        if (Runs(3))
-            Apply(texts, project => AddOverride(project, texts, notes), engine, notes);
 
-        if (Runs(4))
-            Apply(texts, project => MarkModuleHelpers(project, texts, notes), engine, notes);
-        if (Runs(5))
-            Apply(texts, project => ConvertModules(project, texts, notes), engine, notes);
+        foreach (var step in Steps.Take(stepCount).Where(x => steps == null || steps.Contains(x)))
+        {
+            switch (step)
+            {
+                case "add-override":
+                    Apply(texts, project => AddOverride(project, texts, notes), engine, notes, dependencyTexts);
+                    break;
+                case "module-helpers":
+                    Apply(texts, project => MarkModuleHelpers(project, texts, notes), engine, notes, dependencyTexts);
+                    break;
+                case "module-units":
+                    Apply(texts, project => ConvertModules(project, texts, notes), engine, notes, dependencyTexts);
+                    break;
+                default:
+                    var textStep = TextSteps[Steps.ToList().IndexOf(step)];
+                    foreach (var path in texts.Keys.ToList())
+                        texts[path] = textStep(texts[path]);
+                    break;
+            }
+        }
 
         return new ShaderUpgradeResult(texts, notes.Distinct().ToList());
     }
 
-    private static void Apply(Dictionary<string, string> texts, Func<ShaderUpgradeProject, Dictionary<string, ShaderSourceText>> step, EngineShaderClasses? engine, List<string> notes)
+    // The steps that change text without reading the classes, in the order of Steps (they come first)
+    private static readonly Func<string, string>[] TextSteps = [ClassToShader, DropClone, StageToModule, ComposeOutOfBuffer, DropComposeValue];
+
+    private static void Apply(Dictionary<string, string> texts, Func<ShaderUpgradeProject, Dictionary<string, ShaderSourceText>> step, EngineShaderClasses? engine,
+        List<string> notes, IReadOnlyDictionary<string, string> dependencies)
     {
-        var project = new ShaderUpgradeProject(texts, engine, notes);
+        var project = new ShaderUpgradeProject(texts, engine, notes, dependencies);
         foreach (var (path, text) in step(project))
         {
             if (text.HasEdits)
@@ -122,8 +144,8 @@ public static class ShaderUpgrader
     }
 
     /// <summary>
-    /// A method that implements an abstract method of a project class (same name and parameter types) without <c>override</c> gets it.
-    /// Abstract methods of engine classes are not known here (the engine list has no methods): the compiler reports those (SDSL0114).
+    /// A method that implements an abstract method of a parent (same name and parameter types) without <c>override</c> gets it: a
+    /// project, dependency or engine class (the engine list has the abstract methods).
     /// </summary>
     private static Dictionary<string, ShaderSourceText> AddOverride(ShaderUpgradeProject project, Dictionary<string, string> texts, List<string> notes)
     {
@@ -165,6 +187,69 @@ public static class ShaderUpgrader
     }
 
     /// <summary>
+    /// A <c>compose</c> or <c>stream</c> declared inside a <c>cbuffer</c> or <c>rgroup</c> block moves out, right after the block,
+    /// as 4.3 compiled it. Its line is removed from the block; comments and other members stay.
+    /// </summary>
+    internal static string ComposeOutOfBuffer(string text)
+    {
+        var source = new ShaderSourceText(text);
+        foreach (var block in source.CodeMatches(@"(?<![\w.])(?:cbuffer|rgroup)\s+[A-Za-z_][\w.]*\s*\{"))
+        {
+            var open = block.Index + block.Length - 1;
+            var close = source.MatchingBrace(open);
+            if (close < 0)
+                continue;
+
+            var moved = new List<string>();
+            foreach (var member in source.CodeMatches(@"(?<![\w.])(?:\[[^\]]*\]\s*)*(?:(?:module|stage)\s+)?(?:compose|stream|patchstream)\s[^;{}]*;", open + 1, close))
+            {
+                // Starts a member: comments can be before it
+                var previous = member.Index - 1;
+                while (!source.IsCode[previous] || char.IsWhiteSpace(text[previous]))
+                    previous--;
+                if (source.Depth(open, member.Index) != 1 || text[previous] is not ('{' or ';' or '}'))
+                    continue;
+                moved.Add(member.Value);
+
+                // The whole line when the member is alone on it
+                var lineStart = text.LastIndexOf('\n', member.Index - 1) + 1;
+                var lineEnd = text.IndexOf('\n', member.Index + member.Length);
+                lineEnd = lineEnd < 0 ? text.Length : lineEnd + 1;
+                if (string.IsNullOrWhiteSpace(text[lineStart..member.Index]) && string.IsNullOrWhiteSpace(text[(member.Index + member.Length)..lineEnd]))
+                    source.Replace(lineStart, lineEnd - lineStart, "");
+                else
+                    source.Replace(member.Index, member.Length, "");
+            }
+            if (moved.Count == 0)
+                continue;
+
+            // After the block, and the `;` that may follow it, at the indentation of the block
+            var after = close + 1;
+            var semicolon = after;
+            while (semicolon < text.Length && text[semicolon] is ' ' or '\t')
+                semicolon++;
+            if (semicolon < text.Length && text[semicolon] == ';')
+                after = semicolon + 1;
+            var blockLine = text.LastIndexOf('\n', block.Index) + 1;
+            var indentation = text[blockLine..block.Index];
+            source.Insert(after, string.Concat(moved.Select(x => source.NewLine + indentation + x)));
+        }
+        return source.Apply();
+    }
+
+    /// <summary>
+    /// The value of a composition (<c>compose ComputeFloat Strength = 0.5;</c>) is removed: the effect gives the composition its
+    /// shader, and VL reads its default from <c>[Default(...)]</c>.
+    /// </summary>
+    internal static string DropComposeValue(string text)
+    {
+        var source = new ShaderSourceText(text);
+        foreach (var match in source.CodeMatches(@"(?<![\w.])compose\s+[A-Za-z_][\w.]*\s*(?:<[^;{}=]*>)?\s+[A-Za-z_]\w*(?:\s*\[\s*\w*\s*\])?(\s*=[^;]*);"))
+            source.Replace(match.Groups[1].Index, match.Groups[1].Length, "");
+        return source.Apply();
+    }
+
+    /// <summary>
     /// In a class used in compositions, module code can't call an instance method: a plain method called from module code of the
     /// class or its parents gets <c>module</c>, and so do its overrides.
     /// </summary>
@@ -189,6 +274,12 @@ public static class ShaderUpgrader
                 var target = owner.Methods.First(x => x.Name == name && !x.IsOverride);
                 if (target.IsModule || project.BecomesModule(owner.Name))
                     continue;
+                // A dependency is not changed: its upgraded version decides
+                if (owner.IsDependency)
+                {
+                    notes.Add($"{caller}: module code calls {owner.Name}.{name}, an instance method of a dependency ({owner.Path}); this works only if the class of {caller} is mixed at the root, not used in a composition");
+                    continue;
+                }
                 // A method of a compose type is called through slots, one chain per instance: it can't be module
                 if (project.IsComposeType(owner.Name))
                 {
@@ -251,7 +342,6 @@ public static class ShaderUpgrader
 
     private static void ConvertDeclaration(ShaderUpgradeProject project, ShaderUpgradeClass shaderClass, ShaderSourceText source, ShaderClassText classText, List<string> notes)
     {
-        // A shader that relies on being mixed at the root, root-only before through a parent that becomes a module
         if (project.NeedsRootMarker(shaderClass.Name))
             InsertRootAttribute(source, classText);
 

@@ -1,0 +1,12 @@
+// Compositions with a value, which never did anything: the effect gives a composition its shader
+shader MyHaloFX : ComputeColor
+{
+    [Default(0.1)]
+    compose ComputeColor Radius = float4(0.1, 0.1, 0.1, 1);
+    compose ComputeColor Tint = float4(1, 1, 1, 1);
+
+    override float4 Compute()
+    {
+        return Tint.Compute() * Radius.Compute();
+    }
+};

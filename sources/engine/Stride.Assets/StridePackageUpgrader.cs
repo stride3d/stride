@@ -238,7 +238,8 @@ namespace Stride.Assets
             registry.Shader("4.4.2.0", ShaderSourceUpgrade.EffectKeywordsStep);
             // 4.5.5: modules. What each step changes is said next to it in ShaderUpgrader.Steps.
             registry.Shader("4.5.5.0",
-                "class-to-shader", "drop-clone", "stage-to-module", "add-override", "module-helpers", "module-units");
+                "class-to-shader", "drop-clone", "stage-to-module", "compose-out-of-buffer", "drop-compose-value", "add-override", "module-helpers",
+                "module-units");
         }
 
         private static bool IsSkippedPackage(string packageName)
