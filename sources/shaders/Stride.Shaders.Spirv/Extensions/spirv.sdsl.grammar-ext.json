@@ -537,6 +537,10 @@
         {
           "enumerant": "Stream",
           "value": "0x0002"
+        },
+        {
+          "enumerant": "PushConstant",
+          "value": "0x0004"
         }
       ]
     },

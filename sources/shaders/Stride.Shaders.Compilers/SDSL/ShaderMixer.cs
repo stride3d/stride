@@ -140,7 +140,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         GenerateDefaultCBuffer(rootMixin, globalContext, context, temp);
 
         // Merge cbuffers and rgroups
-        MergeCBuffers(globalContext, context, temp);
+        if (!MergeCBuffers(globalContext, context, temp, log, out var pushConstantsVariable, out var pushConstantsParts))
+            return false;
+        // Before the cbuffer reflection, which then sees only Uniform cbuffers
+        if (pushConstantsVariable is int pushConstantsVariableId && !ProcessPushConstants(globalContext, context, temp, pushConstantsVariableId, pushConstantsParts, log))
+            return false;
         ComputeCBufferReflection(globalContext, context, temp);
 
         // From this point, assume ShaderInfo.StartInstruction/EndInstruction are not valid anymore, as we add instructions without updating them
@@ -155,6 +159,18 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Process reflection
         ProcessReflection(globalContext, context, temp, options);
+
+        // Direct3D 11 has no push constants: SpirvTranslator maps the block to the last constant buffer register, so the
+        // other cbuffers (registers from b0, in order) must stop before it
+        if (options.ResourcesRegisterSeparate && globalContext.Reflection.PushConstants != null)
+        {
+            var cbufferCount = globalContext.Reflection.ResourceBindings.Count(x => x.Class == EffectParameterClass.ConstantBuffer);
+            if (cbufferCount > PushConstantsRegisterDirect3D11)
+            {
+                log.Error(string.Format(SDSLErrorMessages.SDSL0133, PushConstantsRegisterDirect3D11, cbufferCount));
+                return false;
+            }
+        }
 
         // Ensure each resource group has cbuffer entries first (ordering expected by consumers), and each
         // logical group in a single contiguous run (expected by CreateLogicalGroup). Ordering must be stable,

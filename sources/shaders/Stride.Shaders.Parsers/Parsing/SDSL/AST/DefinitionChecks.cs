@@ -167,6 +167,46 @@ internal static class DefinitionChecks
     }
 
     /// <summary>
+    /// A misspelled attribute does nothing on a class or a cbuffer (SDSL0217). Only a name close to a known one is reported, because libraries read attributes of their own.
+    /// </summary>
+    public static void CheckAttributes(SymbolTable table, ShaderAttributeList? attributes, string declaration, params string[] known)
+    {
+        if (attributes == null)
+            return;
+        foreach (var attribute in attributes.Attributes.OfType<AnyShaderAttribute>())
+        {
+            if (!known.Contains(attribute.Name.Name) && known.Any(x => IsMisspelling(attribute.Name.Name, x)))
+                table.AddWarning(new(attribute.Info, string.Format(SDSLErrorMessages.SDSL0217, attribute.Name.Name, declaration, string.Join(" and ", known.Select(x => $"[{x}]")))));
+        }
+    }
+
+    /// <summary>
+    /// Whether <paramref name="name"/> differs from <paramref name="known"/> by at most one edit per four letters, ignoring case.
+    /// </summary>
+    private static bool IsMisspelling(string name, string known)
+    {
+        var limit = known.Length / 4;
+        if (Math.Abs(name.Length - known.Length) > limit)
+            return false;
+
+        var distances = new int[known.Length + 1];
+        for (var j = 0; j <= known.Length; ++j)
+            distances[j] = j;
+        for (var i = 1; i <= name.Length; ++i)
+        {
+            var diagonal = distances[0];
+            distances[0] = i;
+            for (var j = 1; j <= known.Length; ++j)
+            {
+                var replace = diagonal + (char.ToUpperInvariant(name[i - 1]) == char.ToUpperInvariant(known[j - 1]) ? 0 : 1);
+                diagonal = distances[j];
+                distances[j] = Math.Min(replace, Math.Min(distances[j], distances[j - 1]) + 1);
+            }
+        }
+        return distances[known.Length] <= limit;
+    }
+
+    /// <summary>
     /// The flags of a member variable of <paramref name="owner"/>; false for a local variable or a parameter.
     /// </summary>
     private static bool TryGetMemberFlags(ShaderDefinition owner, Symbol symbol, out VariableFlagsMask flags)

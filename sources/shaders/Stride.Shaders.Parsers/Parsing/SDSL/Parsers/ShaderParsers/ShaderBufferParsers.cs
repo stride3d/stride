@@ -60,6 +60,7 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
+        var hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes);
         if (Tokens.Literal("cbuffer", ref scanner, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
         {
             if (
@@ -84,7 +85,8 @@ public record struct BufferParsers : IParser<ShaderBuffer>
                         return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0043, scanner[scanner.Position], scanner.Memory));
                     parsed = new CBuffer(identifiers, scanner[position..scanner.Position])
                     {
-                        Members = members
+                        Members = members,
+                        Attributes = hasAttributes ? attributes : null,
                     };
                     return true;
 

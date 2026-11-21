@@ -1230,6 +1230,7 @@ public static partial class Specification
         None = 0,
         Stage = 1,
         Stream = 2,
+        PushConstant = 4,
     }
 
     public enum GenericParameterKindSDSL

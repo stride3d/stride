@@ -89,6 +89,11 @@ namespace Stride.Graphics
 
         private PipelineState currentPipelineState;
 
+        // Direct3D 11 has no push constants: a constant buffer at the last slot (ShaderMixer.PushConstantsRegisterDirect3D11),
+        // which the other constant buffers of an effect with push constants never use (SDSL0133)
+        private const int PushConstantsSlot = ConstantBufferCount - 1;
+        private Buffer pushConstantsBuffer;
+
 
         /// <summary>
         ///   Gets the internal Direct3D 11 Device Context.
@@ -140,6 +145,9 @@ namespace Stride.Graphics
             UnsetNativeDeviceChild();
 
             SafeRelease(ref nativeDeviceProfiler);
+
+            pushConstantsBuffer?.Dispose();
+            pushConstantsBuffer = null;
 
             base.OnDestroyed(immediately);
         }
@@ -530,6 +538,32 @@ namespace Stride.Graphics
         {
             RecordDebugCounter(isDispatch ? DebugCounterKind.Dispatch : DebugCounterKind.Draw);
             SetViewportImpl();
+            SetPushConstantsImpl();
+        }
+
+        /// <summary>
+        ///   Updates the push-constant buffer when the values changed, and binds it to every stage
+        ///   (the slot cache makes it a no-op when already bound).
+        /// </summary>
+        private void SetPushConstantsImpl()
+        {
+            if (currentPipelineState is not { HasPushConstants: true })
+                return;
+
+            if (pushConstantsBuffer is null)
+            {
+                pushConstantsBuffer = Buffer.New(GraphicsDevice, PushConstantsSize, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic);
+                pushConstantsBuffer.Name = "PushConstants";
+                pushConstantsDirty = true;
+            }
+            if (pushConstantsDirty)
+            {
+                pushConstantsBuffer.SetData(this, PushConstantsBytes);
+                pushConstantsDirty = false;
+            }
+
+            for (var stage = ShaderStage.Vertex; stage <= ShaderStage.Compute; stage++)
+                SetConstantBuffer(stage, PushConstantsSlot, pushConstantsBuffer);
         }
 
         /// <summary>

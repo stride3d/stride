@@ -144,6 +144,17 @@ public static class SDSLErrorMessages
     // SDSL0127: reserved (a field of a partial struct couldn't be a struct; lifted before the first release)
     public const string SDSL0128 = "SDSL0128: struct {0} contains itself: {1}. A struct can't contain itself, directly or through an array. Remove one of these fields.";
 
+    // Push constants
+    // SDSL0129-0130 are found when a class compiles, SDSL0131-0134 and SDSL0167 when an effect is mixed
+
+    public const string SDSL0129 = "SDSL0129: {0}: member {2} of the [PushConstant] cbuffer {1} has type {3}. A push-constant member is an int, uint or float, or a 2- or 4-component vector of them (for example uint2 or float4). Change the type, or move the member to another cbuffer.";
+    public const string SDSL0130 = "SDSL0130: {0}: the [PushConstant] cbuffer {1} has instance members, so each composition instance of {0} would get its own copy, but an effect has one push-constant block. Mark its members 'module', or mark {0} [Root] if it is only mixed at the root of an effect.";
+    public const string SDSL0131 = "SDSL0131: the push constants of this effect take {0} bytes, more than the {1}-byte limit: {2}. Remove members, or move some of them to another cbuffer.";
+    public const string SDSL0132 = "SDSL0132: cbuffer {0} is [PushConstant] in {1} but not in {2}. Add [PushConstant] in {2}, or rename one of them.";
+    public const string SDSL0133 = "SDSL0133: on Direct3D 11, the push constants of this effect use register b{0}, but the effect has {1} other cbuffers, so b{0} is taken. Use fewer cbuffers, or remove [PushConstant].";
+    public const string SDSL0134 = "SDSL0134: {0}: member {2} ({3}) of the [PushConstant] cbuffer {1} is at byte {4} of the push-constant block, but a {3} must start at a multiple of {5} bytes, so that the C# struct given to SetPushConstants has the same layout on every graphics API. Move it to such an offset (add a member before it), or reorder the members (for example the vectors first).";
+    public const string SDSL0167 = "SDSL0167: cbuffer PushConstants in {0}: the name is taken by the push-constant block of the effect, which {1} declares with [PushConstant]. Rename the cbuffer.";
+
     // Definition checks: found when a class compiles, reported as warnings (errors with ShaderLoaderBase.WarningsAsErrors)
 
     public const string SDSL0200 = "SDSL0200: {0}.{1}() is marked 'override', but no inherited class declares {1}: it starts a new method, and calls made through a parent never reach it. Inherit the class that declares {1}, or remove 'override'.";
@@ -167,5 +178,6 @@ public static class SDSLErrorMessages
     public const string SDSL0212 = "SDSL0212: {0}.{1}(): 'clone' has no effect since Stride 4.4. Remove it.";
     public const string SDSL0213 = "SDSL0213: [Pure] module {0}: {1} in {2}() works only in a pixel shader, and a pure module can run in any stage. Compute the value in the caller and pass it as a parameter, or remove [Pure] from {0}.";
     public const string SDSL0214 = "SDSL0214: 'partial' on {0} has no meaning and is ignored. Remove it.";
+    public const string SDSL0217 = "SDSL0217: Attribute [{0}] on {1} does nothing: the compiler only knows {2} there. Check its spelling.";
     public const string SDSL0215 = "SDSL0215: {0} sees two structs named {1}, declared by {2} and {3}: {1} means the one of {2} (the first inherited or imported). Rename one of them.";
 }

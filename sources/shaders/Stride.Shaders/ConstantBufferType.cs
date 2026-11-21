@@ -24,5 +24,10 @@ namespace Stride.Shaders
         /// A texture buffer
         /// </summary>
         TextureBuffer,
+
+        /// <summary>
+        /// The push constants of an effect (EffectReflection.PushConstants)
+        /// </summary>
+        PushConstant,
     }
 }

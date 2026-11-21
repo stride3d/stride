@@ -318,7 +318,8 @@ public partial class ShaderMixer
                 var variablePointerType = (PointerType)context.ReverseTypes[variable.ResultType];
                 var variableType = variablePointerType.BaseType;
 
-                if (IsResourceType(variableType))
+                // The push-constant block has no register, descriptor set or binding (see ProcessPushConstants)
+                if (IsResourceType(variableType) && variable.StorageClass != Specification.StorageClass.PushConstant)
                 {
                     var name = context.Names[variable.ResultId];
 

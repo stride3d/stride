@@ -27,6 +27,10 @@ namespace Stride.Graphics
 
     public unsafe partial class PipelineState
     {
+        // Where spirv_to_dxil reads push constants (RuntimeConf.push_constant_cbv in EffectCompiler)
+        private const uint PushConstantsShaderRegister = 1;
+        private const uint PushConstantsRegisterSpace = 31;
+
         private ID3D12PipelineState* compiledPipelineState;
         private ID3D12RootSignature* nativeRootSignature;
 
@@ -90,6 +94,12 @@ namespace Stride.Graphics
         ///   Descriptors of Samplers.
         /// </summary>
         internal ReadOnlySpan<int> SamplerBindCountPerLayout => samplerBindCountPerLayout;
+
+        /// <summary>
+        ///   The index of the Root Parameter holding the push constants (32-bit constants at <c>b1, space31</c>, where
+        ///   <c>spirv_to_dxil</c> puts them), after all the Descriptor Tables; only if <see cref="HasPushConstants"/>.
+        /// </summary>
+        internal uint PushConstantsRootParameterIndex { get; }
 
 
         /// <summary>
@@ -175,6 +185,25 @@ namespace Stride.Graphics
                 // Descriptor types (SRVs, UAVs, CBVs, etc., or Samplers)
                 PrepareDescriptorRanges(srvDescriptorRanges, ref srvBindCountPerLayout[layoutIndex]);
                 PrepareDescriptorRanges(samplerDescriptorRanges, ref samplerBindCountPerLayout[layoutIndex]);
+            }
+
+            // Push constants: after the Descriptor Tables, so the table indices used by SetDescriptorSets don't move.
+            // Always the full size, so the shader's constant buffer is never larger than the root constants.
+            HasPushConstants = effectReflection.PushConstants is not null;
+            if (HasPushConstants)
+            {
+                PushConstantsRootParameterIndex = (uint) rootSignatureParameters.Count;
+                rootSignatureParameters.Add(new RootParameter
+                {
+                    ShaderVisibility = ShaderVisibility.All,
+                    ParameterType = RootParameterType.Type32BitConstants,
+                    Constants = new RootConstants
+                    {
+                        ShaderRegister = PushConstantsShaderRegister,
+                        RegisterSpace = PushConstantsRegisterSpace,
+                        Num32BitValues = CommandList.PushConstantsSize / sizeof(uint)
+                    }
+                });
             }
 
             PrepareRootSignatureDescription(rootSignatureParameters, immutableSamplers, out RootSignatureDesc rootSignatureDesc);

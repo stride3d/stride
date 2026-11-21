@@ -1,0 +1,20 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Another pipeline, without push constants, bound between two dispatches of PushConstantsComputeTestShader.
+    /// </summary>
+    internal shader PushConstantsOtherComputeTestShader
+    {
+        import ComputeShaderBase;
+
+        module RWStructuredBuffer<uint> Output;
+
+        override void Compute()
+        {
+            Output[streams.DispatchThreadId.x] = 0xDEAD;
+        }
+    };
+}

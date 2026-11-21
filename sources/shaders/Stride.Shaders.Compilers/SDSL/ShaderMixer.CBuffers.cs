@@ -1,7 +1,9 @@
 using CommunityToolkit.HighPerformance.Buffers;
+using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
@@ -158,8 +160,20 @@ namespace Stride.Shaders.Compilers.SDSL
             }
         }
 
-        private void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer)
+        /// <summary>
+        /// Name of the variable, cbuffer and reflection of the effect's push-constant block.
+        /// </summary>
+        public const string PushConstantsName = "PushConstants";
+
+        /// <summary>
+        /// Merges the cbuffers of the same name, and every <c>[PushConstant] cbuffer</c> (whatever its name) into one push-constant
+        /// block, returned in <paramref name="pushConstantsVariable"/>. A name used with and without <c>[PushConstant]</c> is an error (SDSL0132), and so
+        /// is a plain cbuffer named like the push-constant block (SDSL0167).
+        /// </summary>
+        private bool MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, ILogger log, out int? pushConstantsVariable, out List<PushConstantsPart> pushConstantsParts)
         {
+            pushConstantsVariable = null;
+            pushConstantsParts = [];
             // Collect Decorations
             Dictionary<(int StructType, int Member), (Dictionary<Decoration, string> StringDecorations, Dictionary<Decoration, MemoryOwner<int>> Decorations)> decorations = new();
             foreach (var i in context)
@@ -195,7 +209,14 @@ namespace Stride.Shaders.Compilers.SDSL
                 .Select(x => (StartIndex: x.Index, ShaderName: ((OpShaderSDSL)x).ShaderName))
                 .ToList();
 
-            var cbuffersByNames = buffer
+            var pushConstantVariables = new HashSet<int>();
+            foreach (var i in buffer)
+            {
+                if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.Flags.HasFlag(VariableFlagsMask.PushConstant))
+                    pushConstantVariables.Add(variable.ResultId);
+            }
+
+            var allCBuffers = buffer
                 .Where(x => x.Op == Op.OpVariableSDSL)
                 .Select(x => (Index: x.Index, Variable: x, StructType: context.ReverseTypes[x.Data.IdResultType!.Value] is PointerType { StorageClass: Specification.StorageClass.Uniform, BaseType: ConstantBufferSymbol s } ? s : null))
                 .Where(x => x.StructType != null)
@@ -211,7 +232,36 @@ namespace Stride.Shaders.Compilers.SDSL
                     LogicalGroup: GetCBufferLogicalGroup(x.Variable.Data.IdResult.Value)))
                 // TODO: Check Decoration.Block?
                 .Where(x => x.StructType != null)
-                .GroupBy(x => ShaderClass.GetCBufferRealName(context.Names[x.VariableId]));
+                .ToList();
+
+            var hasErrors = false;
+            foreach (var cbuffersWithName in allCBuffers.GroupBy(x => ShaderClass.GetCBufferRealName(context.Names[x.VariableId])))
+            {
+                var pushConstant = cbuffersWithName.FirstOrDefault(x => pushConstantVariables.Contains(x.VariableId));
+                var notPushConstant = cbuffersWithName.FirstOrDefault(x => !pushConstantVariables.Contains(x.VariableId));
+                // A default tuple has VariableId 0, never a real id
+                if (pushConstant.VariableId != 0 && notPushConstant.VariableId != 0)
+                {
+                    log.Error(string.Format(SDSLErrorMessages.SDSL0132, cbuffersWithName.Key, pushConstant.ShaderName, notPushConstant.ShaderName));
+                    hasErrors = true;
+                }
+            }
+            // The push-constant block takes its name whatever the names of its cbuffers (SDSL0132 already says it when one of them has it)
+            var firstPushConstant = allCBuffers.FirstOrDefault(x => pushConstantVariables.Contains(x.VariableId));
+            if (firstPushConstant.VariableId != 0 && !allCBuffers.Any(x => pushConstantVariables.Contains(x.VariableId) && ShaderClass.GetCBufferRealName(context.Names[x.VariableId]) == PushConstantsName))
+            {
+                foreach (var cbuffer in allCBuffers.Where(x => !pushConstantVariables.Contains(x.VariableId) && ShaderClass.GetCBufferRealName(context.Names[x.VariableId]) == PushConstantsName))
+                {
+                    log.Error(string.Format(SDSLErrorMessages.SDSL0167, cbuffer.ShaderName, firstPushConstant.ShaderName));
+                    hasErrors = true;
+                }
+            }
+            if (hasErrors)
+                return false;
+
+            // All the push-constant cbuffers form one group, whatever their names
+            var cbuffersByNames = allCBuffers
+                .GroupBy(x => pushConstantVariables.Contains(x.VariableId) ? (PushConstant: true, Name: PushConstantsName) : (PushConstant: false, Name: ShaderClass.GetCBufferRealName(context.Names[x.VariableId])));
 
             // This helper method will transfer decorations from the old structure to the new merged structure
             void ProcessDecorations(Span<(OpDataIndex Variable, int VariableId, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol StructType, int MemberIndexOffset, string? LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct, bool newStructure)
@@ -257,6 +307,7 @@ namespace Stride.Shaders.Compilers.SDSL
             var removedIds = new HashSet<int>();
             foreach (var cbuffersEntry in cbuffersByNames)
             {
+                var cbufferName = cbuffersEntry.Key.Name;
                 var cbuffers = cbuffersEntry.ToList();
 
                 // CreateLogicalGroup expects each logical group to be a single contiguous run of members,
@@ -270,7 +321,13 @@ namespace Stride.Shaders.Compilers.SDSL
                 // In all cases, we update name to one without .0 .1 suffix
                 // (we do it even for case count == 1 because all buffer except one might have been optimized away).
                 // SetName updates both the Names dict and the corresponding OpName instruction in the buffer.
-                context.SetName(cbuffersSpan[0].VariableId, cbuffersEntry.Key);
+                if (cbuffersEntry.Key.PushConstant)
+                {
+                    pushConstantsVariable = cbuffersSpan[0].VariableId;
+                    foreach (var cbuffer in cbuffers)
+                        pushConstantsParts.Add(new(cbuffer.ShaderName, ShaderClass.GetCBufferRealName(context.Names[cbuffer.VariableId]), cbuffer.StructType.Members.Count));
+                }
+                context.SetName(cbuffersSpan[0].VariableId, cbufferName);
 
                 if (cbuffersEntry.Count() == 1)
                 {
@@ -279,7 +336,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     // struct type back to the unsuffixed form too, otherwise we get e.g.
                     // `cbuffer Settings_1 : register(b0)` which mismatches reflection's
                     // `Settings` lookup at ShaderCompiler.UpdateReflection.
-                    context.SetName(context.Types[cbuffersSpan[0].StructType], $"type.{cbuffersEntry.Key}");
+                    context.SetName(context.Types[cbuffersSpan[0].StructType], $"type.{cbufferName}");
                     ProcessDecorations(cbuffersSpan, cbuffersEntry.First().StructType, false);
                 }
                 // More than 1 cbuffers with same name
@@ -295,7 +352,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     var variables = cbuffers.ToDictionary(x => x.VariableId, x => x);
                     var structTypes = cbuffers.Select(x => x.StructType);
 
-                    var mergedCbufferStruct = new ConstantBufferSymbol(cbuffersEntry.Key, structTypes.SelectMany(x => x.Members).ToList());
+                    var mergedCbufferStruct = new ConstantBufferSymbol(cbufferName, structTypes.SelectMany(x => x.Members).ToList());
                     var mergedCbufferStructId = context.DeclareCBuffer(mergedCbufferStruct, context.Bound++);
                     var mergedCbufferPtrStruct = new PointerType(mergedCbufferStruct, Specification.StorageClass.Uniform);
                     var mergedCbufferPtrStructId = context.GetOrRegister(mergedCbufferPtrStruct);
@@ -343,7 +400,7 @@ namespace Stride.Shaders.Compilers.SDSL
                         {
                             // Ensure cbuffer variable name is correct (it might still have a pending number such as Test.0 if there was multiple buffers with same name)
                             if (cbuffersSpan[0].VariableId == name.Target)
-                                name.Name = cbuffersEntry.Key;
+                                name.Name = cbufferName;
                             // Remove any other OpName (after remapping they would all point to the merged variable)
                             foreach (var cbuffer in cbuffersSpan[1..])
                             {
@@ -373,6 +430,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
             SpirvBuilder.RemapIds(buffer, 0, buffer.Count, idRemapping);
             SpirvBuilder.RemapIds(context.GetBuffer(), 0, context.GetBuffer().Count, idRemapping);
+            return true;
         }
 
         EffectTypeDescription ConvertStructType(SpirvContext context, StructType s, SpirvBuilder.AlignmentRules alignmentRules)
