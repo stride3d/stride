@@ -2,10 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
+using Stride.BepuPhysics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Events;
-using Stride.Physics;
 using Stride.Rendering.Sprites;
 
 namespace FirstPersonShooter.Player
@@ -14,7 +14,7 @@ namespace FirstPersonShooter.Player
     {
         public bool         DidFire;
         public bool         DidHit;
-        public HitResult    HitResult;
+        public HitInfo    HitResult;
     }
 
     public class WeaponScript : SyncScript
@@ -97,23 +97,21 @@ namespace FirstPersonShooter.Player
 
             var raycastStart = Entity.Transform.WorldMatrix.TranslationVector;
             var forward = Entity.Transform.WorldMatrix.Forward;
-            var raycastEnd = raycastStart + forward * MaxShootDistance;
 
-            var result = this.GetSimulation().Raycast(raycastStart, raycastEnd);
+            // The player is on layer 1.
+            var didHit = Entity.GetSimulation().RayCast(raycastStart, forward, MaxShootDistance, out var result, ~CollisionMask.Layer1);
 
-            var weaponFired = new WeaponFiredResult {HitResult = result, DidFire = true, DidHit = false };
+            var weaponFired = new WeaponFiredResult {HitResult = result, DidFire = true, DidHit = didHit && result.Collidable is not null };
 
-            if (result.Succeeded && result.Collider != null)
+            if (didHit && result.Collidable is BodyComponent rigidBody)
             {
-                weaponFired.DidHit = true;
+                // Calculate the lever arm from the center of mass to the hit point
+                Vector3 centerOfMass = rigidBody.Entity.Transform.LocalToWorld(rigidBody.CenterOfMass);
+                Vector3 hitPoint = result.Point;
+                Vector3 leverArm = hitPoint - centerOfMass;
 
-                var rigidBody = result.Collider as RigidbodyComponent;
-                if (rigidBody != null)
-                {
-                    rigidBody.Activate();
-                    rigidBody.ApplyImpulse(forward * ShootImpulse);
-                    rigidBody.ApplyTorqueImpulse(forward * ShootImpulse + new Vector3(0, 1, 0));
-                }
+                rigidBody.Awake = true;
+                rigidBody.ApplyImpulse(forward * ShootImpulse, leverArm);
             }
 
             // Broadcast the fire event
