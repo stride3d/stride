@@ -3,6 +3,8 @@
 
 using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Views;
@@ -11,7 +13,7 @@ namespace Stride.Core.Assets.Editor.Avalonia;
 
 /// <summary>
 /// The Avalonia views of the core editor: the default property templates, the paste processors of the properties and of
-/// the assets, and the built-in commands of the property grid's context menu.
+/// the assets, the built-in commands of the property grid's context menu, and the revert of a property to its default.
 /// </summary>
 public sealed class StrideCoreEditorViewPlugin : AssetsEditorPlugin
 {
@@ -37,5 +39,15 @@ public sealed class StrideCoreEditorViewPlugin : AssetsEditorPlugin
         context.Commands.Register(PropertyGridCommands.CreateToggleNestedProperties());
         foreach (var command in PropertyGridCommands.CreateNodeCommands())
             context.Commands.Register(command);
+    }
+
+    /// <inheritdoc />
+    public override void InitializeSession(ISessionPluginContext context)
+    {
+        base.InitializeSession(context);
+
+        // The revert of a property to its default: the grid shows which properties differ from it, with an icon that reverts them
+        context.NodePresenterCommands.Register(new ResetToDefaultCommand());
+        context.NodePresenterUpdaters.Register(new DefaultValueNodeUpdater());
     }
 }

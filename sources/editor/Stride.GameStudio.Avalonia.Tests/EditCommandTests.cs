@@ -380,11 +380,11 @@ public sealed class EditCommandTests
             {
                 var asset = fixture.Asset(AssetLocation);
                 var item = await ShowPropertyAsync(fixture, window, asset, nameof(TextPropertiesAsset.Label));
-                // Nothing on the clipboard yet, and the asset has no archetype to reset to
+                // Nothing on the clipboard yet, the asset has no archetype to reset to, and the label differs from its default
                 var items = await OpenAsync(item.ContextMenu!, item);
                 // and the nested properties toggle of the editor, which has nothing to expand here
-                Assert.Equal(["Reset to base value", "-", "Copy", "Paste", "Replace", "-", "Expand all nested properties"], Describe(items));
-                Assert.Equal(["Copy"], Enabled(items));
+                Assert.Equal(["Reset to base value", "Reset to default value", "-", "Copy", "Paste", "Replace", "-", "Expand all nested properties"], Describe(items));
+                Assert.Equal(["Reset to default value", "Copy"], Enabled(items));
                 item.ContextMenu!.Close();
                 await WindowTestHelper.PumpAsync();
 
@@ -397,7 +397,7 @@ public sealed class EditCommandTests
                 copy.Command!.Execute(null);
                 Assert.Contains("label", await WaitForClipboardAsync(window));
                 items = await OpenAsync(item.ContextMenu!, item);
-                Assert.Equal(["Copy", "Paste", "Replace"], Enabled(items));
+                Assert.Equal(["Reset to default value", "Copy", "Paste", "Replace"], Enabled(items));
                 item.ContextMenu!.Close();
                 await WindowTestHelper.PumpAsync();
 

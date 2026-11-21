@@ -93,9 +93,13 @@ public abstract class EntityHierarchyElementViewModel : EntityHierarchyItemViewM
     /// </summary>
     public abstract int EntityCount { get; }
 
-    bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => true;
+    // A deleted entity, or one of a closed editor (whose root is destroyed), has no properties to show: a locked property grid
+    // lets it go
+    bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => !IsDestroyed && !IsRootDestroyed();
 
     AssetViewModel IAssetPropertyProviderViewModel.RelatedAsset => Asset;
+
+    private bool IsRootDestroyed() => GetTopRoot() is EntityHierarchyElementViewModel root && root.IsDestroyed;
 
     /// <inheritdoc/>
     public override int FindIndexInParent(int indexInEntity, IEnumerable<EntityDesign> entityCollection)

@@ -89,3 +89,13 @@ public sealed class DisplayedValuesAsset : Asset
 
     public DateTime Time { get; set; }
 }
+
+/// <summary>
+/// An asset with a check box that is on by default.
+/// </summary>
+[DataContract("TogglePropertiesAsset")]
+[AssetDescription(".sdtogglepropertiestest")]
+public sealed class TogglePropertiesAsset : Asset
+{
+    public bool IsEnabled { get; set; } = true;
+}

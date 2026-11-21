@@ -36,6 +36,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     private string displayName = null!;
     private bool isHighlighted;
     private bool valueChanging;
+    private bool attachedPropertiesUpdated;
     private bool isRefreshing;
     private bool refreshPending;
     private bool suppressAssociatedDataNotifications;
@@ -273,14 +274,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             AddCommand(commandWrapper);
         }
 
-        var commonAttachedProperties = nodePresenters.SelectMany(x => x.AttachedProperties).GroupBy(x => x.Key).ToList();
-        foreach (var attachedProperty in commonAttachedProperties)
-        {
-            var combiner = attachedProperty.Key.Metadatas.OfType<PropertyCombinerMetadata>().FirstOrDefault()?.Combiner ?? DefaultCombineAttachedProperty;
-            var values = attachedProperty.Select(x => x.Value).ToList();
-            var value = values.Count == 1 ? values[0] : combiner(values);
-            AddAssociatedData(attachedProperty.Key.Name, value);
-        }
+        AddAttachedProperties();
     }
 
     /// <summary>
@@ -519,6 +513,41 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         return true;
     }
 
+    private void AddAttachedProperties()
+    {
+        var commonAttachedProperties = nodePresenters.SelectMany(x => x.AttachedProperties).GroupBy(x => x.Key).ToList();
+        foreach (var attachedProperty in commonAttachedProperties)
+        {
+            var combiner = attachedProperty.Key.Metadatas.OfType<PropertyCombinerMetadata>().FirstOrDefault()?.Combiner ?? DefaultCombineAttachedProperty;
+            var values = attachedProperty.Select(x => x.Value).ToList();
+            var value = values.Count == 1 ? values[0] : combiner(values);
+            AddAssociatedData(attachedProperty.Key.Name, value);
+        }
+    }
+
+    // Updates the associated data from the attached properties of the presenters, without rebuilding the children
+    private void UpdateAssociatedData()
+    {
+        var previousAssociatedData = associatedData.ToDictionary(x => x.Key, x => x.Value);
+        suppressAssociatedDataNotifications = true;
+        try
+        {
+            associatedData.Clear();
+            AddAttachedProperties();
+        }
+        finally
+        {
+            suppressAssociatedDataNotifications = false;
+        }
+
+        if (previousAssociatedData.Count == associatedData.Count && previousAssociatedData.All(x => associatedData.TryGetValue(x.Key, out var value) && Equals(x.Value, value)))
+            return;
+
+        OnPropertyChanging(IndexerPropertyName);
+        NotifyAssociatedDataChanges(previousAssociatedData);
+        OnPropertyChanged(IndexerPropertyName);
+    }
+
     private void NotifyAssociatedDataChanges(IReadOnlyDictionary<string, object> previousData)
     {
         // Notify for the entries that were removed.
@@ -698,6 +727,11 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             OnValueChanging();
             OnValueChanged();
         }
+        else
+        {
+            // An updater that follows the changes of the value only (they don't run the updaters again) changed it: see OnValueOnlyChanged
+            attachedPropertiesUpdated = true;
+        }
     }
 
     private void OnValueChanging()
@@ -725,16 +759,21 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         owner.NotifyNodeChanged(this);
 
         valueChanging = false;
+        attachedPropertiesUpdated = false;
     }
 
     private void OnValueOnlyChanged()
     {
-        // The presenter kept its children and its attached properties: this view model keeps its own
+        // The presenter kept its children and its attached properties: this view model keeps its own, and only updates the
+        // associated data of the attached properties that changed with the value
+        if (attachedPropertiesUpdated && !IsDestroyed)
+            UpdateAssociatedData();
         Parent?.NotifyPropertyChanged(Name);
         OnPropertyChanged(nameof(NodeValue));
         owner.NotifyNodeChanged(this, true);
 
         valueChanging = false;
+        attachedPropertiesUpdated = false;
     }
 
     private object? ConvertValue(object? value)

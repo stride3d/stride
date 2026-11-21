@@ -222,6 +222,35 @@
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>
+  <!-- A padlock, closed and open: the lock of the property grid -->
+  <DrawingImage x:Key="ImageLock">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Geometry="M5,7.5 L5,5 A3,3 0 0 1 11,5 L11,7.5">
+          <GeometryDrawing.Pen>
+            <Pen Brush="#FF616161" Thickness="1.6" />
+          </GeometryDrawing.Pen>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#FFE8B04A" Geometry="F1M3,7L13,7 13,15 3,15z" />
+        <GeometryDrawing Brush="#FF3C3C3C" Geometry="F1M7.25,9.5L8.75,9.5 8.75,13 7.25,13z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageUnlock">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Geometry="M8,7.5 L8,4 A2.75,2.75 0 0 1 13.5,4 L13.5,5.5">
+          <GeometryDrawing.Pen>
+            <Pen Brush="#FF616161" Thickness="1.6" />
+          </GeometryDrawing.Pen>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#FF9A9A9A" Geometry="F1M1,7L11,7 11,15 1,15z" />
+        <GeometryDrawing Brush="#FF3C3C3C" Geometry="F1M5.25,9.5L6.75,9.5 6.75,13 5.25,13z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
   <DrawingImage x:Key="ImageUndo">
     <DrawingImage.Drawing>
       <DrawingGroup>

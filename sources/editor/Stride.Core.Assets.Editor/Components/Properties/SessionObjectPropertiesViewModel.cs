@@ -23,6 +23,9 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
     private string typeDescription = string.Empty;
     private string? name;
     private bool showOverridesOnly;
+    // The description of the selection the editors asked to show while the grid was locked
+    private string? pendingTypeDescription;
+    private string? pendingName;
 
     public SessionObjectPropertiesViewModel(SessionViewModel session)
         : base(session.SafeArgument(nameof(session)).ServiceProvider, session.AssetNodeContainer)
@@ -56,16 +59,43 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
 
     public SessionViewModel Session { get; }
 
-    public string TypeDescription { get => typeDescription; set => SetValue(ref typeDescription, value); }
+    /// <summary>
+    /// Gets or sets the type of the selection, in the header. While the grid is locked, it keeps describing its objects.
+    /// </summary>
+    public string TypeDescription
+    {
+        get => typeDescription;
+        set
+        {
+            if (IsLocked)
+                pendingTypeDescription = value;
+            else
+                SetValue(ref typeDescription, value);
+        }
+    }
 
-    public string Name { get => name ?? string.Empty; set => SetValue(ref name, value); }
+    /// <summary>
+    /// Gets or sets the name of the selection, in the header. While the grid is locked, it keeps describing its objects.
+    /// </summary>
+    public string Name
+    {
+        get => name ?? string.Empty;
+        set
+        {
+            if (IsLocked)
+                pendingName = value;
+            else
+                SetValue(ref name, value);
+        }
+    }
 
     public bool ShowOverridesOnly { get => showOverridesOnly; set => SetValue(ref showOverridesOnly, value); }
 
     /// <summary>
     /// Gets whether the selection is empty or made of assets only, the selection the asset controls of the header (tags, open in editor) act on.
+    /// They act on the selected assets, so a locked grid has none.
     /// </summary>
-    public bool IsAssetSelection => Selection?.All(x => x is AssetViewModel) ?? true;
+    public bool IsAssetSelection => !IsLocked && (Selection?.All(x => x is AssetViewModel) ?? true);
 
     protected sealed override string EmptySelectionFallbackMessage => "Select an object to display its properties.";
 
@@ -107,6 +137,21 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
         UpdateTypeAndName(selection, selection.Count, getObjType, getObjName, objTypePlural);
     }
 
+    /// <inheritdoc/>
+    protected override void OnUnlocked(bool showsPendingSelection)
+    {
+        // The header describes the selection the grid shows next
+        if (showsPendingSelection)
+        {
+            if (pendingTypeDescription != null)
+                TypeDescription = pendingTypeDescription;
+            if (pendingName != null)
+                Name = pendingName;
+        }
+        pendingTypeDescription = null;
+        pendingName = null;
+    }
+
     protected sealed override bool CanDisplaySelectedObjects(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, out string? fallbackMessage)
     {
         foreach (var provider in selectedObjects.OfType<IAssetPropertyProviderViewModel>())
@@ -132,7 +177,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
     protected override void OnPropertyChanged(params string[] propertyNames)
     {
         base.OnPropertyChanged(propertyNames);
-        if (propertyNames.Contains(nameof(Selection)))
+        if (propertyNames.Contains(nameof(Selection)) || propertyNames.Contains(nameof(IsLocked)))
             base.OnPropertyChanged(nameof(IsAssetSelection));
 
         // Do this only when the property has changed from the UI thread
