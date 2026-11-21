@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -28,6 +29,50 @@ namespace Stride.Rendering.Lights
         public bool HasEffectPermutations { get; protected set; } = false;
 
         /// <summary>
+        /// Mask of the views this group has lights in (see <see cref="ViewBit"/>). A group which doesn't include any view is used in all of them.
+        /// </summary>
+        public ulong ViewMask { get; private set; }
+
+        /// <summary>
+        /// Gets the bit of a view in a view mask (views past the 64th share the last bit).
+        /// </summary>
+        public static ulong ViewBit(int viewIndex)
+        {
+            return 1UL << Math.Min(viewIndex, 63);
+        }
+
+        /// <summary>
+        /// Marks this group as having lights in the specified view.
+        /// </summary>
+        public void IncludeView(int viewIndex)
+        {
+            ViewMask |= ViewBit(viewIndex);
+        }
+
+        /// <summary>
+        /// Checks if effects compiled for the specified views use this group.
+        /// </summary>
+        public virtual bool IsUsedIn(ulong viewMask)
+        {
+            return ViewMask == 0 || (ViewMask & viewMask) != 0;
+        }
+
+        /// <summary>
+        /// Gets the number of lights supported by the shader when laid out for the specified views (0 if it doesn't depend on lights).
+        /// </summary>
+        public virtual int GetLightCount(ulong viewMask)
+        {
+            return 0;
+        }
+
+        /// <summary>
+        /// Selects the views the next <see cref="UpdateLayout"/> is done for.
+        /// </summary>
+        public virtual void SelectViews(ulong viewMask)
+        {
+        }
+
+        /// <summary>
         /// Called when layout is updated, so that parameter keys can be recomputed.
         /// </summary>
         /// <param name="compositionName"></param>
@@ -40,6 +85,7 @@ namespace Stride.Rendering.Lights
         /// </summary>
         public virtual void Reset()
         {
+            ViewMask = 0;
         }
 
         /// <summary>

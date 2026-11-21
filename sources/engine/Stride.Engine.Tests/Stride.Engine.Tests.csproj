@@ -47,6 +47,7 @@
     <Compile Include="RenderSystemDrawJobExceptionTest.cs" />
     <Compile Include="EffectSystemTests.cs" />
     <Compile Include="OpenXRSwapchainCopyTest.cs" />
+    <Compile Include="LightingSetsTest.cs" />
     <Compile Include="TestEntity.cs" />
     <Compile Include="TestEntityManager.Benchmark.cs" />
     <Compile Include="TestEntityManager.cs" />

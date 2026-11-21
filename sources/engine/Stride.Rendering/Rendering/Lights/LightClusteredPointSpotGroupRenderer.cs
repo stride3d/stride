@@ -186,6 +186,13 @@ namespace Stride.Rendering.Lights
                 return 1;
             }
 
+            /// <inheritdoc/>
+            public override bool IsUsedIn(ulong viewMask)
+            {
+                // Always in the shader, with its lights culled per cluster at run time
+                return true;
+            }
+
             public override void Reset()
             {
                 base.Reset();
@@ -767,6 +774,13 @@ namespace Stride.Rendering.Lights
                 : base(renderContext, null)
             {
                 ShaderSource = new ShaderClassSource("LightClusteredSpotGroup");
+            }
+
+            /// <inheritdoc/>
+            public override bool IsUsedIn(ulong viewMask)
+            {
+                // Always in the shader, beside the clustered point group
+                return true;
             }
 
             // Makes LightRanges and Lights public
