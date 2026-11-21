@@ -82,6 +82,7 @@ screenshots
 samplesGenerated
 screenshot-regression-out
 screenshot-out
+screenshot-out-aot
 ui-test-out-dpi*
 
 # VS Code files
