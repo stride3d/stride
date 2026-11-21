@@ -2,6 +2,7 @@
 //  Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics.Contracts;
+using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using Stride.Core.Mathematics;
 
@@ -24,7 +25,7 @@ namespace Stride.BepuPhysics.Definitions.Contacts;
 public readonly ref struct Contacts<TManifold> where TManifold : unmanaged, IContactManifold<TManifold>
 {
     /// <summary>
-    /// Contact group registered between these two bodies, one per compound child hit
+    /// Contact group registered between these two collidables, one per compound child or body pair hit
     /// </summary>
     public required ReadOnlySpan<ContactGroup<TManifold>> Groups { get; init; }
 
@@ -36,6 +37,7 @@ public readonly ref struct Contacts<TManifold> where TManifold : unmanaged, ICon
     /// <summary>
     /// Whether <see cref="EventSource"/> maps to the unsorted, original A
     /// </summary>
+    /// <remarks> For the first of <see cref="Groups"/>; when either collidable spans multiple bodies, each <see cref="Contact{TManifold}"/> accounts for its own group </remarks>
     public required bool IsSourceOriginalA { get; init; }
 
     /// <summary>
@@ -52,33 +54,36 @@ public readonly ref struct Contacts<TManifold> where TManifold : unmanaged, ICon
     public Vector3 ComputeImpactForce(Contact<TManifold> contact)
     {
         var impactPos = contact.Point;
-        float invMassOther, invMassThis;
-        Vector3 impactVelOther, impactVelThis;
-        if (Other is BodyComponent bodyOther)
-        {
-            impactVelOther = bodyOther.PreviousLinearVelocity + Vector3.Cross(bodyOther.PreviousAngularVelocity, impactPos - bodyOther.Position);
-            invMassOther = bodyOther.BodyInertia.InverseMass;
-        }
-        else
-        {
-            impactVelOther = default;
-            invMassOther = 0;
-        }
-
-        if (EventSource is BodyComponent bodySource)
-        {
-            impactVelThis = bodySource.PreviousLinearVelocity + Vector3.Cross(bodySource.PreviousAngularVelocity, impactPos - bodySource.Position);
-            invMassThis = bodySource.BodyInertia.InverseMass;
-        }
-        else
-        {
-            impactVelThis = default;
-            invMassThis = 0;
-        }
+        var pair = contact.ContactGroup.Pair;
+        ImpactOf(Other, contact.IsSourceA ? pair.B : pair.A, impactPos, out var impactVelOther, out var invMassOther);
+        ImpactOf(EventSource, contact.IsSourceA ? pair.A : pair.B, impactPos, out var impactVelThis, out var invMassThis);
 
         var relativeImpactVel = impactVelOther - impactVelThis;
+        if (invMassOther + invMassThis <= 0f)
+            return default;
         float effectiveMass = 1f / (invMassOther + invMassThis);
         return relativeImpactVel * effectiveMass / (float)Simulation.FixedTimeStepSeconds;
+    }
+
+    private void ImpactOf(CollidableComponent component, CollidableReference touched, Vector3 impactPos, out Vector3 velocity, out float inverseMass)
+    {
+        if (component is BodyComponent body)
+        {
+            velocity = body.PreviousLinearVelocity + Vector3.Cross(body.PreviousAngularVelocity, impactPos - body.Position);
+            inverseMass = body.BodyInertia.InverseMass;
+        }
+        else if (touched.Mobility != CollidableMobility.Static)
+        {
+            // A collidable spanning multiple bodies, only the body that touched takes part in the impact
+            var reference = Simulation.Simulation.Bodies[touched.BodyHandle];
+            velocity = reference.Velocity.Linear.ToStride();
+            inverseMass = reference.LocalInertia.InverseMass;
+        }
+        else
+        {
+            velocity = default;
+            inverseMass = 0;
+        }
     }
 
     /// <inheritdoc cref="Contacts{TManifold}"/>

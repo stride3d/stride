@@ -27,13 +27,15 @@ internal struct RayClosestHitHandler(BepuSimulation sim, CollisionMask collision
 
     public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
     {
-        HitInformation = new(ray.Origin + ray.Direction * t, normal, t, sim.GetComponent(collidable), childIndex);
+        var component = sim.GetComponent(collidable);
+        HitInformation = new(ray.Origin + ray.Direction * t, normal, t, component, component.GetChildIndex(collidable, childIndex));
         maximumT = t;
     }
 
     public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
     {
-        HitInformation = new(hitLocation, hitNormal, t, sim.GetComponent(collidable), -1);
+        var component = sim.GetComponent(collidable);
+        HitInformation = new(hitLocation, hitNormal, t, component, component.GetChildIndex(collidable, -1));
         maximumT = t;
     }
 

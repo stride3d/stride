@@ -120,6 +120,13 @@ public sealed class CollidableGizmo : IEntityGizmo
             return;
         }
 
+        // Nothing to show yet: a collider may take its shape from what the editor loads later, as a soft body does from its model
+        if (_component.Collider.Transforms == 0)
+        {
+            _latent = true;
+            return;
+        }
+
         var output = new List<BasicMeshBuffers>();
         Span<ShapeTransform> transforms = stackalloc ShapeTransform[_component.Collider.Transforms];
         _component.Collider.AppendModel(output, bepuShapeCacheSys, out _cache);
