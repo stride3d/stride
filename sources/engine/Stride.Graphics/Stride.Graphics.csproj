@@ -31,7 +31,9 @@
     <None Include="build\**\*.targets" PackagePath="buildTransitive/" Pack="true" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Restore only: packs build and run Stride.Core.Tasks themselves (_StrideBuildPackAssetsTool in Sdk.targets) -->
     <ProjectReference Include="..\..\core\Stride.Core.Tasks\Stride.Core.Tasks.csproj">
+      <BuildReference>false</BuildReference>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <GlobalPropertiesToRemove>TargetFramework;StrideGraphicsApi</GlobalPropertiesToRemove>
