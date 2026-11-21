@@ -6,7 +6,9 @@ using System.Diagnostics;
 using Avalonia;
 using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Components.Build;
+using Stride.Core.Assets.Editor.Components.Recovery;
 using Stride.Core.Presentation.Avalonia.Commands;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
@@ -55,6 +57,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     private string? sessionName;
     private string title = baseTitle;
     private IReadOnlyList<IDEInfo>? availableIDEs;
+    // Set while the session asks to save and closes
+    private bool isClosingSession;
 
 #if DEBUG
     // Note: only required for the Avalonia designer
@@ -129,6 +133,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     }
 
     public StatusViewModel Status { get; }
+
+    /// <summary>
+    /// The recovery copies of the session (autosave) and their sign in the status bar; <c>null</c> without a session.
+    /// </summary>
+    public SessionRecoveryViewModel? Recovery { get; private set => SetValue(ref field, value); }
 
     /// <summary>
     /// The banner shown in safe mode; null when the editor has no plugin host.
@@ -519,8 +528,33 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         panelActivations.Add(PanelActivation.OnLocationChanged(Panels, BuiltInPanels.AssetView, Session.AssetCollection.SelectedLocations));
         panelActivations.Add(PanelActivation.OnLog(Panels, BuiltInPanels.BuildLog, Build.BuildLog.Messages));
 
-        editorsRestorer.Restore();
+        StartRecovery(filePath, editorsRestorer);
         SafeModeBanner?.Update();
+    }
+
+    /// <summary>
+    /// Starts the recovery copies of the session, then opens the editors of the last session: after the question about the copies
+    /// that an editor which closed unexpectedly left, if there are some, so that the editors open on the restored changes.
+    /// </summary>
+    private void StartRecovery(UFile filePath, SessionEditorsRestorer restorer)
+    {
+        var recovery = new SessionRecoveryViewModel(ServiceProvider, Session!, filePath, EditorPath.RecoveryPath);
+        // The copies wait while the session closes or builds, and while a dialog is open; the game that plays (play mode) goes here too
+        recovery.Service.AddSkipCondition(() => isClosingSession || Build.BuildInProgress || EditorDialogService.IsModalWindowOpen());
+        recovery.Service.Start();
+        Recovery = recovery;
+        if (recovery.Service.FindRecovery() is { } found)
+            RestoreRecoveryThenEditorsAsync(recovery, found, restorer).Forget();
+        else
+            restorer.Restore();
+    }
+
+    private async Task RestoreRecoveryThenEditorsAsync(SessionRecoveryViewModel recovery, SessionRecovery found, SessionEditorsRestorer restorer)
+    {
+        await recovery.AskToRestoreAsync(found);
+        // The session may have closed meanwhile
+        if (editorsRestorer == restorer)
+            restorer.Restore();
     }
 
     /// <summary>
@@ -770,8 +804,13 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         if (session is null)
             return true;
 
+        // No recovery copy while the session asks to save and closes; it goes on if the user keeps the session open
+        isClosingSession = true;
         if (!await session.CloseAsync())
+        {
+            isClosingSession = false;
             return false;
+        }
 
         // The editors open now are those to open next time; closing them below must not change it
         editorsRestorer?.Stop();
@@ -783,6 +822,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         if (await session.EditorCollection.CloseAllEditorsAsync(false))
             return true;
         Panels.CancelClose();
+        isClosingSession = false;
         return false;
     }
 
@@ -800,6 +840,10 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         Panels.CloseSession();
         Preview?.Dispose();
         Preview = null;
+        // A clean close, saved or not: the recovery copies go
+        Recovery?.Dispose();
+        Recovery = null;
+        isClosingSession = false;
         if (Build.CancelBuildCommand.IsEnabled)
             Build.CancelBuildCommand.Execute();
         Build.Session = null;

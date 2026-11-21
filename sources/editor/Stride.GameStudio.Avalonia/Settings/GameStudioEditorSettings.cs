@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Editor.Components.Recovery;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
@@ -43,6 +44,17 @@ internal static class GameStudioEditorSettings
         {
             DisplayName = "ShortcutOverrides",
         };
+        // The recovery copies of the unsaved changes, kept outside of the project for a crash
+        AutosaveEnabled = new SettingsKey<bool>("Autosave/Enabled", EditorSettings.SettingsContainer, true)
+        {
+            DisplayName = $"{Autosave}/{Tr._p("Settings", "Keep recovery copies of unsaved changes")}",
+            Description = Tr._p("Settings", "Every few minutes, a copy of the unsaved changes is written outside of the project. If Game Studio closes unexpectedly, it offers to restore them the next time the project opens. The project's files are only written when you save."),
+        };
+        AutosaveIntervalMinutes = new SettingsKey<int>("Autosave/IntervalMinutes", EditorSettings.SettingsContainer, (int)SessionRecoveryService.DefaultInterval.TotalMinutes)
+        {
+            DisplayName = $"{Autosave}/{Tr._p("Settings", "Minutes between recovery copies")}",
+            Description = Tr._p("Settings", "How often the recovery copies of the unsaved changes are written, in minutes (at least 1)."),
+        };
     }
 
     /// <summary>
@@ -65,4 +77,24 @@ internal static class GameStudioEditorSettings
     /// plugins (<see cref="Core.Assets.Editor.Commands.CommandGestureBindings"/>); a command that is not loaded is skipped.
     /// </summary>
     public static SettingsKey<Dictionary<string, string>> ShortcutOverrides { get; }
+
+    /// <summary>
+    /// Gets the category of the autosave settings.
+    /// </summary>
+    public static string Autosave => Tr._p("Settings", "Autosave");
+
+    /// <summary>
+    /// Whether recovery copies of the unsaved changes of the session are kept outside of the project (<see cref="SessionRecoveryService"/>).
+    /// </summary>
+    public static SettingsKey<bool> AutosaveEnabled { get; }
+
+    /// <summary>
+    /// The minutes between two recovery copies; values below 1 count as 1.
+    /// </summary>
+    public static SettingsKey<int> AutosaveIntervalMinutes { get; }
+
+    /// <summary>
+    /// Gets the time between two recovery copies from <see cref="AutosaveIntervalMinutes"/>.
+    /// </summary>
+    public static TimeSpan GetAutosaveInterval() => TimeSpan.FromMinutes(Math.Max(1, AutosaveIntervalMinutes.GetValue()));
 }

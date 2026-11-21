@@ -1050,7 +1050,23 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     /// <param name="filePath">The full path of the asset file, in one of the <see cref="AssetFolders"/>.</param>
     /// <param name="log">The log receiving the errors of the load.</param>
     /// <returns>The loaded asset, or <c>null</c> if it could not be loaded (the reason is logged).</returns>
-    public AssetItem? LoadAssetFromFile(UFile filePath, ILogger log)
+    public AssetItem? LoadAssetFromFile(UFile filePath, ILogger log) => LoadAssetFromFile(filePath, null, log);
+
+    /// <summary>
+    /// Loads an asset from the given content as if it were the file at the given path in this package (running its upgraders
+    /// if needed, with absolute paths), without reading or writing that file and without adding the asset to the package.
+    /// </summary>
+    /// <param name="filePath">The full path the asset file would have, in one of the <see cref="AssetFolders"/>.</param>
+    /// <param name="content">The content of the asset file.</param>
+    /// <param name="log">The log receiving the errors of the load.</param>
+    /// <returns>The loaded asset, dirty, or <c>null</c> if it could not be loaded (the reason is logged).</returns>
+    public AssetItem? LoadAssetFromContent(UFile filePath, byte[] content, ILogger log)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        return LoadAssetFromFile(filePath, content, log);
+    }
+
+    private AssetItem? LoadAssetFromFile(UFile filePath, byte[]? content, ILogger log)
     {
         ArgumentNullException.ThrowIfNull(filePath);
         ArgumentNullException.ThrowIfNull(log);
@@ -1062,7 +1078,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             return null;
         }
 
-        var assetFile = new PackageLoadingAssetFile(filePath, sourceFolder);
+        var assetFile = new PackageLoadingAssetFile(filePath, sourceFolder) { AssetContent = content! };
         var assetItem = LoadAssetItem(new AssetMigrationContext(this, assetFile.ToReference(), filePath.ToOSPath(), log), assetFile);
         // Its paths are absolute, as those of the assets of a loaded package (see LoadAssets)
         if (assetItem is not null)

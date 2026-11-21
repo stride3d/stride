@@ -412,23 +412,10 @@ namespace Stride.Core.Assets.Editor.ViewModels
 
             declinedContents.Remove(path);
 
-            // The previous asset comes back on undo with its own Yaml metadata, as it would be saved
-            asset.PrepareSave(logger);
-            var previousAsset = asset.Asset;
-            var previousYamlMetadata = new AttachedYamlAssetMetadata();
-            asset.AssetItem.YamlMetadata.CopyInto(previousYamlMetadata);
-
             var undoRedoService = session.UndoRedoService;
             using (var transaction = undoRedoService.CreateTransaction())
             {
-                using (session.CreateAssetFixupContext())
-                {
-                    var changedDerivedAssets = ReplaceAsset(asset, assetItem.Asset, assetItem.YamlMetadata);
-                    undoRedoService.PushOperation(new ReloadAssetOperation(this, asset, previousAsset, previousYamlMetadata, assetItem.Asset, assetItem.YamlMetadata));
-                    // The assets deriving from it differ from their files now, as when it is edited in Game Studio
-                    if (changedDerivedAssets.Count > 0)
-                        undoRedoService.PushOperation(new EmptyDirtyingOperation(changedDerivedAssets.SelectMany(x => x.Dirtiables).Distinct()));
-                }
+                ReplaceAssetContent(asset, assetItem.Asset, assetItem.YamlMetadata);
                 undoRedoService.SetName(transaction, $"Reload {asset.Url} changed outside of Game Studio");
             }
             // The reloaded asset is what the file holds: it is clean, and undoing the reload makes it dirty
@@ -436,9 +423,38 @@ namespace Stride.Core.Assets.Editor.ViewModels
             Log.Info($"[{asset.Url}] has been reloaded: it has been changed outside of Game Studio.");
         }
 
-        // The content the session writes when it saves the asset: its paths are absolute in memory, relative in its file
+        /// <summary>
+        /// Replaces the content of an asset with the given one, in the transaction of the caller: undoing it brings back the previous
+        /// content, and the asset is dirty until the session saves it. The assets deriving from it take the new content of their base.
+        /// </summary>
+        /// <param name="asset">The asset whose content is replaced.</param>
+        /// <param name="newAsset">The new content, with the same identifier and type.</param>
+        /// <param name="yamlMetadata">The Yaml metadata (overrides...) of the new content.</param>
+        internal void ReplaceAssetContent([NotNull] AssetViewModel asset, [NotNull] Asset newAsset, AttachedYamlAssetMetadata yamlMetadata)
+        {
+            // The previous asset comes back on undo with its own Yaml metadata, as it would be saved
+            var logger = new LoggerResult();
+            asset.PrepareSave(logger);
+            var previousAsset = asset.Asset;
+            var previousYamlMetadata = new AttachedYamlAssetMetadata();
+            asset.AssetItem.YamlMetadata.CopyInto(previousYamlMetadata);
+
+            var undoRedoService = session.UndoRedoService;
+            using (session.CreateAssetFixupContext())
+            {
+                var changedDerivedAssets = ReplaceAsset(asset, newAsset, yamlMetadata);
+                undoRedoService.PushOperation(new ReloadAssetOperation(this, asset, previousAsset, previousYamlMetadata, newAsset, yamlMetadata));
+                // The assets deriving from it differ from their files now, as when it is edited in Game Studio
+                if (changedDerivedAssets.Count > 0)
+                    undoRedoService.PushOperation(new EmptyDirtyingOperation(changedDerivedAssets.SelectMany(x => x.Dirtiables).Distinct()));
+            }
+        }
+
+        /// <summary>
+        /// Gets the content the session writes when it saves the asset: its paths are absolute in memory, relative in its file.
+        /// </summary>
         [NotNull]
-        private static byte[] SerializeAsSaved([NotNull] AssetItem assetItem, ILogger logger)
+        internal static byte[] SerializeAsSaved([NotNull] AssetItem assetItem, ILogger logger)
         {
             AssetAnalysis.ConvertUPaths(assetItem, UPathType.Relative);
             try
