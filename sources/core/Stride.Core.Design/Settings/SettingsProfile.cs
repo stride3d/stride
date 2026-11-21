@@ -230,7 +230,39 @@ public class SettingsProfile : IDisposable
     /// </summary>
     /// <param name="name">The name to match.</param>
     /// <param name="value">The value to set.</param>
+    /// <remarks>
+    /// The first value set for a name creates its entry: that is a change too, which <see cref="ValidateSettingsChanges"/> notifies and
+    /// <see cref="DiscardSettingsChanges"/> removes.
+    /// </remarks>
     internal void SetValue(UFile name, object value)
+    {
+        SetValue(name, value, isLoading: false);
+    }
+
+    /// <summary>
+    /// Set the value of the entry that match the given name, as read from a settings file.
+    /// </summary>
+    /// <param name="name">The name to match.</param>
+    /// <param name="value">The value to set.</param>
+    /// <remarks>An entry created from the file is not a change to validate or to discard.</remarks>
+    internal void LoadValue(UFile name, object value)
+    {
+        SetValue(name, value, isLoading: true);
+    }
+
+    /// <summary>
+    /// Notifies that the entry with the given name has changed.
+    /// </summary>
+    /// <param name="name">The name of the entry that has changed.</param>
+    internal void NotifyEntryChanged(UFile name)
+    {
+        lock (SettingsContainer.SettingsLock)
+        {
+            modifiedSettings.Add(name);
+        }
+    }
+
+    private void SetValue(UFile name, object value, bool isLoading)
     {
 #if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);
@@ -244,23 +276,19 @@ public class SettingsProfile : IDisposable
             {
                 entry = SettingsEntry.CreateFromValue(this, name, value);
                 Settings[name] = entry;
+                if (!isLoading && !IsDiscarding)
+                {
+                    using (TransactionStack.CreateTransaction())
+                    {
+                        TransactionStack.PushOperation(new SettingsEntryAddOperation(this, entry));
+                    }
+                    NotifyEntryChanged(name);
+                }
             }
             else
             {
-                Settings[name].Value = value;
+                entry.Value = value;
             }
-        }
-    }
-
-    /// <summary>
-    /// Notifies that the entry with the given name has changed.
-    /// </summary>
-    /// <param name="name">The name of the entry that has changed.</param>
-    internal void NotifyEntryChanged(UFile name)
-    {
-        lock (SettingsContainer.SettingsLock)
-        {
-            modifiedSettings.Add(name);
         }
     }
 

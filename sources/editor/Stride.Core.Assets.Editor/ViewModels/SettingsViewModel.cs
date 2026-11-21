@@ -28,6 +28,9 @@ public sealed class SettingsViewModel : PropertiesViewModel
     {
         RegisterNodePresenterUpdater(new SettingsPropertyNodeUpdater());
         Profile = profile;
+        // The changes made since the last validation outside this window (a "don't ask again" box, the font size of the script
+        // editor) are validated now: Cancel discards only the changes made in the window
+        Profile.Container.CurrentProfile.ValidateSettingsChanges();
         ValidateChangesCommand = new AnonymousTaskCommand(serviceProvider, ValidateChanges);
         DiscardChangesCommand = new AnonymousCommand(serviceProvider, DiscardChanges);
         Initialize();
