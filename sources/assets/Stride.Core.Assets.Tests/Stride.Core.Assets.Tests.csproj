@@ -32,6 +32,9 @@
     <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets\Stride.Core.Assets.csproj" />
+    <!-- The test upgraders change the loaded project; MSBuild itself comes from the SDK at run time -->
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -87,7 +87,7 @@ public sealed class UpgradeRegistry
     /// <summary>
     /// Declares a structural (csproj / project-file) migration that became necessary at
     /// <paramref name="version"/>. It runs for any project upgraded from below that version, against the
-    /// NEW-version project (after the reference bump), with the project loaded once and saved once.
+    /// NEW-version project (after the reference bump), loaded once and saved after each step.
     /// </summary>
     /// <param name="version">The version at which the structural change landed (e.g. <c>"4.4.0.0"</c>).</param>
     /// <param name="title">What the step changes, in one line of Markdown, shown in the upgrade report and the upgrade guide.</param>

@@ -33,13 +33,11 @@ namespace Stride.Assets
                     if (UpgradeEffectShaderKeywords(text, out var count) is not { } upgraded)
                         continue;
 
-                    context.Backup?.Snapshot(file);
-                    File.WriteAllText(file, upgraded, encoding);
-                    context.Log.Info($"[{relative}]: {count} effect(s) declared with 'shader' are now declared with 'effect'.");
+                    context.WriteFile(file, upgraded, encoding, $"[{relative}]: {count} effect(s) declared with 'shader' are now declared with 'effect'.");
                 }
                 catch (Exception e)
                 {
-                    context.Log.Warning($"Could not upgrade the effect file [{relative}]", e);
+                    context.UnitFailed(file, e);
                 }
             }
         }

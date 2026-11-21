@@ -388,7 +388,7 @@ namespace Stride.Assets
 
             // .sdsl/.sdfx generated C# now comes from a Roslyn source generator into obj/, so rename any
             // on-disk siblings to .bak (recoverable, inert in build) and strip leftover csproj items /
-            // Generator metadata.
+            // Generator metadata. The renames happen once the step returned.
             var projectDir = context.ProjectFullPath.GetFullDirectory().ToOSPath();
             int renamedCount = 0;
             foreach (var file in Directory.EnumerateFiles(projectDir, "*.cs", SearchOption.AllDirectories))
@@ -402,17 +402,8 @@ namespace Stride.Assets
                 if (IsBuildOutput(rel))
                     continue;
 
-                try
-                {
-                    context.Backup?.Snapshot(file);
-                    File.Move(file, file + ".bak", overwrite: true);
-                    log.Info($"Renamed legacy generated shader file: {rel} -> {rel}.bak");
-                    renamedCount++;
-                }
-                catch (Exception e)
-                {
-                    log.Warning($"Could not rename legacy generated shader file [{rel}]", e);
-                }
+                context.MoveFile(file, file + ".bak", $"Renamed legacy generated shader file: {rel} -> {rel}.bak");
+                renamedCount++;
             }
 
             // Strip leftover csproj item nodes referencing .sdsl.cs / .sdfx.cs paths
@@ -454,7 +445,7 @@ namespace Stride.Assets
             }
 
             if (renamedCount > 0)
-                log.Info($"Renamed {renamedCount} legacy generated shader file(s) to .bak. The Roslyn source generator now produces these into obj/. Delete the .bak files when you've verified the upgrade.");
+                log.Info($"Renaming {renamedCount} legacy generated shader file(s) to .bak. The Roslyn source generator now produces these into obj/. Delete the .bak files when you've verified the upgrade.");
         }
 
         // 4.5: Stride.Engine no longer depends on Stride.Audio (an optional package now): a project that had audio

@@ -69,6 +69,46 @@ public class TestUpgradedVersionRecord : IDisposable
             => registry.Project("2.0.0", "Change the project", _ => throw new InvalidOperationException("The project can't be changed"));
     }
 
+    // Each project step sets a property and writes a file next to the project; the second one then throws
+    [PackageUpgrader(["UpgradeRecord.SecondStepThrows"], "1.0.0", "2.0.0")]
+    public class SecondStepThrowingUpgrader : global::Stride.Assets.CodePackageUpgrader
+    {
+        public override void DeclareUpgrades(global::Stride.Assets.UpgradeRegistry registry)
+        {
+            registry.Project("2.0.0", "First", context => Change(context, "First"));
+            registry.Project("2.0.0", "Second", context =>
+            {
+                Change(context, "Second");
+                throw new InvalidOperationException("The second step throws");
+            });
+            registry.Project("2.0.0", "Third", context => Change(context, "Third"));
+        }
+
+        private static void Change(global::Stride.Assets.ProjectUpgradeContext context, string step)
+        {
+            context.Project.SetProperty(step, "true");
+            context.IsDirty = true;
+            context.WriteFile(SideFile(context, step), step, System.Text.Encoding.UTF8);
+        }
+    }
+
+    // Its step can't change two of the files it writes: one it reports itself, one whose move fails
+    [PackageUpgrader(["UpgradeRecord.FileFails"], "1.0.0", "2.0.0")]
+    public class FileFailingUpgrader : global::Stride.Assets.CodePackageUpgrader
+    {
+        public override void DeclareUpgrades(global::Stride.Assets.UpgradeRegistry registry)
+            => registry.Project("2.0.0", "Write files", context =>
+            {
+                context.WriteFile(SideFile(context, "First"), "First", System.Text.Encoding.UTF8);
+                context.UnitFailed(SideFile(context, "Reported"), new InvalidOperationException("The file can't be read"));
+                context.MoveFile(SideFile(context, "Missing"), SideFile(context, "Moved"));
+                context.WriteFile(SideFile(context, "Last"), "Last", System.Text.Encoding.UTF8);
+            });
+    }
+
+    private static string SideFile(global::Stride.Assets.ProjectUpgradeContext context, string step)
+        => Path.Combine(context.ProjectFullPath.GetFullDirectory().ToOSPath(), step + ".txt");
+
     /// <summary>
     /// The runner of the session, except for the test upgraders that declare source migrations: it answers that they have
     /// some, and that the migration of some of them could not run, or throws. It keeps the projects it ran on.
@@ -259,6 +299,42 @@ public class TestUpgradedVersionRecord : IDisposable
         // The project that references it is not upgraded at all
         Assert.Equal(windowsBefore, ReadFiles(windows));
         AssertError(result, "The upgrade of [Game.Windows] is stopped: the project it references, [Game], could not be upgraded");
+    }
+
+    [Fact]
+    public void AProjectStepThatThrowsKeepsTheStepsBeforeItAndStopsTheProject()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.SecondStepThrows" Version="1.0.0" />""");
+        var gameDirectory = Path.GetDirectoryName(game)!;
+
+        var result = LoadAndSave(game);
+
+        var properties = XDocument.Load(game).Descendants("PropertyGroup").Elements().Select(x => x.Name.LocalName).ToList();
+        Assert.Contains("First", properties);
+        Assert.DoesNotContain("Second", properties);
+        Assert.DoesNotContain("Third", properties);
+        Assert.True(File.Exists(Path.Combine(gameDirectory, "First.txt")));
+        Assert.False(File.Exists(Path.Combine(gameDirectory, "Second.txt")));
+        Assert.False(File.Exists(Path.Combine(gameDirectory, "Third.txt")));
+        Assert.Empty(ReadRecords(game));
+        AssertError(result, "Unable to upgrade project [Game.csproj]: the step \"Second\" failed");
+    }
+
+    [Fact]
+    public void AFileAProjectStepCantChangeIsLeftAndTheOthersChange()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.FileFails" Version="1.0.0" />""");
+        var gameDirectory = Path.GetDirectoryName(game)!;
+
+        var result = LoadAndSave(game);
+
+        Assert.Equal("First", File.ReadAllText(Path.Combine(gameDirectory, "First.txt")));
+        Assert.Equal("Last", File.ReadAllText(Path.Combine(gameDirectory, "Last.txt")));
+        Assert.False(File.Exists(Path.Combine(gameDirectory, "Moved.txt")));
+        Assert.Contains(result.Messages, x => x.Type == LogMessageType.Warning && x.Text.Contains("Could not upgrade [Reported.txt]", StringComparison.Ordinal));
+        Assert.Contains(result.Messages, x => x.Type == LogMessageType.Warning && x.Text.Contains("Could not upgrade [Missing.txt]", StringComparison.Ordinal));
+        // The upgrade completes
+        Assert.Equal(new Dictionary<string, string> { ["UpgradeRecord.FileFails"] = "2.0.0" }, ReadRecords(game));
     }
 
     [Theory]

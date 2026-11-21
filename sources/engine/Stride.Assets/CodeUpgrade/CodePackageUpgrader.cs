@@ -63,8 +63,9 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
         if (!UpgradeProjectReferences(projectFullPath, log))
             return false;
 
-        // Version-gated structural csproj migrations declared via the upgrade registry (r.Project):
-        // load the project once, run each registration the project is upgrading across, save once.
+        // Version-gated structural csproj migrations declared via the upgrade registry (r.Project): load the project once,
+        // and run each registration the project is upgrading across. Each step is saved once it returned, so a step that
+        // throws leaves the project as the previous one left it, and stops it.
         var registry = new UpgradeRegistry();
         DeclareUpgrades(registry);
         var applicable = registry.ProjectUpgrades
@@ -80,10 +81,24 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
             var context = new ProjectUpgradeContext(project, solutionProject, projectFullPath, log) { Backup = session.UpgradeBackup };
 
             foreach (var registration in applicable)
-                registration.Upgrade(context);
+            {
+                try
+                {
+                    registration.Upgrade(context);
+                }
+                catch (Exception e)
+                {
+                    log.Error($"Unable to upgrade project [{projectFullPath.GetFileName()}]: the step \"{registration.Title}\" failed, and the steps after it don't run", e);
+                    return false;
+                }
 
-            if (context.IsDirty)
-                project.Save();
+                if (context.IsDirty)
+                {
+                    project.Save();
+                    context.IsDirty = false;
+                }
+                context.ApplyChanges();
+            }
         }
         catch (Exception e)
         {

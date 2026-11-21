@@ -2029,18 +2029,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                     return false;
                 }
 
-                // Perform pre assembly load upgrade
-                foreach (var pendingPackageUpgrade in pendingPackageUpgrades)
-                {
-                    var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
-                    var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
-                    if (!packageUpgrader.UpgradeBeforeAssembliesLoaded(loadParameters, session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage))
-                    {
-                        log.Error($"Error while upgrading package [{package.Meta.Name}] for [{pendingPackageUpgrade.Dependency.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{packageUpgrader.Attribute.UpdatedVersionRange}]. {RestoreFromBackupHint}");
-                        failedUpgrades.Add(package);
-                        return false;
-                    }
-                }
+                // UpgradeBeforeAssembliesLoaded already ran, with the dependencies (PreLoadPackageDependencies)
             }
 
             // Load assemblies. Set the package filename to the path on disk, in case of renaming.
