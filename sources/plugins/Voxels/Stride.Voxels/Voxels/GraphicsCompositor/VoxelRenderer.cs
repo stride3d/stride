@@ -240,6 +240,10 @@ namespace Stride.Rendering.Voxels
                         pass.source = pass.storer.GetVoxelizationShader(pass, processedVolume);
                         pass.view.RenderStages.Add(pass.renderStage);
 
+                        // The voxelization view takes the same lights as the camera renderer it runs under.
+                        // A volume drawn by camera renderers with different light masks is lit with the mask of only one of them.
+                        pass.view.LightMask = Context.RenderView.LightMask;
+
                         Context.RenderSystem.Views.Add(pass.view);
                         Context.VisibilityGroup.TryCollect(pass.view);
 

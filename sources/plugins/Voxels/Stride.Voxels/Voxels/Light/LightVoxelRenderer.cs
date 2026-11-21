@@ -60,6 +60,8 @@ namespace Stride.Rendering.Voxels.VoxelGI
 
                     lightShaderGroupsPerVoxel.Add(light, lightShaderGroup);
                 }
+
+                lightShaderGroup.ViewIndices.Add(parameters.ViewIndex);
             }
 
             // Consume all the lights
@@ -89,12 +91,24 @@ namespace Stride.Rendering.Voxels.VoxelGI
 
             public RenderLight Light { get; set; }
 
+            /// <summary>
+            /// The views that take this light. The shader is in the effects of every view, so the other views get zero intensity.
+            /// </summary>
+            public HashSet<int> ViewIndices { get; } = new HashSet<int>();
+
             VoxelAttribute traceAttribute = null;
 
             public LightVoxelShaderGroup(ShaderSource mixin) : base(mixin)
             {
                 HasEffectPermutations = true;
                 traceAttribute = null;
+            }
+
+            public override void Reset()
+            {
+                base.Reset();
+
+                ViewIndices.Clear();
             }
 
             ProcessedVoxelVolume GetProcessedVolume()
@@ -178,7 +192,7 @@ namespace Stride.Rendering.Voxels.VoxelGI
                 if (processedVolume == null)
                     return;
 
-                var intensity = Light.Intensity;
+                var intensity = ViewIndices.Contains(viewIndex) ? Light.Intensity : 0.0f;
                 var intensityBounceScale = lightVoxel.BounceIntensityScale;
                 var specularIntensity = lightVoxel.SpecularIntensityScale * intensity;
 

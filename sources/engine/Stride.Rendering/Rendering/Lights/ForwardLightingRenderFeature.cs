@@ -598,21 +598,17 @@ namespace Stride.Rendering.Lights
                 if (lights == null)
                     continue;
 
-                // TODO GRAPHICS REFACTOR
-                var sceneCullingMask = lightRenderView.CullingMask;
+                var lightMask = lightRenderView.LightMask;
 
-                // 2) Cull lights with the frustum
+                // 2) Cull lights with the light mask and the frustum
                 var frustum = lightRenderView.Frustum;
                 foreach (var light in lights)
                 {
-                    // TODO: New mechanism for light selection (probably in ForwardLighting configuration)
-                    //       Light should probably have their own LightGroup (separate from RenderGroup)
-                    // If light is not part of the culling mask group, we can skip it
-                    //var entityLightMask = (RenderGroupMask)(1 << (int)light.Entity.Group);
-                    //if ((entityLightMask & sceneCullingMask) == 0 && (light.CullingMask & sceneCullingMask) == 0)
-                    //{
-                    //    continue;
-                    //}
+                    // If none of the light's layers is in the light mask of this view, we can skip it
+                    if ((light.LightLayers & lightMask) == 0)
+                    {
+                        continue;
+                    }
 
                     // If light is not in the frustum, we can skip it
                     var directLight = light.Type as IDirectLight;
