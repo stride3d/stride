@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
+using Stride.Core.Mathematics;
 
 namespace Stride.BepuPhysics.Constraints;
 
@@ -20,4 +21,15 @@ public abstract class TwoBodyConstraintComponent<T> : ConstraintComponent<T>, IT
     }
 
     public TwoBodyConstraintComponent() : base(2) { }
+
+    internal override void CenterOfMassShifted(BodyComponent body, Vector3 shift)
+    {
+        if (this is not IWithTwoLocalOffset offsets)
+            return;
+
+        if (ReferenceEquals(body, A))
+            offsets.LocalOffsetA -= shift;
+        if (ReferenceEquals(body, B))
+            offsets.LocalOffsetB -= shift;
+    }
 }

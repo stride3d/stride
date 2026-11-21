@@ -4,6 +4,7 @@
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 
@@ -79,6 +80,8 @@ public abstract class ConstraintComponentBase : EntityComponent
     internal abstract ConstraintState TryReattachConstraint();
 
     internal abstract void DetachConstraint();
+
+    internal virtual void CenterOfMassShifted(BodyComponent body, Vector3 shift) { }
 
     public enum ConstraintState
     {

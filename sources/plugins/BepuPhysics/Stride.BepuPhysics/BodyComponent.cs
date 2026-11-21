@@ -480,6 +480,33 @@ public class BodyComponent : CollidableComponent
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[BodyReference!.Value];
     protected internal override NRigidPose? Pose => BodyReference?.Pose;
 
+    protected override bool CanReshape => BodyReference is not null;
+
+    /// <inheritdoc cref="CollidableComponent.ReshapeInner"/>
+    protected override void ReshapeInner(TypedIndex shapeIndex, BodyInertia shapeInertia, Vector3 centerOfMassShift)
+    {
+        Debug.Assert(BodyReference is not null);
+
+        var bRef = BodyReference.Value;
+        _nativeInertia = shapeInertia;
+
+        var localShift = centerOfMassShift.ToNumeric();
+        var worldShift = System.Numerics.Vector3.Transform(localShift, bRef.Pose.Orientation);
+        bRef.Pose.Position += worldShift;
+        bRef.Velocity.Linear += System.Numerics.Vector3.Cross(bRef.Velocity.Angular, worldShift);
+        PreviousPose.Position += System.Numerics.Vector3.Transform(localShift, PreviousPose.Orientation);
+        CurrentPose.Position += System.Numerics.Vector3.Transform(localShift, CurrentPose.Orientation);
+
+        bRef.SetLocalInertia(Kinematic ? new BodyInertia() : shapeInertia);
+        bRef.SetShape(shapeIndex);
+
+        if (BoundConstraints is not null && centerOfMassShift != Vector3.Zero)
+        {
+            foreach (var constraint in BoundConstraints)
+                constraint.CenterOfMassShifted(this, centerOfMassShift);
+        }
+    }
+
     /// <inheritdoc cref="CollidableComponent.AttachInner"/>
     protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
