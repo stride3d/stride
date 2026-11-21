@@ -6,6 +6,7 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines common function for direct lights
     /// </summary>
+    [Pure]
     module LightUtil
     {
         // Code from "Moving Frostbite to Physically Based Rendering"  Rousiers, Charles De Lagarde, Sébastien p32

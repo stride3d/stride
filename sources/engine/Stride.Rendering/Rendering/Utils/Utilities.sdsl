@@ -3,6 +3,7 @@
 /// <summary>
 /// Various helper functions.
 /// </summary>
+[Pure]
 module Utilities
 {
     // Converts a Half2 to a float2

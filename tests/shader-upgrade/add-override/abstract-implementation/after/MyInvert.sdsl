@@ -1,0 +1,11 @@
+// Implements the abstract method without 'override', which Stride accepted before 4.4
+[Root]
+shader MyInvert
+{
+    import MyFilterBase;
+
+    override float4 Filter(float4 color)
+    {
+        return float4(1 - color.rgb, color.a);
+    }
+};

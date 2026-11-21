@@ -45,6 +45,7 @@ public partial class Discard(TextLocation info) : Statement(info)
 {
     public override void ProcessSymbol(SymbolTable table)
     {
+        DefinitionChecks.CheckPixelShaderOnly(table, Info, "discard");
     }
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {

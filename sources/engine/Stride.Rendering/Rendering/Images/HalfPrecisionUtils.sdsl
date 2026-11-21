@@ -6,6 +6,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Helpers for values that end up in half-float render targets.
     /// </summary>
+    [Pure]
     module HalfPrecisionUtils
     {
         /// <summary>

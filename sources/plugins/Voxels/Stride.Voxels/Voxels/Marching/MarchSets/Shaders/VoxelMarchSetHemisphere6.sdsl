@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 shader VoxelMarchSetHemisphere6 : VoxelMarchSet
 {
-    import ShaderBase;
+    import ShaderBaseStream;
 
     cbuffer PerView.Lighting
     {

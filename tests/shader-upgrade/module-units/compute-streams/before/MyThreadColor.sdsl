@@ -1,0 +1,8 @@
+// Used in compositions: inherits ComputeShaderBase only to read the thread streams
+shader MyThreadColor : ComputeColor, ComputeShaderBase
+{
+    override float4 Compute()
+    {
+        return float4(streams.DispatchThreadId, 1);
+    }
+};

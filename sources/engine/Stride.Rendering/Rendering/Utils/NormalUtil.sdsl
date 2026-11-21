@@ -3,6 +3,7 @@
 /// <summary>
 /// Various methods for manipulating normals
 /// </summary>
+[Pure]
 module NormalUtil
 {
     // Shorter vectors fall back instead of amplifying rounding noise.

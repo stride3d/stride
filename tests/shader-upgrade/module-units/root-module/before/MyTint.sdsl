@@ -1,0 +1,10 @@
+// A post effect on that base: its Shading reads its own parameter, which is right because it is mixed at the root
+internal shader MyTint : MyFxBase
+{
+    float4 Tint;
+
+    stage override float4 Shading()
+    {
+        return SampleInput(streams.TexCoord) * Tint;
+    }
+};

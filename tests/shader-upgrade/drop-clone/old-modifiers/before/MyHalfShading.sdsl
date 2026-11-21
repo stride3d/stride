@@ -1,0 +1,9 @@
+// A shading feature from before 4.4: clone asked for one copy of the method per composition
+shader MyHalfShading : ShadingBase
+{
+    stage override clone float4 Shading()
+    {
+        // Half of the shading (a comment that says clone stays)
+        return base.Shading() * 0.5;
+    }
+};

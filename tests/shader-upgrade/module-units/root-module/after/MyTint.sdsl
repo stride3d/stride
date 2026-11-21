@@ -1,0 +1,13 @@
+// A post effect on that base: its Shading reads its own parameter, which is right because it is mixed at the root
+[Root]
+internal shader MyTint
+{
+    import MyFxBase;
+
+    float4 Tint;
+
+    module override float4 Shading()
+    {
+        return SampleInput(streams.TexCoord) * Tint;
+    }
+};

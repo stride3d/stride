@@ -129,7 +129,8 @@ public record struct MixinParser : IParser<Mixin>
         var mixinType = Specification.MixinKindSDFX.Default;
         if (Tokens.Literal("mixin", ref scanner, advance: true) && SDSL.Parsers.Spaces0(ref scanner, null!, out _))
         {
-            if (Tokens.AnyOf(["compose", "child", "clone", "macro"], ref scanner, out var mixinTypeString, advance: true) && SDSL.Parsers.Spaces1(ref scanner, result, out _))
+            var keywordPosition = scanner.Position;
+            if (Tokens.AnyOf(["compose", "child", "clone", "macro", "remove"], ref scanner, out var mixinTypeString, advance: true) && SDSL.Parsers.Spaces1(ref scanner, result, out _))
             {
                 mixinType = mixinTypeString switch
                 {
@@ -140,6 +141,21 @@ public record struct MixinParser : IParser<Mixin>
                     "remove" => Specification.MixinKindSDFX.Remove,
                     _ => throw new Exception("Invalid mixin type")
                 };
+
+                // Removed statements: an error that says what to do (once: the parsers backtrack)
+                var removed = mixinType switch
+                {
+                    Specification.MixinKindSDFX.Clone => SDSLErrorMessages.SDSL0046,
+                    Specification.MixinKindSDFX.Remove => SDSLErrorMessages.SDSL0047,
+                    _ => null,
+                };
+                if (removed != null && !result.Errors.Exists(x => x.Message == removed && x.Location.Position == position))
+                    result.Errors.Add(new(removed, scanner[position], scanner.Memory));
+            }
+            // A name that starts with a keyword (mixin removeFog)
+            else
+            {
+                scanner.Position = keywordPosition;
             }
 
             if (AssignOrExpression(ref scanner, result, out var statement)

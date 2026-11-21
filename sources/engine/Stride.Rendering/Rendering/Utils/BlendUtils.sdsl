@@ -3,6 +3,7 @@
 /// <summary>
 /// Various helper functions to perform blending.
 /// </summary>
+[Pure]
 module BlendUtils
 {
     // Performs an overlay operation between the two colors.
