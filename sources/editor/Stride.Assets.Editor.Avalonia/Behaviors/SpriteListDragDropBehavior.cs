@@ -4,10 +4,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
+using Stride.Core.Assets.Editor.Avalonia.DragDrop;
 using Stride.Core.IO;
 using Stride.Core.Assets.Presentation.ViewModels;
 
@@ -125,7 +125,7 @@ public sealed class SpriteListDragDropBehavior : StyledElementBehavior<ListBox>
         if (data.TryGetValues(SpriteFormat) is { Length: > 0 } sprites)
             return sprites.OfType<object>().ToList();
 
-        return data.TryGetFiles()?.Select(x => x.TryGetLocalPath()).OfType<string>().Select(x => (object)new UFile(x)).ToList() ?? [];
+        return [.. AssetDragDropHelper.GetFiles(data)];
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)

@@ -2,7 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Input;
+using Avalonia.Platform.Storage;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.IO;
 
 namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
 
@@ -82,6 +84,16 @@ public static class AssetDragDropHelper
                 items.Add(other);
         }
         return items;
+    }
+
+    /// <summary>
+    /// Gets the files and folders dragged from the file manager of the system, or an empty list when the data holds none.
+    /// </summary>
+    public static IReadOnlyList<UFile> GetFiles(IDataTransfer? data)
+    {
+        if (data is null)
+            return [];
+        return data.TryGetFiles()?.Select(x => x.TryGetLocalPath()).OfType<string>().Where(UFile.IsValid).Select(x => new UFile(x)).ToList() ?? [];
     }
 
     /// <summary>
