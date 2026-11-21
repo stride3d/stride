@@ -8,6 +8,7 @@ using Stride.Core.Threading;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -60,17 +61,17 @@ namespace Stride.Rendering
         /// <summary>
         /// The view matrix for this view.
         /// </summary>
-        public Matrix View = Matrix.Identity;
+        public Matrix4x4 View = Matrix4x4.Identity;
 
         /// <summary>
         /// The projection matrix for this view.
         /// </summary>
-        public Matrix Projection = Matrix.Identity;
+        public Matrix4x4 Projection = Matrix4x4.Identity;
 
         /// <summary>
         /// The view projection matrix for this view.
         /// </summary>
-        public Matrix ViewProjection;
+        public Matrix4x4 ViewProjection;
 
         /// <summary>
         /// Far clip plane.

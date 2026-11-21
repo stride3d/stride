@@ -8,6 +8,7 @@ using Stride.Engine;
 using Stride.Games;
 using Stride.Rendering;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Audio.Tests.Engine
 {
@@ -37,11 +38,11 @@ namespace Stride.Audio.Tests.Engine
             var zeroComponent = new AudioEmitterComponent();
             var zeroEntity = new Entity("zero") { zeroComponent };
             zeroEntity.Transform.UseTRS = false;
-            zeroEntity.Transform.LocalMatrix = Matrix.Zero;
+            zeroEntity.Transform.LocalMatrix = default(Matrix4x4);
 
             var normalComponent = new AudioEmitterComponent();
             var normalEntity = new Entity("normal") { normalComponent };
-            normalEntity.Transform.Rotation = Quaternion.RotationY(MathUtil.PiOverTwo);
+            normalEntity.Transform.Rotation = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
 
             scene.Entities.Add(zeroEntity);
             scene.Entities.Add(normalEntity);
@@ -58,7 +59,7 @@ namespace Stride.Audio.Tests.Engine
             renderContext.Time = new GameTime(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
             sceneInstance.Draw(renderContext);
 
-            Assert.Equal(Matrix.Zero, zeroEntity.Transform.WorldMatrix);
+            Assert.Equal(default(Matrix4x4), zeroEntity.Transform.WorldMatrix);
 
             Assert.Equal(new Vector3(3, 0, 0), normalEmitter.Position);
 

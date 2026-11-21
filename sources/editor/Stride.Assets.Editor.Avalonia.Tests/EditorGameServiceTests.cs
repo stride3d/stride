@@ -18,6 +18,7 @@ using Stride.Core.Reflection;
 using Stride.Editor.Avalonia.Engine;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.EditorGame.ViewModels;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;
 

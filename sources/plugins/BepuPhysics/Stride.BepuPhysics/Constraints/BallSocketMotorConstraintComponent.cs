@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Constraints;
 
@@ -24,11 +25,11 @@ public sealed class BallSocketMotorConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.LocalOffsetB.ToStride();
+            return BepuConstraint.LocalOffsetB;
         }
         set
         {
-            BepuConstraint.LocalOffsetB = value.ToNumeric();
+            BepuConstraint.LocalOffsetB = value;
             TryUpdateDescription();
         }
     }
@@ -37,11 +38,11 @@ public sealed class BallSocketMotorConstraintComponent : TwoBodyConstraintCompon
     {
         get
         {
-            return BepuConstraint.TargetVelocityLocalA.ToStride();
+            return BepuConstraint.TargetVelocityLocalA;
         }
         set
         {
-            BepuConstraint.TargetVelocityLocalA = value.ToNumeric();
+            BepuConstraint.TargetVelocityLocalA = value;
             TryUpdateDescription();
         }
     }

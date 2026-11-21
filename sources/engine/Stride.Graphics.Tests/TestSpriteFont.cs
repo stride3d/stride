@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Input;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {
@@ -92,7 +93,7 @@ namespace Stride.Graphics.Tests
             notoSans20.PreGenerateGlyphs(text, notoSans20.Size * Vector2.One);
             spriteBatch.DrawString(notoSans20, text, new Vector2(x, y), Color.White);
 
-            text = FormattableString.Invariant($"Measured: {dim:F3}");
+            text = FormattableString.Invariant($"Measured: X:{dim.X:F3} Y:{dim.Y:F3}");
             liberationMono13.PreGenerateGlyphs(text, liberationMono13.Size * Vector2.One);
             spriteBatch.DrawString(liberationMono13, text, new Vector2(x, y + dim.Y + 5), Color.GreenYellow);
 

@@ -7,6 +7,7 @@ using Stride.Editor.Annotations;
 using Stride.Graphics;
 using Stride.Physics;
 using Stride.Assets.Editor.Preview;
+using System.Numerics;
 
 namespace Stride.Physics.Editor
 {

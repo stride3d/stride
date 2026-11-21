@@ -55,7 +55,7 @@ TemplateProviders:
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Rectangle
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider RectangleF
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Quaternion
-  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Matrix
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Matrix4x4
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider AngleSingle
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider UDirectory
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider UFile

@@ -15,24 +15,24 @@ namespace Stride.Importer.ThreeD
         public const int AI_MAX_NUMBER_OF_TEXTURECOORDS = 8;
         public const int AI_MAX_NUMBER_OF_COLOR_SETS = 8;
 
-        public static Matrix ToStrideMatrix(this Matrix4x4 matrix)
+        public static Matrix4x4 ToStrideMatrix(this Matrix4x4 matrix)
         {
             // Note the order. Matrices from Assimp has to be transposed
-            return new Matrix(
+            return new Matrix4x4(
                 matrix.M11, matrix.M21, matrix.M31, matrix.M41,
                 matrix.M12, matrix.M22, matrix.M32, matrix.M42,
                 matrix.M13, matrix.M23, matrix.M33, matrix.M43,
                 matrix.M14, matrix.M24, matrix.M34, matrix.M44);
         }
 
-        public static Core.Mathematics.Vector3 ToStrideVector3(this System.Numerics.Vector3 v)
-            => Unsafe.As<System.Numerics.Vector3, Core.Mathematics.Vector3>(ref v);
+        public static System.Numerics.Vector3 ToStrideVector3(this System.Numerics.Vector3 v)
+            => Unsafe.As<System.Numerics.Vector3, System.Numerics.Vector3>(ref v);
 
         public static Color ToStrideColor(this System.Numerics.Vector4 v)
             => new Color(v.X, v.Y, v.Z, v.W);
 
-        public static Core.Mathematics.Quaternion ToStrideQuaternion(this AssimpQuaternion q)
-            => new Core.Mathematics.Quaternion(q.X, q.Y, q.Z, q.W);
+        public static System.Numerics.Quaternion ToStrideQuaternion(this AssimpQuaternion q)
+            => new System.Numerics.Quaternion(q.X, q.Y, q.Z, q.W);
 
         public static unsafe uint GetNumUVChannels(Silk.NET.Assimp.Mesh* mesh)
         {

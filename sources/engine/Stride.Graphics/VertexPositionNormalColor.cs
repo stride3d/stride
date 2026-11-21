@@ -5,6 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -58,7 +59,7 @@ namespace Stride.Graphics
 
         public bool Equals(VertexPositionNormalColor other)
         {
-            return Position.Equals(other.Position) && Normal.Equals(other.Normal) && Color.Equals(other.Color);
+            return Position == other.Position && Normal == other.Normal && Color.Equals(other.Color);
         }
 
         public override bool Equals(object obj)

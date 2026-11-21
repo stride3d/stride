@@ -9,6 +9,7 @@ using Stride.Particles.Sorters;
 using Stride.Particles.VertexLayouts;
 using Stride.Particles.ShapeBuilders.Tools;
 using System.Runtime.CompilerServices;
+using System.Numerics;
 
 namespace Stride.Particles.ShapeBuilders
 {
@@ -119,7 +120,7 @@ namespace Stride.Particles.ShapeBuilders
 
         /// <inheritdoc />
         public override unsafe int BuildVertexBuffer(ref ParticleBufferState bufferState, Vector3 invViewX, Vector3 invViewY,
-            ref Vector3 spaceTranslation, ref Quaternion spaceRotation, float spaceScale, ref ParticleList sorter, ref Matrix viewProj)
+            ref Vector3 spaceTranslation, ref Quaternion spaceRotation, float spaceScale, ref ParticleList sorter, ref Matrix4x4 viewProj)
         {
             // Get all the required particle fields
             var positionField = sorter.GetField(ParticleFields.Position);
@@ -130,8 +131,8 @@ namespace Stride.Particles.ShapeBuilders
 
             // Check if the draw space is identity - in this case we don't need to transform the position, scale and rotation vectors
             var trsIdentity = (spaceScale == 1f);
-            trsIdentity = trsIdentity && (spaceTranslation.Equals(Vector3.Zero));
-            trsIdentity = trsIdentity && (spaceRotation.Equals(Quaternion.Identity));
+            trsIdentity = trsIdentity && (spaceTranslation == Vector3.Zero);
+            trsIdentity = trsIdentity && (spaceRotation == Quaternion.Identity);
 
             var ribbonizer = new Ribbonizer(this, currentTotalParticles, currentQuadsPerParticle);
 
@@ -163,11 +164,11 @@ namespace Stride.Particles.ShapeBuilders
 
                 if (!trsIdentity)
                 {
-                    spaceRotation.Rotate(ref centralPos);
+                    centralPos = Vector3.Transform(centralPos, spaceRotation);
                     centralPos = centralPos * spaceScale + spaceTranslation;
 
                     // Direction
-                    spaceRotation.Rotate(ref particleDirection);
+                    particleDirection = Vector3.Transform(particleDirection, spaceRotation);
                     particleDirection *= spaceScale;
                 }
 
@@ -304,9 +305,9 @@ namespace Stride.Particles.ShapeBuilders
 
                         // Circular motion
                         var dist1 = positions[index + j] - O1;
-                        dist1.Normalize();
+                        dist1 = Vector3.NormalizeSafe(dist1);
                         var dist2 = positions[index + j] - O2;
-                        dist2.Normalize();
+                        dist2 = Vector3.NormalizeSafe(dist2);
 
                         positions[index + j] = Vector3.Lerp(O1 + dist1 * R1, O2 + dist2 * R2, j * lerpStep);
 
@@ -405,7 +406,7 @@ namespace Stride.Particles.ShapeBuilders
                 bufferState.SetVerticesPerSegment(quadsPerParticle * 6, quadsPerParticle * 4, quadsPerParticle * 2);
 
                 var axis0 = positions[0] - positions[1];
-                axis0.Normalize();
+                axis0 = Vector3.NormalizeSafe(axis0);
 
                 var oldPoint = positions[0];
                 var oldUnitX = directions[0];
@@ -420,7 +421,7 @@ namespace Stride.Particles.ShapeBuilders
 
                     // Directions for smoothing
                     var axis1 = (i + 1 < lastParticle) ? positions[i] - positions[i + 1] : positions[lastParticle - 2] - positions[lastParticle - 1];
-                    axis1.Normalize();
+                    axis1 = Vector3.NormalizeSafe(axis1);
 
                     var unitX = directions[i];
 

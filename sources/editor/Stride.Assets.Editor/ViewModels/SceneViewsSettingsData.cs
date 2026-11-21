@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Settings;
 using Stride.Engine;
 using Stride.Engine.Processors;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels;
 

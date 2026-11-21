@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -377,7 +378,7 @@ public class TestCollisionHelper
     public void TestRayIntersectsRectangle()
     {
         var ray = new Ray(new Vector3(0, 0, 5), -Vector3.UnitZ);
-        var matrix = Matrix.Identity;
+        var matrix = Matrix4x4.Identity;
         var size = new Vector3(2, 2, 0);
 
         var result = CollisionHelper.RayIntersectsRectangle(ref ray, ref matrix, ref size, 2, out var intersectionPoint);

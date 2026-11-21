@@ -13,6 +13,7 @@ using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Particles.Materials
 {

@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
+using System.Numerics;
 
 namespace Stride.VirtualReality
 {
@@ -41,7 +42,7 @@ namespace Stride.VirtualReality
 
         public bool PreviousUseCustomViewMatrix;
 
-        public Matrix PreviousCameraProjection;
+        public Matrix4x4 PreviousCameraProjection;
 
         public float ResolutionScale;
 

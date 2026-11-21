@@ -6,6 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Navigation.Processors;
+using System.Numerics;
 
 namespace Stride.Navigation
 {

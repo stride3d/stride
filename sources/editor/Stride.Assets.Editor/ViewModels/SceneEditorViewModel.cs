@@ -15,6 +15,7 @@ using Stride.Core.Presentation.Collections;
 using Stride.Editor.Engine;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Assets.Editor.AssetEditors.GameEditor;
+using Stride.Core.Mathematics;
 
 namespace Stride.Assets.Editor.ViewModels;
 
@@ -107,8 +108,8 @@ public sealed class SceneEditorViewModel : EntityHierarchyEditorViewModel, IAsse
     {
         if (element is SceneRootViewModel root)
         {
-            // Update the offset only when it actually changed
-            if (root.Offset != transformation.Position)
+            // Update the offset only when it actually changed (with a tolerance: the game computes it)
+            if (!root.Offset.NearEquals(transformation.Position))
                 root.Offset = transformation.Position;
             return;
         }

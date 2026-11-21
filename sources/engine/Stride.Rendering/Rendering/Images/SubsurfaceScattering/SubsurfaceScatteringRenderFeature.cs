@@ -6,6 +6,7 @@ using System.Linq;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Rendering.SubsurfaceScattering;
+using System.Numerics;
 
 namespace Stride.Rendering.Materials
 {

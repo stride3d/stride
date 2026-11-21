@@ -12,6 +12,7 @@ using Stride.Engine;
 using Stride.Input;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -344,7 +345,7 @@ public sealed class EditorViewToolTests
     {
         var camera = new CameraComponent { UseCustomAspectRatio = true, AspectRatio = 2, VerticalFieldOfView = 90 };
         // A camera at (0, 0, 10), looking at the origin
-        var cameraWorld = Matrix.Translation(0, 0, 10);
+        var cameraWorld = Matrix4x4.CreateTranslation(0, 0, 10);
 
         var center = EditorGameHelper.CalculateRayFromMousePosition(camera, new Vector2(0.5f), cameraWorld);
         var topRight = EditorGameHelper.CalculateRayFromMousePosition(camera, new Vector2(1, 0), cameraWorld);
@@ -358,7 +359,7 @@ public sealed class EditorViewToolTests
     private static void AssertNearEqual(Vector3 expected, Vector3 actual)
     {
         var epsilon = new Vector3(1e-5f);
-        Assert.True(Vector3.NearEqual(in expected, in actual, in epsilon), $"Expected {expected}, got {actual}.");
+        Assert.True(expected.NearEquals(actual, epsilon), $"Expected {expected}, got {actual}.");
     }
 }
 

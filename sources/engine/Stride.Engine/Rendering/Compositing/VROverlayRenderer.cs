@@ -4,6 +4,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.VirtualReality;
+using System.Numerics;
 
 namespace Stride.Rendering.Compositing
 {

@@ -10,6 +10,8 @@ using Stride.Core.Mathematics;
 using Stride.Games;
 using static Stride.Games.TouchUtils;
 
+using System.Numerics;
+
 namespace Stride.Input
 {
     /// <summary>

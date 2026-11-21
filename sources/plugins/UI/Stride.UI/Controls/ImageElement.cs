@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.UI.Controls
 {
@@ -156,11 +157,11 @@ namespace Stride.UI.Controls
         {
             if (Rotation == 0)
             {
-                LocalMatrix = Matrix.Identity;
+                LocalMatrix = Matrix4x4.Identity;
             }
             else
             {
-                LocalMatrix = Matrix.RotationZ(Rotation);
+                LocalMatrix = Matrix4x4.CreateRotationZ(Rotation);
             }
         }
     }

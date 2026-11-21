@@ -14,6 +14,7 @@ using Stride.Rendering.Voxels;
 using Stride.Rendering.Shadows;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
+using System.Numerics;
 
 namespace Stride.Engine.Processors
 {
@@ -66,7 +67,7 @@ namespace Stride.Engine.Processors
                     renderVoxelVolumes.Add(volume, data = new DataVoxelVolume());
                 processedVoxelVolumes.Add(volume, new ProcessedVoxelVolume());
 
-                data.VolumeTranslation = volume.Entity.Transform.WorldMatrix.TranslationVector;
+                data.VolumeTranslation = volume.Entity.Transform.WorldMatrix.Translation;
                 data.VolumeSize = new Vector3(volume.VoxelVolumeSize);
 
 

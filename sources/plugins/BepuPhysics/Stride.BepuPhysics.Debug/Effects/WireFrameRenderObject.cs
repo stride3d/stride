@@ -6,6 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Debug.Effects
 {
@@ -13,8 +14,8 @@ namespace Stride.BepuPhysics.Debug.Effects
     {
         // Shader properties
         public Color Color = Color.Red;
-        public Matrix WorldMatrix = Matrix.Identity;
-        public Matrix CollidableBaseMatrix = Matrix.Identity;
+        public Matrix4x4 WorldMatrix = Matrix4x4.Identity;
+        public Matrix4x4 CollidableBaseMatrix = Matrix4x4.Identity;
 
         // Vertex buffer setup
         public readonly int VertexStride;

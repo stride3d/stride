@@ -29,6 +29,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -92,7 +93,7 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, ISpanFormattable, IIn
     /// </summary>
     /// <param name="ray">The ray to test.</param>
     /// <param name="point">When the method completes, contains the point of intersection,
-    /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+    /// or <see cref="System.Numerics.Vector3.Zero"/> if there was no intersection.</param>
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref readonly Ray ray, out Vector3 point)
     {
@@ -220,7 +221,7 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, ISpanFormattable, IIn
         var nextPoint = startPoint;
         for (int i = 0; i < vertexCount; ++i)
         {
-            Vector3.Add(ref *(Vector3*)nextPoint, ref center, out center);
+            center = *(Vector3*)nextPoint + center;
             nextPoint += vertexStride;
         }
 
@@ -234,7 +235,7 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, ISpanFormattable, IIn
         {
             //We are doing a relative distance comparasin to find the maximum distance
             //from the center of our sphere.
-            Vector3.DistanceSquared(ref center, ref *(Vector3*)nextPoint, out var distance);
+            var distance = Vector3.DistanceSquared(center, *(Vector3*)nextPoint);
 
             if (distance > radius)
                 radius = distance;
@@ -267,7 +268,7 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, ISpanFormattable, IIn
     /// <param name="result">When the method completes, the newly constructed bounding sphere.</param>
     public static void FromBox(ref readonly BoundingBox box, out BoundingSphere result)
     {
-        Vector3.Lerp(in box.Minimum, in box.Maximum, 0.5f, out result.Center);
+        result.Center = Vector3.Lerp(box.Minimum, box.Maximum, 0.5f);
 
         float x = box.Minimum.X - box.Maximum.X;
         float y = box.Minimum.Y - box.Maximum.Y;
@@ -294,9 +295,9 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, ISpanFormattable, IIn
     /// <param name="value">The original bounding sphere.</param>
     /// <param name="transform">The transform to apply to the bounding sphere.</param>
     /// <param name="result">The transformed bounding sphere.</param>
-    public static void Transform(ref readonly BoundingSphere value, ref readonly Matrix transform, out BoundingSphere result)
+    public static void Transform(ref readonly BoundingSphere value, ref readonly Matrix4x4 transform, out BoundingSphere result)
     {
-        Vector3.TransformCoordinate(in value.Center, in transform, out result.Center);
+        result.Center = Vector3.TransformCoordinate(value.Center, transform);
 
         var majorAxisLengthSquared = MathF.Max(
             (transform.M11 * transform.M11) + (transform.M12 * transform.M12) + (transform.M13 * transform.M13), MathF.Max(
@@ -439,15 +440,23 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, ISpanFormattable, IIn
     }
 
     /// <summary>
-    /// Determines whether the specified <see cref="Stride.Core.Mathematics.Vector4"/> is equal to this instance.
+    /// Determines whether the specified <see cref="System.Numerics.Vector4"/> is equal to this instance.
     /// </summary>
-    /// <param name="value">The <see cref="Stride.Core.Mathematics.Vector4"/> to compare with this instance.</param>
+    /// <param name="value">The <see cref="System.Numerics.Vector4"/> to compare with this instance.</param>
     /// <returns>
-    /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Vector4"/> is equal to this instance; otherwise, <c>false</c>.
+    /// <c>true</c> if the specified <see cref="System.Numerics.Vector4"/> is equal to this instance; otherwise, <c>false</c>.
     /// </returns>
     public readonly bool Equals(BoundingSphere value)
     {
         return Center == value.Center && Radius == value.Radius;
+    }
+
+    /// <summary>Determines whether every component of a sphere differs from the same component of this one by less than a tolerance.</summary>
+    /// <param name="other">The sphere to compare with this instance.</param>
+    /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+    public readonly bool NearEquals(BoundingSphere other, float tolerance = MathUtil.ZeroTolerance)
+    {
+        return Center.NearEquals(other.Center, tolerance) && MathF.Abs(Radius - other.Radius) < tolerance;
     }
 
     /// <summary>

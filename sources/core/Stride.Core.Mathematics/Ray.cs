@@ -30,6 +30,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -87,7 +88,7 @@ public struct Ray : IEquatable<Ray>, ISpanFormattable
     /// </summary>
     /// <param name="ray">The ray to test.</param>
     /// <param name="point">When the method completes, contains the point of intersection,
-    /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+    /// or <see cref="System.Numerics.Vector3.Zero"/> if there was no intersection.</param>
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref readonly Ray ray, out Vector3 point)
     {
@@ -95,7 +96,7 @@ public struct Ray : IEquatable<Ray>, ISpanFormattable
     }
 
     /// <summary>
-    /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Plane"/>.
+    /// Determines if there is an intersection between the current object and a <see cref="System.Numerics.Plane"/>.
     /// </summary>
     /// <param name="plane">The plane to test</param>
     /// <returns>Whether the two objects intersected.</returns>
@@ -106,7 +107,7 @@ public struct Ray : IEquatable<Ray>, ISpanFormattable
     }
 
     /// <summary>
-    /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Plane"/>.
+    /// Determines if there is an intersection between the current object and a <see cref="System.Numerics.Plane"/>.
     /// </summary>
     /// <param name="plane">The plane to test.</param>
     /// <param name="distance">When the method completes, contains the distance of the intersection,
@@ -118,11 +119,11 @@ public struct Ray : IEquatable<Ray>, ISpanFormattable
     }
 
     /// <summary>
-    /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Plane"/>.
+    /// Determines if there is an intersection between the current object and a <see cref="System.Numerics.Plane"/>.
     /// </summary>
     /// <param name="plane">The plane to test.</param>
     /// <param name="point">When the method completes, contains the point of intersection,
-    /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+    /// or <see cref="System.Numerics.Vector3.Zero"/> if there was no intersection.</param>
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref readonly Plane plane, out Vector3 point)
     {
@@ -163,7 +164,7 @@ public struct Ray : IEquatable<Ray>, ISpanFormattable
     /// <param name="vertex2">The second vertex of the triangle to test.</param>
     /// <param name="vertex3">The third vertex of the triangle to test.</param>
     /// <param name="point">When the method completes, contains the point of intersection,
-    /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+    /// or <see cref="System.Numerics.Vector3.Zero"/> if there was no intersection.</param>
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3, out Vector3 point)
     {
@@ -198,7 +199,7 @@ public struct Ray : IEquatable<Ray>, ISpanFormattable
     /// </summary>
     /// <param name="box">The box to test.</param>
     /// <param name="point">When the method completes, contains the point of intersection,
-    /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+    /// or <see cref="System.Numerics.Vector3.Zero"/> if there was no intersection.</param>
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref readonly BoundingBox box, out Vector3 point)
     {
@@ -233,7 +234,7 @@ public struct Ray : IEquatable<Ray>, ISpanFormattable
     /// </summary>
     /// <param name="sphere">The sphere to test.</param>
     /// <param name="point">When the method completes, contains the point of intersection,
-    /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+    /// or <see cref="System.Numerics.Vector3.Zero"/> if there was no intersection.</param>
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref readonly BoundingSphere sphere, out Vector3 point)
     {
@@ -311,15 +312,23 @@ public struct Ray : IEquatable<Ray>, ISpanFormattable
     }
 
     /// <summary>
-    /// Determines whether the specified <see cref="Stride.Core.Mathematics.Vector4"/> is equal to this instance.
+    /// Determines whether the specified <see cref="System.Numerics.Vector4"/> is equal to this instance.
     /// </summary>
-    /// <param name="value">The <see cref="Stride.Core.Mathematics.Vector4"/> to compare with this instance.</param>
+    /// <param name="value">The <see cref="System.Numerics.Vector4"/> to compare with this instance.</param>
     /// <returns>
-    /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Vector4"/> is equal to this instance; otherwise, <c>false</c>.
+    /// <c>true</c> if the specified <see cref="System.Numerics.Vector4"/> is equal to this instance; otherwise, <c>false</c>.
     /// </returns>
     public readonly bool Equals(Ray value)
     {
         return Position == value.Position && Direction == value.Direction;
+    }
+
+    /// <summary>Determines whether every component of a ray differs from the same component of this one by less than a tolerance.</summary>
+    /// <param name="other">The ray to compare with this instance.</param>
+    /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+    public readonly bool NearEquals(Ray other, float tolerance = MathUtil.ZeroTolerance)
+    {
+        return Position.NearEquals(other.Position, tolerance) && Direction.NearEquals(other.Direction, tolerance);
     }
 
     /// <summary>

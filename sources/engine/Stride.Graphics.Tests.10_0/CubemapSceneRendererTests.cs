@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Skyboxes;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests;
 

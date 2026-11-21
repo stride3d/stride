@@ -19,6 +19,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.Shadows;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {
@@ -161,7 +162,7 @@ namespace Stride.Engine.Tests
                 instance.Material = material;
             AmbientLight.Intensity = 0.25f;
             var keyLight = new Entity { new LightComponent { Type = new LightDirectional { Shadow = { Enabled = true } }, Intensity = 0.75f } };
-            keyLight.Transform.Rotation = Quaternion.RotationYawPitchRoll(-0.5f, -MathUtil.PiOverFour, 0);
+            keyLight.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(-0.5f, -MathUtil.PiOverFour, 0);
             Scene.Entities.Add(keyLight);
             for (int index = 0; index < DonutCount; index++)
             {
@@ -342,7 +343,7 @@ namespace Stride.Engine.Tests
 
             var light = new Entity { new LightComponent { Type = new LightDirectional { Shadow = { Enabled = true } }, Intensity = 0.5f } };
             // A directional light points along its forward axis (-Z): turn it to point down (-Y).
-            light.Transform.Rotation = Quaternion.RotationX(-MathUtil.PiOverTwo);
+            light.Transform.Rotation = Quaternion.CreateRotationX(-MathUtil.PiOverTwo);
             Scene.Entities.Add(light);
         }
 

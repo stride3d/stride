@@ -9,6 +9,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Input.Tests
 {

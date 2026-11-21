@@ -11,6 +11,7 @@ using Stride.Games;
 using Stride.Graphics.Regression;
 using Stride.Physics;
 using Stride.Rendering.Compositing;
+using System.Numerics;
 
 namespace Stride.Navigation.Tests
 {

@@ -5,6 +5,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Drawing;
 using Stride.Core.Presentation.Extensions;
 using Color = Stride.Core.Mathematics.Color;
+using System.Numerics;
 
 namespace Stride.Core.Presentation.Avalonia.Tests.Drawing;
 

@@ -16,6 +16,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Editor.ViewModels.CurveEditor;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels.CurveEditor.ControlPoints
 {

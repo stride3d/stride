@@ -23,6 +23,7 @@ using Stride.Rendering.Materials.ComputeColors;
 using Mesh = Stride.Rendering.Mesh;
 using PrimitiveType = Stride.Graphics.PrimitiveType;
 using Scene = Silk.NET.Assimp.Scene;
+using System.Numerics;
 
 namespace Stride.Importer.ThreeD
 {
@@ -82,8 +83,8 @@ namespace Stride.Importer.ThreeD
 
         private Quaternion rootOrientation;
         private Quaternion rootOrientationInverse;
-        private Matrix rootTransform;
-        private Matrix rootTransformInverse;
+        private Matrix4x4 rootTransform;
+        private Matrix4x4 rootTransformInverse;
         private Model modelData;
 
         private readonly List<ModelNodeDefinition> nodes = new();
@@ -853,16 +854,16 @@ namespace Stride.Importer.ThreeD
 
                 if (isTranslation)
                 {
-                    // Change of basis: key.Value = (rootTransformInverse * Matrix::Translation(key.Value) * rootTransform).TranslationVector;
-                    Vector3.TransformCoordinate(ref key.Value, ref rootTransform, out key.Value);
+                    // Change of basis: key.Value = (rootTransformInverse * Matrix4x4.CreateTranslation(key.Value) * rootTransform).Translation;
+                    key.Value = Vector3.TransformCoordinate(key.Value, rootTransform);
                 }
                 else
                 {
-                    // Change of basis: key.Value = (rootTransformInverse * Matrix::Scaling(key.Value) * rootTransform).ScaleVector;
+                    // Change of basis: key.Value = the diagonal of rootTransformInverse * Matrix4x4.CreateScale(key.Value) * rootTransform
                     var scale = Vector3.One;
-                    Vector3.TransformNormal(ref scale, ref rootTransformInverse, out scale);
+                    scale = Vector3.TransformNormal(scale, rootTransformInverse);
                     scale *= key.Value;
-                    Vector3.TransformNormal(ref scale, ref rootTransform, out key.Value);
+                    key.Value = Vector3.TransformNormal(scale, rootTransform);
                 }
 
                 animationCurve.KeyFrames.Add(key);
@@ -893,7 +894,7 @@ namespace Stride.Importer.ThreeD
                     Value = aiKey.MValue.ToStrideQuaternion()
                 };
 
-                key.Value = rootOrientationInverse * key.Value * rootOrientation;
+                key.Value = Quaternion.Concatenate(Quaternion.Concatenate(rootOrientationInverse, key.Value), rootOrientation);
 
                 animationCurve.KeyFrames.Add(key);
             }
@@ -1030,8 +1031,8 @@ namespace Stride.Importer.ThreeD
 
                 rootTransform.Decompose(out var rootScaling, out rootOrientation, out var rootTranslation);
 
-                rootTransformInverse = Matrix.Invert(rootTransform);
-                rootOrientationInverse = Quaternion.Invert(rootOrientation);
+                Matrix4x4.InvertSafe(rootTransform, out rootTransformInverse);
+                rootOrientationInverse = Quaternion.Inverse(rootOrientation);
 
                 modelNodeDefinition.Transform.Rotation = Quaternion.Identity;
                 modelNodeDefinition.Transform.Scale = Vector3.One;
@@ -1178,7 +1179,7 @@ namespace Stride.Importer.ThreeD
                 vertexStride += sizeof(Vector4);
                 uvBitangents = ComputeUVBitangents(mesh);
             }
-            var rootHandedness = rootTransform.Determinant() < 0 ? -1.0f : 1.0f;
+            var rootHandedness = rootTransform.GetDeterminant() < 0 ? -1.0f : 1.0f;
 
             var blendIndicesOffset = vertexStride;
             var controlPointIndices16 = totalClusterCount > 256;
@@ -1213,19 +1214,19 @@ namespace Stride.Importer.ThreeD
                     var positionPointer = (Vector3*)(vbPointer + positionOffset);
                     *positionPointer = mesh->MVertices[i].ToStrideVector3();
 
-                    Vector3.TransformCoordinate(ref *positionPointer, ref rootTransform, out *positionPointer);
+                    *positionPointer = Vector3.TransformCoordinate(*positionPointer, rootTransform);
 
                     if (mesh->MNormals != null)
                     {
                         var normalPointer = (Vector3*)(vbPointer + normalOffset);
                         *normalPointer = mesh->MNormals[i].ToStrideVector3();
 
-                        Vector3.TransformNormal(ref *normalPointer, ref rootTransform, out *normalPointer);
+                        *normalPointer = Vector3.TransformNormal(*normalPointer, rootTransform);
 
                         if (float.IsNaN(normalPointer->X) || float.IsNaN(normalPointer->Y) || float.IsNaN(normalPointer->Z))
                             *normalPointer = new Vector3(1, 0, 0);
                         else
-                            normalPointer->Normalize();
+                            *normalPointer = Vector3.NormalizeSafe(*normalPointer);
                     }
 
                     for (uint uvChannel = 0; uvChannel < Utils.GetNumUVChannels(mesh); ++uvChannel)
@@ -1256,9 +1257,9 @@ namespace Stride.Importer.ThreeD
                         {
                             var uvBitangent = uvBitangents?[i] ?? Vector3.Zero;
                             handedness = Vector3.Dot(Vector3.Cross(mesh->MNormals[i].ToStrideVector3(), tangent), uvBitangent) < 0 ? -rootHandedness : rootHandedness;
-                            Vector3.TransformNormal(ref tangent, ref rootTransform, out tangent);
+                            tangent = Vector3.TransformNormal(tangent, rootTransform);
                         }
-                        tangent.Normalize();
+                        tangent = Vector3.NormalizeSafe(tangent);
                         *(Vector4*)(vbPointer + tangentOffset) = new Vector4(tangent, handedness);
                     }
 
@@ -1493,7 +1494,7 @@ namespace Stride.Importer.ThreeD
         private Vector3 GeneratedMorphDirection(Vector3 target, Vector3 basis)
         {
             // Degenerate geometry has no computed direction; that vertex keeps a zero delta.
-            if (target == Vector3.Zero || basis == Vector3.Zero)
+            if (target.NearEquals(Vector3.Zero) || basis.NearEquals(Vector3.Zero))
                 return Vector3.Zero;
             return MorphDirection(target, basis);
         }

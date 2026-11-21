@@ -4,13 +4,14 @@
 using System.Runtime.InteropServices;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering.Shadows
 {
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     internal struct ShadowMapCascadeLevel
     {
-        public Matrix ViewProjReceiver;
+        public Matrix4x4 ViewProjReceiver;
         public Vector4 CascadeTextureCoordsBorder;
         public Vector3 Offset;
         private float padding;

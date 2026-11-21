@@ -50,7 +50,7 @@ namespace Stride.Core.Yaml.Serialization.Serializers
 {
     public abstract class ScalarSerializerBase : IYamlSerializable
     {
-        public object ReadYaml(ref ObjectContext objectContext)
+        public virtual object ReadYaml(ref ObjectContext objectContext)
         {
             var scalar = objectContext.Reader.Expect<Scalar>();
             return ConvertFrom(ref objectContext, scalar);

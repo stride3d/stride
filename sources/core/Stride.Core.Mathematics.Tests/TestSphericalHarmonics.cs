@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -108,8 +109,7 @@ public class TestSphericalHarmonics
             }
         }
 
-        var direction = new Vector3(1, 1, 0);
-        direction.Normalize();
+        var direction = Vector3.Normalize(new Vector3(1, 1, 0));
         var result = sh.Evaluate(direction);
 
         // Verify result is valid (SH can produce negative or positive values)
@@ -187,8 +187,7 @@ public class TestSphericalHarmonics
         sh[0, 0] = new Color3(1.0f, 0.0f, 0.0f);
         sh[1, 0] = new Color3(0.5f, 0.0f, 0.0f);
 
-        var direction = new Vector3(0.5f, 0.5f, 0.5f);
-        direction.Normalize();
+        var direction = Vector3.Normalize(new Vector3(0.5f, 0.5f, 0.5f));
         var result = sh.Evaluate(direction);
 
         // Should have some red component

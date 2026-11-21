@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Collidables;
-using NVector3 = System.Numerics.Vector3;
 
 namespace Stride.BepuPhysics;
 

@@ -6,7 +6,6 @@ using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
-using Half = Stride.Core.Mathematics.Half;
 
 namespace Stride.Rendering.Images
 {
@@ -190,7 +189,7 @@ namespace Stride.Rendering.Images
                 readback.SetInput(AverageLuminanceTexture);
                 readback.Draw(context);
                 var rawLogValue = readback.Result[0];
-                AverageLuminance = (float)Math.Pow(2.0, rawLogValue);
+                AverageLuminance = (float)Math.Pow(2.0, (float)rawLogValue);
 
                 // In case AvergaeLuminance go crazy because of halp float/infinity precision, some code to save the values here:
                 //if (float.IsInfinity(AverageLuminance))

@@ -8,6 +8,7 @@ using Stride.Extensions;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -92,7 +93,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
             // calculate the view to gizmo space matrix 
             var gizmoMatrix = WorldMatrix;
-            var gizmoViewInverse = Matrix.Invert(gizmoMatrix * cameraService.ViewMatrix);
+            Matrix4x4.InvertSafe(gizmoMatrix * cameraService.ViewMatrix, out var gizmoViewInverse);
 
             var minHitDistance = float.PositiveInfinity;
 
@@ -109,7 +110,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             var boundingBox = new BoundingBox(minimum, maximum);
 
             var boxRadius = RotationGizmoRadius * MathF.Cos(Alpha);
-            var rotationMatrix = new[] { Matrix.RotationYawPitchRoll(MathUtil.Pi / 2, 0, 0), Matrix.RotationYawPitchRoll(0, MathUtil.Pi / 2, 0), Matrix.Identity };
+            var rotationMatrix = new[] { Matrix4x4.CreateFromYawPitchRoll(MathUtil.Pi / 2, 0, 0), Matrix4x4.CreateFromYawPitchRoll(0, MathUtil.Pi / 2, 0), Matrix4x4.Identity };
 
             // select the axis whose intersection is the closest
             for (int i = 0; i < 3; i++)
@@ -119,13 +120,13 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 {
                     // calculate the bounding box matrix
                     var alpha = t * Alpha;
-                    var positionMatrix = Matrix.RotationZ(alpha);
+                    var positionMatrix = Matrix4x4.CreateRotationZ(alpha);
                     positionMatrix.M42 = -boxRadius;
                     var boundingBoxMatrix = matrix * positionMatrix;
 
                     // calculate the ray in the gizmo space
                     var rayDirection = Vector3.TransformNormal(rayDirectionView, boundingBoxMatrix);
-                    var rayOrigin = !cameraService.IsOrthographic ? boundingBoxMatrix.TranslationVector : Vector3.TransformCoordinate(rayOriginView, boundingBoxMatrix);
+                    var rayOrigin = !cameraService.IsOrthographic ? boundingBoxMatrix.Translation : Vector3.TransformCoordinate(rayOriginView, boundingBoxMatrix);
                     var ray = new Ray(rayOrigin, rayDirection);
 
                     // update the minimum hit distance and selection
@@ -174,10 +175,10 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         {
             // TODO: use cameraComponent.WorldToScreenPosition instead once implemented
             // determine the anchor entity's screen position
-            var anchorEntityWorldPosition = AnchorEntity.Transform.WorldMatrix.TranslationVector;
+            var anchorEntityWorldPosition = AnchorEntity.Transform.WorldMatrix.Translation;
             var cameraComponent = Game.EditorServices.Get<IEditorGameCameraService>().Component;
-            Vector3.TransformCoordinate(ref anchorEntityWorldPosition, ref cameraComponent.ViewProjectionMatrix, out var clipSpace);
-            Vector3.TransformCoordinate(ref anchorEntityWorldPosition, ref cameraComponent.ViewMatrix, out var viewSpace);
+            var clipSpace = Vector3.TransformCoordinate(anchorEntityWorldPosition, cameraComponent.ViewProjectionMatrix);
+            var viewSpace = Vector3.TransformCoordinate(anchorEntityWorldPosition, cameraComponent.ViewMatrix);
             var anchorEntityScreenPosition = new Vector2
             {
                 X = (clipSpace.X + 1f) / 2f,
@@ -203,10 +204,10 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
             // determine the rotation axis
             var rotationAxisWorldUp = rotationAxes[(int)TransformationAxes / 2].Transform.WorldMatrix.Up;
-            var cameraToAnchorEntity = AnchorEntity.Transform.WorldMatrix.TranslationVector - Game.EditorServices.Get<IEditorGameCameraService>().Position;
+            var cameraToAnchorEntity = AnchorEntity.Transform.WorldMatrix.Translation - Game.EditorServices.Get<IEditorGameCameraService>().Position;
             var rotationAxis = new Vector3(0) { [(int)TransformationAxes / 2] = MathF.Sign(Vector3.Dot(cameraToAnchorEntity, rotationAxisWorldUp)) };
 
-            return Quaternion.RotationAxis(rotationAxis, rotationAngle);
+            return Quaternion.CreateFromAxisAngle(rotationAxis, rotationAngle);
         }
 
         private Quaternion GetRotationFromLinearMovement()
@@ -226,7 +227,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             // determine the rotation axis
             var rotationAxis = new Vector3(0) { [(int)TransformationAxes / 2] = 1 };
 
-            return Quaternion.RotationAxis(rotationAxis, rotationAngle);
+            return Quaternion.CreateFromAxisAngle(rotationAxis, rotationAngle);
         }
 
         protected override void OnTransformationFinished()

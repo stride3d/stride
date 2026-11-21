@@ -11,6 +11,7 @@ using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.SceneEditor.ViewModels
 {

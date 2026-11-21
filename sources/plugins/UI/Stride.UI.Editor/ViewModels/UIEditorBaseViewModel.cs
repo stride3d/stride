@@ -38,6 +38,7 @@ using Stride.Engine.Processors;
 using Stride.UI;
 using Stride.UI.Panels;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using System.Numerics;
 
 namespace Stride.UI.Editor.ViewModels
 {

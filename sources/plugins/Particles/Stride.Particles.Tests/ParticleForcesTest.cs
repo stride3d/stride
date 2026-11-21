@@ -6,6 +6,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Particles.Sorters;
 using Stride.Particles.Updaters.FieldShapes;
+using System.Numerics;
 
 namespace Stride.Particles.Tests
 {

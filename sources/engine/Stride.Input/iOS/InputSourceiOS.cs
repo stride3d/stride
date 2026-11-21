@@ -9,6 +9,8 @@ using CoreMotion;
 using Stride.Core.Mathematics;
 using Window = Stride.Graphics.SDL.Window;
 
+using System.Numerics;
+
 namespace Stride.Input
 {
     /// <summary>
@@ -177,7 +179,7 @@ namespace Stride.Input
                                 firstNorthValue = GetNorthInRadian(locationManager);
                             }
 
-                            quaternion = Quaternion.RotationY(-firstNorthValue)*quaternion;
+                            quaternion = Quaternion.Concatenate(Quaternion.CreateRotationY(-firstNorthValue), quaternion);
                         }
 
                         orientationSensor.FromQuaternion(quaternion);

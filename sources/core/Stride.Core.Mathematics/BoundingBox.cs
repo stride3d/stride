@@ -29,6 +29,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -237,8 +238,8 @@ public struct BoundingBox : IEquatable<BoundingBox>, ISpanFormattable, IIntersec
 
         for (int i = 0; i < points.Length; ++i)
         {
-            Vector3.Min(ref min, ref points[i], out min);
-            Vector3.Max(ref max, ref points[i], out max);
+            min = Vector3.Min(min, points[i]);
+            max = Vector3.Max(max, points[i]);
         }
 
         result = new BoundingBox(min, max);
@@ -259,8 +260,8 @@ public struct BoundingBox : IEquatable<BoundingBox>, ISpanFormattable, IIntersec
 
         for (int i = 0; i < points.Length; ++i)
         {
-            Vector3.Min(ref min, ref points[i], out min);
-            Vector3.Max(ref max, ref points[i], out max);
+            min = Vector3.Min(min, points[i]);
+            max = Vector3.Max(max, points[i]);
         }
 
         return new BoundingBox(min, max);
@@ -296,7 +297,7 @@ public struct BoundingBox : IEquatable<BoundingBox>, ISpanFormattable, IIntersec
     /// <param name="value">The original bounding box.</param>
     /// <param name="transform">The transform to apply to the bounding box.</param>
     /// <param name="result">The transformed bounding box.</param>
-    public static void Transform(ref readonly BoundingBox value, ref readonly Matrix transform, out BoundingBox result)
+    public static void Transform(ref readonly BoundingBox value, ref readonly Matrix4x4 transform, out BoundingBox result)
     {
         var boundingBox = new BoundingBoxExt(value);
         boundingBox.Transform(transform);
@@ -311,8 +312,8 @@ public struct BoundingBox : IEquatable<BoundingBox>, ISpanFormattable, IIntersec
     /// <param name="result">When the method completes, contains the newly constructed bounding box.</param>
     public static void Merge(ref readonly BoundingBox value1, ref readonly Vector3 value2, out BoundingBox result)
     {
-        Vector3.Min(in value1.Minimum, in value2, out result.Minimum);
-        Vector3.Max(in value1.Maximum, in value2, out result.Maximum);
+        result.Minimum = Vector3.Min(value1.Minimum, value2);
+        result.Maximum = Vector3.Max(value1.Maximum, value2);
     }
 
     /// <summary>
@@ -323,8 +324,8 @@ public struct BoundingBox : IEquatable<BoundingBox>, ISpanFormattable, IIntersec
     /// <param name="result">When the method completes, contains the newly constructed bounding box.</param>
     public static void Merge(ref readonly BoundingBox value1, ref readonly BoundingBox value2, out BoundingBox result)
     {
-        Vector3.Min(in value1.Minimum, in value2.Minimum, out result.Minimum);
-        Vector3.Max(in value1.Maximum, in value2.Maximum, out result.Maximum);
+        result.Minimum = Vector3.Min(value1.Minimum, value2.Minimum);
+        result.Maximum = Vector3.Max(value1.Maximum, value2.Maximum);
     }
 
     /// <summary>
@@ -336,8 +337,8 @@ public struct BoundingBox : IEquatable<BoundingBox>, ISpanFormattable, IIntersec
     public static BoundingBox Merge(BoundingBox value1, BoundingBox value2)
     {
         BoundingBox box;
-        Vector3.Min(ref value1.Minimum, ref value2.Minimum, out box.Minimum);
-        Vector3.Max(ref value1.Maximum, ref value2.Maximum, out box.Maximum);
+        box.Minimum = Vector3.Min(value1.Minimum, value2.Minimum);
+        box.Maximum = Vector3.Max(value1.Maximum, value2.Maximum);
         return box;
     }
 
@@ -421,6 +422,14 @@ public struct BoundingBox : IEquatable<BoundingBox>, ISpanFormattable, IIntersec
     public readonly bool Equals(BoundingBox value)
     {
         return Minimum == value.Minimum && Maximum == value.Maximum;
+    }
+
+    /// <summary>Determines whether every component of a box differs from the same component of this one by less than a tolerance.</summary>
+    /// <param name="other">The box to compare with this instance.</param>
+    /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+    public readonly bool NearEquals(BoundingBox other, float tolerance = MathUtil.ZeroTolerance)
+    {
+        return Minimum.NearEquals(other.Minimum, tolerance) && Maximum.NearEquals(other.Maximum, tolerance);
     }
 
     /// <summary>

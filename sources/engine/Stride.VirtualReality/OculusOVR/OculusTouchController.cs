@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.VirtualReality
 {

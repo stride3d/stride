@@ -15,10 +15,7 @@ using Stride.Core.Mathematics;
 using Stride.Heightfield;
 using Int2 = Stride.Core.Mathematics.Int2;
 using NRigidPose = BepuPhysics.RigidPose;
-using Quaternion = System.Numerics.Quaternion;
-using Vector2 = System.Numerics.Vector2;
-using Vector3 = System.Numerics.Vector3;
-using Vector4 = System.Numerics.Vector4;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 

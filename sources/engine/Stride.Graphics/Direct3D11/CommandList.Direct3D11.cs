@@ -21,6 +21,8 @@ using D3D11Box = Silk.NET.Direct3D11.Box;
 using static System.Runtime.CompilerServices.Unsafe;
 using static Stride.Graphics.ComPtrHelpers;
 
+using System.Numerics;
+
 namespace Stride.Graphics
 {
     public unsafe partial class CommandList

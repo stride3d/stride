@@ -7,6 +7,7 @@ using System.Security;
 using System.Text;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.VirtualReality
 {
@@ -74,8 +75,8 @@ namespace Stride.VirtualReality
         {
             public float Near;
             public float Far;
-            public Matrix ProjLeft;
-            public Matrix ProjRight;
+            public Matrix4x4 ProjLeft;
+            public Matrix4x4 ProjRight;
             public Vector3 PosLeft;
             public Vector3 PosRight;
             public Quaternion RotLeft;

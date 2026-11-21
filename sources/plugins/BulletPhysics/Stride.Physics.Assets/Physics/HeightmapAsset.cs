@@ -5,6 +5,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Assets;
 using Stride.Core.Mathematics;
 using Stride.Assets;
+using System.Numerics;
 
 namespace Stride.Physics.Assets
 {

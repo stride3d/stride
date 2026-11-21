@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Windows;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.ValueConverters;
+using System.Numerics;
 
 namespace Stride.Assets.Presentation.ValueConverters
 {

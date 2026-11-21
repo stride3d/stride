@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -25,7 +26,7 @@ public class TestPlane
         var p1 = new Vector3(0, 0, 0);
         var p2 = new Vector3(1, 0, 0);
         var p3 = new Vector3(0, 0, 1);
-        var plane3 = new Plane(p1, p2, p3);
+        var plane3 = Plane.CreateFromVertices(p1, p2, p3);
         Assert.Equal(0, plane3.Normal.X, 3);
         Assert.Equal(-1, plane3.Normal.Y, 3);
         Assert.Equal(0, plane3.Normal.Z, 3);
@@ -42,7 +43,7 @@ public class TestPlane
         Assert.Equal(2, normalized.D, 3);
 
         // Test instance method
-        plane.Normalize();
+        plane = Plane.Normalize(plane);
         Assert.Equal(1, plane.Normal.X, 3);
         Assert.Equal(2, plane.D, 3);
     }
@@ -98,7 +99,7 @@ public class TestPlane
         var result2 = 3.0f * plane;
         Assert.Equal(result, result2);
 
-        var result3 = Plane.Multiply(plane, 3.0f);
+        var result3 = plane * 3.0f;
         Assert.Equal(result, result3);
     }
 
@@ -108,7 +109,7 @@ public class TestPlane
         var plane = new Plane(2, 0, 0, 4);
 
         // Test static method
-        var negated = Plane.Negate(plane);
+        var negated = -plane;
         Assert.Equal(-2, negated.Normal.X);
         Assert.Equal(0, negated.Normal.Y);
         Assert.Equal(0, negated.Normal.Z);
@@ -119,7 +120,7 @@ public class TestPlane
         Assert.Equal(negated, negated2);
 
         // Test instance method
-        plane.Negate();
+        plane = -plane;
         Assert.Equal(-2, plane.Normal.X);
         Assert.Equal(-4, plane.D);
     }
@@ -128,7 +129,7 @@ public class TestPlane
     public void TestPlaneTransformMatrix()
     {
         var plane = new Plane(0, 1, 0, 0); // XZ plane
-        var matrix = Matrix.RotationZ(MathUtil.PiOverTwo);
+        var matrix = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
         var transformed = Plane.Transform(plane, matrix);
 
         // After 90° rotation around Z, Y-up becomes X-left
@@ -140,7 +141,7 @@ public class TestPlane
     public void TestPlaneTransformQuaternion()
     {
         var plane = new Plane(0, 1, 0, 0); // XZ plane
-        var rotation = Quaternion.RotationZ(MathUtil.PiOverTwo);
+        var rotation = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
         var transformed = Plane.Transform(plane, rotation);
 
         // After 90° rotation around Z, Y-up becomes X-left
@@ -176,26 +177,18 @@ public class TestPlane
     }
 
     [Fact]
-    public void TestPlaneToString()
-    {
-        var plane = new Plane(1, 0, 0, 2);
-        var str = plane.ToString();
-        Assert.NotEmpty(str);
-    }
-
-    [Fact]
     public void TestPlaneIntersectsPoint()
     {
         var plane = new Plane(0, 1, 0, 0); // XZ plane at Y=0
 
         var pointOn = new Vector3(5, 0, 5);
-        Assert.Equal(PlaneIntersectionType.Intersecting, plane.Intersects(ref pointOn));
+        Assert.Equal(PlaneIntersectionType.Intersecting, plane.Intersects(pointOn));
 
         var pointFront = new Vector3(5, 10, 5);
-        Assert.Equal(PlaneIntersectionType.Front, plane.Intersects(ref pointFront));
+        Assert.Equal(PlaneIntersectionType.Front, plane.Intersects(pointFront));
 
         var pointBack = new Vector3(5, -10, 5);
-        Assert.Equal(PlaneIntersectionType.Back, plane.Intersects(ref pointBack));
+        Assert.Equal(PlaneIntersectionType.Back, plane.Intersects(pointBack));
     }
 
     [Fact]
@@ -205,15 +198,15 @@ public class TestPlane
 
         // Ray pointing down at plane
         var ray1 = new Ray(new Vector3(0, 10, 0), new Vector3(0, -1, 0));
-        Assert.True(plane.Intersects(ref ray1));
+        Assert.True(plane.Intersects(ray1));
 
         // Ray pointing away from plane
         var ray2 = new Ray(new Vector3(0, 10, 0), new Vector3(0, 1, 0));
-        Assert.False(plane.Intersects(ref ray2));
+        Assert.False(plane.Intersects(ray2));
 
         // Ray parallel to plane
         var ray3 = new Ray(new Vector3(0, 10, 0), new Vector3(1, 0, 0));
-        Assert.False(plane.Intersects(ref ray3));
+        Assert.False(plane.Intersects(ray3));
     }
 
     [Fact]
@@ -222,7 +215,7 @@ public class TestPlane
         var plane = new Plane(0, 1, 0, 0); // XZ plane at Y=0
 
         var ray = new Ray(new Vector3(0, 10, 0), new Vector3(0, -1, 0));
-        bool intersects = plane.Intersects(ref ray, out float distance);
+        bool intersects = plane.Intersects(ray, out float distance);
 
         Assert.True(intersects);
         Assert.Equal(10.0f, distance, 3);
@@ -234,7 +227,7 @@ public class TestPlane
         var plane = new Plane(0, 1, 0, 0); // XZ plane at Y=0
 
         var ray = new Ray(new Vector3(5, 10, 3), new Vector3(0, -1, 0));
-        bool intersects = plane.Intersects(ref ray, out Vector3 point);
+        bool intersects = plane.Intersects(ray, out Vector3 point);
 
         Assert.True(intersects);
         Assert.Equal(5.0f, point.X, 3);
@@ -249,11 +242,11 @@ public class TestPlane
         var plane1 = new Plane(0, 1, 0, 0); // XZ plane
         var plane2 = new Plane(1, 0, 0, 0); // YZ plane
 
-        Assert.True(plane1.Intersects(ref plane2));
+        Assert.True(plane1.Intersects(plane2));
 
         // Two parallel planes
         var plane3 = new Plane(0, 1, 0, 5);
-        Assert.False(plane1.Intersects(ref plane3));
+        Assert.False(plane1.Intersects(plane3));
     }
 
     [Fact]
@@ -262,7 +255,7 @@ public class TestPlane
         var plane1 = new Plane(0, 1, 0, 0); // XZ plane
         var plane2 = new Plane(1, 0, 0, 0); // YZ plane
 
-        bool intersects = plane1.Intersects(ref plane2, out Ray line);
+        bool intersects = plane1.Intersects(plane2, out Ray line);
 
         Assert.True(intersects);
         // The intersection line should be along the Z axis
@@ -281,19 +274,19 @@ public class TestPlane
         var v1 = new Vector3(0, 1, 0);
         var v2 = new Vector3(1, 1, 0);
         var v3 = new Vector3(0.5f, 1, 1);
-        Assert.Equal(PlaneIntersectionType.Front, plane.Intersects(ref v1, ref v2, ref v3));
+        Assert.Equal(PlaneIntersectionType.Front, plane.Intersects(v1, v2, v3));
 
         // Triangle completely behind
         var v4 = new Vector3(0, -1, 0);
         var v5 = new Vector3(1, -1, 0);
         var v6 = new Vector3(0.5f, -1, 1);
-        Assert.Equal(PlaneIntersectionType.Back, plane.Intersects(ref v4, ref v5, ref v6));
+        Assert.Equal(PlaneIntersectionType.Back, plane.Intersects(v4, v5, v6));
 
         // Triangle intersecting plane
         var v7 = new Vector3(0, -1, 0);
         var v8 = new Vector3(1, 1, 0);
         var v9 = new Vector3(0.5f, 0, 1);
-        Assert.Equal(PlaneIntersectionType.Intersecting, plane.Intersects(ref v7, ref v8, ref v9));
+        Assert.Equal(PlaneIntersectionType.Intersecting, plane.Intersects(v7, v8, v9));
     }
 
     [Fact]
@@ -303,15 +296,15 @@ public class TestPlane
 
         // Box completely in front
         var box1 = new BoundingBox(new Vector3(-10, 1, -10), new Vector3(10, 11, 10));
-        Assert.Equal(PlaneIntersectionType.Front, plane.Intersects(ref box1));
+        Assert.Equal(PlaneIntersectionType.Front, plane.Intersects(box1));
 
         // Box completely behind
         var box2 = new BoundingBox(new Vector3(-10, -11, -10), new Vector3(10, -1, 10));
-        Assert.Equal(PlaneIntersectionType.Back, plane.Intersects(ref box2));
+        Assert.Equal(PlaneIntersectionType.Back, plane.Intersects(box2));
 
         // Box intersecting plane
         var box3 = new BoundingBox(new Vector3(-10, -5, -10), new Vector3(10, 5, 10));
-        Assert.Equal(PlaneIntersectionType.Intersecting, plane.Intersects(ref box3));
+        Assert.Equal(PlaneIntersectionType.Intersecting, plane.Intersects(box3));
     }
 
     [Fact]
@@ -321,15 +314,15 @@ public class TestPlane
 
         // Sphere completely in front
         var sphere1 = new BoundingSphere(new Vector3(0, 10, 0), 5);
-        Assert.Equal(PlaneIntersectionType.Front, plane.Intersects(ref sphere1));
+        Assert.Equal(PlaneIntersectionType.Front, plane.Intersects(sphere1));
 
         // Sphere completely behind
         var sphere2 = new BoundingSphere(new Vector3(0, -10, 0), 5);
-        Assert.Equal(PlaneIntersectionType.Back, plane.Intersects(ref sphere2));
+        Assert.Equal(PlaneIntersectionType.Back, plane.Intersects(sphere2));
 
         // Sphere intersecting plane
         var sphere3 = new BoundingSphere(new Vector3(0, 3, 0), 5);
-        Assert.Equal(PlaneIntersectionType.Intersecting, plane.Intersects(ref sphere3));
+        Assert.Equal(PlaneIntersectionType.Intersecting, plane.Intersects(sphere3));
     }
 
     [Fact]
@@ -341,8 +334,8 @@ public class TestPlane
             new Plane(1, 0, 0, 0)
         };
 
-        var rotation = Quaternion.RotationZ(MathUtil.PiOverTwo);
-        Plane.Transform(planes, ref rotation);
+        var rotation = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
+        Plane.Transform(planes, rotation);
 
         // Verify planes were transformed
         Assert.NotEqual(0f, planes[0].Normal.X);
@@ -358,8 +351,8 @@ public class TestPlane
             new Plane(1, 0, 0, 0)
         };
 
-        var matrix = Matrix.RotationZ(MathUtil.PiOverTwo);
-        Plane.Transform(planes, ref matrix);
+        var matrix = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
+        Plane.Transform(planes, matrix);
 
         // Verify planes were transformed
         Assert.NotEqual(0f, planes[0].Normal.X);
@@ -369,7 +362,7 @@ public class TestPlane
     [Fact]
     public void TestPlaneNormalizeComponents()
     {
-        Plane.Normalize(2f, 0f, 0f, 4f, out var normalized);
+        var normalized = Plane.Normalize(new Plane(2f, 0f, 0f, 4f));
 
         Assert.Equal(1f, normalized.Normal.X, 3);
         Assert.Equal(0f, normalized.Normal.Y, 3);

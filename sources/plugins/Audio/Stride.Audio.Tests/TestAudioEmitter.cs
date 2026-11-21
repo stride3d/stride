@@ -5,6 +5,7 @@ using System;
 using Xunit;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Audio.Tests
 {

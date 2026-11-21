@@ -8,6 +8,7 @@ using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Core.Mathematics;
 using Stride.Editor.Avalonia.Engine;
 using Stride.Editor.EditorGame.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Avalonia.EditorGame;
 

@@ -33,10 +33,15 @@ public class TestCodeUpgrade
         }
     }
 
-    private static Task<string> ApplyAsync(string source, params CodeUpgrade[] upgrades) => ApplyAsync(source, DocumentationMode.Parse, upgrades);
+    private static Task<string> ApplyAsync(string source, params CodeUpgrade[] upgrades) => ApplyAsync(source, otherSource: null, DocumentationMode.Parse, upgrades);
 
     // documentationMode: the one the project is opened with; None for a project that generates no documentation file
-    private static async Task<string> ApplyAsync(string source, DocumentationMode documentationMode, params CodeUpgrade[] upgrades)
+    private static Task<string> ApplyAsync(string source, DocumentationMode documentationMode, params CodeUpgrade[] upgrades) => ApplyAsync(source, otherSource: null, documentationMode, upgrades);
+
+    // otherSource: a second document of the project, that the result does not show
+    private static Task<string> ApplyAsync(string source, string otherSource, params CodeUpgrade[] upgrades) => ApplyAsync(source, otherSource, DocumentationMode.Parse, upgrades);
+
+    private static async Task<string> ApplyAsync(string source, string otherSource, DocumentationMode documentationMode, params CodeUpgrade[] upgrades)
     {
         using var workspace = new AdhocWorkspace();
         var projectId = ProjectId.CreateNewId();
@@ -50,6 +55,8 @@ public class TestCodeUpgrade
         var documentId = DocumentId.CreateNewId(projectId);
         // Give the document a real path: the engine only migrates on-disk user source (it writes back by path).
         var solution = workspace.CurrentSolution.AddDocument(documentId, "Test.cs", SourceText.From(source), filePath: Path.Combine(Path.GetTempPath(), "Test.cs"));
+        if (otherSource != null)
+            solution = solution.AddDocument(DocumentId.CreateNewId(projectId), "Other.cs", SourceText.From(otherSource), filePath: Path.Combine(Path.GetTempPath(), "Other.cs"));
         // As the runner opens it
         solution = RoslynCodeUpgradeRunner.ParseDocumentationComments(solution);
 
@@ -1569,5 +1576,1369 @@ public class TestCodeUpgrade
         Assert.Contains("public bool Read() => IsPressed(2);", result);
         Assert.Contains("class Other : OtherBase { public override bool IsPressed(int button) => false; }", result);
         AssertCompiles(result.Replace(OldBase, NewBase));
+    }
+
+    // A math library, and the one that replaces it: other names, results returned instead of given through out parameters,
+    // no method that changes its instance, and a product of quaternions with another meaning
+    private const string OldMathLibrary = """
+        namespace Old
+        {
+            public struct Vec
+            {
+                public float X, Y;
+                public Vec(float x, float y) { X = x; Y = y; }
+                public Vec(float[] values) { X = values[0]; Y = values[1]; }
+                public static readonly Vec Zero = new Vec();
+                public void Normalize() { }
+                public static Vec Normalize(Vec value) => value;
+                public static void Normalize(ref Vec value, out Vec result) { result = value; }
+                public static Vec Add(Vec left, Vec right) => left;
+                public static void Add(ref Vec left, ref Vec right, out Vec result) { result = left; }
+                public static void Split(ref Vec value, out float x, out float y) { x = 0; y = 0; }
+                public static void OnlyOut(ref Vec value, out Vec result) { result = value; }
+                public static Vec Scale(Vec value, float factor) => value;
+                public static void Scale(ref Vec value, float factor, out Vec result) { result = value; }
+                public void Clamp() { }
+                public static Vec Clamp(Vec value) => value;
+                public static Small Shrink(Vec value) => new Small();
+                public static void Shrink(ref Vec value, out Small result) { result = new Small(); }
+                public static explicit operator Small(Vec value) => new Small();
+                public static bool operator ==(Vec left, Vec right) => true;
+                public static bool operator !=(Vec left, Vec right) => false;
+                public bool Equals(Vec other) => true;
+                public bool EqualsStrict(Vec other) => true;
+                public override bool Equals(object other) => true;
+                public override int GetHashCode() => 0;
+                public override string ToString() => "";
+                public string ToString(string format, System.IFormatProvider formatProvider) => "";
+            }
+            public struct Small { public float X; }
+            public struct Quat
+            {
+                public float W;
+                public static Quat operator *(Quat left, Quat right) => left;
+                public static Quat operator *(Quat left, float right) => left;
+                public static Quat Multiply(Quat left, Quat right) => left;
+                public static Quat Multiply(Quat left, float right) => left;
+                public static void Multiply(ref Quat left, ref Quat right, out Quat result) { result = left; }
+            }
+            public struct Mat
+            {
+                public float M11;
+                public static Mat RotationX(float angle) => new Mat();
+                public static void RotationX(float angle, out Mat result) { result = new Mat(); }
+                public static Mat Invert(Mat value) => value;
+                public static void Invert(ref Mat value, out Mat result) { result = value; }
+                public void Invert() { }
+                public Vec TranslationVector { get; set; }
+                public Vec Up { get; set; }
+                public float this[int index] { get => M11; set => M11 = value; }
+            }
+        }
+        """;
+
+    private const string NewMathLibrary = """
+        namespace Old
+        {
+            public struct Unrelated { }
+        }
+        namespace New
+        {
+            public struct Vec
+            {
+                public float X, Y;
+                public Vec(float x, float y) { X = x; Y = y; }
+                public static Vec Zero => default;
+                public static Vec Create(float[] values) => default;
+                public static Vec NormalizeSafe(Vec value) => value;
+                public static Vec Add(Vec left, Vec right) => left;
+                public static void Split(ref Vec value, out float x, out float y) { x = 0; y = 0; }
+                public static void OnlyOut(ref Vec value, out Vec result) { result = value; }
+                public Small AsSmall() => default;
+                public static bool operator ==(Vec left, Vec right) => true;
+                public static bool operator !=(Vec left, Vec right) => false;
+                public bool Equals(Vec other) => true;
+                public override bool Equals(object other) => true;
+                public override int GetHashCode() => 0;
+            }
+            public struct Small
+            {
+                public float X;
+                public static Small FromVec(Vec value) => default;
+            }
+            public struct Quat
+            {
+                public float W;
+                public static Quat operator *(Quat left, Quat right) => left;
+                public static Quat operator *(Quat left, float right) => left;
+                public static Quat Concatenate(Quat left, Quat right) => left;
+                public static Quat Multiply(Quat left, float right) => left;
+            }
+            public struct Mat4
+            {
+                public float M11;
+                public static Mat4 CreateRotationX(float angle) => default;
+                public static bool Invert(Mat4 matrix, out Mat4 result) { result = matrix; return true; }
+                public Vec Translation { get; set; }
+                public float this[int row, int column] { get => M11; set => M11 = value; }
+            }
+            public static class Extensions
+            {
+                extension(Mat4)
+                {
+                    public static bool InvertSafe(in Mat4 matrix, out Mat4 result) { result = matrix; return true; }
+                }
+                extension(ref Mat4 matrix)
+                {
+                    public void SetUp(Vec value) { }
+                }
+                extension(Vec)
+                {
+                    public static Vec Scale(Vec value, float factor) => value;
+                    public static void Scale(ref Vec value, float factor, out Vec result) { result = value; }
+                    public static Vec Clamp(Vec value) => value;
+                }
+                extension(ref Vec value)
+                {
+                    public void Clamp() { }
+                }
+                extension(Vec value)
+                {
+                    public bool NearEquals(Vec other) => true;
+                }
+            }
+        }
+        """;
+
+    private static TypeMigration MathMigration() => new TypeMigration()
+        .Type("Old.Vec", "New.Vec")
+        .Type("Old.Small", "New.Small")
+        .Type("Old.Quat", "New.Quat")
+        .Type("Old.Mat", "New.Mat4")
+        .Rename("Old.Vec", "Normalize", "NormalizeSafe")
+        .Rename("Old.Mat", "RotationX", "CreateRotationX")
+        .ToOutCall("Old.Mat", "Invert", "InvertSafe", "Mat4.Invert({0}, out var {result}) ? {result} : default", "inverse")
+        .Rename("Old.Mat", "TranslationVector", "Translation")
+        .Rename("Old.Quat", "Multiply", "Concatenate", "Old.Quat", "Old.Quat")
+        .OperatorToCall("Old.Quat", "op_Multiply", "Concatenate")
+        .ConstructorToCall("Old.Vec", ["float[]"], "Create")
+        .CastToCall("Old.Vec", "Old.Small", "AsSmall")
+        .Move("Old.Vec", "Shrink", ["Old.Vec"], "Old.Small", "Old.Small", "FromVec")
+        .LinearIndexer("Old.Mat", 4)
+        .SetterToCall("Old.Mat", "Up", "SetUp")
+        .OperatorToInstanceCall("Old.Vec", "op_Equality", "NearEquals")
+        .OperatorToInstanceCall("Old.Vec", "op_Inequality", "NearEquals", negate: true)
+        .Rename("Old.Vec", "Equals", "NearEquals", "Old.Vec")
+        .Rename("Old.Vec", "EqualsStrict", "Equals");
+
+    [Fact]
+    public async Task MigrateTypesRewritesCallsToTheFormsOfTheNewTypes()
+    {
+        const string Usage = """
+            using Old;
+
+            namespace TestNs
+            {
+                class Usage
+                {
+                    Vec field;
+                    Mat[] matrices = new Mat[2];
+                    int index;
+
+                    void Run(Vec a, Vec b, Quat p, Quat q)
+                    {
+                        var sum = Vec.Zero;
+                        Vec.Add(ref a, ref b, out sum);
+                        Vec.Add(ref a, ref b, out var other);
+                        Vec.Normalize(ref a, out Vec unit);
+                        field.Normalize();
+                        matrices[1].Invert();
+                        Vec.Split(ref a, out var x, out var y);
+                        Vec.OnlyOut(ref a, out var kept);
+                        // The new type has no Scale or Clamp of its own: these come over in all their forms
+                        Vec.Scale(ref a, 2.0f, out var scaled);
+                        field.Clamp();
+
+                        var r = p * q * p;
+                        r *= q;
+                        r = r * 2.0f;
+                        Quat.Multiply(ref p, ref q, out r);
+                        r = Quat.Multiply(p, 0.5f);
+
+                        Mat.RotationX(1.0f, out var rotation);
+                        var m = Mat.Invert(Mat.RotationX(2.0f));
+                        m.TranslationVector = new Vec(new[] { 1.0f, 2.0f });
+                        var small = (Small)a;
+                        var small2 = (Small)Vec.Normalize(Vec.Add(a, b));
+                        Old.Vec qualified = new Old.Vec(1, 2);
+
+                        var shrunk = Vec.Shrink(a);
+                        Vec.Shrink(ref a, out shrunk);
+                        var element = m[6];
+                        m[index + 1] = element;
+                        m.Up = Vec.Normalize(a);
+
+                        var same = a == b || Vec.Add(a, b) != field;
+                        var typed = a.Equals(b) && a.EqualsStrict(b) && a.Equals((object)b);
+                    }
+                }
+            }
+            """;
+        const string Expected = """
+            using Old;
+            using New;
+
+            namespace TestNs
+            {
+                class Usage
+                {
+                    Vec field;
+                    Mat4[] matrices = new Mat4[2];
+                    int index;
+
+                    void Run(Vec a, Vec b, Quat p, Quat q)
+                    {
+                        var sum = Vec.Zero;
+                        sum = Vec.Add(a, b);
+                        var other = Vec.Add(a, b);
+                        Vec unit = Vec.NormalizeSafe(a);
+                        field = Vec.NormalizeSafe(field);
+                        Mat4.InvertSafe(matrices[1], out matrices[1]);
+                        Vec.Split(ref a, out var x, out var y);
+                        Vec.OnlyOut(ref a, out var kept);
+                        // The new type has no Scale or Clamp of its own: these come over in all their forms
+                        Vec.Scale(ref a, 2.0f, out var scaled);
+                        field.Clamp();
+
+                        var r = Quat.Concatenate(Quat.Concatenate(p, q), p);
+                        r = Quat.Concatenate(r, q);
+                        r = r * 2.0f;
+                        r = Quat.Concatenate(p, q);
+                        r = Quat.Multiply(p, 0.5f);
+
+                        var rotation = Mat4.CreateRotationX(1.0f);
+                        Mat4.InvertSafe(Mat4.CreateRotationX(2.0f), out var m);
+                        m.Translation = Vec.Create(new[] { 1.0f, 2.0f });
+                        var small = a.AsSmall();
+                        var small2 = Vec.NormalizeSafe(Vec.Add(a, b)).AsSmall();
+                        New.Vec qualified = new New.Vec(1, 2);
+
+                        var shrunk = Small.FromVec(a);
+                        shrunk = Small.FromVec(a);
+                        var element = m[1, 2];
+                        m[(index + 1) / 4, (index + 1) % 4] = element;
+                        m.SetUp(Vec.NormalizeSafe(a));
+
+                        var same = a.NearEquals(b) || !Vec.Add(a, b).NearEquals(field);
+                        var typed = a.NearEquals(b) && a.Equals(b) && a.Equals((object)b);
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + OldMathLibrary + Environment.NewLine + NewMathLibrary, MigrateTypes(MathMigration()));
+
+        var usage = result[..result.IndexOf("namespace Old", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+        AssertCompiles(Expected + Environment.NewLine + NewMathLibrary);
+    }
+
+    [Fact]
+    public async Task MigrateTypesGivesAResultThroughOutWhereTheNewMethodDoes()
+    {
+        const string Usage = """
+            using Old;
+
+            namespace TestNs
+            {
+                class Holder { public Mat Value { get; set; } }
+
+                class Usage
+                {
+                    Mat field;
+
+                    void Run(Mat a, Mat b, Holder holder, bool condition)
+                    {
+                        Mat.Invert(ref a, out b);
+                        Mat.Invert(ref a, out var declared);
+                        a.Invert();
+                        Mat typed = Mat.Invert(a); // Kept
+                        b = Mat.Invert(a);
+                        field = Mat.Invert(Mat.Invert(b));
+                        Mat.Invert(a);
+                        // A property is no out argument, and a call inside an expression has no statement of its own
+                        holder.Value = Mat.Invert(a);
+                        Use(Mat.Invert(a), Mat.Invert(b));
+                        var chosen = condition ? Mat.Invert(a) : b;
+                        var text = $"{Mat.Invert(a)}";
+                        var inverse5 = a;
+                    }
+
+                    Mat Other(Mat inverse) => Mat.Invert(inverse);
+
+                    void Use(Mat a, Mat b) { }
+                }
+            }
+            """;
+        const string Expected = """
+            using Old;
+            using New;
+
+            namespace TestNs
+            {
+                class Holder { public Mat4 Value { get; set; } }
+
+                class Usage
+                {
+                    Mat4 field;
+
+                    void Run(Mat4 a, Mat4 b, Holder holder, bool condition)
+                    {
+                        Mat4.InvertSafe(a, out b);
+                        Mat4.InvertSafe(a, out var declared);
+                        Mat4.InvertSafe(a, out a);
+                        Mat4.InvertSafe(a, out Mat4 typed); // Kept
+                        Mat4.InvertSafe(a, out b);
+                        Mat4.InvertSafe(Mat4.Invert(b, out var inverse) ? inverse : default, out field);
+                        Mat4.InvertSafe(a, out _);
+                        // A property is no out argument, and a call inside an expression has no statement of its own
+                        holder.Value = Mat4.Invert(a, out var inverse2) ? inverse2 : default;
+                        Use(Mat4.Invert(a, out var inverse3) ? inverse3 : default, Mat4.Invert(b, out var inverse4) ? inverse4 : default);
+                        var chosen = condition ? (Mat4.Invert(a, out var inverse6) ? inverse6 : default) : b;
+                        var text = $"{(Mat4.Invert(a, out var inverse7) ? inverse7 : default)}";
+                        var inverse5 = a;
+                    }
+
+                    Mat4 Other(Mat4 inverse) => Mat4.Invert(inverse, out var inverse2) ? inverse2 : default;
+
+                    void Use(Mat4 a, Mat4 b) { }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + OldMathLibrary + Environment.NewLine + NewMathLibrary, MigrateTypes(MathMigration()));
+
+        var usage = result[..result.IndexOf("namespace Old", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+        AssertCompiles(Expected + Environment.NewLine + NewMathLibrary);
+    }
+
+    [Fact]
+    public async Task MigrateTypesKeepsTheReturningTwinAndGivesValuesToReadOnlyReferences()
+    {
+        const string Usage = """
+            using Old;
+
+            namespace TestNs
+            {
+                class Usage
+                {
+                    void Run(Vec a, Vec b)
+                    {
+                        Vec.Blend(ref a, ref b, out var blended);
+                        Vec.Blend(in a, in b, out b);
+                        // No twin returns this result
+                        Vec.Solo(ref a, out var solo);
+                        var sum = Vec.Sum(ref a, in b);
+                        // This one writes its argument
+                        Vec.Fill(ref a);
+                    }
+                }
+            }
+            """;
+        const string OldLibrary = """
+            namespace Old
+            {
+                public struct Vec
+                {
+                    public float X;
+                    public static void Blend(ref readonly Vec a, ref readonly Vec b, out Vec result) { result = a; }
+                    public static Vec Blend(Vec a, Vec b) => a;
+                    public static void Solo(ref readonly Vec a, out Vec result) { result = a; }
+                    public static float Sum(ref readonly Vec a, in Vec b) => 0;
+                    public static void Fill(ref Vec a) { }
+                }
+            }
+            """;
+        const string NewLibrary = """
+            namespace Old
+            {
+                public static class Extensions
+                {
+                    extension(New.Vec)
+                    {
+                        public static New.Vec Blend(New.Vec a, New.Vec b) => a;
+                        public static void Solo(in New.Vec a, out New.Vec result) { result = a; }
+                        public static float Sum(New.Vec a, in New.Vec b) => 0;
+                        public static void Fill(ref New.Vec a) { }
+                    }
+                }
+            }
+            namespace New
+            {
+                public struct Vec { public float X; }
+            }
+            """;
+        const string Expected = """
+            using Old;
+            using New;
+
+            namespace TestNs
+            {
+                class Usage
+                {
+                    void Run(Vec a, Vec b)
+                    {
+                        var blended = Vec.Blend(a, b);
+                        b = Vec.Blend(a, b);
+                        // No twin returns this result
+                        Vec.Solo(a, out var solo);
+                        var sum = Vec.Sum(a, b);
+                        // This one writes its argument
+                        Vec.Fill(ref a);
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + OldLibrary, MigrateTypes(new TypeMigration().Type("Old.Vec", "New.Vec").ReturningTwinsOnly()));
+
+        var usage = result[..result.IndexOf("namespace Old", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+        AssertCompiles(Expected + Environment.NewLine + NewLibrary);
+    }
+
+    [Fact]
+    public async Task MigrateTypesWritesTheExpressionsTheMigrationGives()
+    {
+        const string Usage = """
+            using Old;
+
+            namespace TestNs
+            {
+                class Usage
+                {
+                    string Run(Vec a, Quat q, int i)
+                    {
+                        var size = Vec.Size;
+                        var unit = a.IsUnit;
+                        var angles = Vec.FromRotation(q);
+                        Vec.FromRotation(ref q, out var other);
+                        var along = Vec.Along(a, 2.0f);
+                        // A member the rule names needs less
+                        var alongOne = Vec.Along(Vec.One, 2.0f) + Vec.Along(Vec.MakeUnit(a), 2.0f);
+                        Vec.Along(ref a, 2.0f, out var alongToo);
+                        var down = Vec.Down(a);
+                        // A method that only gives its result through out
+                        Vec.FromNumber(3.0f, out var three);
+                        Vec.FromNumber(4.0f, out three);
+                        q.Turn(ref a);
+                        a.Flip();
+                        var plus = +a;
+                        var ratio = a / a;
+                        // A value the expression names twice is computed once
+                        var ratioOnce = a / Vec.MakeUnit(a);
+                        a.Half = 2.0f;
+                        Vec.Split(a, out var x, out var y);
+                        Vec.Split(a, out x, out y);
+                        var same = new Vec(2.0f);
+                        var first = a[0];
+                        a[1] = first;
+                        var any = a[i];
+                        // No member has an index that is not a constant
+                        a[i] = first;
+                        return $"{a:F2} {a}";
+                    }
+                }
+            }
+            """;
+        const string OldLibrary = """
+            namespace Old
+            {
+                public struct Vec
+                {
+                    public float X, Y;
+                    public Vec(float value) { X = value; Y = value; }
+                    public Vec(float x, float y) { X = x; Y = y; }
+                    public static readonly int Size = 8;
+                    public static readonly Vec One = new Vec(1, 1);
+                    public static Vec Along(Vec direction, float length) => default;
+                    public static Vec MakeUnit(Vec value) => value;
+                    public static Vec operator +(Vec left, Vec right) => left;
+                    public static Vec Down(Vec value) => value;
+                    public void Flip() { }
+                    public static Vec operator +(Vec value) => value;
+                    public static Vec operator /(Vec left, Vec right) => left;
+                    public float Half { get => X; set => X = value; }
+                    public static void Split(Vec value, out float x, out float y) { x = 0; y = 0; }
+                    public static void FromNumber(float value, out Vec result) { result = default; }
+                    public static void Along(ref readonly Vec direction, float length, out Vec result) { result = default; }
+                    public bool IsUnit => true;
+                    public float this[int index] { get => X; set => X = value; }
+                    public static Vec FromRotation(Quat rotation) => default;
+                    public static void FromRotation(ref readonly Quat rotation, out Vec result) { result = default; }
+                    public string ToString(string format, System.IFormatProvider provider) => "";
+                }
+                public struct Quat
+                {
+                    public float W;
+                    public readonly void Turn(ref Vec value) { }
+                }
+            }
+            """;
+        const string NewLibrary = """
+            namespace Old
+            {
+                public static class Extensions
+                {
+                    extension(New.Vec value)
+                    {
+                        public bool NearEquals(New.Vec other) => true;
+                        public New.Wide AsWide() => default;
+                        public New.Vec Unit() => default;
+                        public (float, float) Parts => default;
+                        public string ToString(string format, System.IFormatProvider provider) => "";
+                    }
+                    extension(New.Quat rotation)
+                    {
+                        public New.Vec Angles => default;
+                    }
+                }
+            }
+            namespace New
+            {
+                public struct Vec
+                {
+                    public float X, Y;
+                    public Vec(float x, float y) { X = x; Y = y; }
+                    public static Vec One => new Vec(1, 1);
+                    public static Vec Scale(Vec value, float by) => value;
+                    public static Vec Round(Vec value, System.MidpointRounding mode) => value;
+                    public static Vec Turned(Vec value, Quat by) => value;
+                    public static Vec Pair(float x, float y) => default;
+                    public static Vec operator -(Vec value) => value;
+                    public static Vec MakeUnit(Vec value) => value;
+                    public static Vec operator +(Vec left, Vec right) => left;
+                }
+                public struct Quat { public float W; }
+                public struct Wide { public float this[int index] => 0; }
+            }
+            """;
+        const string Expected = """
+            using Old;
+            using New;
+            using System;
+            using System.Runtime.CompilerServices;
+
+            namespace TestNs
+            {
+                class Usage
+                {
+                    string Run(Vec a, Quat q, int i)
+                    {
+                        var size = Unsafe.SizeOf<Vec>();
+                        var unit = a.NearEquals(Vec.One);
+                        var angles = q.Angles;
+                        var other = q.Angles;
+                        var along = Vec.Scale(a.Unit(), 2.0f);
+                        // A member the rule names needs less
+                        var alongOne = Vec.Scale(Vec.One, 2.0f) + Vec.Scale(Vec.MakeUnit(a), 2.0f);
+                        var alongToo = Vec.Scale(a.Unit(), 2.0f);
+                        var down = Vec.Round(a, MidpointRounding.ToNegativeInfinity);
+                        // A method that only gives its result through out
+                        var three = new Vec(3.0f, 3.0f);
+                        three = new Vec(4.0f, 4.0f);
+                        a = Vec.Turned(a, q);
+                        a = -a;
+                        var plus = a;
+                        var ratio = Vec.Pair(a.X / a.X, a.Y / a.Y);
+                        // A value the expression names twice is computed once
+                        var ratioOnce = ((a, Vec.MakeUnit(a)) is var (left, right) ? Vec.Pair(left.X / right.X, left.Y / right.Y) : default);
+                        a = a with { X = 2.0f };
+                        var (x, y) = a.Parts;
+                        (x, y) = a.Parts;
+                        var same = new Vec(2.0f, 2.0f);
+                        var first = a.X;
+                        a.Y = first;
+                        var any = a.AsWide()[i];
+                        // No member has an index that is not a constant
+                        a[i] = first;
+                        return $"{a.ToString("F2", null)} {a}";
+                    }
+                }
+            }
+            """;
+
+        var migration = new TypeMigration()
+            .Type("Old.Vec", "New.Vec")
+            .Type("Old.Quat", "New.Quat")
+            .ReturningTwinsOnly()
+            .MemberToExpression("Old.Vec", "Size", "Unsafe.SizeOf<Vec>()", "System.Runtime.CompilerServices")
+            .MemberToExpression("Old.Vec", "IsUnit", "{0}.NearEquals(Vec.One)")
+            .CallToExpression("Old.Vec", "FromRotation", ["Old.Quat"], "{0}.Angles")
+            .CallToExpression("Old.Vec", "Along", ["Old.Vec", "float"], "Vec.Scale({0}, {1})", ["One", "MakeUnit"])
+            .CallToExpression("Old.Vec", "Along", ["Old.Vec", "float"], "Vec.Scale({0}.Unit(), {1})")
+            .CallToExpression("Old.Vec", "Down", ["Old.Vec"], "Vec.Round({0}, MidpointRounding.ToNegativeInfinity)", import: "System")
+            .CallToExpression("Old.Vec", "FromNumber", ["float"], "new Vec({0}, {0})")
+            .RefCallToAssignment("Old.Quat", "Turn", "Vec.Turned({1}, {0})")
+            .InPlaceToExpression("Old.Vec", "Flip", "-{0}")
+            .OperatorToExpression("Old.Vec", "op_UnaryPlus", "{0}")
+            .OperatorToExpression("Old.Vec", "op_Division", "Vec.Pair({0}.X / {1}.X, {0}.Y / {1}.Y)")
+            .SetterToAssignment("Old.Vec", "Half", "{0} with { X = {1} }")
+            .OutsToDeconstruction("Old.Vec", "Split", ["Old.Vec"], "{0}.Parts")
+            .ConstructorToExpression("Old.Vec", ["float"], "new Vec({0}, {0})")
+            .IndexerToMembers("Old.Vec", ["X", "Y"], "{0}.AsWide()[{1}]")
+            .FormatToCall("Old.Vec", "ToString");
+        var result = await ApplyAsync(Usage + Environment.NewLine + OldLibrary, MigrateTypes(migration));
+
+        var usage = result[..result.IndexOf("namespace Old", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+        // But the write through an index that is no constant: the new type has no indexer
+        AssertCompiles(Expected.Replace("a[i] = first;", "") + Environment.NewLine + NewLibrary);
+    }
+
+    [Fact]
+    public async Task MigrateTypesLeavesWhatItCannotWriteTwiceOrDeclare()
+    {
+        const string Usage = """
+            namespace TestNs
+            {
+                using Old;
+
+                class Usage
+                {
+                    Vec[] values = new Vec[4];
+                    int index;
+
+                    Vec Next() => values[index++];
+
+                    void Run(Vec a, Quat p, Quat q, bool condition)
+                    {
+                        // The element is evaluated once
+                        values[index++].Normalize();
+                        // An embedded statement cannot declare a local
+                        if (condition)
+                            Vec.Normalize(ref a, out var unit);
+                        var var = a;
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + OldMathLibrary + Environment.NewLine + NewMathLibrary, MigrateTypes(MathMigration()));
+
+        Assert.Contains("values[index++].NormalizeSafe();", result);
+        Assert.Contains("Vec.NormalizeSafe(ref a, out var unit);", result);
+        Assert.Contains("var var = a;", result);
+    }
+
+    [Fact]
+    public async Task MigrateTypesKeepsNullChecksAndWritesThroughPointers()
+    {
+        const string Usage = """
+            using Old;
+            using static Old.Vec;
+
+            namespace TestNs
+            {
+                unsafe class Usage
+                {
+                    bool Run(Vec a, Vec? maybe, Vec* pointer, Mat* matrix)
+                    {
+                        pointer->Normalize();
+                        matrix->Invert();
+                        var sum = Add(a, Zero);
+                        return maybe == null || maybe != a;
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + OldMathLibrary + Environment.NewLine + NewMathLibrary, MigrateTypes(MathMigration()));
+
+        Assert.Contains("*pointer = Vec.NormalizeSafe(*pointer);", result);
+        Assert.Contains("Mat4.InvertSafe(*matrix, out *matrix);", result);
+        // A static member named alone, through a using static
+        Assert.Contains("var sum = Vec.Add(a, Vec.Zero);", result);
+        // With a nullable value or null, == stays
+        Assert.Contains("return maybe == null || maybe != a;", result);
+    }
+
+    [Fact]
+    public async Task MigrateTypesImportsTheNamespaceOfExtensionMembers()
+    {
+        // Members the new type does not have are extension members, declared in the namespace of the old type
+        const string NeedsExtensions = """
+            namespace TestNs
+            {
+                class Usage
+                {
+                    bool Run(Old.Vec a, Old.Vec b)
+                    {
+                        a.Clamp();
+                        return a == b;
+                    }
+                }
+            }
+            """;
+        const string NeedsNone = """
+            namespace TestNs
+            {
+                class Usage
+                {
+                    Old.Vec Run(Old.Vec a, Old.Vec b) => Old.Vec.Add(a, b);
+                }
+            }
+            """;
+
+        var withExtensions = await ApplyAsync(NeedsExtensions + Environment.NewLine + OldMathLibrary + Environment.NewLine + NewMathLibrary, MigrateTypes(MathMigration()));
+        var without = await ApplyAsync(NeedsNone + Environment.NewLine + OldMathLibrary + Environment.NewLine + NewMathLibrary, MigrateTypes(MathMigration()));
+
+        Assert.Contains("using Old;", withExtensions);
+        Assert.Contains("return a.NearEquals(b);", withExtensions);
+        Assert.Contains("New.Vec Run(New.Vec a, New.Vec b) => New.Vec.Add(a, b);", without);
+        Assert.DoesNotContain("using Old;", without);
+    }
+
+    [Fact]
+    public async Task AFileThatNamesNoTypeStillGetsTheUsingOfAnExtensionMember()
+    {
+        const string Usage = """
+            namespace TestNs
+            {
+                class Usage { void Run(Holder holder) { holder.Value.Clamp(); } }
+            }
+            """;
+        const string Holder = """
+            namespace TestNs
+            {
+                class Holder { public Old.Vec Value; }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage, Holder + Environment.NewLine + OldMathLibrary + Environment.NewLine + NewMathLibrary, MigrateTypes(MathMigration()));
+
+        Assert.StartsWith("using Old;", result);
+        Assert.Contains("holder.Value.Clamp();", result);
+    }
+
+    [Fact]
+    public async Task AnAddedUsingGoesWhereEveryConfigurationOfTheFileGetsIt()
+    {
+        const string Usage = """
+            namespace TestNs
+            {
+                class Usage { Old.Vec Run(Old.Vec a) { a.Clamp(); return a; } }
+            }
+            """;
+        async Task<string> Start(string start, string end = "")
+        {
+            var result = await ApplyAsync(start + Usage + Environment.NewLine + OldMathLibrary + Environment.NewLine + NewMathLibrary + end, MigrateTypes(MathMigration()));
+            return result[..result.IndexOf("namespace TestNs", StringComparison.Ordinal)].ReplaceLineEndings("\n");
+        }
+
+        // No using yet: after the header of the file, not above it
+        Assert.Equal("// Header\n\nusing New;\nusing Old;\n\n", await Start("// Header\n\n"));
+        // The documentation of the first declaration stays with it
+        Assert.Equal("using New;\nusing Old;\n\n/// <summary>Documented.</summary>\n", await Start("/// <summary>Documented.</summary>\n"));
+        // The last using is under #if: before the block
+        Assert.Equal("using System;\nusing New;\nusing Old;\n#if true\nusing System.Text;\n#endif\n\n", await Start("using System;\n#if true\nusing System.Text;\n#endif\n\n"));
+        // Every using is under #if: after the block
+        Assert.Equal("#if true\nusing System;\n#endif\nusing New;\nusing Old;\n\n", await Start("#if true\nusing System;\n#endif\n\n"));
+        // The whole file is under #if: in the block, after the other usings
+        Assert.Equal("#if true\nusing System;\nusing New;\nusing Old;\n\n", await Start("#if true\nusing System;\n\n", Environment.NewLine + "#endif" + Environment.NewLine));
+    }
+
+    [Fact]
+    public async Task MigrateTypesRenamesTheTypesNamedInDocumentation()
+    {
+        const string Usage = """
+            using Old;
+
+            namespace TestNs
+            {
+                class Usage
+                {
+                    /// <summary>Takes a <see cref="Vec"/> and an <see cref="Old.Mat"/>.</summary>
+                    void Run(Vec a, Mat m) { }
+                }
+            }
+            """;
+        const string Expected = """
+            using Old;
+            using New;
+
+            namespace TestNs
+            {
+                class Usage
+                {
+                    /// <summary>Takes a <see cref="Vec"/> and an <see cref="New.Mat4"/>.</summary>
+                    void Run(Vec a, Mat4 m) { }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + OldMathLibrary + Environment.NewLine + NewMathLibrary, MigrateTypes(MathMigration()));
+
+        var usage = result[..result.IndexOf("namespace Old", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+        AssertCompiles(Expected + Environment.NewLine + NewMathLibrary);
+    }
+
+    [Fact]
+    public async Task MathTypesToSystemNumericsKeepsWhatStrideMathDid()
+    {
+        const string Usage = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                string Run(Vector3 a, Vector3 b, Quaternion p, Quaternion q, Matrix m)
+                {
+                    a.Normalize();
+                    Vector3.Add(ref a, ref b, out var sum);
+                    var rotation = p * q;
+                    Matrix.RotationX(1.0f, out var x);
+                    Matrix.Invert(ref x, out var inverted);
+                    Vector3.TransformCoordinate(ref a, ref m, out var moved);
+                    var identity = m.IsIdentity || Matrix.LayoutIsRowMajor;
+                    var bytes = Vector3.SizeInBytes;
+                    m = Matrix.Invert(x) * Matrix.Translation(a);
+                    m.Up = m.TranslationVector;
+                    var plane = new Plane(a, b);
+                    // A normal that a call gives is computed once
+                    plane = new Plane(a, Next());
+                    q = Quaternion.RotationAxis(a, 1.0f);
+                    Quaternion.RotationAxis(ref b, 2.0f, out p);
+                    q = Quaternion.RotationAxis(Vector3.UnitY, 1.0f);
+                    q = Quaternion.RotationAxis(Vector3.Normalize(b), 1.0f);
+                    m = Matrix.RotationAxis(a, 1.0f) * Matrix.Reflection(plane);
+                    var floor = Vector3.Floor(a);
+                    q.Rotate(ref a);
+                    q = Quaternion.RotationX(1.0f);
+                    Plane.Normalize(1.0f, 2.0f, 3.0f, 4.0f, out plane);
+                    m = Matrix.Zero;
+                    m = Matrix.PerspectiveFovRH(1.0f, 1.5f, 0.1f, 100.0f);
+                    Matrix.PerspectiveOffCenterLH(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f, out m);
+                    Quaternion.RotationYawPitchRoll(ref q, out var yaw, out var pitch, out var roll);
+                    var angles = q.YawPitchRoll;
+                    a = q.Axis;
+                    var turn = q.Angle;
+                    q = Quaternion.One;
+                    m.Orthogonalize();
+                    m = Matrix.AffineTransformation(1.0f, q, a);
+                    m = m / m;
+                    a = m.ScaleVector;
+                    m.ScaleVector = a;
+                    plane.Negate();
+                    plane = Plane.Multiply(plane, 2.0f);
+                    a.Pow(2.0f);
+                    var near = Vector3.NearEqual(a, b, a);
+                    var same = a == b || m[6] > 0;
+                    return $"{a} {(Vector2)b}";
+                }
+
+                Vector3 Next() => default;
+            }
+            """;
+        // The members of Stride.Core.Mathematics this code uses, as they were
+        const string StrideMath = """
+            namespace Stride.Core.Mathematics
+            {
+                public struct Vector2 { public float X, Y; }
+                public struct Vector3
+                {
+                    public float X, Y, Z;
+                    public static readonly int SizeInBytes = 12;
+                    public static readonly Vector3 UnitY;
+                    public static Vector3 Normalize(Vector3 value) => value;
+                    public static Vector3 Floor(Vector3 value) => value;
+                    public void Pow(float exponent) { }
+                    public static bool NearEqual(Vector3 left, Vector3 right, Vector3 epsilon) => true;
+                    public void Normalize() { }
+                    public static void Add(ref Vector3 left, ref Vector3 right, out Vector3 result) { result = left; }
+                    public static void TransformCoordinate(ref readonly Vector3 coordinate, ref readonly Matrix transform, out Vector3 result) { result = coordinate; }
+                    public static Vector3 TransformCoordinate(Vector3 coordinate, Matrix transform) => coordinate;
+                    public static explicit operator Vector2(Vector3 value) => default;
+                    public static bool operator ==(Vector3 left, Vector3 right) => true;
+                    public static bool operator !=(Vector3 left, Vector3 right) => false;
+                    public override bool Equals(object other) => true;
+                    public override int GetHashCode() => 0;
+                }
+                public struct Quaternion
+                {
+                    public static Quaternion operator *(Quaternion left, Quaternion right) => left;
+                    public static Quaternion RotationAxis(Vector3 axis, float angle) => default;
+                    public static void RotationAxis(ref readonly Vector3 axis, float angle, out Quaternion result) { result = default; }
+                    public static Quaternion RotationX(float angle) => default;
+                    public static readonly Quaternion One;
+                    public Vector3 YawPitchRoll => default;
+                    public float Angle => 0;
+                    public Vector3 Axis => default;
+                    public static void RotationYawPitchRoll(ref readonly Quaternion rotation, out float yaw, out float pitch, out float roll) { yaw = pitch = roll = 0; }
+                    public readonly void Rotate(ref Vector3 vector) { }
+                }
+                public struct Matrix
+                {
+                    public static Matrix RotationAxis(Vector3 axis, float angle) => default;
+                    public static Matrix Reflection(Plane plane) => default;
+                    public const bool LayoutIsRowMajor = false;
+                    public static readonly Matrix Zero;
+                    public void Orthogonalize() { }
+                    public static Matrix AffineTransformation(float scaling, Quaternion rotation, Vector3 translation) => default;
+                    public static Matrix operator /(Matrix left, Matrix right) => left;
+                    public Vector3 ScaleVector { get; set; }
+                    public static Matrix PerspectiveFovRH(float fov, float aspect, float znear, float zfar) => default;
+                    public static Matrix PerspectiveOffCenterLH(float left, float right, float bottom, float top, float znear, float zfar) => default;
+                    public static void PerspectiveOffCenterLH(float left, float right, float bottom, float top, float znear, float zfar, out Matrix result) { result = default; }
+                    public bool IsIdentity => true;
+                    public static void RotationX(float angle, out Matrix result) { result = default; }
+                    public static Matrix Invert(Matrix value) => value;
+                    public static void Invert(ref Matrix value, out Matrix result) { result = value; }
+                    public static Matrix Translation(Vector3 value) => default;
+                    public static Matrix operator *(Matrix left, Matrix right) => left;
+                    public Vector3 TranslationVector { get; set; }
+                    public Vector3 Up { get; set; }
+                    public float this[int index] { get => 0; set { } }
+                }
+                public struct Plane
+                {
+                    public Plane(Vector3 point, Vector3 normal) { }
+                    public static void Normalize(float normalX, float normalY, float normalZ, float planeD, out Plane result) { result = default; }
+                    public void Negate() { }
+                    public static Plane Multiply(Plane value, float scale) => value;
+                }
+            }
+            """;
+        const string Expected = """
+            using Stride.Core.Mathematics;
+            using System;
+            using System.Numerics;
+            using System.Runtime.CompilerServices;
+
+            class Usage
+            {
+                string Run(Vector3 a, Vector3 b, Quaternion p, Quaternion q, Matrix4x4 m)
+                {
+                    a = Vector3.NormalizeSafe(a);
+                    var sum = Vector3.Add(a, b);
+                    var rotation = Quaternion.Concatenate(p, q);
+                    var x = Matrix4x4.CreateRotationX(1.0f);
+                    Matrix4x4.InvertSafe(x, out var inverted);
+                    var moved = Vector3.TransformCoordinate(a, m);
+                    var identity = m.NearEquals(Matrix4x4.Identity) || true;
+                    var bytes = Unsafe.SizeOf<Vector3>();
+                    m = (Matrix4x4.Invert(x, out var inverse) ? inverse : default) * Matrix4x4.CreateTranslation(a);
+                    m.SetUp(m.Translation);
+                    var plane = new Plane(b, Vector3.Dot(b, a));
+                    // A normal that a call gives is computed once
+                    plane = ((a, Next()) is var (point, normal) ? new Plane(normal, Vector3.Dot(normal, point)) : default);
+                    q = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(a), 1.0f);
+                    p = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(b), 2.0f);
+                    q = Quaternion.CreateFromAxisAngle(Vector3.UnitY, 1.0f);
+                    q = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(b), 1.0f);
+                    m = Matrix4x4.CreateFromAxisAngle(a, 1.0f) * Matrix4x4.CreateReflection(plane);
+                    var floor = Vector3.Round(a, MidpointRounding.ToNegativeInfinity);
+                    a = Vector3.Transform(a, q);
+                    q = Quaternion.CreateRotationX(1.0f);
+                    plane = Plane.Normalize(new Plane(1.0f, 2.0f, 3.0f, 4.0f));
+                    m = default(Matrix4x4);
+                    m = Matrix4x4.CreatePerspectiveFieldOfView(1.0f, 1.5f, 0.1f, 100.0f);
+                    m = Matrix4x4.CreatePerspectiveOffCenterLeftHanded(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
+                    var (yaw, pitch, roll) = q.GetYawPitchRoll();
+                    var angles = q.GetYawPitchRoll();
+                    a = q.GetAxis();
+                    var turn = q.GetAngle();
+                    q = new Quaternion(1, 1, 1, 1);
+                    m = Matrix4x4.Orthogonalize(m);
+                    m = Matrix4x4.CreateAffineTransformation(1.0f, q, a);
+                    m = Matrix4x4.Create(m.X / m.X, m.Y / m.Y, m.Z / m.Z, m.W / m.W);
+                    a = new Vector3(m.M11, m.M22, m.M33);
+                    m = m with { M11 = a.X, M22 = a.Y, M33 = a.Z };
+                    plane = -plane;
+                    plane = plane * 2.0f;
+                    a = Vector3.Pow(a, 2.0f);
+                    var near = a.NearEquals(b, a);
+                    var same = a.NearEquals(b) || m[1, 2] > 0;
+                    return $"{a} {b.AsVector2()}";
+                }
+
+                Vector3 Next() => default;
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + StrideMath, MathTypesToSystemNumerics());
+
+        var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+    }
+
+    [Fact]
+    public async Task MathTypesToSystemNumericsGivesTheDoubleVectorsTheFormsOfTheVectors()
+    {
+        const string Usage = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(Double3 a, Double3 b)
+                {
+                    Double3.Add(ref a, ref b, out var sum);
+                    a.Normalize();
+                    var unit = Double3.Normalize(b);
+                    a = Double3.Modulate(a, unit);
+                    a.Pow(2.0);
+                    return Double3.NearEqual(ref a, ref b, ref sum);
+                }
+            }
+            """;
+        const string StrideMath = """
+            namespace Stride.Core.Mathematics
+            {
+                public struct Double3
+                {
+                    public double X, Y, Z;
+                    public static Double3 Add(Double3 left, Double3 right) => left;
+                    public static void Add(ref readonly Double3 left, ref readonly Double3 right, out Double3 result) { result = left; }
+                    public void Normalize() { }
+                    public static Double3 Normalize(Double3 value) => value;
+                    public static Double3 Modulate(Double3 left, Double3 right) => left;
+                    public void Pow(double exponent) { }
+                    public static bool NearEqual(ref readonly Double3 left, ref readonly Double3 right, ref readonly Double3 epsilon) => true;
+                }
+            }
+            """;
+        const string Expected = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(Double3 a, Double3 b)
+                {
+                    var sum = Double3.Add(a, b);
+                    a = Double3.NormalizeSafe(a);
+                    var unit = Double3.NormalizeSafe(b);
+                    a = Double3.Multiply(a, unit);
+                    a = Double3.Pow(a, 2.0);
+                    return a.NearEquals(b, sum);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + StrideMath, MathTypesToSystemNumerics());
+
+        var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+    }
+
+    [Fact]
+    public async Task MathTypesToSystemNumericsGivesTheIntegerAndHalfVectorsTheFormsOfTheVectors()
+    {
+        const string Usage = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(Int3 a, Int3 b, Half3 h, Half3 k)
+                {
+                    Int3.Add(ref a, ref b, out var sum);
+                    a = Int3.Modulate(a, sum);
+                    Int3.Modulate(ref a, ref b, out sum);
+                    a.Pow(2);
+                    return Half3.Equals(ref h, ref k) || !Half3.Equals(in k, in h);
+                }
+            }
+            """;
+        const string StrideMath = """
+            namespace Stride.Core.Mathematics
+            {
+                public struct Int3
+                {
+                    public int X, Y, Z;
+                    public static Int3 Add(Int3 left, Int3 right) => left;
+                    public static void Add(ref readonly Int3 left, ref readonly Int3 right, out Int3 result) { result = left; }
+                    public static Int3 Modulate(Int3 left, Int3 right) => left;
+                    public static void Modulate(ref readonly Int3 left, ref readonly Int3 right, out Int3 result) { result = left; }
+                    public void Pow(int exponent) { }
+                }
+                public struct Half3
+                {
+                    public static bool Equals(ref readonly Half3 value1, ref readonly Half3 value2) => true;
+                    public bool Equals(Half3 other) => true;
+                }
+            }
+            """;
+        const string Expected = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(Int3 a, Int3 b, Half3 h, Half3 k)
+                {
+                    var sum = Int3.Add(a, b);
+                    a = Int3.Multiply(a, sum);
+                    sum = Int3.Multiply(a, b);
+                    a = Int3.Pow(a, 2);
+                    return h.Equals(k) || !k.Equals(h);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + StrideMath, MathTypesToSystemNumerics());
+
+        var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+    }
+
+    private const string StrideHalf = """
+        namespace Stride.Core.Mathematics
+        {
+            public struct Half
+            {
+                public const int MantissaBits = 11;
+                public static readonly float Epsilon = 0.0004887581f;
+                public static readonly float MaxValue = 65504f;
+                public static readonly Half Zero;
+                public Half(float value) { }
+                public ushort RawValue { get; set; }
+                public static float[] ConvertToFloat(Half[] values) => null;
+                public static explicit operator Half(float value) => default;
+                public static implicit operator float(Half value) => 0;
+                public static bool Equals(ref readonly Half value1, ref readonly Half value2) => true;
+                public static bool operator ==(Half left, Half right) => true;
+                public static bool operator !=(Half left, Half right) => false;
+                public override bool Equals(object other) => true;
+                public override int GetHashCode() => 0;
+            }
+            public struct Half2
+            {
+                public Half2(Half x, Half y) { }
+                public Half2(float x, float y) { }
+            }
+        }
+        """;
+
+    [Fact]
+    public async Task MathTypesToSystemNumericsReplacesHalfByTheHalfOfDotNet()
+    {
+        const string Usage = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                float Run(Half h, float f, Half[] halves)
+                {
+                    var half = new Half(f + 1.0f);
+                    half = new Half { RawValue = 15360 };
+                    float single = h;
+                    single += half * 2.0f + Twice(h);
+                    ushort bits = h.RawValue;
+                    h.RawValue = bits;
+                    var floats = Half.ConvertToFloat(halves);
+                    if (Half.Equals(ref h, ref half) || f > Half.MaxValue || h == Half.Zero || f < Half.Zero)
+                        return Half.Epsilon + Half.MantissaBits;
+                    return (float)h + (f > 0 ? h : half);
+                }
+
+                float Twice(float value) => value * 2.0f;
+            }
+            """;
+        const string Expected = """
+            using Stride.Core.Mathematics;
+            using System;
+
+            class Usage
+            {
+                float Run(Half h, float f, Half[] halves)
+                {
+                    var half = (Half)(f + 1.0f);
+                    half = BitConverter.UInt16BitsToHalf(15360);
+                    float single = (float)h;
+                    single += (float)half * 2.0f + Twice((float)h);
+                    ushort bits = BitConverter.HalfToUInt16Bits(h);
+                    h = BitConverter.UInt16BitsToHalf(bits);
+                    var floats = Array.ConvertAll(halves, x => (float)x);
+                    if (h.Equals(half) || f > 65504f || h == Half.Zero || f < (float)Half.Zero)
+                        return 0.0004887581f + 11;
+                    return (float)h + (float)(f > 0 ? h : half);
+                }
+
+                float Twice(float value) => value * 2.0f;
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + StrideHalf, MathTypesToSystemNumerics());
+
+        var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+    }
+
+    [Fact]
+    public async Task MathTypesToSystemNumericsKeepsTheFloatsOfACallThatAlsoTakesHalves()
+    {
+        // System.Half converts from a byte by itself, and so from a small constant: with it, these calls would not choose
+        const string Usage = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                Half2 Run(byte b, int i, Half h)
+                {
+                    var whole = new Half2(1, -2);
+                    var bytes = new Half2(b, b);
+                    var mixed = new Half2(1.5f, i);
+                    return new Half2(h, h);
+                }
+            }
+            """;
+        const string Expected = """
+            using Stride.Core.Mathematics;
+            using System;
+
+            class Usage
+            {
+                Half2 Run(byte b, int i, Half h)
+                {
+                    var whole = new Half2(1f, -2f);
+                    var bytes = new Half2((float)b, (float)b);
+                    var mixed = new Half2(1.5f, i);
+                    return new Half2(h, h);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + StrideHalf, MathTypesToSystemNumerics());
+
+        var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+    }
+
+    [Fact]
+    public async Task MathTypesToSystemNumericsKeepsAnAliasOfHalfOnTheHalfOfDotNet()
+    {
+        // The alias a file needed while System and Stride.Core.Mathematics both had a type of this name
+        const string Usage = """
+            using System;
+            using Stride.Core.Mathematics;
+            using Half = Stride.Core.Mathematics.Half;
+
+            class Usage
+            {
+                float Run(Half h) => MathF.Abs(h);
+            }
+            """;
+        const string Expected = """
+            using System;
+            using Stride.Core.Mathematics;
+            using Half = System.Half;
+
+            class Usage
+            {
+                float Run(Half h) => MathF.Abs((float)h);
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + StrideHalf, MathTypesToSystemNumerics());
+
+        var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+    }
+
+    [Fact]
+    public async Task MathTypesToSystemNumericsKeepsTheToleranceOfDoubleVectorComparisons()
+    {
+        const string Usage = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(Double3 a, Double3 b)
+                {
+                    var sum = a;
+                    return a == b || a != sum || a.Equals(b);
+                }
+            }
+            """;
+        const string StrideMath = """
+            namespace Stride.Core.Mathematics
+            {
+                public struct Double3
+                {
+                    public double X, Y, Z;
+                    public static bool operator ==(Double3 left, Double3 right) => true;
+                    public static bool operator !=(Double3 left, Double3 right) => false;
+                    public bool Equals(Double3 other) => true;
+                    public override bool Equals(object other) => true;
+                    public override int GetHashCode() => 0;
+                }
+            }
+            """;
+        const string Expected = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(Double3 a, Double3 b)
+                {
+                    var sum = a;
+                    return a.NearEquals(b) || !a.NearEquals(sum) || a.NearEquals(b);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + StrideMath, MathTypesToSystemNumerics());
+
+        var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
+    }
+
+    [Fact]
+    public async Task MathTypesToSystemNumericsKeepsTheToleranceOfBoundingComparisonsAndTheFormsOfTheirCalls()
+    {
+        const string Usage = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(BoundingBox a, BoundingBox b)
+                {
+                    // The type stays: its name and the form of its calls do too
+                    BoundingBox.Merge(ref a, ref b, out var merged);
+                    return a == b || a != merged;
+                }
+            }
+            """;
+        const string StrideMath = """
+            namespace Stride.Core.Mathematics
+            {
+                public struct BoundingBox
+                {
+                    public static BoundingBox Merge(BoundingBox value1, BoundingBox value2) => value1;
+                    public static void Merge(ref readonly BoundingBox value1, ref readonly BoundingBox value2, out BoundingBox result) { result = value1; }
+                    public static bool operator ==(BoundingBox left, BoundingBox right) => true;
+                    public static bool operator !=(BoundingBox left, BoundingBox right) => false;
+                    public override bool Equals(object other) => true;
+                    public override int GetHashCode() => 0;
+                }
+            }
+            """;
+        const string Expected = """
+            using Stride.Core.Mathematics;
+
+            class Usage
+            {
+                bool Run(BoundingBox a, BoundingBox b)
+                {
+                    // The type stays: its name and the form of its calls do too
+                    BoundingBox.Merge(ref a, ref b, out var merged);
+                    return a.NearEquals(b) || !a.NearEquals(merged);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(Usage + Environment.NewLine + StrideMath, MathTypesToSystemNumerics());
+
+        var usage = result[..result.IndexOf("namespace Stride.Core.Mathematics", StringComparison.Ordinal)].TrimEnd();
+        Assert.Equal(Expected.ReplaceLineEndings(), usage.ReplaceLineEndings());
     }
 }

@@ -4,6 +4,7 @@ using Xunit;
 
 using Stride.Core.Mathematics;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Layering
 {
@@ -220,26 +221,26 @@ namespace Stride.UI.Tests.Layering
             // Child 1 at (0,0) - should be at top-left
             var expectedChild1X = -arrangeSize.X / 2;
             var expectedChild1Y = -arrangeSize.Y / 2;
-            Assert.Equal(expectedChild1X, child1Matrix.TranslationVector.X);
-            Assert.Equal(expectedChild1Y, child1Matrix.TranslationVector.Y);
+            Assert.Equal(expectedChild1X, child1Matrix.Translation.X);
+            Assert.Equal(expectedChild1Y, child1Matrix.Translation.Y);
 
             // Child 2 at (1,0) - should be at top-right with column gap
             var expectedChild2X = -arrangeSize.X / 2 + cellWidth + uniformGrid.ColumnGap;
             var expectedChild2Y = -arrangeSize.Y / 2;
-            Assert.Equal(expectedChild2X, child2Matrix.TranslationVector.X);
-            Assert.Equal(expectedChild2Y, child2Matrix.TranslationVector.Y);
+            Assert.Equal(expectedChild2X, child2Matrix.Translation.X);
+            Assert.Equal(expectedChild2Y, child2Matrix.Translation.Y);
 
             // Child 3 at (0,1) - should be at bottom-left with row gap
             var expectedChild3X = -arrangeSize.X / 2;
             var expectedChild3Y = -arrangeSize.Y / 2 + cellHeight + uniformGrid.RowGap;
-            Assert.Equal(expectedChild3X, child3Matrix.TranslationVector.X);
-            Assert.Equal(expectedChild3Y, child3Matrix.TranslationVector.Y);
+            Assert.Equal(expectedChild3X, child3Matrix.Translation.X);
+            Assert.Equal(expectedChild3Y, child3Matrix.Translation.Y);
 
             // Child 4 at (1,1) - should be at bottom-right with both gaps
             var expectedChild4X = -arrangeSize.X / 2 + cellWidth + uniformGrid.ColumnGap;
             var expectedChild4Y = -arrangeSize.Y / 2 + cellHeight + uniformGrid.RowGap;
-            Assert.Equal(expectedChild4X, child4Matrix.TranslationVector.X);
-            Assert.Equal(expectedChild4Y, child4Matrix.TranslationVector.Y);
+            Assert.Equal(expectedChild4X, child4Matrix.Translation.X);
+            Assert.Equal(expectedChild4Y, child4Matrix.Translation.Y);
         }
 
         /// <summary>
@@ -338,12 +339,12 @@ namespace Stride.UI.Tests.Layering
             var normalMatrix = normalChild.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
 
             // The spanned child should start at the left edge
-            Assert.Equal(-measureSize.X / 2, spannedMatrix.TranslationVector.X);
+            Assert.Equal(-measureSize.X / 2, spannedMatrix.Translation.X);
 
             // The normal child should be positioned after the spanned child and gaps
             var cellWidth = (measureSize.X - 2 * uniformGrid.ColumnGap) / 3;
             var expectedNormalX = -measureSize.X / 2 + 2 * cellWidth + 2 * uniformGrid.ColumnGap;
-            Assert.Equal(expectedNormalX, normalMatrix.TranslationVector.X);
+            Assert.Equal(expectedNormalX, normalMatrix.Translation.X);
         }
     }
 }

@@ -8,6 +8,7 @@ using Stride.Assets.Editor.ViewModels.CurveEditor.ControlPoints;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Drawing;
 using Stride.Core.Quantum;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests.CurveEditor;
 

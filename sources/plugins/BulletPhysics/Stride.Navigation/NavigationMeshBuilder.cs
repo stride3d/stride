@@ -14,6 +14,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Physics;
+using System.Numerics;
 
 namespace Stride.Navigation
 {
@@ -470,7 +471,7 @@ namespace Stride.Navigation
             {
                 var entity = colliderData.Component.Entity;
                 TransformComponent entityTransform = entity.Transform;
-                Matrix entityWorldMatrix = entityTransform.WorldMatrix;
+                Matrix4x4 entityWorldMatrix = entityTransform.WorldMatrix;
 
                 NavigationMeshInputBuilder entityNavigationMeshInputBuilder = colliderData.InputBuilder = new NavigationMeshInputBuilder();
 
@@ -526,7 +527,7 @@ namespace Stride.Navigation
                         {
                             var box = (BoxColliderShape)shape;
                             var boxDesc = Builder.GetColliderShapeDesc<BoxColliderShapeDesc>(box.Description);
-                            Matrix transform = box.PositiveCenterMatrix * entityWorldMatrix;
+                            Matrix4x4 transform = box.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Cube.New(boxDesc.Size, toLeftHanded: true);
                             entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
@@ -535,7 +536,7 @@ namespace Stride.Navigation
                         {
                             var sphere = (SphereColliderShape)shape;
                             var sphereDesc = Builder.GetColliderShapeDesc<SphereColliderShapeDesc>(sphere.Description);
-                            Matrix transform = sphere.PositiveCenterMatrix * entityWorldMatrix;
+                            Matrix4x4 transform = sphere.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Sphere.New(sphereDesc.Radius, toLeftHanded: true);
                             entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
@@ -544,7 +545,7 @@ namespace Stride.Navigation
                         {
                             var cylinder = (CylinderColliderShape)shape;
                             var cylinderDesc = Builder.GetColliderShapeDesc<CylinderColliderShapeDesc>(cylinder.Description);
-                            Matrix transform = cylinder.PositiveCenterMatrix * entityWorldMatrix;
+                            Matrix4x4 transform = cylinder.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Cylinder.New(cylinderDesc.Height, cylinderDesc.Radius, toLeftHanded: true);
                             entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
@@ -553,7 +554,7 @@ namespace Stride.Navigation
                         {
                             var capsule = (CapsuleColliderShape)shape;
                             var capsuleDesc = Builder.GetColliderShapeDesc<CapsuleColliderShapeDesc>(capsule.Description);
-                            Matrix transform = capsule.PositiveCenterMatrix * entityWorldMatrix;
+                            Matrix4x4 transform = capsule.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Capsule.New(capsuleDesc.Length, capsuleDesc.Radius, toLeftHanded: true);
                             entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
@@ -562,7 +563,7 @@ namespace Stride.Navigation
                         {
                             var cone = (ConeColliderShape)shape;
                             var coneDesc = Builder.GetColliderShapeDesc<ConeColliderShapeDesc>(cone.Description);
-                            Matrix transform = cone.PositiveCenterMatrix * entityWorldMatrix;
+                            Matrix4x4 transform = cone.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Cone.New(coneDesc.Radius, coneDesc.Height, toLeftHanded: true);
                             entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
@@ -571,22 +572,22 @@ namespace Stride.Navigation
                         {
                             var planeShape = (StaticPlaneColliderShape)shape;
                             var planeDesc = Builder.GetColliderShapeDesc<StaticPlaneColliderShapeDesc>(planeShape.Description);
-                            Matrix transform = entityWorldMatrix;
+                            Matrix4x4 transform = entityWorldMatrix;
 
                             Plane plane = new Plane(planeDesc.Normal, planeDesc.Offset)
                             {
                                 // Pre-Transform plane parameters
                                 Normal = Vector3.TransformNormal(planeDesc.Normal, transform)
                             };
-                            plane.Normal.Normalize();
-                            plane.D += Vector3.Dot(transform.TranslationVector, plane.Normal);
+                            plane.Normal = Vector3.NormalizeSafe(plane.Normal);
+                            plane.D += Vector3.Dot(transform.Translation, plane.Normal);
 
                             colliderData.Planes.Add(plane);
                         }
                         else if (shapeType == typeof(ConvexHullColliderShape))
                         {
                             var hull = (ConvexHullColliderShape)shape;
-                            Matrix transform = hull.PositiveCenterMatrix * entityWorldMatrix;
+                            Matrix4x4 transform = hull.PositiveCenterMatrix * entityWorldMatrix;
 
                             // V-HACD emits hull triangles in left-handed winding, matching the navmesh input convention.
                             int[] indices = new int[hull.Indices.Count];
@@ -601,7 +602,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(StaticMeshColliderShape))
                         {
                             var mesh = (StaticMeshColliderShape)shape;
-                            Matrix transform = mesh.PositiveCenterMatrix * entityWorldMatrix;
+                            Matrix4x4 transform = mesh.PositiveCenterMatrix * entityWorldMatrix;
 
                             mesh.GetMeshDataCopy(out var verts, out var indices);
 
@@ -624,7 +625,7 @@ namespace Stride.Navigation
 
                             var halfRange = (heightfield.MaxHeight - heightfield.MinHeight) * 0.5f;
                             var offset = -(heightfield.MinHeight + halfRange);
-                            Matrix transform = Matrix.Translation(new Vector3(0, offset, 0)) * heightfield.PositiveCenterMatrix * entityWorldMatrix;
+                            Matrix4x4 transform = Matrix4x4.CreateTranslation(new Vector3(0, offset, 0)) * heightfield.PositiveCenterMatrix * entityWorldMatrix;
 
                             var width = heightfield.HeightStickWidth - 1;
                             var length = heightfield.HeightStickLength - 1;
@@ -722,7 +723,7 @@ namespace Stride.Navigation
             GeometricMeshData<VertexPositionNormalTexture> meshData = new GeometricMeshData<VertexPositionNormalTexture>(vertices, planeInds, true);
 
             NavigationMeshInputBuilder inputBuilder = new NavigationMeshInputBuilder();
-            inputBuilder.AppendMeshData(meshData, Matrix.Identity);
+            inputBuilder.AppendMeshData(meshData, Matrix4x4.Identity);
             return inputBuilder;
         }
 

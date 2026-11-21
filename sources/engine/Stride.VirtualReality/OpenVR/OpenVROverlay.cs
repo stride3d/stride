@@ -5,6 +5,8 @@
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 
+using System.Numerics;
+
 namespace Stride.VirtualReality
 {
     internal class OpenVROverlay : VROverlay
@@ -44,7 +46,7 @@ namespace Stride.VirtualReality
 
         public override void UpdateSurface(CommandList commandList, Texture texture)
         {
-            var pose = Matrix.Translation(Position) * Matrix.RotationQuaternion(Rotation);
+            var pose = Matrix4x4.CreateTranslation(Position) * Matrix4x4.CreateFromQuaternion(Rotation);
             OpenVR.SetOverlayParams(overlayId, pose, FollowHeadRotation, SurfaceSize);
             OpenVR.SubmitOverlay(overlayId, texture);
         }

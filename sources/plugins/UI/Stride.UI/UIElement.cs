@@ -11,6 +11,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.UI
 {
@@ -35,8 +36,8 @@ namespace Stride.UI
         protected const string MiscCategory = "Misc";
 
         internal Vector3 RenderSizeInternal;
-        internal Matrix WorldMatrixInternal;
-        internal Matrix WorldMatrixPickingInternal;
+        internal Matrix4x4 WorldMatrixInternal;
+        internal Matrix4x4 WorldMatrixPickingInternal;
         protected internal Thickness MarginInternal = Thickness.UniformCuboid(0f);
 
         private string name;
@@ -59,7 +60,7 @@ namespace Stride.UI
         private float minimumWidth;
         private float minimumHeight;
         private float minimumDepth;
-        private Matrix localMatrix = Matrix.Identity;
+        private Matrix4x4 localMatrix = Matrix4x4.Identity;
         private MouseOverState mouseOverState;
         private LayoutingContext layoutingContext;
 
@@ -104,7 +105,7 @@ namespace Stride.UI
         /// <remarks>The local transform is not taken is account during the layering. The transformation is purely for rendering effects.</remarks>
         /// <userdoc>Local matrix of this element.</userdoc>
         [DataMemberIgnore]
-        public Matrix LocalMatrix
+        public Matrix4x4 LocalMatrix
         {
             get => localMatrix;
             set
@@ -591,7 +592,7 @@ namespace Stride.UI
         /// The origin of the element is the center of the object's bounding box defined by <see cref="RenderSize"/>.
         /// </summary>
         [DataMemberIgnore]
-        public Matrix WorldMatrix
+        public Matrix4x4 WorldMatrix
         {
             get => WorldMatrixInternal;
             private set => WorldMatrixInternal = value;
@@ -1184,7 +1185,7 @@ namespace Stride.UI
                 ((IUIElementUpdate)child).Update(time);
         }
 
-        void IUIElementUpdate.UpdateWorldMatrix(ref Matrix parentWorldMatrix, bool parentWorldChanged)
+        void IUIElementUpdate.UpdateWorldMatrix(ref Matrix4x4 parentWorldMatrix, bool parentWorldChanged)
         {
             UpdateWorldMatrix(ref parentWorldMatrix, parentWorldChanged);
         }
@@ -1235,18 +1236,17 @@ namespace Stride.UI
         /// </summary>
         /// <param name="parentWorldMatrix">The world matrix of the parent.</param>
         /// <param name="parentWorldChanged">Boolean indicating if the world matrix provided by the parent changed</param>
-        protected virtual void UpdateWorldMatrix(ref Matrix parentWorldMatrix, bool parentWorldChanged)
+        protected virtual void UpdateWorldMatrix(ref Matrix4x4 parentWorldMatrix, bool parentWorldChanged)
         {
             if (parentWorldChanged || LocalMatrixChanged || ArrangeChanged)
             {
                 var localMatrixCopy = localMatrix;
 
                 // include rendering offsets into the local matrix.
-                localMatrixCopy.TranslationVector += RenderOffsets + RenderSize / 2;
+                localMatrixCopy.Translation += RenderOffsets + RenderSize / 2;
 
                 // calculate the world matrix of UIElement
-                Matrix worldMatrix;
-                Matrix.Multiply(ref localMatrixCopy, ref parentWorldMatrix, out worldMatrix);
+                Matrix4x4 worldMatrix = localMatrixCopy * parentWorldMatrix;
                 WorldMatrix = worldMatrix;
 
                 // Picking (see XK-4689) - this fix relates to the inverted axis introduced in
@@ -1255,7 +1255,7 @@ namespace Stride.UI
                 localMatrixCopy.M31 *= -1;
                 localMatrixCopy.M23 *= -1;
                 localMatrixCopy.M32 *= -1;
-                Matrix.Multiply(ref localMatrixCopy, ref parentWorldMatrix, out worldMatrix);
+                worldMatrix = localMatrixCopy * parentWorldMatrix;
                 WorldMatrixPickingInternal = worldMatrix;
 
                 LocalMatrixChanged = false;

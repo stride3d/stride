@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Particles.Initializers;
 using Stride.Particles.Modules;
 using Stride.Particles.Sorters;
+using System.Numerics;
 
 namespace Stride.Particles.Tests
 {

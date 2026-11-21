@@ -12,6 +12,7 @@ using Xunit;
 using Stride.Engine;
 using Stride.Graphics.Regression;
 using Stride.Heightfield;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Tests
 {
@@ -59,7 +60,7 @@ namespace Stride.BepuPhysics.Tests
 
                     var dir = new Vector3(random.NextSingle(), random.NextSingle(), random.NextSingle());
                     dir = dir * 2f - 1f;
-                    dir = Vector3.Normalize(dir);
+                    dir = Vector3.NormalizeSafe(dir);
                     float distFromTarget = random.NextSingle() * 10f;
 
                     var target = new Vector3(posNorm.X, 0, posNorm.Y) * heightfield.Size;
@@ -117,7 +118,7 @@ namespace Stride.BepuPhysics.Tests
                     Ray ray;
                     ray.Direction = new Vector3(random.NextSingle(), random.NextSingle(), random.NextSingle());
                     ray.Direction = ray.Direction * 2f - 1f;
-                    ray.Direction = Vector3.Normalize(ray.Direction);
+                    ray.Direction = Vector3.NormalizeSafe(ray.Direction);
                     ray.Position = target - ray.Direction * distFromTarget;
 
                     // A sweepcast between a box and a single-sided plane is equivalent to a raycast against a plane enlarged by half the box's size in all axes, see minkowski addition
@@ -248,12 +249,12 @@ namespace Stride.BepuPhysics.Tests
                     var posNorm = new Vector2(random.NextSingle(), random.NextSingle()) * heightfield.Size;
                     var target = new Vector3(posNorm.X, planeHeight, posNorm.Y);
 
-                    Assert.True(Vector3.NearEqual(target, collider.SnapToSurface(target), new Vector3(0.0001f)));
+                    Assert.True(target.NearEquals(collider.SnapToSurface(target), new Vector3(0.0001f)));
                 }
 
-                Assert.True(Vector3.NearEqual(new Vector3(0, 1, 0), collider.SnapToSurface(new Vector3(-1)), new Vector3(0.0001f)));
-                Assert.True(Vector3.NearEqual(new Vector3(heightfield.Size, 1, heightfield.Size), collider.SnapToSurface(new Vector3(heightfield.Size)), new Vector3(0.0001f)));
-                Assert.True(Vector3.NearEqual(new Vector3(0, 1, heightfield.Size * 0.5f), collider.SnapToSurface(new Vector3(-1, 0, heightfield.Size * 0.5f)), new Vector3(0.0001f)));
+                Assert.True(new Vector3(0, 1, 0).NearEquals(collider.SnapToSurface(new Vector3(-1)), new Vector3(0.0001f)));
+                Assert.True(new Vector3(heightfield.Size, 1, heightfield.Size).NearEquals(collider.SnapToSurface(new Vector3(heightfield.Size)), new Vector3(0.0001f)));
+                Assert.True(new Vector3(0, 1, heightfield.Size * 0.5f).NearEquals(collider.SnapToSurface(new Vector3(-1, 0, heightfield.Size * 0.5f)), new Vector3(0.0001f)));
 
                 game.Exit();
             });
@@ -271,7 +272,7 @@ namespace Stride.BepuPhysics.Tests
                 const float planeHeight = 1f;
 
                 var fieldPos = new Vector3(3, -4, 5);
-                var fieldRot = Quaternion.RotationYawPitchRoll(0.3f, 0.2f, 0.1f);
+                var fieldRot = Quaternion.CreateFromYawPitchRoll(0.3f, 0.2f, 0.1f);
 
                 var heightfield = SetupHeightfieldPlane(planeHeight, game, out _, out var collider, fieldPos, fieldRot);
 
@@ -284,7 +285,7 @@ namespace Stride.BepuPhysics.Tests
 
                     var snapped = collider.SnapToSurface(target);
 
-                    Assert.True(Vector3.NearEqual(target, snapped, new Vector3(0.0001f)));
+                    Assert.True(target.NearEquals(snapped, new Vector3(0.0001f)));
                 }
 
                 game.Exit();

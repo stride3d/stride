@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Physics
 {

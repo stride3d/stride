@@ -7,8 +7,7 @@ using BepuUtilities;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Debug.Effects;
 using Stride.Core.Mathematics;
-using NQuaternion = System.Numerics.Quaternion;
-using NVector3 = System.Numerics.Vector3;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Debug;
 
@@ -44,7 +43,7 @@ internal sealed class ContactRecorder : IDisposable
                 continue;
 
             var pose = _simulation.Bodies[contact.Body].Pose;
-            var point = (pose.Position + NVector3.Transform(contact.LocalOffset, pose.Orientation)).ToStride();
+            var point = pose.Position + Vector3.Transform(contact.LocalOffset, pose.Orientation);
             if (pointColor is { } p)
             {
                 lines.AddLine(point - new Vector3(markerSize, 0, 0), point + new Vector3(markerSize, 0, 0), p);
@@ -53,7 +52,7 @@ internal sealed class ContactRecorder : IDisposable
             }
 
             if (normalColor is { } n)
-                lines.AddLine(point, point + NVector3.Transform(contact.LocalNormal, pose.Orientation).ToStride() * size, n);
+                lines.AddLine(point, point + Vector3.Transform(contact.LocalNormal, pose.Orientation) * size, n);
         }
     }
 
@@ -85,19 +84,19 @@ internal sealed class ContactRecorder : IDisposable
         }
     }
 
-    private readonly record struct RecordedContact(BodyHandle Body, NVector3 LocalOffset, NVector3 LocalNormal);
+    private readonly record struct RecordedContact(BodyHandle Body, Vector3 LocalOffset, Vector3 LocalNormal);
 
     private readonly struct Extractor(Simulation simulation, List<RecordedContact> contacts) : ISolverContactDataExtractor
     {
-        private void AddContact(BodyHandle bodyA, in NVector3 offsetA, in NVector3 normal, float depth)
+        private void AddContact(BodyHandle bodyA, in Vector3 offsetA, in Vector3 normal, float depth)
         {
             // Speculative contacts are not touching yet
             if (depth < 0)
                 return;
 
             // Offsets are relative to body A, and the normal points from B to A
-            var toLocal = NQuaternion.Conjugate(simulation.Bodies[bodyA].Pose.Orientation);
-            contacts.Add(new RecordedContact(bodyA, NVector3.Transform(offsetA, toLocal), NVector3.Transform(normal, toLocal)));
+            var toLocal = Quaternion.Conjugate(simulation.Bodies[bodyA].Pose.Orientation);
+            contacts.Add(new RecordedContact(bodyA, Vector3.Transform(offsetA, toLocal), Vector3.Transform(normal, toLocal)));
         }
 
         private void AddConvex<TPrestep>(BodyHandle bodyA, ref TPrestep prestep) where TPrestep : struct, IConvexContactPrestep<TPrestep>

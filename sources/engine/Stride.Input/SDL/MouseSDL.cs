@@ -8,6 +8,8 @@ using Stride.Core.Mathematics;
 using Point = Stride.Core.Mathematics.Point;
 using Window = Stride.Graphics.SDL.Window;
 
+using System.Numerics;
+
 namespace Stride.Input
 {
     internal class MouseSDL : MouseDeviceBase, IDisposable

@@ -250,6 +250,31 @@ namespace Stride.Engine.Tests
         }
 
         [Fact]
+        public void TestSystemNumericsFields()
+        {
+            var test = new TestClass();
+
+            var updateMemberInfo = new List<UpdateMemberInfo>
+            {
+                new UpdateMemberInfo("NumericsMatrixProperty.M42", 0),
+                new UpdateMemberInfo("NumericsPlaneField.D", 8),
+                new UpdateMemberInfo("NumericsPlaneField.Normal.Z", 16),
+                new UpdateMemberInfo("NumericsVectorField.Y", 24),
+            };
+
+            static TestData Float(float value) => new TestData { Factor = 1.0f, Value = BitConverter.SingleToInt32Bits(value) };
+            var blittableData = new[] { Float(42.0f), Float(4.0f), Float(3.0f), Float(2.0f) };
+            var objectData = new UpdateObjectData[0];
+
+            RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
+
+            Assert.Multiple(
+                () => Assert.Equal(new System.Numerics.Matrix4x4 { M42 = 42.0f }, test.NumericsMatrixProperty),
+                () => Assert.Equal(new System.Numerics.Plane(0.0f, 0.0f, 3.0f, 4.0f), test.NumericsPlaneField),
+                () => Assert.Equal(new System.Numerics.Vector3(0.0f, 2.0f, 0.0f), test.NumericsVectorField));
+        }
+
+        [Fact]
         public void TestLastFieldOfStructProperty()
         {
             var test = new TestClass { BlittableStructProperty = new BlittableStruct { IntField = 1, IntProperty = 2 } };
@@ -686,6 +711,10 @@ namespace Stride.Engine.Tests
         public NonBlittableStruct NonBlittableStructField;
         public NonBlittableStruct NonBlittableStructProperty { get; set; }
         public IList<int> NonBlittableStructList;
+
+        public System.Numerics.Vector3 NumericsVectorField;
+        public System.Numerics.Plane NumericsPlaneField;
+        public System.Numerics.Matrix4x4 NumericsMatrixProperty { get; set; }
 
         public int[] IntArray;
         public TestClass[] TestClassArray;

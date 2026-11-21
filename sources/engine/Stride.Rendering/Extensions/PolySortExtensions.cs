@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Extensions
 {

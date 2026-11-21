@@ -4,6 +4,7 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Particles.Spawners;
+using System.Numerics;
 
 namespace Stride.Particles.Initializers
 {

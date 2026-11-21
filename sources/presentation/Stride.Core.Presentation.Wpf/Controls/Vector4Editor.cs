@@ -4,6 +4,7 @@ using System;
 using System.Windows;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.Presentation.Controls
 {
@@ -135,7 +136,7 @@ namespace Stride.Core.Presentation.Controls
         private static Vector4 FromLength(Vector4 value, float length)
         {
             var newValue = value;
-            newValue.Normalize();
+            newValue = Vector4.NormalizeSafe(newValue);
             newValue *= length;
             return newValue;
         }

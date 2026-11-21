@@ -14,6 +14,7 @@ using Stride.Core.Mathematics;
 using Stride.GameStudio.Avalonia.Commands;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.Input;
+using System.Numerics;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

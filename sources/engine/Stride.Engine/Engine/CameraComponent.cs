@@ -11,6 +11,7 @@ using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using System.Numerics;
 
 namespace Stride.Engine
 {
@@ -168,7 +169,7 @@ namespace Stride.Engine
         /// This value is updated when calling <see cref="Update"/> or is directly used when <see cref="UseCustomViewMatrix"/> is <c>true</c>.
         /// </remarks>
         [DataMemberIgnore]
-        public Matrix ViewMatrix;
+        public Matrix4x4 ViewMatrix;
 
         /// <summary>
         /// Gets or sets a value indicating whether to use custom <see cref="ProjectionMatrix"/>. Default is <c>false</c>
@@ -185,13 +186,13 @@ namespace Stride.Engine
         /// This value is updated when calling <see cref="Update"/> or is directly used when <see cref="UseCustomViewMatrix"/> is <c>true</c>.
         /// </remarks>
         [DataMemberIgnore]
-        public Matrix ProjectionMatrix;
+        public Matrix4x4 ProjectionMatrix;
 
         /// <summary>
         /// The view projection matrix calculated automatically after calling <see cref="Update"/> method.
         /// </summary>
         [DataMemberIgnore]
-        public Matrix ViewProjectionMatrix;
+        public Matrix4x4 ViewProjectionMatrix;
 
         /// <summary>
         /// The frustum extracted from the view projection matrix calculated automatically after calling <see cref="Update"/> method.
@@ -230,13 +231,13 @@ namespace Stride.Engine
                 worldMatrix.Decompose(out scale, out ViewMatrix, out translation);
 
                 // Transpose ViewMatrix (rotation only, so equivalent to inversing it)
-                ViewMatrix.Transpose();
+                ViewMatrix = Matrix4x4.Transpose(ViewMatrix);
 
                 // Rotate our translation so that we can inject it in the view matrix directly
-                Vector3.TransformCoordinate(ref translation, ref ViewMatrix, out translation);
+                translation = Vector3.TransformCoordinate(translation, ViewMatrix);
 
                 // Apply inverse of translation (equivalent to opposite)
-                ViewMatrix.TranslationVector = -translation;
+                ViewMatrix.Translation = -translation;
             }
             
             // Calculates the projection
@@ -245,15 +246,25 @@ namespace Stride.Engine
             {
                 // Calculates the projection matrix
                 ProjectionMatrix = Projection == CameraProjectionMode.Perspective ?
-                    Matrix.PerspectiveFovRH(MathUtil.DegreesToRadians(VerticalFieldOfView), ActuallyUsedAspectRatio, NearClipPlane, FarClipPlane) :
-                    Matrix.OrthoRH(ActuallyUsedAspectRatio * OrthographicSize, OrthographicSize, NearClipPlane, FarClipPlane);
+                    PerspectiveProjection(VerticalFieldOfView, ActuallyUsedAspectRatio, NearClipPlane, FarClipPlane) :
+                    Matrix4x4.CreateOrthographic(ActuallyUsedAspectRatio * OrthographicSize, OrthographicSize, NearClipPlane, FarClipPlane);
             }
 
             // Update ViewProjectionMatrix
-            Matrix.Multiply(ref ViewMatrix, ref ProjectionMatrix, out ViewProjectionMatrix);
+            ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
 
             // Update the frustum.
             Frustum = new BoundingFrustum(ref ViewProjectionMatrix);
+        }
+
+        // A scene, the editor or a script can give planes and an angle that have no projection, for which
+        // CreatePerspectiveFieldOfView throws: the camera then takes the nearest ones that have one
+        private static Matrix4x4 PerspectiveProjection(float verticalFieldOfView, float aspectRatio, float nearClipPlane, float farClipPlane)
+        {
+            var fieldOfView = Math.Clamp(MathUtil.DegreesToRadians(verticalFieldOfView), MathUtil.ZeroTolerance, MathF.PI - MathUtil.ZeroTolerance);
+            nearClipPlane = MathF.Max(nearClipPlane, MathUtil.ZeroTolerance);
+            farClipPlane = MathF.Max(farClipPlane, MathF.BitIncrement(nearClipPlane));
+            return Matrix4x4.CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, nearClipPlane, farClipPlane);
         }
 
         private class Factory : IObjectFactory

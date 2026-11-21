@@ -3,6 +3,7 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -20,6 +21,6 @@ namespace Stride.Rendering
         /// <summary>
         /// The matrix to transform from mesh space to local space of this bone.
         /// </summary>
-        public Matrix LinkToMeshMatrix;
+        public Matrix4x4 LinkToMeshMatrix;
     }
 }

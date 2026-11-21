@@ -22,6 +22,7 @@ using Stride.Physics.Assets;
 using Stride.Navigation;
 using Stride.Physics;
 using Stride.Assets;
+using System.Numerics;
 
 namespace Stride.Navigation.Assets
 {

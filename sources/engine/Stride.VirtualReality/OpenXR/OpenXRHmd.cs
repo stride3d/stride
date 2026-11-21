@@ -13,6 +13,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Diagnostics;
 using Stride.Games;
 using Stride.Graphics;
+using System.Numerics;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using Silk.NET.Direct3D11;
@@ -682,18 +683,18 @@ namespace Stride.VirtualReality
             // if the specific API can do a renceter or the engine needs to take care of that
         }
 
-        private static Matrix CreateViewMatrix(Vector3 translation, Quaternion rotation)
+        private static Matrix4x4 CreateViewMatrix(Vector3 translation, Quaternion rotation)
         {
-            Matrix rotationMatrix = Matrix.RotationQuaternion(rotation);
-            Matrix translationMatrix = Matrix.Translation(translation);
-            Matrix viewMatrix = translationMatrix * rotationMatrix;
-            viewMatrix.Invert();
+            Matrix4x4 rotationMatrix = Matrix4x4.CreateFromQuaternion(rotation);
+            Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(translation);
+            Matrix4x4 viewMatrix = translationMatrix * rotationMatrix;
+            Matrix4x4.InvertSafe(viewMatrix, out viewMatrix);
             return viewMatrix;
         }
 
-        private Matrix CreateProjectionFov(Fovf fov, float nearZ, float farZ)
+        private Matrix4x4 CreateProjectionFov(Fovf fov, float nearZ, float farZ)
         {
-            Matrix result = Matrix.Identity;
+            Matrix4x4 result = Matrix4x4.Identity;
 
             float tanAngleLeft = (float)Math.Tan(fov.AngleLeft);
             float tanAngleRight = (float)Math.Tan(fov.AngleRight);
@@ -709,48 +710,48 @@ namespace Stride.VirtualReality
             if (farZ <= nearZ)
             {
                 // place the far plane at infinity
-                result[0] = 2 / tanAngleWidth;
-                result[4] = 0;
-                result[8] = (tanAngleRight + tanAngleLeft) / tanAngleWidth;
-                result[12] = 0;
+                result[0, 0] = 2 / tanAngleWidth;
+                result[1, 0] = 0;
+                result[2, 0] = (tanAngleRight + tanAngleLeft) / tanAngleWidth;
+                result[3, 0] = 0;
 
-                result[1] = 0;
-                result[5] = 2 / tanAngleHeight;
-                result[9] = (tanAngleUp + tanAngleDown) / tanAngleHeight;
-                result[13] = 0;
+                result[0, 1] = 0;
+                result[1, 1] = 2 / tanAngleHeight;
+                result[2, 1] = (tanAngleUp + tanAngleDown) / tanAngleHeight;
+                result[3, 1] = 0;
 
-                result[2] = 0;
-                result[6] = 0;
-                result[10] = -1;
-                result[14] = -(nearZ + offsetZ);
+                result[0, 2] = 0;
+                result[1, 2] = 0;
+                result[2, 2] = -1;
+                result[3, 2] = -(nearZ + offsetZ);
 
-                result[3] = 0;
-                result[7] = 0;
-                result[11] = -1;
-                result[15] = 0;
+                result[0, 3] = 0;
+                result[1, 3] = 0;
+                result[2, 3] = -1;
+                result[3, 3] = 0;
             }
             else
             {
                 // normal projection
-                result[0] = 2 / tanAngleWidth;
-                result[4] = 0;
-                result[8] = (tanAngleRight + tanAngleLeft) / tanAngleWidth;
-                result[12] = 0;
+                result[0, 0] = 2 / tanAngleWidth;
+                result[1, 0] = 0;
+                result[2, 0] = (tanAngleRight + tanAngleLeft) / tanAngleWidth;
+                result[3, 0] = 0;
 
-                result[1] = 0;
-                result[5] = 2 / tanAngleHeight;
-                result[9] = (tanAngleUp + tanAngleDown) / tanAngleHeight;
-                result[13] = 0;
+                result[0, 1] = 0;
+                result[1, 1] = 2 / tanAngleHeight;
+                result[2, 1] = (tanAngleUp + tanAngleDown) / tanAngleHeight;
+                result[3, 1] = 0;
 
-                result[2] = 0;
-                result[6] = 0;
-                result[10] = -(farZ + offsetZ) / (farZ - nearZ);
-                result[14] = -(farZ * (nearZ + offsetZ)) / (farZ - nearZ);
+                result[0, 2] = 0;
+                result[1, 2] = 0;
+                result[2, 2] = -(farZ + offsetZ) / (farZ - nearZ);
+                result[3, 2] = -(farZ * (nearZ + offsetZ)) / (farZ - nearZ);
 
-                result[3] = 0;
-                result[7] = 0;
-                result[11] = -1;
-                result[15] = 0;
+                result[0, 3] = 0;
+                result[1, 3] = 0;
+                result[2, 3] = -1;
+                result[3, 3] = 0;
             }
 
             return result;
@@ -761,12 +762,12 @@ namespace Stride.VirtualReality
             return new Quaternion(-quat.X, -quat.Y, -quat.Z, quat.W);
         }
 
-        public override void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix view, out Matrix projection)
+        public override void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix4x4 cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix4x4 view, out Matrix4x4 projection)
         {
             if (views is null)
                 throw new InvalidOperationException();
 
-            Matrix eyeMat, rot;
+            Matrix4x4 eyeMat, rot;
             Vector3 pos, scale;
 
             View eyeview = views[(int)eye];
@@ -776,21 +777,21 @@ namespace Stride.VirtualReality
                                                       ConvertToFocus(in eyeview.Pose.Orientation));
             if (ignoreHeadPosition)
             {
-                adjustedHeadMatrix.TranslationVector = Vector3.Zero;
+                adjustedHeadMatrix.Translation = Vector3.Zero;
             }
             if (ignoreHeadRotation)
             {
                 // keep the scale just in case
-                adjustedHeadMatrix.Row1 = new Vector4(adjustedHeadMatrix.Row1.Length(), 0, 0, 0);
-                adjustedHeadMatrix.Row2 = new Vector4(0, adjustedHeadMatrix.Row2.Length(), 0, 0);
-                adjustedHeadMatrix.Row3 = new Vector4(0, 0, adjustedHeadMatrix.Row3.Length(), 0);
+                adjustedHeadMatrix.X = new Vector4(adjustedHeadMatrix.X.Length(), 0, 0, 0);
+                adjustedHeadMatrix.Y = new Vector4(0, adjustedHeadMatrix.Y.Length(), 0, 0);
+                adjustedHeadMatrix.Z = new Vector4(0, 0, adjustedHeadMatrix.Z.Length(), 0);
             }
 
-            eyeMat = adjustedHeadMatrix * /*Matrix.Scaling(BodyScaling) */ cameraRotation * Matrix.Translation(cameraPosition);
+            eyeMat = adjustedHeadMatrix * /*Matrix4x4.CreateScale(BodyScaling) */ cameraRotation * Matrix4x4.CreateTranslation(cameraPosition);
             eyeMat.Decompose(out scale, out rot, out pos);
             var finalUp = Vector3.TransformCoordinate(new Vector3(0, 1, 0), rot);
             var finalForward = Vector3.TransformCoordinate(new Vector3(0, 0, -1), rot);
-            view = Matrix.LookAtRH(pos, pos + finalForward, finalUp);
+            view = Matrix4x4.CreateLookAt(pos, pos + finalForward, finalUp);
         }
 
         public override unsafe void Update(GameTime gameTime)

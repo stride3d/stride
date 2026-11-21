@@ -14,6 +14,7 @@ using Stride.Particles.Modules;
 using Stride.Particles.ShapeBuilders;
 using Stride.Particles.Spawners;
 using Stride.Particles.Updaters;
+using System.Numerics;
 
 namespace Stride.Particles.Editor
 {

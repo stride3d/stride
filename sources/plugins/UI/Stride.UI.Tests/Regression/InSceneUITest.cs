@@ -12,6 +12,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.Sprites;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {
@@ -35,7 +36,7 @@ namespace Stride.UI.Tests.Regression
             CameraComponent = camera.Camera;
             Script.Add(camera);
 
-            UIRoot.Transform.Rotation = Quaternion.RotationX(MathUtil.Pi / 3f);
+            UIRoot.Transform.Rotation = Quaternion.CreateRotationX(MathUtil.Pi / 3f);
             UIComponent.Page = new UIPage { RootElement = new ImageElement { Source = (SpriteFromTexture)new Sprite(Content.Load<Texture>("uv")) } };
             UIComponent.IsFullScreen = false;
             UIComponent.IsBillboard = false;

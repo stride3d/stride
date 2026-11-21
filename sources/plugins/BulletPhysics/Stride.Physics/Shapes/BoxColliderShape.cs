@@ -6,6 +6,7 @@ using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -41,7 +42,7 @@ namespace Stride.Physics
                 InternalShape = new BulletSharp.BoxShape(size / 2) { LocalScaling = cachedScaling };
             }
 
-            DebugPrimitiveMatrix = Matrix.Scaling(size * DebugScaling);
+            DebugPrimitiveMatrix = Matrix4x4.CreateScale(size * DebugScaling);
         }
 
         public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)

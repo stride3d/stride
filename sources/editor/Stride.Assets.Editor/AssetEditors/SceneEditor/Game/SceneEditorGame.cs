@@ -14,6 +14,7 @@ using Stride.Engine;
 using Stride.Shaders.Compiler;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.SceneEditor.Game
 {

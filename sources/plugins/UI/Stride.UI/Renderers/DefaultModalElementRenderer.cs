@@ -4,6 +4,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Renderers
 {
@@ -12,7 +13,7 @@ namespace Stride.UI.Renderers
     /// </summary>
     internal class DefaultModalElementRenderer : ElementRenderer
     {
-        private Matrix identity = Matrix.Identity;
+        private Matrix4x4 identity = Matrix4x4.Identity;
 
         private readonly DepthStencilStateDescription noStencilNoDepth;
 

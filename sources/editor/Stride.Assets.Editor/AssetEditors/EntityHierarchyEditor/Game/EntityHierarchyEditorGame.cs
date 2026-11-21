@@ -26,6 +26,7 @@ using StrideEffects;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
 using Stride.Assets.Editor.SceneEditor;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
 {
@@ -93,13 +94,14 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
             Vector3 scenePosition;
             var cameraService = EditorServices.Get<IEditorGameCameraService>();
 
-            var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, mousePosition, Matrix.Invert(cameraService.ViewMatrix));
-            var plane = new Plane(Vector3.Zero, upAxis);
+            Matrix4x4.InvertSafe(cameraService.ViewMatrix, out var viewInverse);
+            var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, mousePosition, viewInverse);
+            var plane = new Plane(upAxis, 0);
 
             // Ensures a ray angle with projection plane of at least 'limitAngle' to avoid the object to go to infinity.
             var dotProductValue = Vector3.Dot(ray.Direction, plane.Normal);
             var comparisonSign = Math.Sign(Vector3.Dot(ray.Position, plane.Normal) + plane.D);
-            if (comparisonSign * (MathF.Acos(dotProductValue) - MathUtil.PiOverTwo) < limitAngle || !plane.Intersects(ref ray, out scenePosition))
+            if (comparisonSign * (MathF.Acos(dotProductValue) - MathUtil.PiOverTwo) < limitAngle || !plane.Intersects(ray, out scenePosition))
                 scenePosition = ray.Position + randomDistance * ray.Direction;
 
             return scenePosition;
@@ -278,8 +280,8 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
             var gizmoAmbientLight1 = new Entity("Gizmo Ambient Light1") { new LightComponent { Type = new LightAmbient(), Intensity = 0.1f } };
             var gizmoDirectionalLight1 = new Entity("Gizmo Directional Light1") { new LightComponent { Type = new LightDirectional(), Intensity = 0.45f } };
             var gizmoDirectionalLight2 = new Entity("Gizmo Directional Light2") { new LightComponent { Type = new LightDirectional(), Intensity = 0.45f } };
-            gizmoDirectionalLight1.Transform.Rotation = Quaternion.RotationY(MathUtil.Pi * 1.125f);
-            gizmoDirectionalLight2.Transform.Rotation = Quaternion.RotationY(MathUtil.Pi * 0.125f);
+            gizmoDirectionalLight1.Transform.Rotation = Quaternion.CreateRotationY(MathUtil.Pi * 1.125f);
+            gizmoDirectionalLight2.Transform.Rotation = Quaternion.CreateRotationY(MathUtil.Pi * 0.125f);
             EditorScene.Entities.Add(gizmoAmbientLight1);
             EditorScene.Entities.Add(gizmoDirectionalLight1);
             EditorScene.Entities.Add(gizmoDirectionalLight2);

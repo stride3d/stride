@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -136,8 +137,7 @@ public class TestRay
     {
         // Intersecting rays
         var ray1 = new Ray(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
-        var direction = new Vector3(1, -1, 0);
-        direction.Normalize();
+        var direction = Vector3.Normalize(new Vector3(1, -1, 0));
         var ray2 = new Ray(new Vector3(0, 1, 0), direction);
 
         Assert.True(ray1.Intersects(ref ray2));

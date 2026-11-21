@@ -13,7 +13,7 @@ namespace Stride.Rendering
     {
         static ParticleBaseKeys()
         {
-            //MatrixTransform = ParameterKeys.New(Matrix.Identity);
+            //MatrixTransform = ParameterKeys.New(Matrix4x4.Identity);
         }
 
         //public static readonly ParameterKey<bool> ColorIsSRgb = ParameterKeys.New(false);

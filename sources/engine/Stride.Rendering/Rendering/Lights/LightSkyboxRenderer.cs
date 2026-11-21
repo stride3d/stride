@@ -9,6 +9,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Skyboxes;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Lights
 {
@@ -82,7 +83,7 @@ namespace Stride.Rendering.Lights
             private static readonly ShaderClassSource EmptyComputeEnvironmentColorSource = new ShaderClassSource("IComputeEnvironmentColor");
 
             private ValueParameterKey<float> intensityKey;
-            private ValueParameterKey<Matrix> skyMatrixKey;
+            private ValueParameterKey<Matrix4x4> skyMatrixKey;
             private PermutationParameterKey<ShaderSource> lightDiffuseColorKey;
             private PermutationParameterKey<ShaderSource> lightSpecularColorKey;
             private ValueParameterKey<Color3> sphericalColorsKey;
@@ -134,7 +135,7 @@ namespace Stride.Rendering.Lights
 
                 var intensity = Light.Intensity;
 
-                var skyMatrix = Matrix.Invert(Matrix.RotationQuaternion(lightSkybox.Rotation));
+                Matrix4x4.InvertSafe(Matrix4x4.CreateFromQuaternion(lightSkybox.Rotation), out var skyMatrix);
 
                 var diffuseParameters = skybox.DiffuseLightingParameters;
                 var specularParameters = skybox.SpecularLightingParameters;

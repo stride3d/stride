@@ -5,6 +5,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.Particles.Initializers
 {
@@ -123,7 +124,7 @@ namespace Stride.Particles.Initializers
             var arcOffset = new Vector3(0, ArcHeight, 0);
             if (!WorldRotation.IsIdentity)
             {
-                WorldRotation.Rotate(ref arcOffset);
+                arcOffset = Vector3.Transform(arcOffset, WorldRotation);
             }
 
             var leftCorner = PositionMin * WorldScale;
@@ -133,13 +134,13 @@ namespace Stride.Particles.Initializers
 
             if (!WorldRotation.IsIdentity)
             {
-                WorldRotation.Rotate(ref leftCorner);
-                WorldRotation.Rotate(ref xAxis);
-                WorldRotation.Rotate(ref yAxis);
-                WorldRotation.Rotate(ref zAxis);
+                leftCorner = Vector3.Transform(leftCorner, WorldRotation);
+                xAxis = Vector3.Transform(xAxis, WorldRotation);
+                yAxis = Vector3.Transform(yAxis, WorldRotation);
+                zAxis = Vector3.Transform(zAxis, WorldRotation);
             }
 
-            var targetCornerAdd = Target?.WorldMatrix.TranslationVector - WorldPosition ?? FallbackTarget;
+            var targetCornerAdd = Target?.WorldMatrix.Translation - WorldPosition ?? FallbackTarget;
 
             var totalCountLessOne = (FixedLength > 0) ? (FixedLength - 1) : (startIdx < endIdx) ? (endIdx - startIdx - 1) : (endIdx - startIdx + maxCapacity - 1);
             var stepF = (totalCountLessOne > 1) ? (1f / totalCountLessOne) : 1f;

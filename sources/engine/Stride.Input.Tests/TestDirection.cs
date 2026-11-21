@@ -4,6 +4,7 @@
 using System;
 using Xunit;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Input.Tests
 {
@@ -19,7 +20,7 @@ namespace Stride.Input.Tests
             Assert.False(a.IsNeutral);
 
             // Check if input matches converted output vector
-            Assert.Equal(inputA, (Vector2)a);
+            Assert.Equal(inputA, (Vector2)a, (a, b) => a.NearEquals(b));
 
             Assert.NotEqual(Direction.None, a);
             Assert.Equal(Direction.Right, a);

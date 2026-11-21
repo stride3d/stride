@@ -3,6 +3,7 @@
 
 using Stride.Core.Mathematics;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 

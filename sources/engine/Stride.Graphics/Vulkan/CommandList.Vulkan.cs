@@ -9,6 +9,8 @@ using Stride.Core.Mathematics;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
+using System.Numerics;
+
 namespace Stride.Graphics
 {
     public partial class CommandList

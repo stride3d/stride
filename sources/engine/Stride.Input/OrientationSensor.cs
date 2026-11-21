@@ -3,6 +3,7 @@
 
 using System;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Input
 {
@@ -12,7 +13,7 @@ namespace Stride.Input
         private float pitch;
         private float roll;
         private Quaternion quaternion;
-        private Matrix rotationMatrix;
+        private Matrix4x4 rotationMatrix;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrientationSensor"/> class.
@@ -30,13 +31,13 @@ namespace Stride.Input
 
         public Quaternion Quaternion => quaternion;
 
-        public Matrix RotationMatrix => rotationMatrix;
+        public Matrix4x4 RotationMatrix => rotationMatrix;
 
         public void FromQuaternion(Quaternion q)
         {
             quaternion = q;
-            rotationMatrix = Matrix.RotationQuaternion(quaternion);
-            Quaternion.RotationYawPitchRoll(ref quaternion, out yaw, out pitch, out roll);
+            rotationMatrix = Matrix4x4.CreateFromQuaternion(quaternion);
+            (yaw, pitch, roll) = quaternion.GetYawPitchRoll();
         }
 
         public void Reset()
@@ -45,7 +46,7 @@ namespace Stride.Input
             pitch = 0;
             roll = 0;
             quaternion = Quaternion.Identity;
-            rotationMatrix = Matrix.Identity;
+            rotationMatrix = Matrix4x4.Identity;
         }
     }
 }

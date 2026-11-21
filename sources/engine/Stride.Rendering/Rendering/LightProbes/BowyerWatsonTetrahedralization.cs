@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
+using System.Numerics;
 
 namespace Stride.Rendering.LightProbes
 {
@@ -185,13 +186,13 @@ namespace Stride.Rendering.LightProbes
 
                         // Compute normal
                         Vector3 edge1, edge2, faceNormal;
-                        Vector3.Subtract(ref vertices[vertex1], ref vertices[vertex0], out edge1);
-                        Vector3.Subtract(ref vertices[vertex2], ref vertices[vertex0], out edge2);
-                        Vector3.Cross(ref edge1, ref edge2, out faceNormal);
-                        faceNormal.Normalize();
+                        edge1 = vertices[vertex1] - vertices[vertex0];
+                        edge2 = vertices[vertex2] - vertices[vertex0];
+                        faceNormal = Vector3.Cross(edge1, edge2);
+                        faceNormal = Vector3.NormalizeSafe(faceNormal);
 
                         // Reverse it if not facing proper direction (extraVertex should be on the positive side)
-                        var plane = new Plane(vertices[vertex0], faceNormal);
+                        var plane = new Plane(faceNormal, Vector3.Dot(faceNormal, vertices[vertex0]));
                         if (CollisionHelper.DistancePlanePoint(ref plane, ref vertices[superTetrahedronVertex]) < 0.0f)
                             faceNormal = -faceNormal;
 
@@ -203,13 +204,15 @@ namespace Stride.Rendering.LightProbes
                 }
             }
 
-            // Normalize and generate extrapolated probe
+            // Generate an extrapolated probe along the normal of each outer vertex
             for (int i = 0; i < outerVertexNormals.Length; ++i)
             {
-                outerVertexNormals[i].Normalize();
-                if (outerVertexNormals[i] != Vector3.Zero)
+                // The normals of the faces around a vertex inside the hull cancel out
+                var length = outerVertexNormals[i].Length();
+                if (length > MathUtil.ZeroTolerance)
                 {
-                    extraVertices.Add(vertices[i] + outerVertexNormals[i] * ExtrapolationDistance);
+                    var normal = outerVertexNormals[i] * (1.0f / length);
+                    extraVertices.Add(vertices[i] + normal * ExtrapolationDistance);
                 }
             }
 
@@ -282,10 +285,10 @@ namespace Stride.Rendering.LightProbes
 
                             // Compute normal
                             Vector3 edge1, edge2, faceNormal;
-                            Vector3.Subtract(ref vertices[currentFace.Vertices[1]], ref vertices[currentFace.Vertices[0]], out edge1);
-                            Vector3.Subtract(ref vertices[currentFace.Vertices[2]], ref vertices[currentFace.Vertices[0]], out edge2);
-                            Vector3.Cross(ref edge1, ref edge2, out faceNormal);
-                            faceNormal.Normalize();
+                            edge1 = vertices[currentFace.Vertices[1]] - vertices[currentFace.Vertices[0]];
+                            edge2 = vertices[currentFace.Vertices[2]] - vertices[currentFace.Vertices[0]];
+                            faceNormal = Vector3.Cross(edge1, edge2);
+                            faceNormal = Vector3.NormalizeSafe(faceNormal);
 
                             currentFace.Normal = faceNormal;
 

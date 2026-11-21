@@ -5,6 +5,7 @@ using System.Linq;
 using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Graphics.Regression;
+using System.Numerics;
 
 namespace Stride.Input.Tests
 {
@@ -134,7 +135,7 @@ namespace Stride.Input.Tests
             Assert.Single(mouse.DownPointers);
 
             // Check delta
-            Assert.Equal(new Vector2(0.1f, 0.0f), Input.PointerEvents[0].DeltaPosition);
+            Assert.Equal(new Vector2(0.1f, 0.0f), Input.PointerEvents[0].DeltaPosition, (a, b) => a.NearEquals(b));
             Assert.Equal(new Vector2(0.0f, 0.0f), Input.PointerEvents[1].DeltaPosition);
 
             // And the position after that, when the pointer goes down
@@ -270,7 +271,7 @@ namespace Stride.Input.Tests
             // Validate mouse delta with locked position
             mouse.SetPosition(new Vector2(0.6f, 0.5f));
             Input.Update(DrawTime);
-            Assert.Equal(new Vector2(0.1f, 0.0f), mouse.Delta);
+            Assert.Equal(new Vector2(0.1f, 0.0f), mouse.Delta, (a, b) => a.NearEquals(b));
             Input.Update(DrawTime);
             Assert.Equal(new Vector2(0.0f, 0.0f), mouse.Delta);
             Assert.Equal(new Vector2(0.5f, 0.5f), mouse.Position);
@@ -280,8 +281,8 @@ namespace Stride.Input.Tests
             // Validate mouse delta with unlocked position
             mouse.SetPosition(new Vector2(0.6f, 0.5f));
             Input.Update(DrawTime);
-            Assert.Equal(new Vector2(0.1f, 0.0f), mouse.Delta);
-            Assert.Equal(new Vector2(0.6f, 0.5f), mouse.Position);
+            Assert.Equal(new Vector2(0.1f, 0.0f), mouse.Delta, (a, b) => a.NearEquals(b));
+            Assert.Equal(new Vector2(0.6f, 0.5f), mouse.Position, (a, b) => a.NearEquals(b));
         }
 
         /// <summary>

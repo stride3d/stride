@@ -7,6 +7,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Debug.Effects.RenderFeatures;
 

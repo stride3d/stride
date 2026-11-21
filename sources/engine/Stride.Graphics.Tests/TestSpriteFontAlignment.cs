@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Stride.Core.Mathematics;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

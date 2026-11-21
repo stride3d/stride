@@ -3,6 +3,7 @@
 
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -13,9 +14,9 @@ namespace Stride.Rendering
 
         public TransformTRS Transform;
 
-        public Matrix LocalMatrix;
+        public Matrix4x4 LocalMatrix;
 
-        public Matrix WorldMatrix;
+        public Matrix4x4 WorldMatrix;
 
         public bool IsScalingNegative;
 

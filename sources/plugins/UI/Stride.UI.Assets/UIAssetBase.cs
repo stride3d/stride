@@ -14,6 +14,7 @@ using Stride.Core.Yaml;
 using Stride.Core.Yaml.Serialization;
 using Stride.Engine;
 using Stride.UI;
+using System.Numerics;
 
 namespace Stride.UI.Assets
 {

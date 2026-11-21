@@ -7,6 +7,7 @@ using Stride.Graphics;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Images;
 using Stride.Rendering.Materials;
+using System.Numerics;
 
 namespace Stride.Rendering.SubsurfaceScattering
 {

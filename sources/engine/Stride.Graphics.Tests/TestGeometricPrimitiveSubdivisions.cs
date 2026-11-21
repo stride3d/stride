@@ -7,6 +7,7 @@ using System.Linq;
 using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Graphics.GeometricPrimitives;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

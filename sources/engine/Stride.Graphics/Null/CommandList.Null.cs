@@ -4,6 +4,7 @@
 #if STRIDE_GRAPHICS_API_NULL
 
 using System;
+using System.Numerics;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics

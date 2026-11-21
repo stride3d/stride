@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Rendering.Lights;
+using System.Numerics;
 
 namespace Stride.Rendering.Images
 {
@@ -19,7 +20,7 @@ namespace Stride.Rendering.Images
 
     public struct RenderLightShaftBoundingVolume
     {
-        public Matrix World;
+        public Matrix4x4 World;
         public Model Model;
     }
 }

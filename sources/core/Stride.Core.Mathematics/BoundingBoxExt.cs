@@ -4,6 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -78,14 +79,14 @@ public struct BoundingBoxExt : IEquatable<BoundingBoxExt>, ISpanFormattable
     /// Transform this Bounding box
     /// </summary>
     /// <param name="world">The transform to apply to the bounding box.</param>
-    public void Transform(Matrix world)
+    public void Transform(Matrix4x4 world)
     {
         // http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
         // Compute transformed AABB (by world)
         var center = Center;
         var extent = Extent;
 
-        Vector3.TransformCoordinate(ref center, ref world, out Center);
+        Center = Vector3.TransformCoordinate(center, world);
 
         // Update world matrix into absolute form
         unsafe
@@ -100,7 +101,7 @@ public struct BoundingBoxExt : IEquatable<BoundingBoxExt>, ISpanFormattable
             }
         }
 
-        Vector3.TransformNormal(ref extent, ref world, out Extent);
+        Extent = Vector3.TransformNormal(extent, world);
     }
 
     /// <summary>
@@ -122,7 +123,15 @@ public struct BoundingBoxExt : IEquatable<BoundingBoxExt>, ISpanFormattable
     /// <inheritdoc/>
     public readonly bool Equals(BoundingBoxExt other)
     {
-        return Center.Equals(other.Center) && Extent.Equals(other.Extent);
+        return Center == other.Center && Extent == other.Extent;
+    }
+
+    /// <summary>Determines whether every component of a box differs from the same component of this one by less than a tolerance.</summary>
+    /// <param name="other">The box to compare with this instance.</param>
+    /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+    public readonly bool NearEquals(BoundingBoxExt other, float tolerance = MathUtil.ZeroTolerance)
+    {
+        return Center.NearEquals(other.Center, tolerance) && Extent.NearEquals(other.Extent, tolerance);
     }
 
     /// <inheritdoc/>

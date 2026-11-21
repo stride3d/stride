@@ -5,6 +5,7 @@ using Stride.Engine.Processors;
 using Stride.Input;
 using System;
 using System.Threading.Tasks;
+using System.Numerics;
 
 namespace ##Namespace##;
 
@@ -180,7 +181,7 @@ public class ##Scriptname## : AsyncScript
         if (!RotationOnly)
         {
             // Compute base vectors for camera movement
-            var rotation = Matrix.RotationYawPitchRoll(Yaw, Pitch, 0);
+            var rotation = Matrix4x4.CreateFromYawPitchRoll(Yaw, Pitch, 0);
             var forward = Vector3.TransformNormal(ForwardVector, rotation);
             var up = Vector3.TransformNormal(UpVector, rotation);
             var right = Vector3.Cross(forward, up);
@@ -200,15 +201,15 @@ public class ##Scriptname## : AsyncScript
             if (Input.IsKeyDown(Keys.E))
                 movePosition += Component.Projection == CameraProjectionMode.Perspective ? up : forward;
 
-            position += (Vector3.Normalize(movePosition) * translationSpeed);
+            position += (Vector3.NormalizeSafe(movePosition) * translationSpeed);
 
             if (doubleTapped)
             {
                 desiredPitch = Pitch = oldPitch;
                 desiredYaw = Yaw;
 
-                forward = -Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-                var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z));
+                forward = -Vector3.Transform(ForwardVector, Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0));
+                var projectedForward = Vector3.NormalizeSafe(new Vector3(forward.X, 0, forward.Z));
                 position -= projectedForward * translationSpeed * MouseMoveSpeedFactor;
             }
         }
@@ -221,7 +222,7 @@ public class ##Scriptname## : AsyncScript
     {
         var camera = Component;
         if (camera == null) return;
-        var rotation = Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0);
+        var rotation = Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0);
 
         Entity.Transform.Position = position;
         Entity.Transform.Rotation = rotation;

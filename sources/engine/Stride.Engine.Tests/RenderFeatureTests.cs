@@ -12,6 +12,7 @@ using Stride.Graphics;
 using Stride.Graphics.Regression;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Images;
+using System.Numerics;
 
 namespace Stride.Engine.Tests;
 

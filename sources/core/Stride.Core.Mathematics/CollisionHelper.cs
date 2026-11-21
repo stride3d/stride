@@ -27,6 +27,8 @@
 * THE SOFTWARE.
 */
 
+using System.Numerics;
+
 namespace Stride.Core.Mathematics;
 
 /*
@@ -149,7 +151,7 @@ public static class CollisionHelper
         //Source: Real-Time Collision Detection by Christer Ericson
         //Reference: Page 126
 
-        Vector3.Dot(in plane.Normal, in point, out var dot);
+        var dot = Vector3.Dot(plane.Normal, point);
         float t = dot - plane.D;
 
         result = point - (t * plane.Normal);
@@ -166,8 +168,8 @@ public static class CollisionHelper
         //Source: Real-Time Collision Detection by Christer Ericson
         //Reference: Page 130
 
-        Vector3.Max(in point, in box.Minimum, out var temp);
-        Vector3.Min(ref temp, in box.Maximum, out result);
+        var temp = Vector3.Max(point, box.Minimum);
+        result = Vector3.Min(temp, box.Maximum);
     }
 
     /// <summary>
@@ -183,8 +185,8 @@ public static class CollisionHelper
         //Reference: None
 
         //Get the unit direction from the sphere's center to the point.
-        Vector3.Subtract(in point, in sphere.Center, out result);
-        result.Normalize();
+        result = point - sphere.Center;
+        result = Vector3.NormalizeSafe(result);
 
         //Multiply the unit direction by the sphere's radius to get a vector
         //the length of the sphere.
@@ -212,8 +214,8 @@ public static class CollisionHelper
         //Reference: None
 
         //Get the unit direction from the first sphere's center to the second sphere's center.
-        Vector3.Subtract(in sphere2.Center, in sphere1.Center, out result);
-        result.Normalize();
+        result = sphere2.Center - sphere1.Center;
+        result = Vector3.NormalizeSafe(result);
 
         //Multiply the unit direction by the first sphere's radius to get a vector
         //the length of the first sphere.
@@ -234,7 +236,7 @@ public static class CollisionHelper
         //Source: Real-Time Collision Detection by Christer Ericson
         //Reference: Page 127
 
-        Vector3.Dot(in plane.Normal, in point, out var dot);
+        var dot = Vector3.Dot(plane.Normal, point);
         return dot - plane.D;
     }
 
@@ -332,7 +334,7 @@ public static class CollisionHelper
         //Source: Jorgy343
         //Reference: None
 
-        Vector3.Distance(in sphere.Center, in point, out var distance);
+        var distance = Vector3.Distance(sphere.Center, point);
         distance -= sphere.Radius;
 
         return MathF.Max(distance, 0f);
@@ -349,7 +351,7 @@ public static class CollisionHelper
         //Source: Jorgy343
         //Reference: None
 
-        Vector3.Distance(in sphere1.Center, in sphere2.Center, out var distance);
+        var distance = Vector3.Distance(sphere1.Center, sphere2.Center);
         distance -= sphere1.Radius + sphere2.Radius;
 
         return MathF.Max(distance, 0f);
@@ -398,7 +400,7 @@ public static class CollisionHelper
         //Source: RayIntersectsSphere
         //Reference: None
 
-        Vector3.Subtract(in ray.Position, in point, out var m);
+        var m = ray.Position - point;
 
         //Same thing as RayIntersectsSphere except that the radius of the sphere (point)
         //is the epsilon for zero.
@@ -436,7 +438,7 @@ public static class CollisionHelper
         //Source: Real-Time Rendering, Third Edition
         //Reference: Page 780
 
-        Vector3.Cross(in ray1.Direction, in ray2.Direction, out var cross);
+        var cross = Vector3.Cross(ray1.Direction, ray2.Direction);
         float denominator = cross.Length();
 
         //Lines are parallel.
@@ -522,7 +524,7 @@ public static class CollisionHelper
         //Source: Real-Time Collision Detection by Christer Ericson
         //Reference: Page 175
 
-        Vector3.Dot(in plane.Normal, in ray.Direction, out var direction);
+        var direction = Vector3.Dot(plane.Normal, ray.Direction);
 
         if (MathF.Abs(direction) < MathUtil.ZeroTolerance)
         {
@@ -530,7 +532,7 @@ public static class CollisionHelper
             return false;
         }
 
-        Vector3.Dot(in plane.Normal, in ray.Position, out var position);
+        var position = Vector3.Dot(plane.Normal, ray.Position);
         distance = (-plane.D - position) / direction;
 
         if (distance < 0f)
@@ -707,7 +709,7 @@ public static class CollisionHelper
     /// <param name="normalAxis">The index of axis defining the normal of the rectangle in the world. This value should be 0, 1 or 2</param>
     /// <param name="intersectionPoint">The position of the intersection point in the world</param>
     /// <returns><value>true</value> if the ray and rectangle intersects.</returns>
-    public static bool RayIntersectsRectangle(ref readonly Ray ray, ref readonly Matrix rectangleWorldMatrix, ref readonly Vector3 rectangleSize, int normalAxis, out Vector3 intersectionPoint)
+    public static bool RayIntersectsRectangle(ref readonly Ray ray, ref readonly Matrix4x4 rectangleWorldMatrix, ref readonly Vector3 rectangleSize, int normalAxis, out Vector3 intersectionPoint)
     {
         bool intersects;
 
@@ -731,13 +733,13 @@ public static class CollisionHelper
                 throw new ArgumentOutOfRangeException(nameof(normalAxis));
         }
 
-        var rectanglePosition = new Vector3(rectangleWorldMatrix.M41, rectangleWorldMatrix.M42, rectangleWorldMatrix.M43);
+        var rectanglePosition = rectangleWorldMatrix.Translation;
 
-        var normalRowStart = normalAxis << 2;
-        var plane = new Plane(rectanglePosition, new Vector3(rectangleWorldMatrix[normalRowStart], rectangleWorldMatrix[normalRowStart + 1], rectangleWorldMatrix[normalRowStart + 2]));
+        var normal = rectangleWorldMatrix[normalAxis].AsVector3();
+        var plane = new Plane(normal, Vector3.Dot(normal, rectanglePosition));
 
         // early exist the planes were parallels 
-        if (!plane.Intersects(in ray, out intersectionPoint))
+        if (!plane.Intersects(ray, out intersectionPoint))
             return false;
 
         // the position of the intersection point with respect to the rectangle center
@@ -746,8 +748,8 @@ public static class CollisionHelper
         // optimization for the simple but very frequent case where the element is not rotated
         if (rectangleWorldMatrix is { M12: 0, M13: 0, M21: 0, M23: 0, M31: 0, M32: 0 })
         {
-            var halfSize1 = MathF.Abs(rectangleWorldMatrix[(testAxis1 << 2) + testAxis1] * rectangleSize[testAxis1] / 2f);
-            var halfSize2 = MathF.Abs(rectangleWorldMatrix[(testAxis2 << 2) + testAxis2] * rectangleSize[testAxis2] / 2f);
+            var halfSize1 = MathF.Abs(rectangleWorldMatrix[testAxis1, testAxis1] * rectangleSize[testAxis1] / 2f);
+            var halfSize2 = MathF.Abs(rectangleWorldMatrix[testAxis2, testAxis2] * rectangleSize[testAxis2] / 2f);
 
             return -halfSize1 <= intersectionInRectangle[testAxis1] && intersectionInRectangle[testAxis1] <= halfSize1 &&
                          -halfSize2 <= intersectionInRectangle[testAxis2] && intersectionInRectangle[testAxis2] <= halfSize2;
@@ -765,8 +767,8 @@ public static class CollisionHelper
             var normalSign = MathF.Sign(plane.Normal[normalTestIndex]);
 
             // the base vector
-            var base1 = rectangleSize[testAxis1] * new Vector3(rectangleWorldMatrix[testAxis1 << 2], rectangleWorldMatrix[(testAxis1 << 2) + 1], rectangleWorldMatrix[(testAxis1 << 2) + 2]) / 2;
-            var base2 = rectangleSize[testAxis2] * new Vector3(rectangleWorldMatrix[testAxis2 << 2], rectangleWorldMatrix[(testAxis2 << 2) + 1], rectangleWorldMatrix[(testAxis2 << 2) + 2]) / 2;
+            var base1 = rectangleSize[testAxis1] * rectangleWorldMatrix[testAxis1].AsVector3() / 2;
+            var base2 = rectangleSize[testAxis2] * rectangleWorldMatrix[testAxis2].AsVector3() / 2;
 
             // build the first triangle and perform the test
             var v1 = -base1 - base2 - intersectionInRectangle;
@@ -931,7 +933,7 @@ public static class CollisionHelper
         //Source: Real-Time Collision Detection by Christer Ericson
         //Reference: Page 177
 
-        Vector3.Subtract(in ray.Position, in sphere.Center, out var m);
+        var m = ray.Position - sphere.Center;
 
         float b = Vector3.Dot(m, ray.Direction);
         float c = Vector3.Dot(m, m) - (sphere.Radius * sphere.Radius);
@@ -986,7 +988,7 @@ public static class CollisionHelper
     /// <returns>Whether the two objects intersected.</returns>
     public static PlaneIntersectionType PlaneIntersectsPoint(ref readonly Plane plane, ref readonly Vector3 point)
     {
-        Vector3.Dot(in plane.Normal, in point, out var distance);
+        var distance = Vector3.Dot(plane.Normal, point);
         distance += plane.D;
 
         if (distance > 0f)
@@ -1006,11 +1008,11 @@ public static class CollisionHelper
     /// <returns>Whether the two objects intersected.</returns>
     public static bool PlaneIntersectsPlane(ref readonly Plane plane1, ref readonly Plane plane2)
     {
-        Vector3.Cross(in plane1.Normal, in plane2.Normal, out var direction);
+        var direction = Vector3.Cross(plane1.Normal, plane2.Normal);
 
         //If direction is the zero vector, the planes are parallel and possibly
         //coincident. It is not an intersection. The dot product will tell us.
-        Vector3.Dot(ref direction, ref direction, out var denominator);
+        var denominator = Vector3.Dot(direction, direction);
 
         return MathF.Abs(denominator) >= MathUtil.ZeroTolerance;
     }
@@ -1033,11 +1035,11 @@ public static class CollisionHelper
         //Source: Real-Time Collision Detection by Christer Ericson
         //Reference: Page 207
 
-        Vector3.Cross(in plane1.Normal, in plane2.Normal, out var direction);
+        var direction = Vector3.Cross(plane1.Normal, plane2.Normal);
 
         //If direction is the zero vector, the planes are parallel and possibly
         //coincident. It is not an intersection. The dot product will tell us.
-        Vector3.Dot(ref direction, ref direction, out var denominator);
+        var denominator = Vector3.Dot(direction, direction);
 
         //We assume the planes are normalized, therefore the denominator
         //only serves as a parallel and coincident check. Otherwise we need
@@ -1049,11 +1051,11 @@ public static class CollisionHelper
         }
 
         Vector3 temp = (plane1.D * plane2.Normal) - (plane2.D * plane1.Normal);
-        Vector3.Cross(ref temp, ref direction, out var point);
+        var point = Vector3.Cross(temp, direction);
 
         line.Position = point;
         line.Direction = direction;
-        line.Direction.Normalize();
+        line.Direction = Vector3.NormalizeSafe(line.Direction);
 
         return true;
     }
@@ -1105,7 +1107,7 @@ public static class CollisionHelper
         min.Y = (plane.Normal.Y >= 0.0f) ? box.Maximum.Y : box.Minimum.Y;
         min.Z = (plane.Normal.Z >= 0.0f) ? box.Maximum.Z : box.Minimum.Z;
 
-        Vector3.Dot(in plane.Normal, ref max, out var distance);
+        var distance = Vector3.Dot(plane.Normal, max);
 
         if (distance + plane.D > 0.0f)
             return PlaneIntersectionType.Front;
@@ -1129,7 +1131,7 @@ public static class CollisionHelper
         //Source: Real-Time Collision Detection by Christer Ericson
         //Reference: Page 160
 
-        Vector3.Dot(in plane.Normal, in sphere.Center, out var distance);
+        var distance = Vector3.Dot(plane.Normal, sphere.Center);
         distance += plane.D;
 
         if (distance > sphere.Radius)
@@ -1196,7 +1198,7 @@ public static class CollisionHelper
         //Source: Real-Time Collision Detection by Christer Ericson
         //Reference: Page 166
 
-        Vector3.Clamp(in sphere.Center, in box.Minimum, in box.Maximum, out var vector);
+        var vector = Vector3.Clamp(sphere.Center, box.Minimum, box.Maximum);
         float distance = Vector3.DistanceSquared(sphere.Center, vector);
 
         return distance <= sphere.Radius * sphere.Radius;
@@ -1218,7 +1220,7 @@ public static class CollisionHelper
         ClosestPointPointTriangle(in sphere.Center, in vertex1, in vertex2, in vertex3, out var point);
         Vector3 v = point - sphere.Center;
 
-        Vector3.Dot(ref v, ref v, out var dot);
+        var dot = Vector3.Dot(v, v);
 
         return dot <= sphere.Radius * sphere.Radius;
     }
@@ -1313,7 +1315,7 @@ public static class CollisionHelper
     /// <returns>The type of containment the two objects have.</returns>
     public static ContainmentType BoxContainsSphere(ref readonly BoundingBox box, ref readonly BoundingSphere sphere)
     {
-        Vector3.Clamp(in sphere.Center, in box.Minimum, in box.Maximum, out var vector);
+        var vector = Vector3.Clamp(sphere.Center, box.Minimum, box.Maximum);
         float distance = Vector3.DistanceSquared(sphere.Center, vector);
 
         if (distance > sphere.Radius * sphere.Radius)

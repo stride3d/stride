@@ -51,7 +51,7 @@ public class KeysGeneratorTests
             {
                 public struct KeysWithCSharpType
                 {
-                    public Stride.Core.Mathematics.Vector4 A;
+                    public System.Numerics.Vector4 A;
                 }
             }
             """;
@@ -91,7 +91,7 @@ public class KeysGeneratorTests
         Assert.Empty(errors);
         Assert.Contains("ParameterKeys.NewValue<Vector3>(new Vector3(0f, -1.5f, 1f))", generated);
         Assert.Contains("ParameterKeys.NewValue<Int2>(new Int2(1, -2))", generated);
-        Assert.Contains("ParameterKeys.NewValue<Matrix>(new Matrix(1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f))", generated);
+        Assert.Contains("ParameterKeys.NewValue<Matrix4x4>(new Matrix4x4(1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f))", generated);
         // A default the key can't hold: none
         Assert.Contains("ParameterKeys.NewValue<Vector2>()", generated);
     }
@@ -127,7 +127,7 @@ public class KeysGeneratorTests
     private static (string Generated, List<string> Errors) Build((string Path, string Text)[] files, string csharp)
     {
         // The assemblies the generated keys use
-        var references = new[] { typeof(object), typeof(Stride.Rendering.ParameterKeys), typeof(Stride.Core.Mathematics.Vector4), typeof(Stride.Graphics.Texture), typeof(Stride.Core.DataContractAttribute), typeof(Stride.Shaders.ShaderMixinSource) }
+        var references = new[] { typeof(object), typeof(Stride.Rendering.ParameterKeys), typeof(System.Numerics.Vector4), typeof(Stride.Core.Mathematics.Color4), typeof(Stride.Graphics.Texture), typeof(Stride.Core.DataContractAttribute), typeof(Stride.Shaders.ShaderMixinSource) }
             .Select(x => x.Assembly.Location)
             .Concat(Directory.EnumerateFiles(Path.GetDirectoryName(typeof(object).Assembly.Location)!, "*.dll").Where(x => Path.GetFileName(x) is "System.Runtime.dll" or "netstandard.dll" or "System.Collections.dll"))
             .Distinct()

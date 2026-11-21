@@ -9,9 +9,8 @@ using Stride.BepuPhysics.Definitions;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Quaternion = Stride.Core.Mathematics.Quaternion;
-using Vector3 = Stride.Core.Mathematics.Vector3;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Numerics;
 
 namespace Stride.BepuPhysics;
 
@@ -37,7 +36,7 @@ public class StaticComponent : CollidableComponent
     [DataMemberIgnore]
     public Vector3 Position
     {
-        get => StaticReference?.Pose.Position.ToStride() ?? default;
+        get => StaticReference?.Pose.Position ?? default;
         set => Teleport(value, Orientation);
     }
 
@@ -56,7 +55,7 @@ public class StaticComponent : CollidableComponent
     [DataMemberIgnore]
     public Quaternion Orientation
     {
-        get => StaticReference?.Pose.Orientation.ToStride() ?? default;
+        get => StaticReference?.Pose.Orientation ?? default;
         set => Teleport(Position, value);
     }
 
@@ -111,7 +110,7 @@ public class StaticComponent : CollidableComponent
             Simulation.CollidableMaterials.Allocate(sHandle) = new();
         }
 
-        Processor.Statics.Add(this, Unsafe.As<Matrix, System.Numerics.Matrix4x4>(ref Entity.Transform.WorldMatrix));
+        Processor.Statics.Add(this, Unsafe.As<Matrix4x4, System.Numerics.Matrix4x4>(ref Entity.Transform.WorldMatrix));
     }
 
     protected override void DetachInner()
@@ -151,7 +150,7 @@ public class StaticComponent : CollidableComponent
 
         if (StaticReference is { } staticRef)
         {
-            staticRef.Pose.Orientation = orientation.ToNumeric();
+            staticRef.Pose.Orientation = orientation;
             staticRef.Pose.Position = position + CenterOfMass;
             staticRef.UpdateBounds();
         }

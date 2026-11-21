@@ -9,9 +9,9 @@ using Stride.Engine;
 using Stride.Games;
 using Stride.Rendering;
 using Stride.Core.Mathematics;
-using Matrix4x4 = System.Numerics.Matrix4x4;
 using Stride.BepuPhysics.Definitions;
 using Stride.Core.Threading;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Systems;
 
@@ -67,7 +67,7 @@ public class CollidableProcessor : EntityProcessor<CollidableComponent>
                 ref var iData = ref span[i];
                 var collidable = iData.Key;
 
-                ref Matrix4x4 numericMatrix = ref Unsafe.As<Matrix, Matrix4x4>(ref collidable.Entity.Transform.WorldMatrix); // Casting to numerics, stride's equality comparison is ... not great
+                ref Matrix4x4 numericMatrix = ref Unsafe.As<Matrix4x4, Matrix4x4>(ref collidable.Entity.Transform.WorldMatrix); // Casting to numerics, stride's equality comparison is ... not great
                 if (iData.Value == numericMatrix)
                     continue; // This static did not move
 

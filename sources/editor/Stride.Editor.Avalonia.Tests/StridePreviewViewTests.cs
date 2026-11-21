@@ -9,6 +9,7 @@ using Avalonia.VisualTree;
 using Stride.Core.Mathematics;
 using Stride.Editor.Avalonia.Preview.Views;
 using Stride.Editor.Avalonia.Tests.Helpers;
+using System.Numerics;
 
 namespace Stride.Editor.Avalonia.Tests;
 

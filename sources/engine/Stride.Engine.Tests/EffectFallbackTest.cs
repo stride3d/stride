@@ -16,6 +16,7 @@ using Stride.Rendering.Materials;
 using Stride.Rendering.ProceduralModels;
 using Stride.Shaders;
 using Stride.Shaders.Compiler;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {
@@ -81,7 +82,7 @@ namespace Stride.Engine.Tests
             // Two instances of a small sphere, inside the sphere so the screenshots stay as they are
             var instancedSphere = new SphereProceduralModel { Radius = 5, Tessellation = 5, MaterialInstance = { Material = plainMaterial } };
             var instancing = new InstancingUserArray { ModelTransformUsage = ModelTransformUsage.PostMultiply };
-            instancing.UpdateWorldMatrices([Matrix.Translation(-10, 0, 0), Matrix.Translation(10, 0, 0)]);
+            instancing.UpdateWorldMatrices([Matrix4x4.CreateTranslation(-10, 0, 0), Matrix4x4.CreateTranslation(10, 0, 0)]);
             instancedEntity = new Entity("Instanced spheres")
             {
                 new ModelComponent(new ProceduralModelDescriptor(instancedSphere).GenerateModel(Services)),

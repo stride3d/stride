@@ -13,6 +13,7 @@ using Stride.Engine;
 using Stride.Rendering.Lights;
 using Stride.Rendering.Skyboxes;
 using Stride.Core.Assets.Presentation.Services;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EntityFactories;
 
@@ -31,7 +32,7 @@ public sealed class DirectionalLightEntityFactory : EntityFactory
         var component = new LightComponent();
         var entity = await CreateEntityWithComponent(name, component);
         entity.Transform.Position = new Vector3(0, 2.0f, 0);
-        entity.Transform.Rotation = Quaternion.RotationX(MathUtil.DegreesToRadians(-70));
+        entity.Transform.Rotation = Quaternion.CreateRotationX(MathUtil.DegreesToRadians(-70));
         return entity;
     }
 }
@@ -58,7 +59,7 @@ public sealed class SpotLightEntityFactory : EntityFactory
         var component = new LightComponent { Type = new LightSpot() };
         var entity = await CreateEntityWithComponent(name, component);
         entity.Transform.Position = new Vector3(0, 2.0f, 0);
-        entity.Transform.Rotation = Quaternion.RotationX(MathUtil.DegreesToRadians(-90));
+        entity.Transform.Rotation = Quaternion.CreateRotationX(MathUtil.DegreesToRadians(-90));
         return entity;
     }
 }

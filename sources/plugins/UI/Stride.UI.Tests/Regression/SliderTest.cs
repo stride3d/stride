@@ -11,6 +11,7 @@ using Stride.Input;
 using Stride.Rendering.Sprites;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {
@@ -116,25 +117,25 @@ namespace Stride.UI.Tests.Regression
                 slider.HorizontalAlignment = (HorizontalAlignment)(((int)slider.HorizontalAlignment + 1) % 4);
 
             if (Input.IsKeyReleased(Keys.NumPad4))
-                slider.LocalMatrix *= Matrix.RotationY(RotationStep);
+                slider.LocalMatrix *= Matrix4x4.CreateRotationY(RotationStep);
             if (Input.IsKeyReleased(Keys.NumPad6))
-                slider.LocalMatrix *= Matrix.RotationY(-RotationStep);
+                slider.LocalMatrix *= Matrix4x4.CreateRotationY(-RotationStep);
             if (Input.IsKeyReleased(Keys.NumPad2))
-                slider.LocalMatrix *= Matrix.RotationX(RotationStep);
+                slider.LocalMatrix *= Matrix4x4.CreateRotationX(RotationStep);
             if (Input.IsKeyReleased(Keys.NumPad8))
-                slider.LocalMatrix *= Matrix.RotationX(-RotationStep);
+                slider.LocalMatrix *= Matrix4x4.CreateRotationX(-RotationStep);
             if (Input.IsKeyReleased(Keys.NumPad1))
-                slider.LocalMatrix *= Matrix.RotationZ(RotationStep);
+                slider.LocalMatrix *= Matrix4x4.CreateRotationZ(RotationStep);
             if (Input.IsKeyReleased(Keys.NumPad9))
-                slider.LocalMatrix *= Matrix.RotationZ(-RotationStep);
+                slider.LocalMatrix *= Matrix4x4.CreateRotationZ(-RotationStep);
             if (Input.IsKeyReleased(Keys.Delete))
-                slider.LocalMatrix *= Matrix.Translation(-10, 0, 0);
+                slider.LocalMatrix *= Matrix4x4.CreateTranslation(-10, 0, 0);
             if (Input.IsKeyReleased(Keys.PageDown))
-                slider.LocalMatrix *= Matrix.Translation(10, 0, 0);
+                slider.LocalMatrix *= Matrix4x4.CreateTranslation(10, 0, 0);
             if (Input.IsKeyReleased(Keys.Home))
-                slider.LocalMatrix *= Matrix.Translation(0, -10, 0);
+                slider.LocalMatrix *= Matrix4x4.CreateTranslation(0, -10, 0);
             if (Input.IsKeyReleased(Keys.End))
-                slider.LocalMatrix *= Matrix.Translation(0, 10, 0);
+                slider.LocalMatrix *= Matrix4x4.CreateTranslation(0, 10, 0);
 
             if (Input.IsKeyReleased(Keys.G))
                 ChangeGridColumnRowNumbers();
@@ -211,7 +212,7 @@ namespace Stride.UI.Tests.Regression
 
         private void DrawTest11()
         {
-            slider.LocalMatrix = Matrix.Translation(20, 30, 0) * Matrix.RotationYawPitchRoll(-0.1f, -0.2f, 0.3f);
+            slider.LocalMatrix = Matrix4x4.CreateTranslation(20, 30, 0) * Matrix4x4.CreateFromYawPitchRoll(-0.1f, -0.2f, 0.3f);
         }
 
         [Fact]

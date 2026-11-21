@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Regression;
+using System.Numerics;
 
 namespace Stride.Input.Tests
 {

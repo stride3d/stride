@@ -15,6 +15,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Voxels;
 using Stride.Core.Extensions;
 using System.Linq;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels
 {
@@ -105,7 +106,7 @@ namespace Stride.Rendering.Voxels
                 Vector3 matScale = dataVolume.VolumeSize;
                 Vector3 matTrans = dataVolume.VolumeTranslation;
                 
-                Matrix corMatrix = Matrix.Scaling(matScale) * Matrix.Translation(matTrans);
+                Matrix4x4 corMatrix = Matrix4x4.CreateScale(matScale) * Matrix4x4.CreateTranslation(matTrans);
                 VoxelStorageContext storageContext = new VoxelStorageContext
                 {
                     device = Context.GraphicsDevice,
@@ -122,7 +123,7 @@ namespace Stride.Rendering.Voxels
                     matTrans.Z = MathF.Floor(matTrans.Z);
                     matTrans *= storageContext.RealVoxelSize();
 
-                    corMatrix = Matrix.Scaling(matScale) * Matrix.Translation(matTrans);
+                    corMatrix = Matrix4x4.CreateScale(matScale) * Matrix4x4.CreateTranslation(matTrans);
                     storageContext.Matrix = corMatrix;
                 }
                 storageContext.Translation = matTrans;

@@ -6,6 +6,7 @@ using Stride.Core.Diagnostics;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Stride.Shaders.Compilers;
 
@@ -16,6 +17,7 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
 {
     static readonly Cross cross;
     static readonly Logger Log = GlobalLogger.GetLogger("SpirvTranslator");
+    static readonly Regex StructuredBufferOfMatrix = new(@"\b((?:RW|Append|Consume)?StructuredBuffer\s*<\s*)((?:float|half|double|int|uint|min16float|min16int|min16uint)[1-4]x[1-4])\s*>", RegexOptions.Compiled);
 
     static SpirvTranslator()
     {
@@ -171,7 +173,24 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         translatedCode = SilkMarshal.PtrToString((nint)translated);
         cross.ContextReleaseAllocations(context);
         cross.ContextDestroy(context);
-        return translatedCode ?? throw new Exception("Could not translate code");
+        if (translatedCode == null)
+            throw new Exception("Could not translate code");
+        return backend == Backend.Hlsl ? WithRowMajorStructuredBufferElements(translatedCode) : translatedCode;
+    }
+
+    // SPIRV-Cross writes no layout on a matrix that is the element of a structured buffer (always SDSL's default, row_major),
+    // and FXC then reads it column_major: only a typedef can say row_major there. Remove once SPIRV-Cross writes that layout.
+    static string WithRowMajorStructuredBufferElements(string hlsl)
+    {
+        var elementTypes = new SortedSet<string>(StringComparer.Ordinal);
+        var result = StructuredBufferOfMatrix.Replace(hlsl, match =>
+        {
+            elementTypes.Add(match.Groups[2].Value);
+            return $"{match.Groups[1].Value}RowMajor_{match.Groups[2].Value}>";
+        });
+        return elementTypes.Count == 0
+            ? hlsl
+            : string.Concat(elementTypes.Select(type => $"typedef row_major {type} RowMajor_{type};\n")) + result;
     }
 }
 

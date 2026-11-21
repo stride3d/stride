@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels;
 

@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Stride.Core.Reflection;
@@ -23,6 +25,26 @@ namespace Stride.Updater
         // worker threads). A plain Dictionary corrupts under that concurrent access.
         private static readonly ConcurrentDictionary<UpdateKey, UpdatableMember> UpdateKeys = new ConcurrentDictionary<UpdateKey, UpdatableMember>();
         private static readonly ConcurrentDictionary<Type, UpdateMemberResolver> MemberResolvers = new ConcurrentDictionary<Type, UpdateMemberResolver>();
+
+        static UpdateEngine()
+        {
+            // The fields of the System.Numerics types: the assembly processor registers only the members of Stride types
+            RegisterFloatFields<Vector2>("X", "Y");
+            RegisterFloatFields<Vector3>("X", "Y", "Z");
+            RegisterFloatFields<Vector4>("X", "Y", "Z", "W");
+            RegisterFloatFields<Quaternion>("X", "Y", "Z", "W");
+            RegisterFloatFields<Matrix4x4>("M11", "M12", "M13", "M14", "M21", "M22", "M23", "M24", "M31", "M32", "M33", "M34", "M41", "M42", "M43", "M44");
+            RegisterMember(typeof(Plane), nameof(Plane.Normal), new UpdatableField<Vector3>(0));
+            RegisterMember(typeof(Plane), nameof(Plane.D), new UpdatableField<float>(sizeof(Vector3)));
+        }
+
+        // The fields of a type that only has float fields, in memory order
+        private static void RegisterFloatFields<T>(params ReadOnlySpan<string> names) where T : unmanaged
+        {
+            Debug.Assert(names.Length * sizeof(float) == sizeof(T));
+            for (int i = 0; i < names.Length; i++)
+                RegisterMember(typeof(T), names[i], new UpdatableField<float>(i * sizeof(float)));
+        }
 
         /// <summary>
         /// Registers a new member for a given type and name.

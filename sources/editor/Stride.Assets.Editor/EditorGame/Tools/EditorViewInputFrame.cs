@@ -3,6 +3,7 @@
 
 using Stride.Core.Mathematics;
 using Stride.Input;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame.Tools;
 

@@ -19,6 +19,7 @@ using Stride.Rendering.Materials.ComputeColors;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.SceneEditor;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -262,7 +263,7 @@ public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IE
                 if (lightProbeRuntimeData.LightProbes[lightProbeIndex] is not LightProbeComponent lightProbe)
                     continue;
 
-                if (lightProbe.Entity.Transform.WorldMatrix.TranslationVector != lightProbeRuntimeData.Vertices[lightProbeIndex])
+                if (lightProbe.Entity.Transform.WorldMatrix.Translation != lightProbeRuntimeData.Vertices[lightProbeIndex])
                 {
                     needPositionRefresh = true;
                     needWireframeRefresh = true;

@@ -20,6 +20,7 @@ using Stride.Shaders.Compiler;
 using Stride.Assets.Editor.AssetEditors.SceneEditor.Game;
 using Stride.Assets.Editor.AssetEditors.SceneEditor.Services;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame;
 

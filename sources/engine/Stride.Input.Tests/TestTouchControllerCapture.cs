@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.VirtualReality;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Input.Tests;
 

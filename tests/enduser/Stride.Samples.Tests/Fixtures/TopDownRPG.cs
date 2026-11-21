@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
 using Stride.Input;
+using System.Numerics;
 
 namespace TopDownRPG.Tests;
 

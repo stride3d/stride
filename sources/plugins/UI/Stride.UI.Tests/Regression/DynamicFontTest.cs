@@ -10,6 +10,7 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering.Sprites;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {
@@ -74,11 +75,11 @@ namespace Stride.UI.Tests.Regression
                 UIComponent.Resolution = new Vector3(UIComponent.Resolution.X, (ChangeFactorInverse * UIComponent.Resolution.Y), UIComponent.Resolution.Z);
 
             if (Input.IsKeyReleased(Keys.D1))
-                decorator.LocalMatrix = Matrix.Scaling(1);
+                decorator.LocalMatrix = Matrix4x4.CreateScale(1);
             if (Input.IsKeyReleased(Keys.D2))
-                decorator.LocalMatrix = Matrix.Scaling(1.5f);
+                decorator.LocalMatrix = Matrix4x4.CreateScale(1.5f);
             if (Input.IsKeyReleased(Keys.D3))
-                decorator.LocalMatrix = Matrix.Scaling(2);
+                decorator.LocalMatrix = Matrix4x4.CreateScale(2);
         }
 
         protected override void RegisterTests()
@@ -95,42 +96,42 @@ namespace Stride.UI.Tests.Regression
 
         private void DrawTest0()
         {
-            decorator.LocalMatrix = Matrix.Scaling(1);
+            decorator.LocalMatrix = Matrix4x4.CreateScale(1);
             textBlock.TextSize = textBlock.Font.Size;
             UIComponent.Resolution = new Vector3(GraphicsDevice.Presenter.BackBuffer.Width, GraphicsDevice.Presenter.BackBuffer.Height, 500);
         }
 
         private void DrawTest1()
         {
-            decorator.LocalMatrix = Matrix.Scaling(1);
+            decorator.LocalMatrix = Matrix4x4.CreateScale(1);
             textBlock.TextSize = 2*textBlock.Font.Size;
             UIComponent.Resolution = new Vector3(GraphicsDevice.Presenter.BackBuffer.Width, GraphicsDevice.Presenter.BackBuffer.Height, 500);
         }
 
         private void DrawTest2()
         {
-            decorator.LocalMatrix = Matrix.Scaling(1);
+            decorator.LocalMatrix = Matrix4x4.CreateScale(1);
             textBlock.TextSize = textBlock.Font.Size;
             UIComponent.Resolution = new Vector3(GraphicsDevice.Presenter.BackBuffer.Width / 2f, GraphicsDevice.Presenter.BackBuffer.Height / 2f, 500);
         }
 
         private void DrawTest3()
         {
-            decorator.LocalMatrix = Matrix.Scaling(2);
+            decorator.LocalMatrix = Matrix4x4.CreateScale(2);
             textBlock.TextSize = textBlock.Font.Size;
             UIComponent.Resolution = new Vector3(GraphicsDevice.Presenter.BackBuffer.Width, GraphicsDevice.Presenter.BackBuffer.Height, 500);
         }
 
         private void DrawTest4()
         {
-            decorator.LocalMatrix = Matrix.Scaling(1);
+            decorator.LocalMatrix = Matrix4x4.CreateScale(1);
             textBlock.TextSize = textBlock.Font.Size;
             UIComponent.Resolution = new Vector3(GraphicsDevice.Presenter.BackBuffer.Width / 2f, GraphicsDevice.Presenter.BackBuffer.Height, 500);
         }
 
         private void DrawTest5()
         {
-            decorator.LocalMatrix = Matrix.Scaling(1);
+            decorator.LocalMatrix = Matrix4x4.CreateScale(1);
             textBlock.TextSize = textBlock.Font.Size;
             UIComponent.Resolution = new Vector3(GraphicsDevice.Presenter.BackBuffer.Width, GraphicsDevice.Presenter.BackBuffer.Height / 2f, 500);
         }

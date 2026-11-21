@@ -8,6 +8,7 @@ using Stride.Core.Annotations;
 using Stride.Shaders;
 using Stride.Rendering.Materials;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels
 {
@@ -46,7 +47,7 @@ namespace Stride.Rendering.Voxels
 
 
 
-        public override void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, VoxelizationStage stage, bool output)
+        public override void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix4x4 view, Vector3 resolution, VoxelizationStage stage, bool output)
         {
             passList.defaultVoxelizationMethod.CollectVoxelizationPasses(passList, storer, view, resolution, this, stage, output, true);
         }

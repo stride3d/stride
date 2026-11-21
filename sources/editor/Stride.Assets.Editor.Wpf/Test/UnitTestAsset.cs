@@ -7,6 +7,8 @@ using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Mathematics;
 
+using System.Numerics;
+
 namespace Stride.Assets.Presentation.Test
 {
     [DataContract("UnitTestAsset")]

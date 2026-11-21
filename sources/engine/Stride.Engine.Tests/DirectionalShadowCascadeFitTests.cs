@@ -9,6 +9,7 @@ using Stride.Rendering;
 using Stride.Rendering.Lights;
 using Stride.Rendering.Shadows;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Engine.Tests;
 
@@ -50,11 +51,11 @@ public class DirectionalShadowCascadeFitTests : IDisposable
     [InlineData(LightShadowMapStabilizationMode.ProjectionSnapping, true)]
     public void ReversedDepthProjectionGivesTheSameCascades(LightShadowMapStabilizationMode stabilization, bool automaticDepthRange)
     {
-        var view = Matrix.LookAtRH(new Vector3(3, 4, 5), new Vector3(-2, 0.5f, -10), Vector3.UnitY);
-        var projection = Matrix.PerspectiveFovRH(MathUtil.DegreesToRadians(60), 16.0f / 9.0f, Near, Far);
+        var view = Matrix4x4.CreateLookAt(new Vector3(3, 4, 5), new Vector3(-2, 0.5f, -10), Vector3.UnitY);
+        var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathUtil.DegreesToRadians(60), 16.0f / 9.0f, Near, Far);
 
         // z' = w - z: near maps to 1 and far to 0
-        var reverseZ = Matrix.Identity;
+        var reverseZ = Matrix4x4.Identity;
         reverseZ.M33 = -1.0f;
         reverseZ.M43 = 1.0f;
 
@@ -69,7 +70,7 @@ public class DirectionalShadowCascadeFitTests : IDisposable
         }
     }
 
-    private LightDirectionalShadowMapRenderer.ShaderData Fit(Matrix view, Matrix projection, LightShadowMapStabilizationMode stabilization, bool automaticDepthRange)
+    private LightDirectionalShadowMapRenderer.ShaderData Fit(Matrix4x4 view, Matrix4x4 projection, LightShadowMapStabilizationMode stabilization, bool automaticDepthRange)
     {
         var shadow = new LightDirectionalShadowMap
         {
@@ -106,10 +107,10 @@ public class DirectionalShadowCascadeFitTests : IDisposable
         return (LightDirectionalShadowMapRenderer.ShaderData)shadowMap.ShaderData;
     }
 
-    private static void AssertEqual(Matrix expected, Matrix actual, int cascade)
+    private static void AssertEqual(Matrix4x4 expected, Matrix4x4 actual, int cascade)
     {
         for (int i = 0; i < 16; ++i)
-            Assert.True(Math.Abs(expected[i] - actual[i]) <= 1e-3f * Math.Max(1.0f, Math.Abs(expected[i])),
-                $"Cascade {cascade}, WorldToShadowCascadeUV element {i}: expected {expected[i]}, got {actual[i]}");
+            Assert.True(Math.Abs(expected[i / 4, i % 4] - actual[i / 4, i % 4]) <= 1e-3f * Math.Max(1.0f, Math.Abs(expected[i / 4, i % 4])),
+                $"Cascade {cascade}, WorldToShadowCascadeUV element {i}: expected {expected[i / 4, i % 4]}, got {actual[i / 4, i % 4]}");
     }
 }

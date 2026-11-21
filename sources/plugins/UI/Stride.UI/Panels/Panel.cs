@@ -10,6 +10,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Panels
 {
@@ -30,9 +31,9 @@ namespace Stride.UI.Panels
         /// <summary>
         /// The key to the PanelArrangeMatrix dependency property. This property can be used by panels to arrange they children as they want.
         /// </summary>
-        protected static readonly PropertyKey<Matrix> PanelArrangeMatrixPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(PanelArrangeMatrixPropertyKey), typeof(Panel), Matrix.Identity, InvalidateArrangeMatrix);
+        protected static readonly PropertyKey<Matrix4x4> PanelArrangeMatrixPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(PanelArrangeMatrixPropertyKey), typeof(Panel), Matrix4x4.Identity, InvalidateArrangeMatrix);
 
-        private static void InvalidateArrangeMatrix(object propertyOwner, PropertyKey<Matrix> propertyKey, Matrix propertyOldValue)
+        private static void InvalidateArrangeMatrix(object propertyOwner, PropertyKey<Matrix4x4> propertyKey, Matrix4x4 propertyOldValue)
         {
             var element = (UIElement)propertyOwner;
             var parentPanel = element.VisualParent as Panel;
@@ -67,7 +68,7 @@ namespace Stride.UI.Panels
         protected static readonly PanelChildrenComparer PanelChildrenSorter = new PanelChildrenComparer();
 
         private readonly HashSet<UIElement> childrenWithArrangeMatrixInvalidated = new HashSet<UIElement>();
-        private Matrix[] childrenArrangeWorldMatrix = new Matrix[2];
+        private Matrix4x4[] childrenArrangeWorldMatrix = new Matrix4x4[2];
 
         /// <summary>
         /// Gets the <see cref="UIElementCollection"/> of child elements of this Panel.
@@ -161,10 +162,10 @@ namespace Stride.UI.Panels
             SetVisualParent(newElement, this);
             VisualChildrenCollection.Sort(PanelChildrenSorter);
             if (Children.Count > childrenArrangeWorldMatrix.Length)
-                childrenArrangeWorldMatrix = new Matrix[2 * Children.Count];
+                childrenArrangeWorldMatrix = new Matrix4x4[2 * Children.Count];
         }
 
-        protected override void UpdateWorldMatrix(ref Matrix parentWorldMatrix, bool parentWorldChanged)
+        protected override void UpdateWorldMatrix(ref Matrix4x4 parentWorldMatrix, bool parentWorldChanged)
         {
             var shouldUpdateAllChridrenMatrix = parentWorldChanged || ArrangeChanged || LocalMatrixChanged;
 
@@ -176,7 +177,7 @@ namespace Stride.UI.Panels
                 var shouldUpdateChildWorldMatrix = shouldUpdateAllChridrenMatrix || childrenWithArrangeMatrixInvalidated.Contains(child);
                 {
                     var childMatrix = child.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
-                    Matrix.Multiply(ref childMatrix, ref WorldMatrixInternal, out childrenArrangeWorldMatrix[childIndex]);
+                    childrenArrangeWorldMatrix[childIndex] = childMatrix * WorldMatrixInternal;
                 }
 
                 ((IUIElementUpdate)child).UpdateWorldMatrix(ref childrenArrangeWorldMatrix[childIndex], shouldUpdateChildWorldMatrix);

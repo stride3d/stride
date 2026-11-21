@@ -8,7 +8,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
-using NVector4 = System.Numerics.Vector4;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -191,7 +191,7 @@ namespace Stride.Graphics
 
             // Map the vertex buffer to write to
             var mappedVertexBuffer = graphicsContext.CommandList.MapSubResource(vertexBuffers[activeVertexBufferIndex], 0, MapMode.WriteDiscard);
-            var mappedVertexData = new Span<NVector4>(mappedVertexBuffer.DataBox.DataPointer.ToPointer(), VertexBufferLength); // Note that we're using Vector4 instead of VertexPosition2DTexture for hardware acceleration, size of the two struct must match obviously
+            var mappedVertexData = new Span<Vector4>(mappedVertexBuffer.DataBox.DataPointer.ToPointer(), VertexBufferLength); // Note that we're using Vector4 instead of VertexPosition2DTexture for hardware acceleration, size of the two struct must match obviously
             // We don't have to clear the buffer since we're writing all used data through GraphicsFastTextRendererGenerateVertices
 
             charsToRenderCount = 0;
@@ -232,7 +232,7 @@ namespace Stride.Graphics
             graphicsContext.CommandList.DrawIndexed(charsToRenderCount * 6);
         }
 
-        static void GraphicsFastTextRendererGenerateVertices(RectangleF constantInfos, RectangleF renderInfos, string text, out int charsWritten, Span<NVector4> vertexBuffer)
+        static void GraphicsFastTextRendererGenerateVertices(RectangleF constantInfos, RectangleF renderInfos, string text, out int charsWritten, Span<Vector4> vertexBuffer)
         {
             float fX = renderInfos.X / renderInfos.Width;
             float fY = renderInfos.Y / renderInfos.Height;
@@ -243,14 +243,14 @@ namespace Stride.Graphics
 
             charsWritten = text.Length;
 
-            NVector4 charRect;
+            Vector4 charRect;
 
             charRect.Y = -(destination.Y * 2f - 1f);
 
             float invertedWidth = 1f / constantInfos.Width;
             float invertedHeight = 1f / constantInfos.Height;
 
-            Span<NVector4> offsetPerVertex = stackalloc NVector4[4]
+            Span<Vector4> offsetPerVertex = stackalloc Vector4[4]
             {
                 new(-destination.Width, +destination.Height, 0 * constantInfos.X * invertedWidth, 0 * constantInfos.Y * invertedHeight),
                 new(+destination.Width, +destination.Height, 1 * constantInfos.X * invertedWidth, 0 * constantInfos.Y * invertedHeight),
@@ -332,6 +332,6 @@ namespace Stride.Graphics
         /// <summary>
         /// A general matrix transformation for the text. Should include view and projection if needed.
         /// </summary>
-        public Matrix MatrixTransform { get; set; } = Matrix.Identity;
+        public Matrix4x4 MatrixTransform { get; set; } = Matrix4x4.Identity;
     }
 }

@@ -3,6 +3,7 @@
 
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Particles
 {
@@ -68,13 +69,13 @@ namespace Stride.Particles
             var ownScale = Scale * ScaleUniform;
             WorldScale = (notNull && InheritScale) ? ownScale * parentTransform.WorldScale.X : ownScale;
 
-            WorldRotation = (notNull && InheritRotation) ? Rotation * parentTransform.WorldRotation : Rotation;
+            WorldRotation = (notNull && InheritRotation) ? Quaternion.Concatenate(Rotation, parentTransform.WorldRotation) : Rotation;
 
             var offsetTranslation = Position * ((notNull && InheritScale) ? parentTransform.WorldScale.X : 1f);
 
             if (notNull && InheritRotation)
             {
-                parentTransform.WorldRotation.Rotate(ref offsetTranslation);
+                offsetTranslation = Vector3.Transform(offsetTranslation, parentTransform.WorldRotation);
             }
 
             WorldPosition = (notNull && InheritPosition) ? parentTransform.WorldPosition + offsetTranslation : offsetTranslation;

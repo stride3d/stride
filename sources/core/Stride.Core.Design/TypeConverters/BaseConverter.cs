@@ -104,6 +104,15 @@ public abstract class BaseConverter : ExpandableObjectConverter
         return Array.ConvertAll(strings, s => (T?)converter.ConvertFromString(context, culture, s));
     }
 
+    /// <summary>
+    /// Writes the fields of a value as <c>X:1 Y:2 Z:3</c>, the text that <see cref="ConvertFromString{TResult, T}"/> reads.
+    /// </summary>
+    protected string FieldsToString(object value, CultureInfo? culture)
+    {
+        culture ??= CultureInfo.CurrentCulture;
+        return string.Join(' ', Properties.Cast<FieldPropertyDescriptor>().Select(x => $"{x.Name}:{Convert.ToString(x.FieldInfo.GetValue(value), culture)}"));
+    }
+
     protected TResult? ConvertFromString<TResult, T>(ITypeDescriptorContext? context, CultureInfo? culture, string str) where TResult : new()
     {
         if (string.IsNullOrEmpty(str))

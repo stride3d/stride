@@ -29,20 +29,20 @@ extern "C" {
 typedef struct FlatMatrix
 {
 	float M11; //0
-	float M21; //1
-	float M31; //2
-	float M41; //3
-	float M12; //4
+	float M12; //1
+	float M13; //2
+	float M14; //3
+	float M21; //4
 	float M22; //5
-	float M32; //6
-	float M42; //7
-	float M13; //8
-	float M23; //9
+	float M23; //6
+	float M24; //7
+	float M31; //8
+	float M32; //9
 	float M33; //10
-	float M43; //11
-	float M14; //12
-	float M24; //13
-	float M34; //14
+	float M34; //11
+	float M41; //12
+	float M42; //13
+	float M43; //14
 	float M44; //15
 } FlatMatrix;
 
@@ -198,23 +198,8 @@ inline void xnMatrixInvert(Matrix* m)
 #endif
 }
 
-inline void xnMatrixTranspose(Matrix* m)
-{
-	float temp;
-	temp = m->Flat.M21; m->Flat.M21 = m->Flat.M12; m->Flat.M12 = temp;
-	temp = m->Flat.M31; m->Flat.M31 = m->Flat.M13; m->Flat.M13 = temp;
-	temp = m->Flat.M41; m->Flat.M41 = m->Flat.M14; m->Flat.M14 = temp;
-
-	temp = m->Flat.M32; m->Flat.M32 = m->Flat.M23; m->Flat.M23 = temp;
-	temp = m->Flat.M42; m->Flat.M42 = m->Flat.M24; m->Flat.M24 = temp;
-
-	temp = m->Flat.M43; m->Flat.M43 = m->Flat.M34; m->Flat.M34 = temp;
-}
-
 inline void xnMatrixMultiply(Matrix* left, Matrix* right, Matrix* out)
 {
-	xnMatrixTranspose(left);
-	xnMatrixTranspose(right);
 #ifdef __clang__
 	float4 row1, row2, row3, row4;
 	memcpy(&row1, &right->Array[0], sizeof(float4));
@@ -238,11 +223,8 @@ inline void xnMatrixMultiply(Matrix* left, Matrix* right, Matrix* out)
 		float4 row = b12pr12 + b34pr34;
 
 		memcpy(&out->Array[4 * i], &row, sizeof(float4));
-	}	
+	}
 #endif
-	xnMatrixTranspose(left);
-	xnMatrixTranspose(right);
-	xnMatrixTranspose(out);
 }
 
 

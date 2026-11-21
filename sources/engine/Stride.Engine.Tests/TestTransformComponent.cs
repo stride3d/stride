@@ -9,6 +9,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {
@@ -34,22 +35,22 @@ namespace Stride.Engine.Tests
             // Test point to world/local space conversion
             trans.Position = new Vector3(1, 2, 3);
             trans.UpdateWorldMatrix();
-            Assert.Equal(new Vector3(1, 2, 3), trans.LocalToWorld(new Vector3(0, 0, 0)));
-            Assert.Equal(new Vector3(4, 4, 4), trans.LocalToWorld(new Vector3(3, 2, 1)));
-            Assert.Equal(new Vector3(-1, -2, -3), trans.WorldToLocal(new Vector3(0, 0, 0)));
-            Assert.Equal(new Vector3(0, 0, 0), trans.WorldToLocal(new Vector3(1, 2, 3)));
+            AssertNearEqual(new Vector3(1, 2, 3), trans.LocalToWorld(new Vector3(0, 0, 0)));
+            AssertNearEqual(new Vector3(4, 4, 4), trans.LocalToWorld(new Vector3(3, 2, 1)));
+            AssertNearEqual(new Vector3(-1, -2, -3), trans.WorldToLocal(new Vector3(0, 0, 0)));
+            AssertNearEqual(new Vector3(0, 0, 0), trans.WorldToLocal(new Vector3(1, 2, 3)));
             trans.Position = new Vector3(1, 0, 0);
-            trans.Rotation = Quaternion.RotationX(MathF.PI * 0.5f);
+            trans.Rotation = Quaternion.CreateRotationX(MathF.PI * 0.5f);
             trans.Scale = new Vector3(2, 2, 2);
             trans.UpdateWorldMatrix();
-            Assert.Equal(new Vector3(1, 0, 2), trans.LocalToWorld(new Vector3(0, 1, 0)));
+            AssertNearEqual(new Vector3(1, 0, 2), trans.LocalToWorld(new Vector3(0, 1, 0)));
             Vector3 tP1 = new Vector3(0, 0, 0);
             Quaternion tR1 = new Quaternion(0, 0, 0, 1);
             Vector3 tS1 = new Vector3(1, 1, 1);
             trans.WorldToLocal(ref tP1, ref tR1, ref tS1);
-            Assert.Equal(new Vector3(-0.5f, 0, 0), tP1);
-            Assert.Equal(Quaternion.RotationX(MathF.PI * -0.5f), tR1);
-            Assert.Equal(new Vector3(0.5f, 0.5f, 0.5f), tS1);
+            AssertNearEqual(new Vector3(-0.5f, 0, 0), tP1);
+            AssertNearEqual(Quaternion.CreateRotationX(MathF.PI * -0.5f), tR1);
+            AssertNearEqual(new Vector3(0.5f, 0.5f, 0.5f), tS1);
         }
 
         [Fact]
@@ -61,22 +62,19 @@ namespace Stride.Engine.Tests
             var child = new Entity{ Transform = { Parent = parent } }.Transform;
 
             parent.Position = Vector3.UnitX;
-            parent.Rotation = Quaternion.RotationY(MathF.PI * -0.5f);
+            parent.Rotation = Quaternion.CreateRotationY(MathF.PI * -0.5f);
             parent.Scale = Vector3.One * 0.5f;
             child.UpdateWorldMatrix();
             child.SetWorld(Vector3.Zero, Quaternion.Identity);
             child.UpdateWorldMatrix();
 
-            // Do note that all equality below are NOT strictly equal,
-            // those transformations, as are all floating point operations, are lossy.
-            // By default, Vector and Quaternion equality allow an epsilon of difference
-            
-            Assert.Equal(Vector3.UnitZ * 4f, child.Position); // Validate our assumptions
-            Assert.Equal(Quaternion.RotationY(MathF.PI * 0.5f), child.Rotation);
+
+            AssertNearEqual(Vector3.UnitZ * 4f, child.Position); // Validate our assumptions
+            AssertNearEqual(Quaternion.CreateRotationY(MathF.PI * 0.5f), child.Rotation);
             
             child.GetWorldTransformation(out var pos, out var rot, out _); // Validate transformations
-            Assert.Equal(Vector3.Zero, pos);
-            Assert.Equal(Quaternion.Identity, rot);
+            AssertNearEqual(Vector3.Zero, pos);
+            AssertNearEqual(Quaternion.Identity, rot);
         }
 
         [Fact]
@@ -86,18 +84,23 @@ namespace Stride.Engine.Tests
             var parent = new Entity { Scene = scene }.Transform;
             var child = new Entity { Transform = { Parent = parent } }.Transform;
             var targetPosition = new Vector3(2, 2, 2);
-            var targetRotation = Quaternion.RotationY(MathF.PI * 0.1f);
+            var targetRotation = Quaternion.CreateRotationY(MathF.PI * 0.1f);
 
             parent.Position = new Vector3(1, 1, 1);
-            parent.Rotation = Quaternion.RotationX(MathF.PI * 0.05f);
+            parent.Rotation = Quaternion.CreateRotationX(MathF.PI * 0.05f);
 
             child.UpdateWorldMatrix();
             child.SetWorld(targetPosition, targetRotation);
             child.UpdateWorldMatrix();
 
             child.GetWorldTransformation(out var position, out var rotation, out _);
-            Assert.Equal(targetPosition, position);
-            Assert.Equal(targetRotation, rotation);
+            AssertNearEqual(targetPosition, position);
+            AssertNearEqual(targetRotation, rotation);
         }
+
+        // The transformations lose precision, as all floating point operations: the values are compared with a tolerance
+        private static void AssertNearEqual(Vector3 expected, Vector3 actual) => Assert.Equal(expected, actual, (a, b) => a.NearEquals(b));
+
+        private static void AssertNearEqual(Quaternion expected, Quaternion actual) => Assert.Equal(expected, actual, (a, b) => a.NearEquals(b));
     }
 }

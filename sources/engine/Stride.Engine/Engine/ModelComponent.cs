@@ -12,6 +12,7 @@ using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Rendering;
 using Stride.Updater;
+using System.Numerics;
 
 namespace Stride.Engine
 {
@@ -40,7 +41,7 @@ namespace Stride.Engine
             /// <summary>
             /// The current blend matrices of a skinned meshes, transforming from mesh space to world space, for each bone.
             /// </summary>
-            public Matrix[] BlendMatrices;
+            public Matrix4x4[] BlendMatrices;
 
             /// <summary>
             /// The meshes current bounding box in world space.
@@ -213,7 +214,7 @@ namespace Stride.Engine
                     meshInfos.Add(meshData);
 
                     if (mesh.Skinning != null)
-                        meshData.BlendMatrices = new Matrix[mesh.Skinning.Bones.Length];
+                        meshData.BlendMatrices = new Matrix4x4[mesh.Skinning.Bones.Length];
                 }
 
                 if (skeleton != null)
@@ -237,7 +238,7 @@ namespace Stride.Engine
             if (!Enabled || model == null)
                 return;
 
-            ref Matrix worldMatrix = ref transformComponent.WorldMatrix;
+            ref Matrix4x4 worldMatrix = ref transformComponent.WorldMatrix;
 
             // Check if scaling is negative
             var up = Vector3.Cross(worldMatrix.Right, worldMatrix.Forward);
@@ -274,7 +275,7 @@ namespace Stride.Engine
                     for (int boneIndex = 0; boneIndex < bones.Length; boneIndex++)
                     {
                         var nodeIndex = bones[boneIndex].NodeIndex;
-                        Matrix.Multiply(ref bones[boneIndex].LinkToMeshMatrix, ref skeleton.NodeTransformations[nodeIndex].WorldMatrix, out meshInfo.BlendMatrices[boneIndex]);
+                        meshInfo.BlendMatrices[boneIndex] = bones[boneIndex].LinkToMeshMatrix * skeleton.NodeTransformations[nodeIndex].WorldMatrix;
 
                         BoundingBox skinnedBoundingBox;
                         BoundingBox.Transform(ref mesh.BoundingBox, ref meshInfo.BlendMatrices[boneIndex], out skinnedBoundingBox);

@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -73,7 +74,7 @@ namespace Stride.Graphics
 
         public bool Equals(VertexPositionColorTextureSwizzle other)
         {
-            return Position.Equals(other.Position) && ColorScale.Equals(other.ColorScale) && ColorAdd.Equals(other.ColorAdd) && TextureCoordinate.Equals(other.TextureCoordinate);
+            return Position == other.Position && ColorScale.Equals(other.ColorScale) && ColorAdd.Equals(other.ColorAdd) && TextureCoordinate == other.TextureCoordinate;
         }
 
         public override bool Equals(object obj)

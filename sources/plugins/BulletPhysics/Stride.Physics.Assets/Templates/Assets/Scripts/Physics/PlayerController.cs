@@ -5,6 +5,7 @@ using Stride.Input;
 using Stride.Physics;
 using System;
 using System.Linq;
+using System.Numerics;
 
 namespace ##Namespace##;
 
@@ -119,15 +120,15 @@ public class ##Scriptname## : SyncScript
         if (CameraEntity != null)
         {
             // We need to pitch only the camera node
-            CameraEntity.Transform.Rotation = baseCameraRotation * Quaternion.RotationYawPitchRoll(0, pitch, 0);
+            CameraEntity.Transform.Rotation = Quaternion.Concatenate(baseCameraRotation, Quaternion.CreateFromYawPitchRoll(0, pitch, 0));
         }
-        Entity.Transform.Rotation = Quaternion.RotationYawPitchRoll(yaw, 0, 0); // Do not apply pitch to our controller
+        Entity.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(yaw, 0, 0); // Do not apply pitch to our controller
 
         var move = new Vector3();
 
         var forward = Vector3.Transform(ForwardVector, Entity.Transform.Rotation);
         var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z));
-        var up = Vector3.TransformNormal(UpVector, Matrix.RotationQuaternion(Entity.Transform.Rotation));
+        var up = Vector3.TransformNormal(UpVector, Matrix4x4.CreateFromQuaternion(Entity.Transform.Rotation));
         var right = Vector3.Cross(forward, up);
 
         if (Input.IsKeyDown(Keys.A) || Input.IsKeyDown(Keys.Left))
@@ -147,7 +148,7 @@ public class ##Scriptname## : SyncScript
             move += -projectedForward;
         }
 
-        move.Normalize();
+        move = Vector3.NormalizeSafe(move);
 
         move *= translationSpeed;
 

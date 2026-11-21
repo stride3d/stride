@@ -9,6 +9,7 @@ using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.UI.Panels
 {
@@ -468,7 +469,7 @@ namespace Stride.UI.Panels
                     dimensionData[2].CachedStripIndexToStripPosition[gridPosition.Z]);
 
                 // set the arrange matrix values
-                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(position - gridFinalSize / 2));
+                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix4x4.CreateTranslation(position - gridFinalSize / 2));
 
                 // calculate the size provided to the child
                 var providedSize = new Vector3(

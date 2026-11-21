@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -18,11 +19,11 @@ namespace Stride.Graphics
         private static Vector2 vector2Zero = Vector2.Zero;
         private static RectangleF? nullRectangle;
         
-        private Matrix userViewMatrix;
-        private Matrix userProjectionMatrix;
+        private Matrix4x4 userViewMatrix;
+        private Matrix4x4 userProjectionMatrix;
 
-        private readonly Matrix defaultViewMatrix = Matrix.Identity;
-        private Matrix defaultProjectionMatrix;
+        private readonly Matrix4x4 defaultViewMatrix = Matrix4x4.Identity;
+        private Matrix4x4 defaultProjectionMatrix;
 
         private readonly EffectInstance textureSpriteFontEffect;
 
@@ -60,9 +61,9 @@ namespace Stride.Graphics
         /// <returns>The default projection matrix for the provided virtual resolution</returns>
         /// <remarks>The sprite batch default projection is an orthogonal matrix such as (0,0) is the Top/Left corner of the screen and 
         /// (VirtualResolution.X, VirtualResolution.Y) is the Bottom/Right corner of the screen.</remarks>
-        public static Matrix CalculateDefaultProjection(Vector3 virtualResolution)
+        public static Matrix4x4 CalculateDefaultProjection(Vector3 virtualResolution)
         {
-            Matrix matrix;
+            Matrix4x4 matrix;
 
             CalculateDefaultProjection(ref virtualResolution, out matrix);
 
@@ -72,13 +73,13 @@ namespace Stride.Graphics
         /// <summary>
         /// Calculate the default projection matrix for the provided virtual resolution.
         /// </summary>
-        public static void CalculateDefaultProjection(ref Vector3 virtualResolution, out Matrix projection)
+        public static void CalculateDefaultProjection(ref Vector3 virtualResolution, out Matrix4x4 projection)
         {
             var xRatio = 1f / virtualResolution.X;
             var yRatio = -1f / virtualResolution.Y;
             var zRatio = -1f / virtualResolution.Z;
 
-            projection = new Matrix { M11 = 2f * xRatio, M22 = 2f * yRatio, M33 = zRatio, M44 = 1f, M41 = -1f, M42 = 1f, M43 = 0.5f };
+            projection = new Matrix4x4 { M11 = 2f * xRatio, M22 = 2f * yRatio, M33 = zRatio, M44 = 1f, M41 = -1f, M42 = 1f, M43 = 0.5f };
         }
 
         private Vector3 GetCurrentResolution(CommandList commandList)
@@ -133,7 +134,7 @@ namespace Stride.Graphics
         /// <param name="rasterizerState">The rasterizer state to use for the batch session</param>
         /// <param name="effect">The effect to use for the batch session</param>
         /// <param name="stencilValue">The value of the stencil buffer to take as reference for the batch session</param>
-        public void Begin(GraphicsContext graphicsContext, Matrix viewMatrix, SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendStateDescription? blendState = null, SamplerState samplerState = null, DepthStencilStateDescription? depthStencilState = null, RasterizerStateDescription? rasterizerState = null, EffectInstance effect = null, int stencilValue = 0)
+        public void Begin(GraphicsContext graphicsContext, Matrix4x4 viewMatrix, SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendStateDescription? blendState = null, SamplerState samplerState = null, DepthStencilStateDescription? depthStencilState = null, RasterizerStateDescription? rasterizerState = null, EffectInstance effect = null, int stencilValue = 0)
         {
             UpdateDefaultProjectionMatrix(graphicsContext.CommandList);
             Begin(graphicsContext, viewMatrix, defaultProjectionMatrix, sortMode, blendState, samplerState, depthStencilState, rasterizerState, effect, stencilValue);
@@ -152,7 +153,7 @@ namespace Stride.Graphics
         /// <param name="rasterizerState">The rasterizer state to use for the batch session</param>
         /// <param name="effect">The effect to use for the batch session</param>
         /// <param name="stencilValue">The value of the stencil buffer to take as reference for the batch session</param>
-        public void Begin(GraphicsContext graphicsContext, Matrix viewMatrix, Matrix projectionMatrix, SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendStateDescription? blendState = null, SamplerState samplerState = null, DepthStencilStateDescription? depthStencilState = null, RasterizerStateDescription? rasterizerState = null, EffectInstance effect = null, int stencilValue = 0)
+        public void Begin(GraphicsContext graphicsContext, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendStateDescription? blendState = null, SamplerState samplerState = null, DepthStencilStateDescription? depthStencilState = null, RasterizerStateDescription? rasterizerState = null, EffectInstance effect = null, int stencilValue = 0)
         {
             CheckEndHasBeenCalled("begin");
 
@@ -510,7 +511,7 @@ namespace Stride.Graphics
             var drawCommand = new SpriteFont.InternalDrawCommand(this, in fontSize2, in position, in color, rotation, in origin, in scale, effects, layerDepth);
 
             // snap the position the closest 'real' pixel
-            Vector2.Modulate(ref drawCommand.Position, ref resolutionRatio, out drawCommand.Position);
+            drawCommand.Position *= resolutionRatio;
             drawCommand.Position.X = MathF.Round(drawCommand.Position.X);
             drawCommand.Position.Y = MathF.Round(drawCommand.Position.Y);
             drawCommand.Position.X /= resolutionRatio.X;
@@ -641,8 +642,7 @@ namespace Stride.Graphics
 
         protected override void PrepareForRendering()
         {
-            Matrix viewProjection;
-            Matrix.Multiply(ref userViewMatrix, ref userProjectionMatrix, out viewProjection);
+            Matrix4x4 viewProjection = userViewMatrix * userProjectionMatrix;
 
             // Setup effect states and parameters: SamplerState and MatrixTransform
             // Sets the sampler state

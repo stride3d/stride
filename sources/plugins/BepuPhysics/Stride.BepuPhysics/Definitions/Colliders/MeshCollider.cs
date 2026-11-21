@@ -13,6 +13,7 @@ using BepuPhysics.Trees;
 using Stride.BepuPhysics.Systems;
 using Mesh = BepuPhysics.Collidables.Mesh;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -99,11 +100,11 @@ public sealed class MeshCollider : ICollider
         centerOfMass = Vector3.Zero;
         //if (_containerComponent is BodyMeshContainerComponent _b)
         //{
-        //    CenterOfMass = (_b.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStride();
+        //    CenterOfMass = (_b.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass());
         //}
         //else if (_containerComponent is StaticMeshContainerComponent _s)
         //{
-        //    CenterOfMass = (_s.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass()).ToStride();
+        //    CenterOfMass = (_s.Closed ? mesh.ComputeClosedCenterOfMass() : mesh.ComputeOpenCenterOfMass());
         //}
         return true;
     }

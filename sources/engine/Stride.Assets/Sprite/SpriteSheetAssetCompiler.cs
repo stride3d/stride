@@ -18,6 +18,7 @@ using Stride.Assets.Textures.Packing;
 using Stride.Graphics;
 using Stride.TextureConverter;
 using Stride.Graphics.Data;
+using System.Numerics;
 
 namespace Stride.Assets.Sprite
 {

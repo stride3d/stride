@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Updater;
+using System.Numerics;
 
 namespace Stride.Animations
 {

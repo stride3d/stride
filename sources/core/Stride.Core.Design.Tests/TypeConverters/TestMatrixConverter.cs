@@ -7,6 +7,7 @@ using System.Globalization;
 using Stride.Core.Mathematics;
 using Stride.Core.TypeConverters;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Design.Tests.TypeConverters;
 
@@ -17,7 +18,7 @@ public class TestMatrixConverter
     [Fact]
     public void Constructor_InitializesPropertiesWithAllMatrixFields()
     {
-        var properties = converter.GetProperties(null, Matrix.Identity, null);
+        var properties = converter.GetProperties(null, Matrix4x4.Identity, null);
 
         Assert.NotNull(properties);
         Assert.Equal(16, properties.Count);
@@ -42,7 +43,7 @@ public class TestMatrixConverter
     [Fact]
     public void ConvertTo_ToStringWithMatrix_ReturnsMatrixString()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
@@ -60,7 +61,7 @@ public class TestMatrixConverter
     [Fact]
     public void ConvertTo_ToInstanceDescriptor_ReturnsInstanceDescriptor()
     {
-        var matrix = new Matrix(
+        var matrix = new Matrix4x4(
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
@@ -76,7 +77,7 @@ public class TestMatrixConverter
     [Fact]
     public void ConvertTo_WithNullDestinationType_ThrowsArgumentNullException()
     {
-        var matrix = Matrix.Identity;
+        var matrix = Matrix4x4.Identity;
 
         Assert.Throws<ArgumentNullException>(() =>
             converter.ConvertTo(null, CultureInfo.InvariantCulture, matrix, null!));
@@ -132,7 +133,7 @@ public class TestMatrixConverter
         var result = converter.CreateInstance(null, propertyValues);
 
         Assert.NotNull(result);
-        var matrix = Assert.IsType<Matrix>(result);
+        var matrix = Assert.IsType<Matrix4x4>(result);
         Assert.Equal(1f, matrix.M11);
         Assert.Equal(2f, matrix.M12);
         Assert.Equal(3f, matrix.M13);
@@ -160,7 +161,7 @@ public class TestMatrixConverter
     [Fact]
     public void ConvertTo_IdentityMatrix_ReturnsCorrectString()
     {
-        var matrix = Matrix.Identity;
+        var matrix = Matrix4x4.Identity;
 
         var result = converter.ConvertTo(null, CultureInfo.InvariantCulture, matrix, typeof(string));
 

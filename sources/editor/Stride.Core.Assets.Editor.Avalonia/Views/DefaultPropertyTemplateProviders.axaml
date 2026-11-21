@@ -11,6 +11,7 @@
                     xmlns:yaml="using:Stride.Core.Yaml"
                     xmlns:io="using:Stride.Core.IO"
                     xmlns:math="using:Stride.Core.Mathematics"
+                    xmlns:numerics="using:System.Numerics"
                     xmlns:s="using:System"
                     x:Class="Stride.Core.Assets.Editor.Avalonia.Views.DefaultPropertyTemplateProviders">
   <ResourceDictionary.MergedDictionaries>
@@ -1030,7 +1031,7 @@
   </caev:TypeMatchTemplateProvider>
 
   <!-- Provider for Vector2 -->
-  <caev:TypeMatchTemplateProvider x:Key="Vector2PropertyTemplateProvider" Type="{x:Type math:Vector2}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <caev:TypeMatchTemplateProvider x:Key="Vector2PropertyTemplateProvider" Type="{x:Type numerics:Vector2}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Vector2Editor x:Name="VectorEditor"
                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
@@ -1045,7 +1046,7 @@
   </caev:TypeMatchTemplateProvider>
 
   <!-- Provider for Vector3 -->
-  <caev:TypeMatchTemplateProvider x:Key="Vector3PropertyTemplateProvider" Type="{x:Type math:Vector3}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <caev:TypeMatchTemplateProvider x:Key="Vector3PropertyTemplateProvider" Type="{x:Type numerics:Vector3}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Vector3Editor x:Name="VectorEditor"
                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
@@ -1060,7 +1061,7 @@
   </caev:TypeMatchTemplateProvider>
 
   <!-- Provider for Vector4 -->
-  <caev:TypeMatchTemplateProvider x:Key="Vector4PropertyTemplateProvider" Type="{x:Type math:Vector4}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <caev:TypeMatchTemplateProvider x:Key="Vector4PropertyTemplateProvider" Type="{x:Type numerics:Vector4}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Vector4Editor x:Name="VectorEditor"
                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
@@ -1145,7 +1146,7 @@
   </caev:TypeMatchTemplateProvider>
 
   <!-- Provider for Quaternion -->
-  <caev:TypeMatchTemplateProvider x:Key="QuaternionPropertyTemplateProvider" Type="{x:Type math:Quaternion}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <caev:TypeMatchTemplateProvider x:Key="QuaternionPropertyTemplateProvider" Type="{x:Type numerics:Quaternion}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:QuaternionEditor x:Name="QuaternionEditor"
                            Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
@@ -1160,7 +1161,7 @@
   </caev:TypeMatchTemplateProvider>
 
   <!-- Provider for Matrix -->
-  <caev:TypeMatchTemplateProvider x:Key="MatrixPropertyTemplateProvider" Type="{x:Type math:Matrix}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <caev:TypeMatchTemplateProvider x:Key="MatrixPropertyTemplateProvider" Type="{x:Type numerics:Matrix4x4}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:MatrixEditor x:Name="MatrixEditor"
                        Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"

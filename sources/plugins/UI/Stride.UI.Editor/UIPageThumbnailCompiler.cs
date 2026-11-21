@@ -11,6 +11,7 @@ using Stride.Editor.Thumbnails;
 using Stride.Engine;
 using Stride.Engine.Processors;
 using Stride.Rendering.Compositing;
+using System.Numerics;
 
 namespace Stride.UI.Editor
 {

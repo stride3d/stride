@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -372,7 +373,7 @@ namespace Stride.Graphics
                         {
                             tangent = Vector3.Cross(normal, Vector3.UnitY);
                         }
-                        tangent.Normalize();
+                        tangent = Vector3.NormalizeSafe(tangent);
                         *((Vector3*)newTangentPtr) = tangent;
                         bitangent = Vector3.Cross(normal, tangent);
                     }

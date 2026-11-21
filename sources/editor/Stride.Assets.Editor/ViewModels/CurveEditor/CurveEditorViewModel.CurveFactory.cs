@@ -8,6 +8,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
 using Stride.Animations;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels.CurveEditor
 {

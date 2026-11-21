@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Constraints;
 
@@ -34,11 +35,11 @@ public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<T
     {
         get
         {
-            return BepuConstraint.LocalBasisA.ToStride();
+            return BepuConstraint.LocalBasisA;
         }
         set
         {
-            BepuConstraint.LocalBasisA = value.ToNumeric();
+            BepuConstraint.LocalBasisA = value;
             TryUpdateDescription();
         }
     }
@@ -57,11 +58,11 @@ public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<T
     {
         get
         {
-            return BepuConstraint.LocalBasisB.ToStride();
+            return BepuConstraint.LocalBasisB;
         }
         set
         {
-            BepuConstraint.LocalBasisB = value.ToNumeric();
+            BepuConstraint.LocalBasisB = value;
             TryUpdateDescription();
         }
     }

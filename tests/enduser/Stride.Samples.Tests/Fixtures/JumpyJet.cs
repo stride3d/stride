@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine.Events;
 using Stride.Games.AutoTesting;
 using Stride.Input;
+using System.Numerics;
 
 namespace JumpyJet.Tests;
 

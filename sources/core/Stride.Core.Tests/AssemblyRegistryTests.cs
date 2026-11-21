@@ -7,6 +7,8 @@ using System.Reflection.Emit;
 using Stride.Core.Reflection;
 using Xunit;
 
+[assembly: Stride.Core.DataContractAlias("TestBigInteger", typeof(System.Numerics.BigInteger))]
+
 namespace Stride.Core.Tests;
 
 public class AssemblyRegistryTests
@@ -55,5 +57,11 @@ public class AssemblyRegistryTests
             AssemblyRegistry.AssemblyUnregistered -= countingUnregistered;
             AssemblyRegistry.Unregister(assembly);
         }
+    }
+
+    [Fact]
+    public void ATypeOfAnotherLibraryIsFoundByTheAliasAnAssemblyGivesIt()
+    {
+        Assert.Equal(typeof(System.Numerics.BigInteger), AssemblyRegistry.GetTypeFromAlias("TestBigInteger"));
     }
 }

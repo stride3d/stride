@@ -6,6 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Regression;
 using Stride.Rendering.Sprites;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {

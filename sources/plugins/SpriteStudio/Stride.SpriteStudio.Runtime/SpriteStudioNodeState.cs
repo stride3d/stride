@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.SpriteStudio.Runtime
 {
@@ -15,9 +16,9 @@ namespace Stride.SpriteStudio.Runtime
             DefaultPixelsPerUnit = new Vector2(Sprite.DefaultPixelsPerUnit);
         }
 
-        public Matrix LocalTransform;
+        public Matrix4x4 LocalTransform;
 
-        public Matrix ModelTransform;
+        public Matrix4x4 ModelTransform;
 
         public int HFlipped;
 
@@ -62,16 +63,16 @@ namespace Stride.SpriteStudio.Runtime
         internal void UpdateTransformation()
         {
             var unit = Sprite?.PixelsPerUnit ?? DefaultPixelsPerUnit;
-            var scale = Matrix.Scaling(HFlipped != 0 ? -Scale.X : Scale.X, VFlipped != 0 ? -Scale.Y : Scale.Y, 1.0f);
-            var rot = Matrix.RotationZ(RotationZ);
-            var pos = Matrix.Translation(Position.X / unit.X, Position.Y / unit.Y, 0.0f);
+            var scale = Matrix4x4.CreateScale(HFlipped != 0 ? -Scale.X : Scale.X, VFlipped != 0 ? -Scale.Y : Scale.Y, 1.0f);
+            var rot = Matrix4x4.CreateRotationZ(RotationZ);
+            var pos = Matrix4x4.CreateTranslation(Position.X / unit.X, Position.Y / unit.Y, 0.0f);
             LocalTransform = scale*rot*pos;
 
             FinalTransparency = Transparency;
 
             if (ParentNode != null)
             {
-                Matrix.Multiply(ref LocalTransform, ref ParentNode.ModelTransform, out ModelTransform);
+                ModelTransform = LocalTransform * ParentNode.ModelTransform;
 
                 if (BaseNode.AlphaInheritance)
                 {

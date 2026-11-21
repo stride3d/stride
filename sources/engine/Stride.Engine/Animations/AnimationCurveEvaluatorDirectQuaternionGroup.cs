@@ -4,6 +4,7 @@
 using System;
 using Stride.Core.Mathematics;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Animations
 {

@@ -13,6 +13,7 @@ using Stride.Physics;
 using Stride.Rendering;
 using Stride.Core.Assets;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
+using System.Numerics;
 
 namespace Stride.Physics.Editor
 {
@@ -199,7 +200,7 @@ namespace Stride.Physics.Editor
 
                             if (skinnedElement.ColliderShape.LocalOffset != Vector3.Zero || skinnedElement.ColliderShape.LocalRotation != Quaternion.Identity)
                             {
-                                skinnedElement.BoneWorldMatrixOut = Matrix.Multiply(skinnedElement.ColliderShape.PositiveCenterMatrix, skinnedElement.BoneWorldMatrixOut);
+                                skinnedElement.BoneWorldMatrixOut = skinnedElement.ColliderShape.PositiveCenterMatrix * skinnedElement.BoneWorldMatrixOut;
                             }
                         }
                     }
@@ -245,7 +246,7 @@ namespace Stride.Physics.Editor
 
                         if (skinnedElement.ColliderShape.LocalOffset != Vector3.Zero || skinnedElement.ColliderShape.LocalRotation != Quaternion.Identity)
                         {
-                            skinnedElement.BoneWorldMatrixOut = Matrix.Multiply(skinnedElement.ColliderShape.PositiveCenterMatrix, skinnedElement.BoneWorldMatrixOut);
+                            skinnedElement.BoneWorldMatrixOut = skinnedElement.ColliderShape.PositiveCenterMatrix * skinnedElement.BoneWorldMatrixOut;
                         }
                     }
 
@@ -253,7 +254,7 @@ namespace Stride.Physics.Editor
                     Component.DebugEntity.Transform.Position = pos;
                     Component.DebugEntity.Transform.Rotation = rot;
 
-                    if (Component.CanScaleShape && Component.DebugEntity.Transform.Scale != scale)
+                    if (Component.CanScaleShape)
                     {
                         Component.DebugEntity.Transform.Scale = scale;
                     }
@@ -266,7 +267,7 @@ namespace Stride.Physics.Editor
                     Component.DebugEntity.Transform.Position = pos;
                     Component.DebugEntity.Transform.Rotation = rot;
 
-                    if (Component.CanScaleShape && Component.DebugEntity.Transform.Scale != scale)
+                    if (Component.CanScaleShape)
                     {
                         Component.DebugEntity.Transform.Scale = scale;
                     }

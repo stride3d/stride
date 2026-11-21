@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 using Stride.Rendering.Compositing;
+using System.Numerics;
 
 namespace Stride.Graphics.Regression
 {
@@ -95,7 +96,7 @@ namespace Stride.Graphics.Regression
         /// <summary>
         /// Gets the current view matrix of the camera.
         /// </summary>
-        public virtual Matrix ViewMatrix
+        public virtual Matrix4x4 ViewMatrix
         {
             get { return Camera.ViewMatrix; }
         }
@@ -103,7 +104,7 @@ namespace Stride.Graphics.Regression
         /// <summary>
         /// Gets the current projection matrix of the camera.
         /// </summary>
-        public virtual Matrix ProjectionMatrix
+        public virtual Matrix4x4 ProjectionMatrix
         {
             get
             {
@@ -114,7 +115,7 @@ namespace Stride.Graphics.Regression
         /// <summary>
         /// Gets the current view projection matrix of the camera.
         /// </summary>
-        public virtual Matrix ViewProjectionMatrix
+        public virtual Matrix4x4 ViewProjectionMatrix
         {
             get
             {
@@ -183,9 +184,9 @@ namespace Stride.Graphics.Regression
         /// </summary>
         public void SetTarget(Entity target, bool keepActualTargetDistance, float deltaDistance = 0, Vector3? targetOffset = null)
         {
-            var ypr = Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0);
-            var direction = Vector3.TransformNormal(forwardVector, Matrix.RotationQuaternion(ypr));
-            var targetPos = target.Transform.WorldMatrix.TranslationVector;
+            var ypr = Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0);
+            var direction = Vector3.TransformNormal(forwardVector, Matrix4x4.CreateFromQuaternion(ypr));
+            var targetPos = target.Transform.WorldMatrix.Translation;
             if (targetOffset.HasValue)
             {
                 targetPos += targetOffset.Value;
@@ -246,7 +247,7 @@ namespace Stride.Graphics.Regression
                 translationSpeed *= 10;
 
             // Compute base vectors for camera movement
-            var rotation = Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0);
+            var rotation = Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0);
 
             var forward = Vector3.Transform(forwardVector, rotation);
             var up = Vector3.Transform(upVector, rotation);
@@ -282,8 +283,8 @@ namespace Stride.Graphics.Regression
 
         private void UpdateViewMatrix()
         {
-            var rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-            var viewMatrix = Matrix.Translation(-position) * Matrix.RotationQuaternion(rotation);
+            var rotation = Quaternion.Inverse(Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0));
+            var viewMatrix = Matrix4x4.CreateTranslation(-position) * Matrix4x4.CreateFromQuaternion(rotation);
             Camera.ViewMatrix = viewMatrix;
         }
 

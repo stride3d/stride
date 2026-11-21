@@ -51,6 +51,7 @@ using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.TypeConverters;
 
@@ -101,7 +102,7 @@ public class Vector4Converter : BaseConverter
         if (value is Vector4 vector)
         {
             if (destinationType == typeof(string))
-                return vector.ToString();
+                return FieldsToString(vector, culture);
 
             if (destinationType == typeof(InstanceDescriptor))
             {

@@ -4,6 +4,7 @@
 
 using Stride.Core.Mathematics;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -20,9 +21,11 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         /// </summary>
         /// <param name="gizmoWorldMatrix">The world matrix of the gizmo.</param>
         /// <param name="viewMatrix">The view matrix of the camera.</param>
-        internal static GizmoTransformationAxes GetBackfacingAxes(Matrix gizmoWorldMatrix, Matrix viewMatrix)
+        internal static GizmoTransformationAxes GetBackfacingAxes(Matrix4x4 gizmoWorldMatrix, Matrix4x4 viewMatrix)
         {
-            var cameraInGizmoSpace = (Matrix.Invert(viewMatrix) * Matrix.Invert(gizmoWorldMatrix)).TranslationVector;
+            Matrix4x4.InvertSafe(viewMatrix, out var viewInverse);
+            Matrix4x4.InvertSafe(gizmoWorldMatrix, out var gizmoWorldInverse);
+            var cameraInGizmoSpace = (viewInverse * gizmoWorldInverse).Translation;
             var axes = GizmoTransformationAxes.None;
             for (var axis = 0; axis < 3; axis++)
             {
@@ -39,8 +42,9 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         {
             var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
             // determine the position of the start/end points of the drag in the gizmo space
-            var gizmoWorldInverse = Matrix.Invert(StartWorldMatrix);
-            var gizmoViewInverse = Matrix.Invert(cameraService.ViewMatrix) * gizmoWorldInverse;
+            Matrix4x4.InvertSafe(StartWorldMatrix, out var gizmoWorldInverse);
+            Matrix4x4.InvertSafe(cameraService.ViewMatrix, out var viewInverse);
+            var gizmoViewInverse = viewInverse * gizmoWorldInverse;
             var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, Input.MousePosition, gizmoViewInverse);
             var endPointGizmo = EditorGameHelper.ProjectOnPlaneWithLimitAngle(ray, ProjectionPlane, MinimumRayAngle);
             DragTranslationWorld = endPointGizmo - StartClickPoint;

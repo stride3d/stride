@@ -5,6 +5,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.UI.Controls;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Layering
 {
@@ -27,7 +28,7 @@ namespace Stride.UI.Tests.Layering
         public void TestDefaultLocalMatrix()
         {
             var image = new ImageElement();
-            Assert.Equal(Matrix.Identity, image.LocalMatrix);
+            Assert.Equal(Matrix4x4.Identity, image.LocalMatrix);
         }
 
         [Fact]
@@ -63,7 +64,7 @@ namespace Stride.UI.Tests.Layering
 
             image.Rotation = angle;
 
-            var expectedMatrix = Matrix.RotationZ(angle);
+            var expectedMatrix = Matrix4x4.CreateRotationZ(angle);
             AssertMatrixEqual(expectedMatrix, image.LocalMatrix);
         }
 
@@ -75,11 +76,11 @@ namespace Stride.UI.Tests.Layering
 
             // First set a non-zero rotation
             image.Rotation = MathUtil.PiOverFour;
-            Assert.NotEqual(Matrix.Identity, image.LocalMatrix);
+            Assert.NotEqual(Matrix4x4.Identity, image.LocalMatrix);
 
             // Then reset to zero
             image.Rotation = 0f;
-            Assert.Equal(Matrix.Identity, image.LocalMatrix);
+            Assert.Equal(Matrix4x4.Identity, image.LocalMatrix);
         }
 
         [Fact]
@@ -92,7 +93,7 @@ namespace Stride.UI.Tests.Layering
             image.Rotation = float.Epsilon / 2f;
 
             // Should be treated as zero
-            Assert.Equal(Matrix.Identity, image.LocalMatrix);
+            Assert.Equal(Matrix4x4.Identity, image.LocalMatrix);
         }
 
         [Fact]
@@ -103,15 +104,15 @@ namespace Stride.UI.Tests.Layering
 
             // First rotation
             image.Rotation = MathUtil.PiOverFour;
-            AssertMatrixEqual(Matrix.RotationZ(MathUtil.PiOverFour), image.LocalMatrix);
+            AssertMatrixEqual(Matrix4x4.CreateRotationZ(MathUtil.PiOverFour), image.LocalMatrix);
 
             // Second rotation
             image.Rotation = MathUtil.PiOverTwo;
-            AssertMatrixEqual(Matrix.RotationZ(MathUtil.PiOverTwo), image.LocalMatrix);
+            AssertMatrixEqual(Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo), image.LocalMatrix);
 
             // Third rotation (negative)
             image.Rotation = -MathUtil.PiOverFour;
-            AssertMatrixEqual(Matrix.RotationZ(-MathUtil.PiOverFour), image.LocalMatrix);
+            AssertMatrixEqual(Matrix4x4.CreateRotationZ(-MathUtil.PiOverFour), image.LocalMatrix);
         }
 
         [Fact]
@@ -162,7 +163,7 @@ namespace Stride.UI.Tests.Layering
         /// <summary>
         /// Helper method to assert that two matrices are approximately equal within a tolerance.
         /// </summary>
-        private static void AssertMatrixEqual(Matrix expected, Matrix actual, int precision = 5)
+        private static void AssertMatrixEqual(Matrix4x4 expected, Matrix4x4 actual, int precision = 5)
         {
             Assert.Equal(expected.M11, actual.M11, precision);
             Assert.Equal(expected.M12, actual.M12, precision);

@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -40,7 +41,7 @@ namespace Stride.Graphics
 
         public bool Equals(VertexPosition2 other)
         {
-            return Position.Equals(other.Position);
+            return Position == other.Position;
         }
 
         public override bool Equals(object obj)

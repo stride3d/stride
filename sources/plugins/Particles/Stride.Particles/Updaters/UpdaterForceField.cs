@@ -7,6 +7,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Particles.DebugDraw;
 using Stride.Particles.Updaters.FieldShapes;
+using System.Numerics;
 
 namespace Stride.Particles.Modules
 {
@@ -191,12 +192,12 @@ namespace Stride.Particles.Modules
 
             debugDrawShape = FieldShape?.GetDebugDrawShape(out translation, out rotation, out scale) ?? DebugDrawShape.None;
 
-            rotation *= WorldRotation;
+            rotation = Quaternion.Concatenate(rotation, WorldRotation);
 
             scale *= WorldScale;
 
             translation *= WorldScale;
-            rotation.Rotate(ref translation);
+            translation = Vector3.Transform(translation, rotation);
             translation += WorldPosition;
 
             return true;

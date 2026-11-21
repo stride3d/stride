@@ -17,6 +17,7 @@ using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.EditorGame;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.SceneEditor
 {
@@ -100,7 +101,7 @@ namespace Stride.Assets.Editor.SceneEditor
             var pickingDepthStencil = PushScopedResource(context.Allocator.GetTemporaryTexture2D(PickingTargetSize, PickingTargetSize, PickingRenderStage.Output.DepthStencilFormat, TextureFlags.DepthStencil));
 
             var renderTargetSize = new Vector2(pickingRenderTarget.Width, pickingRenderTarget.Height);
-            var positionInTexture = Vector2.Modulate(renderTargetSize, mousePosition);
+            var positionInTexture = renderTargetSize * mousePosition;
             int x = Math.Max(0, Math.Min((int)renderTargetSize.X - 2, (int)positionInTexture.X));
             int y = Math.Max(0, Math.Min((int)renderTargetSize.Y - 2, (int)positionInTexture.Y));
 

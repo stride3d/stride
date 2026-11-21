@@ -3,6 +3,7 @@
 
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Physics.Constraints
 {
@@ -31,8 +32,8 @@ namespace Stride.Physics.Constraints
         /// <inheritdoc/>
         public Constraint Build(RigidbodyComponent bodyA, RigidbodyComponent bodyB)
         {
-            var frameA = Matrix.Translation(PivotInA);
-            var frameB = Matrix.Translation(PivotInB);
+            var frameA = Matrix4x4.CreateTranslation(PivotInA);
+            var frameB = Matrix4x4.CreateTranslation(PivotInB);
 
             var point2point = (bodyB == null
                 ? Simulation.CreateConstraint(ConstraintTypes.Point2Point, bodyA, frameA)

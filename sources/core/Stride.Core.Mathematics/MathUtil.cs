@@ -885,7 +885,7 @@ public static class MathUtil
     /// <returns>The weighted average value at this <paramref name="coord"/></returns>
     public static unsafe T BilinearSample<T>(Vector2 coord, Int2 textureSize, T* texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
     {
-        var min = Vector2.Floor(coord);
+        var min = Vector2.Round(coord, MidpointRounding.ToNegativeInfinity);
         var cellFrac = coord - min;
         var cellInvFrac = new Vector2(1) - cellFrac;
 
@@ -936,7 +936,7 @@ public static class MathUtil
     /// <returns>The weighted average value at this <paramref name="coord"/></returns>
     public static unsafe float BilinearSample(Vector2 coord, Int2 textureSize, float* texture)
     {
-        var min = Vector2.Floor(coord);
+        var min = Vector2.Round(coord, MidpointRounding.ToNegativeInfinity);
         var cellFrac = coord - min;
         var cellInvFrac = new Vector2(1) - cellFrac;
 

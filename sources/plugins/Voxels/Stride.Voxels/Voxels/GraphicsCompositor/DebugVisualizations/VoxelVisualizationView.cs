@@ -9,6 +9,7 @@ using Stride.Rendering.Images;
 using Stride.Core.Annotations;
 using Stride.Shaders;
 using Stride.Rendering.Shadows;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels.Debug
 {
@@ -25,10 +26,11 @@ namespace Stride.Rendering.Voxels.Debug
         public ImageEffectShader GetShader(RenderDrawContext context, VoxelAttribute attr)
         {
             VoxelViewContext viewContext = new VoxelViewContext(false);
-            Matrix ViewProjection = context.RenderContext.RenderView.ViewProjection;
+            Matrix4x4 ViewProjection = context.RenderContext.RenderView.ViewProjection;
 
             voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.view, ViewProjection);
-            voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.viewInv, Matrix.Invert(ViewProjection));
+            Matrix4x4.InvertSafe(ViewProjection, out var viewProjectionInverse);
+            voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.viewInv, viewProjectionInverse);
             voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.background, (Vector4)Background);
 
             MarchMethod.UpdateMarchingLayout("marcher");

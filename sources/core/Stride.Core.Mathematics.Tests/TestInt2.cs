@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -61,7 +62,7 @@ public class TestInt2
         var dot = Int2.Dot(v1, v2);
         Assert.Equal(23, dot); // 2*4 + 3*5 = 23
 
-        Int2.Dot(ref v1, ref v2, out var dot2);
+        var dot2 = Int2.Dot(v1, v2);
         Assert.Equal(dot, dot2);
     }
 
@@ -74,7 +75,7 @@ public class TestInt2
         Assert.Equal(4, result.X);
         Assert.Equal(6, result.Y);
 
-        Int2.Add(ref v1, ref v2, out var result2);
+        var result2 = Int2.Add(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -87,7 +88,7 @@ public class TestInt2
         Assert.Equal(3, result.X);
         Assert.Equal(5, result.Y);
 
-        Int2.Subtract(ref v1, ref v2, out var result2);
+        var result2 = Int2.Subtract(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -102,7 +103,7 @@ public class TestInt2
         var result2 = 2 * v;
         Assert.Equal(result, result2);
 
-        Int2.Multiply(ref v, 2, out var result3);
+        var result3 = Int2.Multiply(v, 2);
         Assert.Equal(result, result3);
     }
 
@@ -114,7 +115,7 @@ public class TestInt2
         Assert.Equal(5, result.X);
         Assert.Equal(10, result.Y);
 
-        Int2.Divide(ref v, 2, out var result2);
+        var result2 = Int2.Divide(v, 2);
         Assert.Equal(result, result2);
     }
 
@@ -126,7 +127,7 @@ public class TestInt2
         Assert.Equal(-3, result.X);
         Assert.Equal(5, result.Y);
 
-        Int2.Negate(ref v, out var result2);
+        var result2 = Int2.Negate(v);
         Assert.Equal(result, result2);
     }
 
@@ -141,7 +142,7 @@ public class TestInt2
         Assert.Equal(0, result.X);
         Assert.Equal(10, result.Y);
 
-        Int2.Clamp(ref value, ref min, ref max, out var result2);
+        var result2 = Int2.Clamp(value, min, max);
         Assert.Equal(result, result2);
     }
 
@@ -154,7 +155,7 @@ public class TestInt2
         Assert.Equal(1, result.X);
         Assert.Equal(3, result.Y);
 
-        Int2.Min(ref v1, ref v2, out var result2);
+        var result2 = Int2.Min(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -167,7 +168,7 @@ public class TestInt2
         Assert.Equal(2, result.X);
         Assert.Equal(5, result.Y);
 
-        Int2.Max(ref v1, ref v2, out var result2);
+        var result2 = Int2.Max(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -234,7 +235,7 @@ public class TestInt2
     {
         var v1 = new Int2(12, 20);
         var v2 = new Int2(3, 4);
-        var result = Int2.Modulate(v1, v2);
+        var result = Int2.Multiply(v1, v2);
         Assert.Equal(36, result.X);
         Assert.Equal(80, result.Y);
     }
@@ -243,7 +244,7 @@ public class TestInt2
     public void TestInt2Pow()
     {
         var v = new Int2(2, 3);
-        v.Pow(2);
+        v = Int2.Pow(v, 2);
         Assert.Equal(4, v.X);
         Assert.Equal(9, v.Y);
     }

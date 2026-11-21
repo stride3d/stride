@@ -10,6 +10,7 @@ using Stride.Editor.Thumbnails;
 using Stride.Engine;
 using Stride.Rendering;
 using Stride.Rendering.ProceduralModels;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Thumbnails
 {
@@ -61,7 +62,7 @@ namespace Stride.Assets.Editor.Thumbnails
                 base.AdjustEntity();
 
                 // override the rotation so that the part of the model facing the screen display the center of the material by default and not the extremities
-                Entity.Transform.Rotation = Quaternion.RotationY(MathUtil.Pi);
+                Entity.Transform.Rotation = Quaternion.CreateRotationY(MathUtil.Pi);
             }
 
             protected override void DestroyScene(Scene scene)

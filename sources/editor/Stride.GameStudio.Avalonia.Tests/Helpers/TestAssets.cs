@@ -6,6 +6,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Assets;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.GameStudio.Avalonia.Tests.Helpers;
 
@@ -79,7 +80,7 @@ public sealed class DisplayedValuesAsset : Asset
 
     public Quaternion Rotation { get; set; }
 
-    public Matrix Transform { get; set; }
+    public Matrix4x4 Transform { get; set; }
 
     public RectangleF Region { get; set; }
 

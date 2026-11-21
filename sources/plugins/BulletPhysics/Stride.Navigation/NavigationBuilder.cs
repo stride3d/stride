@@ -8,6 +8,7 @@ using DotRecast.Core.Numerics;
 using DotRecast.Detour;
 using DotRecast.Recast;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Navigation;
 

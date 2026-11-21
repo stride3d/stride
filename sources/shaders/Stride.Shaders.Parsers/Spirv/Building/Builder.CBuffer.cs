@@ -22,6 +22,23 @@ partial class SpirvBuilder
         StructuredBufferTight,
     }
 
+    /// <summary>
+    /// The layout of a matrix declared without <c>row_major</c> or <c>column_major</c>: <c>row_major</c>, the memory order of
+    /// <see cref="System.Numerics.Matrix4x4"/> and Stride's <c>Matrix</c>, so C# data is copied to buffers as it is.
+    /// </summary>
+    public const TypeModifier DefaultMatrixLayout = TypeModifier.RowMajor;
+
+    /// <summary>The layout of a matrix declared with <paramref name="typeModifier"/>: <see cref="DefaultMatrixLayout"/> when it names none.</summary>
+    public static TypeModifier MatrixLayout(TypeModifier typeModifier)
+        => typeModifier is TypeModifier.RowMajor or TypeModifier.ColumnMajor ? typeModifier : DefaultMatrixLayout;
+
+    /// <summary>
+    /// The SPIR-V decoration of a matrix declared with <paramref name="typeModifier"/>. SPIR-V and HLSL name it the opposite
+    /// way (a HLSL row is a SPIR-V column): HLSL <c>row_major</c> is SPIR-V <c>ColMajor</c>.
+    /// </summary>
+    public static Specification.Decoration MatrixLayoutDecoration(TypeModifier typeModifier)
+        => MatrixLayout(typeModifier) == TypeModifier.RowMajor ? Specification.Decoration.ColMajor : Specification.Decoration.RowMajor;
+
     public static (int Size, int Alignment) TypeSizeInBuffer(SymbolType symbol, TypeModifier typeModifier, AlignmentRules alignmentRules)
     {
         // Helper to multiply size without changing alignment
@@ -48,7 +65,6 @@ partial class SpirvBuilder
                     TypeSizeInBuffer(v.BaseType, typeModifier, alignmentRules).Alignment * (v.Size == 2 ? 2 : 4)),
             VectorType v => MultiplySize(TypeSizeInBuffer(v.BaseType, typeModifier, alignmentRules), v.Size),
             // Note: this is HLSL-style so Rows/Columns meaning is swapped
-            // Note: HLSL default is ColumnMajor
             // StructuredBuffer uses std430 strict matrix layout: each column (ColumnMajor) or row
             // (RowMajor) is padded to its std430 base alignment, matching how the Vulkan validator
             // expects matrix layout under relaxed block layout.
@@ -57,9 +73,9 @@ partial class SpirvBuilder
             // Tight: the matrix vectors follow each other with no padding
             MatrixType m when alignmentRules == AlignmentRules.StructuredBufferTight
                 => (MatrixStride(m, typeModifier, alignmentRules) * MatrixLayoutVectors(m, typeModifier).Count, TypeSizeInBuffer(m.BaseType, typeModifier, alignmentRules).Alignment),
-            MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None
+            MatrixType m when MatrixLayout(typeModifier) == TypeModifier.ColumnMajor
                 => MultiplySize(TypeSizeInBuffer(m.BaseType, typeModifier, alignmentRules), (4 * (m.Rows - 1)) + m.Columns),
-            MatrixType m when typeModifier == TypeModifier.RowMajor
+            MatrixType m
                 => MultiplySize(TypeSizeInBuffer(m.BaseType, typeModifier, alignmentRules), (4 * (m.Columns - 1)) + m.Rows),
             // Round up to 16 bytes (size of float4)
             ArrayType a => Array(TypeSizeInBuffer(a.BaseType, typeModifier, alignmentRules), a.Size, alignmentRules),
@@ -69,13 +85,13 @@ partial class SpirvBuilder
     }
 
     /// <summary>
-    /// The vectors a matrix is stored as in a buffer, as its layout decoration says (<c>ShaderMixer.DecorateMember</c>):
-    /// HLSL <c>column_major</c> (the default) is SPIR-V <c>RowMajor</c>, <c>Rows</c> vectors of <c>Columns</c> elements;
-    /// HLSL <c>row_major</c> is SPIR-V <c>ColMajor</c>, <c>Columns</c> vectors of <c>Rows</c> elements.
+    /// The vectors a matrix is stored as in a buffer, as its layout decoration says (<see cref="MatrixLayoutDecoration"/>):
+    /// HLSL <c>row_major</c> (the default) is SPIR-V <c>ColMajor</c>, <c>Columns</c> vectors of <c>Rows</c> elements;
+    /// HLSL <c>column_major</c> is SPIR-V <c>RowMajor</c>, <c>Rows</c> vectors of <c>Columns</c> elements.
     /// (A HLSL row is a SPIR-V column, so <c>Columns</c> counts the HLSL rows.)
     /// </summary>
     public static (int VectorSize, int Count) MatrixLayoutVectors(MatrixType m, TypeModifier typeModifier)
-        => typeModifier == TypeModifier.RowMajor ? (m.Rows, m.Columns) : (m.Columns, m.Rows);
+        => MatrixLayout(typeModifier) == TypeModifier.RowMajor ? (m.Rows, m.Columns) : (m.Columns, m.Rows);
 
     /// <summary>
     /// The <c>MatrixStride</c> decoration of a matrix in a buffer: a float4 register in a cbuffer, the std430 stride of

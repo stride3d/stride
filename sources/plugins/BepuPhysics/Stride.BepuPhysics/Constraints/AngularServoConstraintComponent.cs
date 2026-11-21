@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Constraints;
 
@@ -26,11 +27,11 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
     {
         get
         {
-            return BepuConstraint.TargetRelativeRotationLocalA.ToStride();
+            return BepuConstraint.TargetRelativeRotationLocalA;
         }
         set
         {
-            BepuConstraint.TargetRelativeRotationLocalA = value.ToNumeric();
+            BepuConstraint.TargetRelativeRotationLocalA = value;
             TryUpdateDescription();
         }
     }

@@ -3,6 +3,7 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Engine
 {
@@ -23,7 +24,7 @@ namespace Stride.Engine
         public TransformTRS Transform;
 
         /// <inheritdoc/>
-        public override void ComputeMatrix(bool recursive, out Matrix matrix)
+        public override void ComputeMatrix(bool recursive, out Matrix4x4 matrix)
         {
             if (recursive)
             {

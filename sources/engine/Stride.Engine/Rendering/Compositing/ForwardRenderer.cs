@@ -16,6 +16,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Shadows;
 using Stride.Rendering.SubsurfaceScattering;
 using Stride.VirtualReality;
+using System.Numerics;
 
 namespace Stride.Rendering.Compositing
 {
@@ -314,7 +315,7 @@ namespace Stride.Rendering.Compositing
                 if (VRSettings.Enabled && VRSettings.VRDevice != null)
                 {
                     Vector3 cameraPos, cameraScale;
-                    Matrix cameraRot;
+                    Matrix4x4 cameraRot;
 
                     if (!vrSystem.PreviousUseCustomViewMatrix)
                     {
@@ -323,19 +324,19 @@ namespace Stride.Rendering.Compositing
                     else
                     {
                         camera.ViewMatrix.Decompose(out cameraScale, out cameraRot, out cameraPos);
-                        cameraRot.Transpose();
-                        Vector3.Negate(ref cameraPos, out cameraPos);
-                        Vector3.TransformCoordinate(ref cameraPos, ref cameraRot, out cameraPos);
+                        cameraRot = Matrix4x4.Transpose(cameraRot);
+                        cameraPos = -cameraPos;
+                        cameraPos = Vector3.TransformCoordinate(cameraPos, cameraRot);
                     }
 
                     if (VRSettings.IgnoreCameraRotation)
                     {
-                        cameraRot = Matrix.Identity;
+                        cameraRot = Matrix4x4.Identity;
                     }
 
                     // Compute both view and projection matrices
-                    Matrix* viewMatrices = stackalloc Matrix[2];
-                    Matrix* projectionMatrices = stackalloc Matrix[2];
+                    Matrix4x4* viewMatrices = stackalloc Matrix4x4[2];
+                    Matrix4x4* projectionMatrices = stackalloc Matrix4x4[2];
                     for (var i = 0; i < 2; ++i)
                         VRSettings.VRDevice.ReadEyeParameters(i == 0 ? Eyes.Left : Eyes.Right, camera.NearClipPlane, camera.FarClipPlane, ref cameraPos, ref cameraRot, VRSettings.IgnoreDeviceRotation, VRSettings.IgnoreDevicePosition, out viewMatrices[i], out projectionMatrices[i]);
 

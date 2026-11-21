@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering.Shadows;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Lights
 {

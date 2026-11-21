@@ -11,6 +11,7 @@ using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.ProceduralModels;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

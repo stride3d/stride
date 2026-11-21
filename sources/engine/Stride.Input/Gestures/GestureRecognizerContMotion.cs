@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Input
 {

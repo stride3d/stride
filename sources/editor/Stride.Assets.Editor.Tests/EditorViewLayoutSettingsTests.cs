@@ -13,6 +13,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Settings;
 using Stride.Editor.Engine;
 using Stride.Engine.Processors;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests;
 

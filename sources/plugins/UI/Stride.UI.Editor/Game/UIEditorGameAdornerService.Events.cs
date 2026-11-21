@@ -15,6 +15,7 @@ using Stride.Rendering.UI;
 using Stride.UI;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
 using Stride.Assets.Editor.ViewModels;
+using System.Numerics;
 
 namespace Stride.UI.Editor.Game
 {
@@ -289,7 +290,7 @@ namespace Stride.UI.Editor.Game
                 return null;
 
             var ray = new Ray(new Vector3(worldPosition.X, worldPosition.Y, uiComponent.Resolution.Z + 1), -Vector3.UnitZ);
-            var worldViewProj = Matrix.Identity; // All the calculation is done in UI space
+            var worldViewProj = Matrix4x4.Identity; // All the calculation is done in UI space
             return UIRenderFeature.GetElementsAtPosition(rootElement, ref ray, ref worldViewProj);
         }
 

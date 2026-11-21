@@ -7,6 +7,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Layering
 {
@@ -149,7 +150,7 @@ namespace Stride.UI.Tests.Layering
             providedSize = new Vector3(10, 20, 30);
             Measure(providedSize);
             Arrange(providedSize, false);
-            Assert.Equal(Matrix.Translation(2f-5f,8f-6f-10f,18f-24f-15f), child.DependencyProperties.Get(PanelArrangeMatrixPropertyKey));
+            Assert.Equal(Matrix4x4.CreateTranslation(2f-5f,8f-6f-10f,18f-24f-15f), child.DependencyProperties.Get(PanelArrangeMatrixPropertyKey));
         }
         
         /// <summary>
@@ -259,8 +260,8 @@ namespace Stride.UI.Tests.Layering
             {
                 var pinPosition = canvas.Children[i].DependencyProperties.Get(AbsolutePositionPropertyKey);
                 var pinOrigin = canvas.Children[i].DependencyProperties.Get(PinOriginPropertyKey);
-                var childOffsets = (pinPosition - Vector3.Modulate(pinOrigin, canvas.Children[i].RenderSize)) - canvas.RenderSize / 2;
-                Assert.Equal(Matrix.Translation(childOffsets), canvas.Children[i].DependencyProperties.Get(PanelArrangeMatrixPropertyKey));
+                var childOffsets = (pinPosition - Vector3.Multiply(pinOrigin, canvas.Children[i].RenderSize)) - canvas.RenderSize / 2;
+                Assert.Equal(Matrix4x4.CreateTranslation(childOffsets), canvas.Children[i].DependencyProperties.Get(PanelArrangeMatrixPropertyKey));
             }
         }
 

@@ -4,6 +4,7 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Materials.ComputeColors
 {
@@ -77,12 +78,12 @@ namespace Stride.Rendering.Materials.ComputeColors
             else if (key is ValueParameterKey<Color3> c3)
             {
                 threeDims = true;
-                context.Parameters.Set(c3, (Color3)(Vector3)color);
+                context.Parameters.Set(c3, (Color3)color.AsVector3());
             }
             else if (key is ValueParameterKey<Vector3> v3)
             {
                 threeDims = true;
-                context.Parameters.Set(v3, (Vector3)color);
+                context.Parameters.Set(v3, color.AsVector3());
             }
             else
             {

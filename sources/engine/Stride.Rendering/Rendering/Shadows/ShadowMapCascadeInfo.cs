@@ -4,6 +4,7 @@
 using System.Runtime.InteropServices;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering.Shadows
 {
@@ -11,7 +12,7 @@ namespace Stride.Rendering.Shadows
     internal struct ShadowMapCascadeInfo
     {
         public ShadowMapCascadeLevel CascadeLevels;
-        public Matrix ViewProjCaster;
+        public Matrix4x4 ViewProjCaster;
         public Vector4 CascadeTextureCoords;
     }
 }

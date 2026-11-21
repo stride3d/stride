@@ -23,6 +23,8 @@ using SilkBox2I = Silk.NET.Maths.Box2D<int>;
 
 using static System.Runtime.CompilerServices.Unsafe;
 
+using System.Numerics;
+
 namespace Stride.Graphics
 {
     public unsafe partial class CommandList

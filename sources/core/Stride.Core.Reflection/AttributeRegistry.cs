@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Numerics;
 using System.Reflection;
 
 namespace Stride.Core.Reflection;
@@ -18,6 +19,19 @@ public class AttributeRegistry : IAttributeRegistry
 
     // TODO: move this in a different location
     public Action<ObjectDescriptor, List<IMemberDescriptor>>? PrepareMembersCallback { get; set; }
+
+    public AttributeRegistry()
+    {
+        // The System.Numerics types are data like the math types of Stride: only their fields, written on one line
+        foreach (var type in (Type[])[typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Quaternion), typeof(Matrix4x4), typeof(Plane)])
+        {
+            foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                Register(property, new DataMemberIgnoreAttribute());
+            // A plane is written as an object that has a vector
+            if (type != typeof(Plane))
+                Register(type, new DataStyleAttribute(DataStyle.Compact));
+        }
+    }
 
     /// <summary>
     /// Gets the attributes associated with the specified member.

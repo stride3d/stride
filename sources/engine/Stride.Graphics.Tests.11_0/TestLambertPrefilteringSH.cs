@@ -12,6 +12,7 @@ using Stride.Rendering.ComputeEffect.LambertianPrefiltering;
 using Stride.Rendering.Images.SphericalHarmonics;
 using Stride.Games;
 using Stride.Input;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

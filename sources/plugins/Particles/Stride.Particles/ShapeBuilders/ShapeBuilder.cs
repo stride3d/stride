@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Particles.Sorters;
 using Stride.Particles.VertexLayouts;
+using System.Numerics;
 
 namespace Stride.Particles.ShapeBuilders
 {
@@ -43,7 +44,7 @@ namespace Stride.Particles.ShapeBuilders
         /// <param name="viewProj">The View-Projection matrix which is used for some shape builders</param>
         /// <returns></returns>
         public abstract int BuildVertexBuffer(ref ParticleBufferState bufferState, Vector3 invViewX, Vector3 invViewY,
-            ref Vector3 spaceTranslation, ref Quaternion spaceRotation, float spaceScale, ref ParticleList sorter, ref Matrix viewProj);
+            ref Vector3 spaceTranslation, ref Quaternion spaceRotation, float spaceScale, ref ParticleList sorter, ref Matrix4x4 viewProj);
 
         /// <summary>
         /// Check if ParticleVertexElements should be changed and set HasVertexLayoutChanged = true; if they do

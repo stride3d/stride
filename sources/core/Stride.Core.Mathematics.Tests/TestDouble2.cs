@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -85,7 +86,7 @@ public class TestDouble2
     public void TestDouble2Normalize()
     {
         var v = new Double2(3.0, 4.0);
-        var normalized = Double2.Normalize(v);
+        var normalized = Double2.NormalizeSafe(v);
         Assert.Equal(0.6, normalized.X, 5);
         Assert.Equal(0.8, normalized.Y, 5);
         Assert.Equal(1.0, normalized.Length(), 5);
@@ -147,7 +148,7 @@ public class TestDouble2
     {
         var v1 = new Double2(2.0, 3.0);
         var v2 = new Double2(4.0, 5.0);
-        var result = Double2.Modulate(v1, v2);
+        var result = Double2.Multiply(v1, v2);
         Assert.Equal(8.0, result.X);
         Assert.Equal(15.0, result.Y);
     }
@@ -157,7 +158,7 @@ public class TestDouble2
     {
         var v1 = new Double2(8.0, 15.0);
         var v2 = new Double2(4.0, 5.0);
-        var result = Double2.Demodulate(v1, v2);
+        var result = Double2.Divide(v1, v2);
         Assert.Equal(2.0, result.X);
         Assert.Equal(3.0, result.Y);
     }
@@ -262,7 +263,7 @@ public class TestDouble2
     public void TestDouble2TransformByQuaternion()
     {
         var vector = new Double2(1.0, 0.0);
-        var rotation = Quaternion.RotationZ(MathUtil.PiOverTwo);
+        var rotation = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
         var result = Double2.Transform(vector, rotation);
         Assert.Equal(0.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
@@ -272,7 +273,7 @@ public class TestDouble2
     public void TestDouble2TransformCoordinate()
     {
         var vector = new Double2(1.0, 0.0);
-        var matrix = Matrix.Translation(1.0f, 2.0f, 0.0f);
+        var matrix = Matrix4x4.CreateTranslation(1.0f, 2.0f, 0.0f);
         var result = Double2.TransformCoordinate(vector, matrix);
         Assert.Equal(2.0, result.X, 5);
         Assert.Equal(2.0, result.Y, 5);
@@ -282,7 +283,7 @@ public class TestDouble2
     public void TestDouble2TransformNormal()
     {
         var normal = new Double2(1.0, 0.0);
-        var matrix = Matrix.RotationZ(MathUtil.PiOverTwo);
+        var matrix = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
         var result = Double2.TransformNormal(normal, matrix);
         Assert.Equal(0.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
@@ -389,7 +390,7 @@ public class TestDouble2
     public void TestDouble2NormalizeInstance()
     {
         var v = new Double2(3.0, 4.0);
-        v.Normalize();
+        v = Double2.NormalizeSafe(v);
         Assert.Equal(0.6, v.X, 5);
         Assert.Equal(0.8, v.Y, 5);
         Assert.Equal(1.0, v.Length(), 5);
@@ -400,7 +401,7 @@ public class TestDouble2
     {
         var v1 = new Double2(1.0, 2.0);
         var v2 = new Double2(3.0, 4.0);
-        Double2.Add(ref v1, ref v2, out var result);
+        var result = Double2.Add(v1, v2);
         Assert.Equal(4.0, result.X);
         Assert.Equal(6.0, result.Y);
     }
@@ -410,7 +411,7 @@ public class TestDouble2
     {
         var v1 = new Double2(5.0, 7.0);
         var v2 = new Double2(2.0, 3.0);
-        Double2.Subtract(ref v1, ref v2, out var result);
+        var result = Double2.Subtract(v1, v2);
         Assert.Equal(3.0, result.X);
         Assert.Equal(4.0, result.Y);
     }
@@ -419,7 +420,7 @@ public class TestDouble2
     public void TestDouble2MultiplyWithOutParameter()
     {
         var v = new Double2(2.0, 3.0);
-        Double2.Multiply(ref v, 2.0, out var result);
+        var result = Double2.Multiply(v, 2.0);
         Assert.Equal(4.0, result.X);
         Assert.Equal(6.0, result.Y);
     }
@@ -428,7 +429,7 @@ public class TestDouble2
     public void TestDouble2DivideWithOutParameter()
     {
         var v = new Double2(4.0, 6.0);
-        Double2.Divide(ref v, 2.0, out var result);
+        var result = Double2.Divide(v, 2.0);
         Assert.Equal(2.0, result.X);
         Assert.Equal(3.0, result.Y);
     }
@@ -437,7 +438,7 @@ public class TestDouble2
     public void TestDouble2NegateWithOutParameter()
     {
         var v = new Double2(1.0, -2.0);
-        Double2.Negate(ref v, out var result);
+        var result = Double2.Negate(v);
         Assert.Equal(-1.0, result.X);
         Assert.Equal(2.0, result.Y);
     }
@@ -447,7 +448,7 @@ public class TestDouble2
     {
         var v1 = new Double2(2.0, 3.0);
         var v2 = new Double2(4.0, 5.0);
-        Double2.Modulate(ref v1, ref v2, out var result);
+        var result = Double2.Multiply(v1, v2);
         Assert.Equal(8.0, result.X);
         Assert.Equal(15.0, result.Y);
     }
@@ -457,7 +458,7 @@ public class TestDouble2
     {
         var v1 = new Double2(8.0, 15.0);
         var v2 = new Double2(4.0, 5.0);
-        Double2.Demodulate(ref v1, ref v2, out var result);
+        var result = Double2.Divide(v1, v2);
         Assert.Equal(2.0, result.X);
         Assert.Equal(3.0, result.Y);
     }
@@ -468,7 +469,7 @@ public class TestDouble2
         var value = new Double2(5.0, -5.0);
         var min = new Double2(0.0, 0.0);
         var max = new Double2(10.0, 10.0);
-        Double2.Clamp(ref value, ref min, ref max, out var result);
+        var result = Double2.Clamp(value, min, max);
         Assert.Equal(5.0, result.X);
         Assert.Equal(0.0, result.Y);
     }
@@ -478,7 +479,7 @@ public class TestDouble2
     {
         var v1 = new Double2(1.0, 5.0);
         var v2 = new Double2(3.0, 2.0);
-        Double2.Min(ref v1, ref v2, out var result);
+        var result = Double2.Min(v1, v2);
         Assert.Equal(1.0, result.X);
         Assert.Equal(2.0, result.Y);
     }
@@ -488,7 +489,7 @@ public class TestDouble2
     {
         var v1 = new Double2(1.0, 5.0);
         var v2 = new Double2(3.0, 2.0);
-        Double2.Max(ref v1, ref v2, out var result);
+        var result = Double2.Max(v1, v2);
         Assert.Equal(3.0, result.X);
         Assert.Equal(5.0, result.Y);
     }
@@ -498,7 +499,7 @@ public class TestDouble2
     {
         var start = new Double2(0.0, 0.0);
         var end = new Double2(10.0, 10.0);
-        Double2.Lerp(ref start, ref end, 0.5, out var result);
+        var result = Double2.Lerp(start, end, 0.5);
         Assert.Equal(5.0, result.X);
         Assert.Equal(5.0, result.Y);
     }
@@ -508,7 +509,7 @@ public class TestDouble2
     {
         var start = new Double2(0.0, 0.0);
         var end = new Double2(10.0, 10.0);
-        Double2.SmoothStep(ref start, ref end, 0.5, out var result);
+        var result = Double2.SmoothStep(start, end, 0.5);
         Assert.Equal(5.0, result.X);
         Assert.Equal(5.0, result.Y);
     }
@@ -519,7 +520,7 @@ public class TestDouble2
         var v1 = new Double2(0.0, 0.0);
         var v2 = new Double2(10.0, 0.0);
         var v3 = new Double2(0.0, 10.0);
-        Double2.Barycentric(ref v1, ref v2, ref v3, 0.5, 0.5, out var result);
+        var result = Double2.Barycentric(v1, v2, v3, 0.5, 0.5);
         Assert.Equal(5.0, result.X);
         Assert.Equal(5.0, result.Y);
     }
@@ -531,7 +532,7 @@ public class TestDouble2
         var v2 = new Double2(1.0, 1.0);
         var v3 = new Double2(2.0, 2.0);
         var v4 = new Double2(3.0, 3.0);
-        Double2.CatmullRom(ref v1, ref v2, ref v3, ref v4, 0.5, out var result);
+        var result = Double2.CatmullRom(v1, v2, v3, v4, 0.5);
         Assert.Equal(1.5, result.X, 5);
         Assert.Equal(1.5, result.Y, 5);
     }
@@ -543,7 +544,7 @@ public class TestDouble2
         var t1 = new Double2(1.0, 1.0);
         var v2 = new Double2(2.0, 2.0);
         var t2 = new Double2(1.0, 1.0);
-        Double2.Hermite(ref v1, ref t1, ref v2, ref t2, 0.5, out var result);
+        var result = Double2.Hermite(v1, t1, v2, t2, 0.5);
         Assert.Equal(1.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
     }
@@ -553,7 +554,7 @@ public class TestDouble2
     {
         var vector = new Double2(1.0, -1.0);
         var normal = new Double2(0.0, 1.0);
-        Double2.Reflect(ref vector, ref normal, out var result);
+        var result = Double2.Reflect(vector, normal);
         Assert.Equal(1.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
     }
@@ -562,8 +563,8 @@ public class TestDouble2
     public void TestDouble2TransformByQuaternionWithOutParameter()
     {
         var vector = new Double2(1.0, 0.0);
-        var rotation = Quaternion.RotationZ(MathUtil.PiOverTwo);
-        Double2.Transform(ref vector, ref rotation, out var result);
+        var rotation = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
+        var result = Double2.Transform(vector, rotation);
         Assert.Equal(0.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
     }
@@ -572,8 +573,8 @@ public class TestDouble2
     public void TestDouble2TransformCoordinateWithOutParameter()
     {
         var vector = new Double2(1.0, 0.0);
-        var matrix = Matrix.Translation(1.0f, 2.0f, 0.0f);
-        Double2.TransformCoordinate(ref vector, ref matrix, out var result);
+        var matrix = Matrix4x4.CreateTranslation(1.0f, 2.0f, 0.0f);
+        var result = Double2.TransformCoordinate(vector, matrix);
         Assert.Equal(2.0, result.X, 5);
         Assert.Equal(2.0, result.Y, 5);
     }
@@ -582,8 +583,8 @@ public class TestDouble2
     public void TestDouble2TransformNormalWithOutParameter()
     {
         var normal = new Double2(1.0, 0.0);
-        var matrix = Matrix.RotationZ(MathUtil.PiOverTwo);
-        Double2.TransformNormal(ref normal, ref matrix, out var result);
+        var matrix = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
+        var result = Double2.TransformNormal(normal, matrix);
         Assert.Equal(0.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
     }
@@ -592,7 +593,7 @@ public class TestDouble2
     public void TestDouble2NormalizeWithOutParameter()
     {
         var v = new Double2(3.0, 4.0);
-        Double2.Normalize(ref v, out var result);
+        var result = Double2.NormalizeSafe(v);
         Assert.Equal(0.6, result.X, 5);
         Assert.Equal(0.8, result.Y, 5);
     }
@@ -602,7 +603,7 @@ public class TestDouble2
     {
         var v1 = new Double2(1.0, 2.0);
         var v2 = new Double2(4.0, 6.0);
-        Double2.Distance(ref v1, ref v2, out var result);
+        var result = Double2.Distance(v1, v2);
         Assert.Equal(5.0, result);
     }
 
@@ -611,7 +612,7 @@ public class TestDouble2
     {
         var v1 = new Double2(1.0, 2.0);
         var v2 = new Double2(4.0, 6.0);
-        Double2.DistanceSquared(ref v1, ref v2, out var result);
+        var result = Double2.DistanceSquared(v1, v2);
         Assert.Equal(25.0, result);
     }
 
@@ -620,7 +621,7 @@ public class TestDouble2
     {
         var v1 = new Double2(1.0, 2.0);
         var v2 = new Double2(3.0, 4.0);
-        Double2.Dot(ref v1, ref v2, out var result);
+        var result = Double2.Dot(v1, v2);
         Assert.Equal(11.0, result);
     }
 
@@ -629,9 +630,9 @@ public class TestDouble2
     {
         var source = new[] { new Double2(1.0, 0.0), new Double2(0.0, 1.0) };
         var destination = new Double2[2];
-        var rotation = Quaternion.RotationZ(MathUtil.PiOverTwo);
+        var rotation = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
 
-        Double2.Transform(source, ref rotation, destination);
+        Double2.Transform(source, rotation, destination);
 
         Assert.Equal(0.0, destination[0].X, 5);
         Assert.Equal(1.0, destination[0].Y, 5);
@@ -644,9 +645,9 @@ public class TestDouble2
     {
         var source = new[] { new Double2(1.0, 0.0), new Double2(0.0, 1.0) };
         var destination = new Double2[2];
-        var matrix = Matrix.Translation(1.0f, 2.0f, 0.0f);
+        var matrix = Matrix4x4.CreateTranslation(1.0f, 2.0f, 0.0f);
 
-        Double2.TransformCoordinate(source, ref matrix, destination);
+        Double2.TransformCoordinate(source, matrix, destination);
 
         Assert.Equal(2.0, destination[0].X, 5);
         Assert.Equal(2.0, destination[0].Y, 5);
@@ -659,9 +660,9 @@ public class TestDouble2
     {
         var source = new[] { new Double2(1.0, 0.0), new Double2(0.0, 1.0) };
         var destination = new Double2[2];
-        var matrix = Matrix.RotationZ(MathUtil.PiOverTwo);
+        var matrix = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
 
-        Double2.TransformNormal(source, ref matrix, destination);
+        Double2.TransformNormal(source, matrix, destination);
 
         Assert.Equal(0.0, destination[0].X, 5);
         Assert.Equal(1.0, destination[0].Y, 5);

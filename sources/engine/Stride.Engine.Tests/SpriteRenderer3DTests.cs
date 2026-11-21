@@ -9,6 +9,7 @@ using Stride.Games;
 using Stride.Graphics;
 using Stride.Graphics.Regression;
 using Stride.Rendering.Sprites;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {

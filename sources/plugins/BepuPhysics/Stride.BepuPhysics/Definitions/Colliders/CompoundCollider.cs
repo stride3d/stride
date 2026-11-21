@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.BepuPhysics.Systems;
 using Stride.Core.Annotations;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -83,7 +84,7 @@ public sealed class CompoundCollider : ICollider
                 var localTranslation = collider.PositionLocal;
                 var localRotation = collider.RotationLocal;
 
-                var compoundChildLocalPose = new NRigidPose(localTranslation.ToNumeric(), localRotation.ToNumeric());
+                var compoundChildLocalPose = new NRigidPose(localTranslation, localRotation);
                 collider.AddToCompoundBuilder(shapeCache, pool, ref compoundBuilder, compoundChildLocalPose);
             }
 
@@ -103,7 +104,7 @@ public sealed class CompoundCollider : ICollider
             }
 
             index = IsBig ? shapes.Add(new BigCompound(compoundChildren, shapes, pool)) : shapes.Add(new Compound(compoundChildren));
-            centerOfMass = shapeCenter.ToStride();
+            centerOfMass = shapeCenter;
         }
         finally
         {

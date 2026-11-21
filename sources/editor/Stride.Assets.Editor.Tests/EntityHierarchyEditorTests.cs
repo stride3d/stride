@@ -12,6 +12,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Services;
 using Stride.Engine;
 using Stride.Assets.Editor.AssetEditors.GameEditor;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -108,7 +109,7 @@ public sealed class EntityHierarchyEditorTests
         var undoRedo = fixture.Session.UndoRedoService;
         var names = new List<string?>();
         undoRedo.Done += (_, e) => names.Add(undoRedo.GetName(e.Transaction));
-        var rotation = Quaternion.RotationY(MathUtil.PiOverTwo);
+        var rotation = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
 
         editor.UpdateTransformations(new Dictionary<Core.AbsoluteId, TransformationTRS>
         {

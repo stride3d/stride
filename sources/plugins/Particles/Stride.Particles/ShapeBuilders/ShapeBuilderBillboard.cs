@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Animations;
 using Stride.Particles.Sorters;
 using Stride.Particles.VertexLayouts;
+using System.Numerics;
 
 namespace Stride.Particles.ShapeBuilders
 {
@@ -41,7 +42,7 @@ namespace Stride.Particles.ShapeBuilders
 
         /// <inheritdoc />
         public override unsafe int BuildVertexBuffer(ref ParticleBufferState bufferState, Vector3 invViewX, Vector3 invViewY,
-            ref Vector3 spaceTranslation, ref Quaternion spaceRotation, float spaceScale, ref ParticleList sorter, ref Matrix viewProj)
+            ref Vector3 spaceTranslation, ref Quaternion spaceRotation, float spaceScale, ref ParticleList sorter, ref Matrix4x4 viewProj)
         {
             // Update the curve samplers if required
             base.BuildVertexBuffer(ref bufferState, invViewX, invViewY, ref spaceTranslation, ref spaceRotation, spaceScale, ref sorter, ref viewProj);
@@ -58,8 +59,8 @@ namespace Stride.Particles.ShapeBuilders
 
             // Check if the draw space is identity - in this case we don't need to transform the position, scale and rotation vectors
             var trsIdentity = (spaceScale == 1f);
-            trsIdentity = trsIdentity && (spaceTranslation.Equals(Vector3.Zero));
-            trsIdentity = trsIdentity && (spaceRotation.Equals(Quaternion.Identity));
+            trsIdentity = trsIdentity && (spaceTranslation == Vector3.Zero);
+            trsIdentity = trsIdentity && (spaceRotation == Quaternion.Identity);
 
 
             var renderedParticles = 0;
@@ -75,7 +76,7 @@ namespace Stride.Particles.ShapeBuilders
 
                 if (!trsIdentity)
                 {
-                    spaceRotation.Rotate(ref centralPos);
+                    centralPos = Vector3.Transform(centralPos, spaceRotation);
                     centralPos = centralPos * spaceScale + spaceTranslation;
                     particleSize *= spaceScale;
                 }

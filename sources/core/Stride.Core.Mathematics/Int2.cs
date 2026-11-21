@@ -27,9 +27,11 @@
 * THE SOFTWARE.
 */
 
+using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -162,12 +164,6 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     public static explicit operator Int2(System.Numerics.Vector2 v) => new((int)v.X,(int)v.Y);
 
     /// <summary>
-    /// Casts from Stride.Maths to System.Numerics vectors
-    /// </summary>
-    /// <param name="v">Value to cast</param>
-    public static explicit operator System.Numerics.Vector2(Int2 v) => new(v.X, v.Y);
-
-    /// <summary>
     /// Calculates the length of the vector.
     /// </summary>
     /// <returns>The length of the vector.</returns>
@@ -194,16 +190,6 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     }
 
     /// <summary>
-    /// Raises the exponent for each components.
-    /// </summary>
-    /// <param name="exponent">The exponent.</param>
-    public void Pow(int exponent)
-    {
-        X = (int)Math.Pow(X, exponent);
-        Y = (int)Math.Pow(Y, exponent);
-    }
-
-    /// <summary>
     /// Creates an array containing the elements of the vector.
     /// </summary>
     /// <returns>A two-element array containing the components of the vector.</returns>
@@ -212,15 +198,12 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
         return [X, Y];
     }
 
-    /// <summary>
-    /// Adds two vectors.
-    /// </summary>
-    /// <param name="left">The first vector to add.</param>
-    /// <param name="right">The second vector to add.</param>
-    /// <param name="result">When the method completes, contains the sum of the two vectors.</param>
-    public static void Add(ref readonly Int2 left, ref readonly Int2 right, out Int2 result)
+    /// <summary>Raises each component of a vector to a power.</summary>
+    /// <param name="value">The vector.</param>
+    /// <param name="exponent">The exponent.</param>
+    public static Int2 Pow(Int2 value, int exponent)
     {
-        result = new Int2(left.X + right.X, left.Y + right.Y);
+        return new Int2((int)Math.Pow(value.X, exponent), (int)Math.Pow(value.Y, exponent));
     }
 
     /// <summary>
@@ -239,32 +222,10 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     /// </summary>
     /// <param name="left">The first vector to subtract.</param>
     /// <param name="right">The second vector to subtract.</param>
-    /// <param name="result">When the method completes, contains the difference of the two vectors.</param>
-    public static void Subtract(ref readonly Int2 left, ref readonly Int2 right, out Int2 result)
-    {
-        result = new Int2(left.X - right.X, left.Y - right.Y);
-    }
-
-    /// <summary>
-    /// Subtracts two vectors.
-    /// </summary>
-    /// <param name="left">The first vector to subtract.</param>
-    /// <param name="right">The second vector to subtract.</param>
     /// <returns>The difference of the two vectors.</returns>
     public static Int2 Subtract(Int2 left, Int2 right)
     {
         return new Int2(left.X - right.X, left.Y - right.Y);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name="value">The vector to scale.</param>
-    /// <param name="scale">The amount by which to scale the vector.</param>
-    /// <param name="result">When the method completes, contains the scaled vector.</param>
-    public static void Multiply(ref readonly Int2 value, int scale, out Int2 result)
-    {
-        result = new Int2(value.X * scale, value.Y * scale);
     }
 
     /// <summary>
@@ -283,32 +244,10 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     /// </summary>
     /// <param name="left">The first vector to modulate.</param>
     /// <param name="right">The second vector to modulate.</param>
-    /// <param name="result">When the method completes, contains the modulated vector.</param>
-    public static void Modulate(ref readonly Int2 left, ref readonly Int2 right, out Int2 result)
-    {
-        result = new Int2(left.X * right.X, left.Y * right.Y);
-    }
-
-    /// <summary>
-    /// Modulates a vector with another by performing component-wise multiplication.
-    /// </summary>
-    /// <param name="left">The first vector to modulate.</param>
-    /// <param name="right">The second vector to modulate.</param>
     /// <returns>The modulated vector.</returns>
-    public static Int2 Modulate(Int2 left, Int2 right)
+    public static Int2 Multiply(Int2 left, Int2 right)
     {
         return new Int2(left.X * right.X, left.Y * right.Y);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name="value">The vector to scale.</param>
-    /// <param name="scale">The amount by which to scale the vector.</param>
-    /// <param name="result">When the method completes, contains the scaled vector.</param>
-    public static void Divide(ref readonly Int2 value, int scale, out Int2 result)
-    {
-        result = new Int2(value.X / scale, value.Y / scale);
     }
 
     /// <summary>
@@ -320,16 +259,6 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     public static Int2 Divide(Int2 value, int scale)
     {
         return new Int2(value.X / scale, value.Y / scale);
-    }
-
-    /// <summary>
-    /// Reverses the direction of a given vector.
-    /// </summary>
-    /// <param name="value">The vector to negate.</param>
-    /// <param name="result">When the method completes, contains a vector facing in the opposite direction.</param>
-    public static void Negate(ref readonly Int2 value, out Int2 result)
-    {
-        result = new Int2(-value.X, -value.Y);
     }
 
     /// <summary>
@@ -348,8 +277,9 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     /// <param name="value">The value to clamp.</param>
     /// <param name="min">The minimum value.</param>
     /// <param name="max">The maximum value.</param>
-    /// <param name="result">When the method completes, contains the clamped value.</param>
-    public static void Clamp(ref readonly Int2 value, ref readonly Int2 min, ref readonly Int2 max, out Int2 result)
+    /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Int2 Clamp(Int2 value, Int2 min, Int2 max)
     {
         int x = value.X;
         x = (x > max.X) ? max.X : x;
@@ -359,31 +289,7 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
         y = (y > max.Y) ? max.Y : y;
         y = (y < min.Y) ? min.Y : y;
 
-        result = new Int2(x, y);
-    }
-
-    /// <summary>
-    /// Restricts a value to be within a specified range.
-    /// </summary>
-    /// <param name="value">The value to clamp.</param>
-    /// <param name="min">The minimum value.</param>
-    /// <param name="max">The maximum value.</param>
-    /// <returns>The clamped value.</returns>
-    public static Int2 Clamp(Int2 value, Int2 min, Int2 max)
-    {
-        Clamp(ref value, ref min, ref max, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Calculates the dot product of two vectors.
-    /// </summary>
-    /// <param name="left">First source vector.</param>
-    /// <param name="right">Second source vector.</param>
-    /// <param name="result">When the method completes, contains the dot product of the two vectors.</param>
-    public static void Dot(ref readonly Int2 left, ref readonly Int2 right, out int result)
-    {
-        result = (left.X * right.X) + (left.Y * right.Y);
+        return new Int2(x, y);
     }
 
     /// <summary>
@@ -403,50 +309,19 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     /// <param name="start">Start vector.</param>
     /// <param name="end">End vector.</param>
     /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <param name="result">When the method completes, contains the linear interpolation of the two vectors.</param>
-    /// <remarks>
-    /// This method performs the linear interpolation based on the following formula.
-    /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
-    /// </remarks>
-    public static void Lerp(ref readonly Int2 start, ref readonly Int2 end, float amount, out Int2 result)
-    {
-        result.X = (int)(start.X + ((end.X - start.X) * amount));
-        result.Y = (int)(start.Y + ((end.Y - start.Y) * amount));
-    }
-
-    /// <summary>
-    /// Performs a linear interpolation between two vectors.
-    /// </summary>
-    /// <param name="start">Start vector.</param>
-    /// <param name="end">End vector.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
     /// <returns>The linear interpolation of the two vectors.</returns>
     /// <remarks>
     /// This method performs the linear interpolation based on the following formula.
     /// <c>start + (end - start) * amount</c>
     /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
     /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Int2 Lerp(Int2 start, Int2 end, float amount)
     {
-        Lerp(ref start, ref end, amount, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Performs a cubic interpolation between two vectors.
-    /// </summary>
-    /// <param name="start">Start vector.</param>
-    /// <param name="end">End vector.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <param name="result">When the method completes, contains the cubic interpolation of the two vectors.</param>
-    public static void SmoothStep(ref readonly Int2 start, ref readonly Int2 end, float amount, out Int2 result)
-    {
-        amount = (amount > 1) ? 1 : ((amount < 0) ? 0 : amount);
-        amount = amount * amount * (3 - (2 * amount));
-
+        Int2 result;
         result.X = (int)(start.X + ((end.X - start.X) * amount));
         result.Y = (int)(start.Y + ((end.Y - start.Y) * amount));
+        return result;
     }
 
     /// <summary>
@@ -456,22 +331,16 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     /// <param name="end">End vector.</param>
     /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
     /// <returns>The cubic interpolation of the two vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Int2 SmoothStep(Int2 start, Int2 end, float amount)
     {
-        SmoothStep(ref start, ref end, amount, out var result);
-        return result;
-    }
+        Int2 result;
+        amount = (amount > 1) ? 1 : ((amount < 0) ? 0 : amount);
+        amount = amount * amount * (3 - (2 * amount));
 
-    /// <summary>
-    /// Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name="left">The first source vector.</param>
-    /// <param name="right">The second source vector.</param>
-    /// <param name="result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
-    public static void Max(ref readonly Int2 left, ref readonly Int2 right, out Int2 result)
-    {
-        result.X = (left.X > right.X) ? left.X : right.X;
-        result.Y = (left.Y > right.Y) ? left.Y : right.Y;
+        result.X = (int)(start.X + ((end.X - start.X) * amount));
+        result.Y = (int)(start.Y + ((end.Y - start.Y) * amount));
+        return result;
     }
 
     /// <summary>
@@ -480,9 +349,12 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     /// <param name="left">The first source vector.</param>
     /// <param name="right">The second source vector.</param>
     /// <returns>A vector containing the largest components of the source vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Int2 Max(Int2 left, Int2 right)
     {
-        Max(ref left, ref right, out var result);
+        Int2 result;
+        result.X = (left.X > right.X) ? left.X : right.X;
+        result.Y = (left.Y > right.Y) ? left.Y : right.Y;
         return result;
     }
 
@@ -491,22 +363,13 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     /// </summary>
     /// <param name="left">The first source vector.</param>
     /// <param name="right">The second source vector.</param>
-    /// <param name="result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
-    public static void Min(ref readonly Int2 left, ref readonly Int2 right, out Int2 result)
-    {
-        result.X = (left.X < right.X) ? left.X : right.X;
-        result.Y = (left.Y < right.Y) ? left.Y : right.Y;
-    }
-
-    /// <summary>
-    /// Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name="left">The first source vector.</param>
-    /// <param name="right">The second source vector.</param>
     /// <returns>A vector containing the smallest components of the source vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Int2 Min(Int2 left, Int2 right)
     {
-        Min(ref left, ref right, out var result);
+        Int2 result;
+        result.X = (left.X < right.X) ? left.X : right.X;
+        result.Y = (left.Y < right.Y) ? left.Y : right.Y;
         return result;
     }
 
@@ -645,22 +508,28 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     /// </returns>
     public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        var handler = new DefaultInterpolatedStringHandler(5, 2, formatProvider);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
+        var handler = new DefaultInterpolatedStringHandler(4, 2, formatProvider);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format);
+        handler.AppendLiteral(">");
         return handler.ToStringAndClear();
     }
 
     bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         var format1 = format.Length > 0 ? format.ToString() : null;
-        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(5, 2, destination, provider, out _);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(provider).NumberGroupSeparator;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(4, 2, destination, provider, out _);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format1);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format1);
+        handler.AppendLiteral(">");
         return destination.TryWrite(ref handler, out charsWritten);
     }
 

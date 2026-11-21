@@ -21,9 +21,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -185,12 +187,6 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
     public static explicit operator Int4(System.Numerics.Vector4 v) => new((int)v.X, (int)v.Y, (int)v.Z, (int)v.W);
 
     /// <summary>
-    /// Casts from Stride.Maths to System.Numerics vectors
-    /// </summary>
-    /// <param name="v">Value to cast</param>
-    public static explicit operator System.Numerics.Vector4(Int4 v) => new(v.X, v.Y, v.Z, v.W);
-
-    /// <summary>
     /// Calculates the length of the vector.
     /// </summary>
     /// <returns>The length of the vector.</returns>
@@ -230,32 +226,10 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
     /// </summary>
     /// <param name = "left">The first vector to add.</param>
     /// <param name = "right">The second vector to add.</param>
-    /// <param name = "result">When the method completes, contains the sum of the two vectors.</param>
-    public static void Add(ref readonly Int4 left, ref readonly Int4 right, out Int4 result)
-    {
-        result = new Int4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
-    }
-
-    /// <summary>
-    ///   Adds two vectors.
-    /// </summary>
-    /// <param name = "left">The first vector to add.</param>
-    /// <param name = "right">The second vector to add.</param>
     /// <returns>The sum of the two vectors.</returns>
     public static Int4 Add(Int4 left, Int4 right)
     {
         return new Int4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
-    }
-
-    /// <summary>
-    ///   Subtracts two vectors.
-    /// </summary>
-    /// <param name = "left">The first vector to subtract.</param>
-    /// <param name = "right">The second vector to subtract.</param>
-    /// <param name = "result">When the method completes, contains the difference of the two vectors.</param>
-    public static void Subtract(ref readonly Int4 left, ref readonly Int4 right, out Int4 result)
-    {
-        result = new Int4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
     }
 
     /// <summary>
@@ -274,17 +248,6 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
     /// </summary>
     /// <param name = "value">The vector to scale.</param>
     /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <param name = "result">When the method completes, contains the scaled vector.</param>
-    public static void Multiply(ref readonly Int4 value, int scale, out Int4 result)
-    {
-        result = new Int4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
-    }
-
-    /// <summary>
-    ///   Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
     /// <returns>The scaled vector.</returns>
     public static Int4 Multiply(Int4 value, int scale)
     {
@@ -296,32 +259,10 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
     /// </summary>
     /// <param name = "left">The first vector to modulate.</param>
     /// <param name = "right">The second vector to modulate.</param>
-    /// <param name = "result">When the method completes, contains the modulated vector.</param>
-    public static void Modulate(ref readonly Int4 left, ref readonly Int4 right, out Int4 result)
-    {
-        result = new Int4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
-    }
-
-    /// <summary>
-    ///   Modulates a vector with another by performing component-wise multiplication.
-    /// </summary>
-    /// <param name = "left">The first vector to modulate.</param>
-    /// <param name = "right">The second vector to modulate.</param>
     /// <returns>The modulated vector.</returns>
-    public static Int4 Modulate(Int4 left, Int4 right)
+    public static Int4 Multiply(Int4 left, Int4 right)
     {
         return new Int4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
-    }
-
-    /// <summary>
-    ///   Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <param name = "result">When the method completes, contains the scaled vector.</param>
-    public static void Divide(ref readonly Int4 value, int scale, out Int4 result)
-    {
-        result = new Int4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
     }
 
     /// <summary>
@@ -333,16 +274,6 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
     public static Int4 Divide(Int4 value, int scale)
     {
         return new Int4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
-    }
-
-    /// <summary>
-    ///   Reverses the direction of a given vector.
-    /// </summary>
-    /// <param name = "value">The vector to negate.</param>
-    /// <param name = "result">When the method completes, contains a vector facing in the opposite direction.</param>
-    public static void Negate(ref readonly Int4 value, out Int4 result)
-    {
-        result = new Int4(-value.X, -value.Y, -value.Z, -value.W);
     }
 
     /// <summary>
@@ -361,8 +292,8 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
     /// <param name = "value">The value to clamp.</param>
     /// <param name = "min">The minimum value.</param>
     /// <param name = "max">The maximum value.</param>
-    /// <param name = "result">When the method completes, contains the clamped value.</param>
-    public static void Clamp(ref readonly Int4 value, ref readonly Int4 min, ref readonly Int4 max, out Int4 result)
+    /// <returns>The clamped value.</returns>
+    public static Int4 Clamp(Int4 value, Int4 min, Int4 max)
     {
         int x = value.X;
         x = (x > max.X) ? max.X : x;
@@ -380,34 +311,7 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
         w = (w > max.W) ? max.W : w;
         w = (w < min.W) ? min.W : w;
 
-        result = new Int4(x, y, z, w);
-    }
-
-    /// <summary>
-    ///   Restricts a value to be within a specified range.
-    /// </summary>
-    /// <param name = "value">The value to clamp.</param>
-    /// <param name = "min">The minimum value.</param>
-    /// <param name = "max">The maximum value.</param>
-    /// <returns>The clamped value.</returns>
-    public static Int4 Clamp(Int4 value, Int4 min, Int4 max)
-    {
-        Clamp(ref value, ref min, ref max, out var result);
-        return result;
-    }
-
-    /// <summary>
-    ///   Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name = "left">The first source vector.</param>
-    /// <param name = "right">The second source vector.</param>
-    /// <param name = "result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
-    public static void Max(ref readonly Int4 left, ref readonly Int4 right, out Int4 result)
-    {
-        result.X = (left.X > right.X) ? left.X : right.X;
-        result.Y = (left.Y > right.Y) ? left.Y : right.Y;
-        result.Z = (left.Z > right.Z) ? left.Z : right.Z;
-        result.W = (left.W > right.W) ? left.W : right.W;
+        return new Int4(x, y, z, w);
     }
 
     /// <summary>
@@ -416,9 +320,14 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
     /// <param name = "left">The first source vector.</param>
     /// <param name = "right">The second source vector.</param>
     /// <returns>A vector containing the largest components of the source vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Int4 Max(Int4 left, Int4 right)
     {
-        Max(ref left, ref right, out var result);
+        Int4 result;
+        result.X = (left.X > right.X) ? left.X : right.X;
+        result.Y = (left.Y > right.Y) ? left.Y : right.Y;
+        result.Z = (left.Z > right.Z) ? left.Z : right.Z;
+        result.W = (left.W > right.W) ? left.W : right.W;
         return result;
     }
 
@@ -427,24 +336,15 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
     /// </summary>
     /// <param name = "left">The first source vector.</param>
     /// <param name = "right">The second source vector.</param>
-    /// <param name = "result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
-    public static void Min(ref readonly Int4 left, ref readonly Int4 right, out Int4 result)
+    /// <returns>A vector containing the smallest components of the source vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Int4 Min(Int4 left, Int4 right)
     {
+        Int4 result;
         result.X = (left.X < right.X) ? left.X : right.X;
         result.Y = (left.Y < right.Y) ? left.Y : right.Y;
         result.Z = (left.Z < right.Z) ? left.Z : right.Z;
         result.W = (left.W < right.W) ? left.W : right.W;
-    }
-
-    /// <summary>
-    ///   Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name = "left">The first source vector.</param>
-    /// <param name = "right">The second source vector.</param>
-    /// <returns>A vector containing the smallest components of the source vectors.</returns>
-    public static Int4 Min(Int4 left, Int4 right)
-    {
-        Min(ref left, ref right, out var result);
         return result;
     }
 
@@ -593,30 +493,40 @@ public struct Int4 : IEquatable<Int4>, ISpanFormattable
     /// </returns>
     public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        var handler = new DefaultInterpolatedStringHandler(11, 4, formatProvider);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
+        var handler = new DefaultInterpolatedStringHandler(8, 4, formatProvider);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format);
-        handler.AppendLiteral(" Z:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format);
-        handler.AppendLiteral(" W:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(W, format);
+        handler.AppendLiteral(">");
         return handler.ToStringAndClear();
     }
 
     bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         var format1 = format.Length > 0 ? format.ToString() : null;
-        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(11, 4, destination, provider, out _);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(provider).NumberGroupSeparator;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(8, 4, destination, provider, out _);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format1);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format1);
-        handler.AppendLiteral(" Z:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format1);
-        handler.AppendLiteral(" W:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(W, format1);
+        handler.AppendLiteral(">");
         return destination.TryWrite(ref handler, out charsWritten);
     }
 

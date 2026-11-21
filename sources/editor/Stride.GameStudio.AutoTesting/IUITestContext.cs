@@ -147,7 +147,7 @@ public interface IUITestContext
     /// <paramref name="modelAssetId"/>, at <paramref name="position"/>. Goes through
     /// <c>CreateEntityInRootCommand</c> with a custom <c>IEntityFactory</c>.
     /// </summary>
-    Task<bool> AddEntityToScene(string entityName, Guid modelAssetId, Stride.Core.Mathematics.Vector3 position);
+    Task<bool> AddEntityToScene(string entityName, Guid modelAssetId, System.Numerics.Vector3 position);
 
     /// <summary>
     /// Walks the loaded session's assets and returns how many objects failed to deserialize (were

@@ -5,6 +5,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Rendering.Sprites
 {
@@ -48,11 +49,11 @@ namespace Stride.Rendering.Sprites
     public class RenderSprite : RenderObject
     {
         // Cached states
-        private Matrix lastWorldMatrix;
+        private Matrix4x4 lastWorldMatrix;
         private Vector2 lastHalfSpriteSize;
         private SpriteType lastSpriteType;
 
-        public Matrix WorldMatrix;
+        public Matrix4x4 WorldMatrix;
         public float RotationEulerZ;
 
         public Sprite Sprite;
@@ -74,13 +75,13 @@ namespace Stride.Rendering.Sprites
             if (lastWorldMatrix != WorldMatrix || lastHalfSpriteSize != halfSpriteSize || lastSpriteType != SpriteType)
             {
                 Vector3 halfBoxSize;
-                var boxWorldPosition = WorldMatrix.TranslationVector;
+                var boxWorldPosition = WorldMatrix.Translation;
 
                 if (SpriteType == SpriteType.Billboard)
                 {
                     // Make a gross estimation here as we don't have access to the camera view matrix
                     // TODO: move this code or grant camera view matrix access to this processor
-                    var maxScale = Math.Max(WorldMatrix.Row1.Length(), Math.Max(WorldMatrix.Row2.Length(), WorldMatrix.Row3.Length()));
+                    var maxScale = Math.Max(WorldMatrix.X.Length(), Math.Max(WorldMatrix.Y.Length(), WorldMatrix.Z.Length()));
                     halfBoxSize = maxScale * halfSpriteSize.Length() * Vector3.One;
                 }
                 else

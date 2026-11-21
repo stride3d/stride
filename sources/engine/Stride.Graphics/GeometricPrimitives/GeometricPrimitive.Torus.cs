@@ -77,6 +77,7 @@ using System;
 using System.Collections.Generic;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics.GeometricPrimitives
 {
@@ -139,7 +140,7 @@ namespace Stride.Graphics.GeometricPrimitives
 
                     // Create a transform matrix that will align geometry to
                     // slice perpendicularly though the current ring position.
-                    var transform = Matrix.Translation(majorRadius, 0, 0) * Matrix.RotationY(outerAngle);
+                    var transform = Matrix4x4.CreateTranslation(majorRadius, 0, 0) * Matrix4x4.CreateRotationY(outerAngle);
 
                     // Now we loop along the other axis, around the side of the tube.
                     for (int j = 0 ; j <= tessellation ; j++)
@@ -154,8 +155,8 @@ namespace Stride.Graphics.GeometricPrimitives
                         var position          = normal * minorRadius;
                         var textureCoordinate = new Vector2(u, v);
 
-                        Vector3.TransformCoordinate(ref position, ref transform, out position);
-                        Vector3.TransformNormal(ref normal, ref transform, out normal);
+                        position = Vector3.TransformCoordinate(position, transform);
+                        normal = Vector3.TransformNormal(normal, transform);
 
                         vertices[verticesIndexer++] = new VertexPositionNormalTexture(position, normal, textureCoordinate * texFactor);
 

@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Stride.Core.Mathematics;
 using Stride.Input;
 using MouseButton = Stride.Input.MouseButton;
+using System.Numerics;
 
 namespace Stride.Editor.Avalonia.Engine;
 

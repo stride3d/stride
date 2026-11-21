@@ -16,6 +16,7 @@ using Stride.Rendering.ComputeEffect.LambertianPrefiltering;
 using Stride.Rendering.Images.SphericalHarmonics;
 using Stride.Rendering.LightProbes;
 using Stride.Rendering.Skyboxes;
+using System.Numerics;
 
 namespace Stride.Rendering.LightProbes
 {

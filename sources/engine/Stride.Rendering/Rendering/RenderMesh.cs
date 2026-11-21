@@ -3,6 +3,7 @@
 
 using Stride.Core.Mathematics;
 using Stride.Rendering.Materials;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -33,9 +34,9 @@ namespace Stride.Rendering
 
         public bool IsPreviousScalingNegative;
 
-        public Matrix World = Matrix.Identity;
+        public Matrix4x4 World = Matrix4x4.Identity;
 
-        public Matrix[] BlendMatrices;
+        public Matrix4x4[] BlendMatrices;
 
         /// <summary>
         /// Morph targets applied in the vertex shader, or <c>null</c>.

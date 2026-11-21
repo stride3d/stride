@@ -8,7 +8,7 @@ using Stride.Graphics;
 using Stride.Graphics.Font;
 using Stride.UI.Controls;
 using IServiceRegistry = Stride.Core.IServiceRegistry;
-using Vector3 = Stride.Core.Mathematics.Vector3;
+using System.Numerics;
 
 namespace Stride.UI.Renderers
 {
@@ -22,7 +22,7 @@ namespace Stride.UI.Renderers
         {
         }
 
-        private void RenderSelection([NotNull] EditText editText, [NotNull] UIRenderingContext context, in Vector2 textRegion, int start, int length, Color color, out Matrix caret, out float caretHeight)
+        private void RenderSelection([NotNull] EditText editText, [NotNull] UIRenderingContext context, in Vector2 textRegion, int start, int length, Color color, out Matrix4x4 caret, out float caretHeight)
         {
             var snapText = context.ShouldSnapText && !editText.DoNotSnapText;
             var requestedFontSize = editText.ActualTextSize;
@@ -38,7 +38,7 @@ namespace Stride.UI.Renderers
             var lineHeight = font.GetTotalLineSpacing(fontSize.Y) / fontToVirtualScale.Y;
 
             var worldMatrix = editText.WorldMatrixInternal;
-            worldMatrix.TranslationVector -= worldMatrix.Right * textRegion.X * 0.5f + worldMatrix.Up * (textRegion.Y * 0.5f - lineHeight * 0.5f);
+            worldMatrix.Translation -= worldMatrix.Right * textRegion.X * 0.5f + worldMatrix.Up * (textRegion.Y * 0.5f - lineHeight * 0.5f);
 
             // Scale textRegion to font-native space for the glyph enumerator, matching InternalUIDraw
             var scaledTextRegion = textRegion * fontToVirtualScale;
@@ -91,14 +91,14 @@ namespace Stride.UI.Renderers
             caretHeight = lineHeight;
             caret = worldMatrix;
             var caretPos = editText.CaretPosition <= start ? selectionStart : selectionEnd;
-            caret.TranslationVector += caret.Right * caretPos.X + caret.Up * caretPos.Y;
+            caret.Translation += caret.Right * caretPos.X + caret.Up * caretPos.Y;
         }
 
-        private void DrawSelectionOnGlyphRange(UIRenderingContext context, Color color, in Matrix worldMatrix, Vector2 start, Vector2 end, float lineHeight)
+        private void DrawSelectionOnGlyphRange(UIRenderingContext context, Color color, in Matrix4x4 worldMatrix, Vector2 start, Vector2 end, float lineHeight)
         {
             var tempMatrix = worldMatrix;
             var selectionRect = new Vector3(end.X - start.X, lineHeight, 0);
-            tempMatrix.TranslationVector += worldMatrix.Right * (start.X + selectionRect.X * 0.5f) + worldMatrix.Up * start.Y;
+            tempMatrix.Translation += worldMatrix.Right * (start.X + selectionRect.X * 0.5f) + worldMatrix.Up * start.Y;
             Batch.DrawRectangle(ref tempMatrix, ref selectionRect, ref color, context.DepthBias + 1);
         }
 
@@ -128,7 +128,7 @@ namespace Stride.UI.Renderers
             var font = editText.Font;
             var caretColor = editText.RenderOpacity * editText.CaretColor;
 
-            var caretMatrix = Matrix.Identity;
+            var caretMatrix = Matrix4x4.Identity;
             var caretHeight = 0f;
 
             // Draw the composition selection

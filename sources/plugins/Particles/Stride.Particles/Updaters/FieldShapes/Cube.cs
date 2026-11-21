@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Particles.DebugDraw;
+using System.Numerics;
 
 namespace Stride.Particles.Updaters.FieldShapes
 {
@@ -92,7 +93,7 @@ namespace Stride.Particles.Updaters.FieldShapes
             inverseRotation = new Quaternion(-rotation.X, -rotation.Y, -rotation.Z, rotation.W);
 
             mainAxis = new Vector3(0, 1, 0);
-            rotation.Rotate(ref mainAxis);
+            mainAxis = Vector3.Transform(mainAxis, rotation);
         }
 
         public override float GetDistanceToCenter(
@@ -104,14 +105,14 @@ namespace Stride.Particles.Updaters.FieldShapes
 
             // Toward - tawards the main axis
             awayAxis = particlePosition - fieldPosition;
-            awayAxis.Normalize();
+            awayAxis = Vector3.NormalizeSafe(awayAxis);
 
             // Around - around the main axis, following the right hand rule
             aroundAxis = Vector3.Cross(alongAxis, awayAxis);
 
             particlePosition -= fieldPosition;
             var inverseRotation = new Quaternion(-fieldRotation.X, -fieldRotation.Y, -fieldRotation.Z, fieldRotation.W);
-            inverseRotation.Rotate(ref particlePosition);
+            particlePosition = Vector3.Transform(particlePosition, inverseRotation);
             particlePosition /= fieldSize;
 
             // Start of code for Cube
@@ -125,7 +126,7 @@ namespace Stride.Particles.Updaters.FieldShapes
         public override bool IsPointInside(Vector3 particlePosition, out Vector3 surfacePoint, out Vector3 surfaceNormal)
         {
             particlePosition -= fieldPosition;
-            inverseRotation.Rotate(ref particlePosition);
+            particlePosition = Vector3.Transform(particlePosition, inverseRotation);
 //            particlePosition /= fieldSize;
 
             var halfSize = fieldSize;
@@ -178,10 +179,10 @@ namespace Stride.Particles.Updaters.FieldShapes
             }
 
             // Fix the surface point and normal to world space
-            fieldRotation.Rotate(ref surfaceNormal);
-            surfaceNormal.Normalize();
+            surfaceNormal = Vector3.Transform(surfaceNormal, fieldRotation);
+            surfaceNormal = Vector3.NormalizeSafe(surfaceNormal);
 
-            fieldRotation.Rotate(ref surfacePoint);
+            surfacePoint = Vector3.Transform(surfacePoint, fieldRotation);
 //            surfacePoint *= fieldSize;
             surfacePoint += fieldPosition;
 
