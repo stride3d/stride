@@ -29,6 +29,7 @@ namespace Stride.Samples.Tests
     public class ScreenshotsCollection { }
 
     [Collection("Screenshots")]
+    [TestCaseOrderer(SampleRunOrderer.TypeName, SampleRunOrderer.AssemblyName)]
     public class SampleScreenshotTests
     {
         private readonly ITestOutputHelper output;
@@ -43,6 +44,19 @@ namespace Stride.Samples.Tests
                 yield return new object[] { Path.GetFileNameWithoutExtension(file) };
         }
 
+        // The sample the publish tests use. Publishing is expensive and AOT and trimming don't depend on the graphics API,
+        // so they run on Direct3D11 only: a no-op on the D3D12/Vulkan matrix legs.
+        private const string PublishedSample = "TopDownRPG";
+        private static bool RunsPublishTests => GraphicsDevice.Platform == GraphicsPlatform.Direct3D11;
+
+        /// <summary>The sample <paramref name="test"/> uses, or null when it uses none on this graphics API.</summary>
+        internal static string? SampleOf(ITestCase test) => test.TestMethod.Method.Name switch
+        {
+            nameof(Sample) => test.TestMethodArguments?.FirstOrDefault() as string,
+            nameof(TopDownRPGAot) or nameof(TopDownRPGTrimsWinForms) when RunsPublishTests => PublishedSample,
+            _ => null,
+        };
+
         [Theory]
         [MemberData(nameof(Samples))]
         public void Sample(string name) => RunSampleTest(name, aot: false);
@@ -56,14 +70,12 @@ namespace Stride.Samples.Tests
         [Fact]
         public void TopDownRPGAot()
         {
-            // AOT publish is expensive and engine AOT-cleanliness is mostly API-agnostic, so one API
-            // is enough. Run on Direct3D11 only — a no-op on the D3D12/Vulkan matrix legs.
-            if (GraphicsDevice.Platform != GraphicsPlatform.Direct3D11)
+            if (!RunsPublishTests)
             {
                 output.WriteLine($"[aot] skipped: AOT lane runs on Direct3D11 only (current: {GraphicsDevice.Platform}).");
                 return;
             }
-            RunSampleTest("TopDownRPG", aot: true);
+            RunSampleTest(PublishedSample, aot: true);
         }
 
         /// <summary>
@@ -74,15 +86,14 @@ namespace Stride.Samples.Tests
         [Fact]
         public void TopDownRPGTrimsWinForms()
         {
-            // Publish is expensive and the gating is API-agnostic; run on Direct3D11 only.
-            if (GraphicsDevice.Platform != GraphicsPlatform.Direct3D11)
+            if (!RunsPublishTests)
             {
                 output.WriteLine($"[trim] skipped: runs on Direct3D11 only (current: {GraphicsDevice.Platform}).");
                 return;
             }
 
             var worktree = WorktreeRoot();
-            var publishDir = ScreenshotRunner.PublishTrimmed("TopDownRPG", worktree,
+            var publishDir = ScreenshotRunner.PublishTrimmed(PublishedSample, worktree,
                 new Dictionary<string, string> { ["Stride.Games.WinFormsBackendEnabled"] = "false" });
             output.WriteLine($"[trim] publish dir: {publishDir}");
 
@@ -96,9 +107,9 @@ namespace Stride.Samples.Tests
             Assert.False(File.Exists(winforms),
                 $"System.Windows.Forms.dll should have been trimmed with WinFormsBackendEnabled=false, but it's present: {winforms}");
 
-            if (Environment.GetEnvironmentVariable("STRIDE_TESTS_KEEP") != "1")
+            if (PreparedSamples.Release(PublishedSample) && Environment.GetEnvironmentVariable("STRIDE_TESTS_KEEP") != "1")
             {
-                var sampleDir = Path.Combine(worktree, ScreenshotRunner.SamplesGeneratedDirName, "TopDownRPG");
+                var sampleDir = Path.Combine(worktree, ScreenshotRunner.SamplesGeneratedDirName, PublishedSample);
                 if (Directory.Exists(sampleDir))
                 {
                     try { Directory.Delete(sampleDir, recursive: true); }
@@ -165,10 +176,11 @@ namespace Stride.Samples.Tests
                 return; // leave the regenerated sample dir in place for post-mortem / the gate
             }
 
-            // Test passed — wipe the regenerated sample dir to keep working trees small. Skip on
-            // failure so the post-mortem still has the regenerated project for local debugging.
-            // STRIDE_TESTS_KEEP=1 also preserves the dir on pass (for ad-hoc poking at the built sample).
-            if (Environment.GetEnvironmentVariable("STRIDE_TESTS_KEEP") != "1")
+            // Test passed — wipe the regenerated sample dir to keep working trees small, unless a later
+            // test uses the same sample. Skip on failure so the post-mortem still has the regenerated
+            // project for local debugging. STRIDE_TESTS_KEEP=1 also preserves the dir on pass (for
+            // ad-hoc poking at the built sample).
+            if (PreparedSamples.Release(name) && Environment.GetEnvironmentVariable("STRIDE_TESTS_KEEP") != "1")
             {
                 var sampleDir = Path.Combine(worktree, ScreenshotRunner.SamplesGeneratedDirName, name);
                 if (Directory.Exists(sampleDir))
