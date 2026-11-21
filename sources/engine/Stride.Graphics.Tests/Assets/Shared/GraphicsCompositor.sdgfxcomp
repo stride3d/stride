@@ -23,6 +23,11 @@ RenderStages:
         Name: ShadowMapCaster
         EffectSlotName: ShadowMapCaster
         SortMode: !FrontToBackSortMode {}
+    f0e8b835930244b7aa3fcb23a7893e7a:
+        Id: 5e6bb469-b8ef-4db6-a83d-74af5eb43313
+        Name: AfterPostEffects
+        EffectSlotName: AfterPostEffects
+        SortMode: !BackToFrontSortMode {}
 RenderFeatures:
     d8fb80b0e7995140a46bca8dc36ee8a2: !Stride.Rendering.MeshRenderFeature,Stride.Engine
         RenderStageSelectors:
@@ -63,9 +68,10 @@ RenderFeatures:
                 EffectName: Test
     93933ad00d0c357d4915ad462cbfd04c*: !Stride.Rendering.UI.UIRenderFeature,Stride.UI
         RenderStageSelectors:
-            14a071694411235038a102ac3794bb4d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Engine
-                RenderStage: ref!! 31169f13-1e38-4c68-a1e4-1fd9c6d148c3
-                EffectName: Test
+            14a071694411235038a102ac3794bb4d: !Stride.Rendering.UI.UIRenderStageSelector,Stride.UI
+                TransparentRenderStage: ref!! 31169f13-1e38-4c68-a1e4-1fd9c6d148c3
+                AfterPostEffectsRenderStage: ref!! 5e6bb469-b8ef-4db6-a83d-74af5eb43313
+                EffectName: UI
 SharedRenderers:
     60459475d3a3adaf2d1ba5d99913ca75: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine
         Id: 3e4affe1-a1b8-4e74-ad7d-e038b1407f09

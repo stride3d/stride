@@ -93,6 +93,7 @@
     <Compile Include="Regression\TransparencyTest.cs" />
     <Compile Include="Regression\UniformGridTest.cs" />
     <Compile Include="Regression\UITestGameBase.cs" />
+    <Compile Include="Rendering\UIRenderStageSelectorTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\BorderButton.sdtex" />

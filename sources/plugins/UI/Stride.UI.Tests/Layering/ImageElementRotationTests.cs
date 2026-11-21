@@ -142,7 +142,7 @@ namespace Stride.UI.Tests.Layering
             };
             var image = new ImageElement()
             {
-                Source = (Rendering.Sprites.SpriteFromTexture)sprite,
+                Source = (Stride.Rendering.Sprites.SpriteFromTexture) sprite,
                 StretchType = StretchType.None
             };
 
