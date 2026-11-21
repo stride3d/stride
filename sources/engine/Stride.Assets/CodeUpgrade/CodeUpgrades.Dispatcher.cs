@@ -24,9 +24,9 @@ public static partial class CodeUpgrades
     /// A call is left unchanged when the move would change what it does, e.g. a callback that writes a captured local,
     /// or when it holds another Dispatcher call to move (that one moves).
     /// </summary>
-    public static CodeUpgrade DispatcherCallbacksToStaticLambdas()
+    public static CodeStep DispatcherCallbacksToStaticLambdas()
     {
-        return async (solution, targets, cancellationToken) =>
+        return new CodeStep("Pass what the `Dispatcher` callbacks capture as a state, to static lambdas", async (solution, targets, cancellationToken) =>
         {
             foreach (var projectId in targets)
             {
@@ -82,7 +82,7 @@ public static partial class CodeUpgrades
                 }
             }
             return solution;
-        };
+        });
     }
 
     /// <param name="Invocation">The call.</param>

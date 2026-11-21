@@ -19,7 +19,7 @@ namespace Stride.Assets;
 
 /// <summary>
 /// Roslyn implementation of <see cref="ICodeUpgradeRunner"/>: opens the solution (already restored at
-/// the from-version closure), folds the declared <see cref="CodeUpgrade"/>s over it, and writes the
+/// the from-version closure), folds the declared <see cref="CodeStep"/>s over it, and writes the
 /// changed source files back. Registered into <see cref="CodeUpgradeRunner.Instance"/> at module init.
 /// </summary>
 internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
@@ -56,10 +56,10 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
         }
     }
 
-    // Each pending upgrader's code rules that apply to the version its project is upgraded from
-    private static List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)> GetPlans(IReadOnlyList<PendingCodeUpgrade> pending)
+    // Each pending upgrader's code steps that apply to the version its project is upgraded from
+    private static List<(PendingCodeUpgrade Pending, List<CodeStep> Steps)> GetPlans(IReadOnlyList<PendingCodeUpgrade> pending)
     {
-        var plans = new List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)>();
+        var plans = new List<(PendingCodeUpgrade Pending, List<CodeStep> Steps)>();
         foreach (var item in pending)
         {
             if (item.Upgrader is not ICodeUpgradeProvider provider)
@@ -68,27 +68,11 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
             var registry = new UpgradeRegistry();
             provider.DeclareUpgrades(registry);
 
-            var applicable = new List<CodeUpgrade>();
-            foreach (var registration in registry.CodeUpgrades)
-            {
-                // Gate: the change landed at GateVersion, so migrate any project coming from below it.
-                if (item.FromVersion.Version >= registration.GateVersion.Version)
-                    continue;
-
-                // resolveSince is the exact version where the matched OLD form first exists. When it's above
-                // the from-version the rule can't bind against the from-version closure; resolving it would
-                // need a version-overridden intermediate restore of the package family at that version
-                // (sequenced low→high, merging overlapping resolution windows, replaying any family package
-                // rename up to it), then a fresh workspace opened there. Not implemented — fail loud rather
-                // than silently resolve at the from-version, which would no-op the rule.
-                if (registration.ResolveSince is { } resolveSince && resolveSince.Version > item.FromVersion.Version)
-                    throw new NotImplementedException(
-                        $"Code upgrade gated at {registration.GateVersion} declares resolveSince {resolveSince}, above the " +
-                        $"project's from-version {item.FromVersion}. Intermediate version-overridden restores (chained " +
-                        $"boundaries) are not implemented yet; only single-step resolution at the from-version is supported.");
-
-                applicable.AddRange(registration.Upgrades);
-            }
+            // Gate: the change landed at GateVersion, so migrate any project coming from below it.
+            var applicable = registry.CodeUpgrades
+                .Where(registration => item.FromVersion.Version < registration.GateVersion.Version)
+                .SelectMany(registration => registration.Steps)
+                .ToList();
             if (applicable.Count > 0)
                 plans.Add((item, applicable));
         }
@@ -96,7 +80,7 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
     }
 
     // Returns false, having written nothing, when the workspace lacks a project
-    private static async Task<bool> RunAsync(UFile? solutionPath, List<(PendingCodeUpgrade Pending, List<CodeUpgrade> Upgrades)> plans, UpgradeBackup? backup, ILogger log)
+    private static async Task<bool> RunAsync(UFile? solutionPath, List<(PendingCodeUpgrade Pending, List<CodeStep> Steps)> plans, UpgradeBackup? backup, ILogger log)
     {
         var cancellationToken = CancellationToken.None;
 
@@ -140,19 +124,19 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
         }
 
         var solution = originalSolution;
-        foreach (var ((pendingItem, upgrades), projectId) in plans.Zip(projectIds))
+        foreach (var ((pendingItem, steps), projectId) in plans.Zip(projectIds))
         {
             IReadOnlyList<ProjectId> targets = [projectId];
-            foreach (var upgrade in upgrades)
+            foreach (var step in steps)
             {
-                // A failing migration is skipped alone: the others of the project still apply
+                // A failing step is skipped alone: the others of the project still apply
                 try
                 {
-                    solution = await upgrade(solution, targets, cancellationToken);
+                    solution = await step.Upgrade(solution, targets, cancellationToken);
                 }
                 catch (Exception e) when (e is not NotImplementedException)
                 {
-                    log.Warning($"Code upgrade: a source migration of [{pendingItem.ProjectFullPath.GetFileName()}] failed and was skipped; its code is left unchanged.", e);
+                    log.Warning($"Code upgrade: the step \"{step.Title}\" of [{pendingItem.ProjectFullPath.GetFileName()}] failed and was skipped; its code is left unchanged.", e);
                 }
             }
         }

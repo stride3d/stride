@@ -33,10 +33,10 @@ public class TestCodeUpgrade
         }
     }
 
-    private static Task<string> ApplyAsync(string source, params CodeUpgrade[] upgrades) => ApplyAsync(source, DocumentationMode.Parse, upgrades);
+    private static Task<string> ApplyAsync(string source, params CodeStep[] steps) => ApplyAsync(source, DocumentationMode.Parse, steps);
 
     // documentationMode: the one the project is opened with; None for a project that generates no documentation file
-    private static async Task<string> ApplyAsync(string source, DocumentationMode documentationMode, params CodeUpgrade[] upgrades)
+    private static async Task<string> ApplyAsync(string source, DocumentationMode documentationMode, params CodeStep[] steps)
     {
         using var workspace = new AdhocWorkspace();
         var projectId = ProjectId.CreateNewId();
@@ -54,8 +54,8 @@ public class TestCodeUpgrade
         solution = RoslynCodeUpgradeRunner.ParseDocumentationComments(solution);
 
         IReadOnlyList<ProjectId> targets = [projectId];
-        foreach (var upgrade in upgrades)
-            solution = await upgrade(solution, targets, CancellationToken.None);
+        foreach (var step in steps)
+            solution = await step.Upgrade(solution, targets, CancellationToken.None);
 
         var document = solution.GetDocument(documentId);
         var text = await document.GetTextAsync();
@@ -524,7 +524,7 @@ public class TestCodeUpgrade
         }
         """;
 
-    private static readonly CodeUpgrade MoveUpgrade = Rewrite(
+    private static readonly CodeStep MoveUpgrade = Rewrite(
         StaticMemberMove("TestNs.Old", "AllocateMemory", "TestNs.New", "Allocate"),
         StaticMemberMove("TestNs.Old", "FreeMemory", "TestNs.New", "Free"),
         StaticMemberMove("TestNs.Old", "Swap", "TestNs.New"),
@@ -998,7 +998,7 @@ public class TestCodeUpgrade
         }
         """;
 
-    private static readonly CodeUpgrade EffectKeysUpgrade = AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute");
+    private static readonly CodeStep EffectKeysUpgrade = AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute");
 
     [Fact]
     public async Task AddAttributeToStaticFieldHoldersMarksTypesWithStaticKeyFields()
@@ -1174,7 +1174,7 @@ public class TestCodeUpgrade
 
         """;
 
-    private static readonly CodeUpgrade DispatcherUpgrade = DispatcherCallbacksToStaticLambdas();
+    private static readonly CodeStep DispatcherUpgrade = DispatcherCallbacksToStaticLambdas();
 
     [Fact]
     public async Task DispatcherCallbacksMoveCapturesToTheState()
@@ -1568,6 +1568,38 @@ public class TestCodeUpgrade
         // Calls of IsPressed and overrides of an unrelated IsPressed are left alone
         Assert.Contains("public bool Read() => IsPressed(2);", result);
         Assert.Contains("class Other : OtherBase { public override bool IsPressed(int button) => false; }", result);
+        AssertCompiles(result.Replace(OldBase, NewBase));
+    }
+
+    [Fact]
+    public async Task CombineRunsEachMigrationAsOneStep()
+    {
+        const string OldBase = "public abstract class TouchController { public abstract float Trigger { get; } public abstract bool IsPressed(int button); }";
+        const string NewBase = "public abstract class TouchController { public float Trigger => RawTrigger; protected abstract float RawTrigger { get; } public bool IsPressed(int button) => IsRawPressed(button); protected abstract bool IsRawPressed(int button); }";
+        var source = $$"""
+            namespace VR
+            {
+                {{OldBase}}
+            }
+            namespace TestNs
+            {
+                class Hand : VR.TouchController
+                {
+                    public override float Trigger => 1;
+                    public override bool IsPressed(int button) => Trigger > 0;
+                }
+            }
+            """;
+
+        var step = Combine("Move the overrides",
+            PropertyOverrideRename("VR.TouchController", "Trigger", "RawTrigger", SyntaxKind.ProtectedKeyword),
+            MethodOverrideRename("VR.TouchController", "IsPressed", "IsRawPressed", SyntaxKind.ProtectedKeyword));
+        var result = await ApplyAsync(source, step);
+
+        Assert.Equal("Move the overrides", step.Title);
+        Assert.Contains("protected override float RawTrigger => 1;", result);
+        // The second migration runs on the code the first one changed
+        Assert.Contains("protected override bool IsRawPressed(int button) => Trigger > 0;", result);
         AssertCompiles(result.Replace(OldBase, NewBase));
     }
 }

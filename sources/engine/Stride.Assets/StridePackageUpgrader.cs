@@ -114,7 +114,7 @@ namespace Stride.Assets
             // methods to (extension) properties (fmt.IsSRgb() -> fmt.IsSRgb).
             registry.Code("4.4.0.0",
             [
-                Rewrite(
+                Rewrite("Read the `PixelFormat` helpers `IsSRgb`, `IsHDR`, `Is32bppWithAlpha` and `SizeInBytes` as properties",
                     MethodToProperty("Stride.Graphics.PixelFormatExtensions", "IsSRgb"),
                     MethodToProperty("Stride.Graphics.PixelFormatExtensions", "IsHDR"),
                     MethodToProperty("Stride.Graphics.PixelFormatExtensions", "Is32bppWithAlpha"),
@@ -127,7 +127,7 @@ namespace Stride.Assets
 
                 // 4.4: the memory helpers of Stride.Core.Utilities moved to Stride.Core.MemoryUtilities,
                 // some renamed along with their parameters (#1715).
-                Rewrite(
+                Rewrite("Move the memory helpers of `Utilities` to `MemoryUtilities`",
                     StaticMemberMove("Stride.Core.Utilities", "CopyWithAlignmentFallback", "Stride.Core.MemoryUtilities"),
                     StaticMemberMove("Stride.Core.Utilities", "Clear", "Stride.Core.MemoryUtilities"),
                     StaticMemberMove("Stride.Core.Utilities", "Swap", "Stride.Core.MemoryUtilities"),
@@ -143,7 +143,7 @@ namespace Stride.Assets
                 // 4.4: a lost graphics device is no longer recovered, so the reload hooks are gone:
                 // Buffer.RecreateWith returned its receiver, Reload and the DeviceReset events had no
                 // other use than being assigned or subscribed to.
-                Rewrite(
+                Rewrite("Remove the uses of the graphics device reload and reset hooks",
                     FluentCallRemove("Stride.Graphics.Buffer", "RecreateWith"),
                     AssignmentRemove("Stride.Graphics.GraphicsResourceBase", "Reload"),
                     AssignmentRemove("Stride.Graphics.IGraphicsDeviceService", "DeviceReset"),
@@ -161,7 +161,7 @@ namespace Stride.Assets
             [
                 // 4.5: audio left Stride.Engine for the optional Stride.Audio package; Game.Audio is an extension property
                 // there (a bare `Audio` in a game needs `this.` and the using) and a script reaches it as Game.Audio.
-                Rewrite(
+                Rewrite("Use `Game.Audio` as an extension member of `Stride.Audio`",
                     MemberToExtension("Stride.Engine.Game", "Audio", "Stride.Audio"),
                     MemberToExtension("Stride.Engine.ScriptComponent", "Audio", "Stride.Audio", throughMember: "Game")),
 
@@ -180,7 +180,7 @@ namespace Stride.Assets
                 // UnsetRenderTargets becomes ResetTargets, which unbinds the same targets and also forgets them;
                 // ResetQueryPool had nothing to do (Vulkan resets a pool itself, Direct3D 12's was empty);
                 // SetStreamTargets bound buffers no shader could write since 4.4 (SDSL0170).
-                Rewrite(
+                Rewrite("Replace the `CommandList` members that only some graphics APIs had",
                     MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets"),
                     FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool"),
                     FluentCallRemove("Stride.Graphics.CommandList", "SetStreamTargets")),
@@ -207,32 +207,33 @@ namespace Stride.Assets
             [
                 // 4.5.4: the TouchController queries are no longer virtual, so that they can hide a captured controller;
                 // custom backends provide their input through the raw members instead.
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "Trigger", "RawTrigger", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "Grip", "RawGrip", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexPointing", "RawIndexPointing", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexResting", "RawIndexResting", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbUp", "RawThumbUp", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbResting", "RawThumbResting", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbAxis", "RawThumbAxis", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbstickAxis", "RawThumbstickAxis", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressedDown", "IsRawPressedDown", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressed", "IsRawPressed", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressReleased", "IsRawPressReleased", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchedDown", "IsRawTouchedDown", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouched", "IsRawTouched", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchReleased", "IsRawTouchReleased", SyntaxKind.ProtectedKeyword),
+                Combine("Move the overrides of the `TouchController` queries to their `protected` raw members, such as `Trigger` to `RawTrigger`",
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "Trigger", "RawTrigger", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "Grip", "RawGrip", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexPointing", "RawIndexPointing", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexResting", "RawIndexResting", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbUp", "RawThumbUp", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbResting", "RawThumbResting", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbAxis", "RawThumbAxis", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbstickAxis", "RawThumbstickAxis", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressedDown", "IsRawPressedDown", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressed", "IsRawPressed", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressReleased", "IsRawPressReleased", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchedDown", "IsRawTouchedDown", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouched", "IsRawTouched", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchReleased", "IsRawTouchReleased", SyntaxKind.ProtectedKeyword)),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the
             // NEW-version project (after the reference bump) by UpgradeBeforeAssembliesLoaded.
-            registry.Project("4.1.0.0", UpgradeProjectTo41);
-            registry.Project("4.2.0.0", UpgradeProjectTo42);
-            registry.Project("4.3.0.0", UpgradeProjectTo43);
-            registry.Project("4.4.0.0", UpgradeProjectTo44);
-            registry.Project("4.4.2.0", UpgradeEffectShaderKeywords);
-            registry.Project("4.5.0.0", UpgradeProjectTo45);
-            registry.Project("4.5.0.0", AddPluginPackageReferences);
-            registry.Project("4.5.5.0", UpgradeMacOSToArm64);
+            registry.Project("4.1.0.0", "Target .NET 6, and remove the `Stride` reference of Linux and macOS executables", UpgradeProjectTo41);
+            registry.Project("4.2.0.0", "Target .NET 8 instead of .NET 6", UpgradeProjectTo42);
+            registry.Project("4.3.0.0", "Target .NET 10 instead of .NET 8", UpgradeProjectTo43);
+            registry.Project("4.4.0.0", "Reference `Stride.AssetCompiler`, and rename the generated `.sdsl.cs` and `.sdfx.cs` files to `.bak`", UpgradeProjectTo44);
+            registry.Project("4.4.2.0", "Declare effects with `effect` instead of `shader` in `.sdfx` files", UpgradeEffectShaderKeywords);
+            registry.Project("4.5.0.0", "Add a `Stride.Audio` reference, since audio left `Stride.Engine`", UpgradeProjectTo45);
+            registry.Project("4.5.0.0", "Add the plugin packages whose assets the project has", AddPluginPackageReferences);
+            registry.Project("4.5.5.0", "Change the `osx-x64` runtime of macOS projects to `osx-arm64`", UpgradeMacOSToArm64);
         }
 
         private static bool IsSkippedPackage(string packageName)

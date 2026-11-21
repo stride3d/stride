@@ -32,7 +32,7 @@ namespace Stride.Assets.Tests
             Assert.All(gates, gate => Assert.True(gate.Version <= committed, $"Gate {gate} is above the committed version {committed}: bump Patch in SharedAssemblyInfo.cs"));
         }
 
-        // Gates run in declaration order, so a later migration can rely on an earlier one.
+        // Gates run in declaration order, so a later project step can rely on an earlier one. A code rule never does: each works on the code as the user wrote it.
         [Fact]
         public void GatesOfOneKindAreInOrder()
         {

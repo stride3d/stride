@@ -18,7 +18,7 @@ public static partial class CodeUpgrades
     /// type gets it once, on the part that declares its first such field. The attribute may not exist in the
     /// old-version closure, so it is matched and written by name: short when its namespace is in scope, qualified otherwise.
     /// </summary>
-    public static CodeUpgrade AddAttributeToStaticFieldHolders(string fieldBaseType, string attributeType)
+    public static CodeStep AddAttributeToStaticFieldHolders(string fieldBaseType, string attributeType)
     {
         ArgumentNullException.ThrowIfNull(fieldBaseType);
         ArgumentNullException.ThrowIfNull(attributeType);
@@ -29,7 +29,7 @@ public static partial class CodeUpgrades
             shortName = shortName[..^"Attribute".Length];
         var qualifiedName = attributeNamespace is null ? shortName : attributeNamespace + "." + shortName;
 
-        return async (solution, targets, cancellationToken) =>
+        return new CodeStep($"Add `[{shortName}]` to the types that hold static `{TypeName(fieldBaseType)}` fields", async (solution, targets, cancellationToken) =>
         {
             foreach (var projectId in targets)
             {
@@ -80,6 +80,6 @@ public static partial class CodeUpgrades
                 }
             }
             return solution;
-        };
+        });
     }
 }

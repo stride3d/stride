@@ -66,7 +66,7 @@ public class TestUpgradedVersionRecord : IDisposable
     public class ProjectFailingUpgrader : global::Stride.Assets.CodePackageUpgrader
     {
         public override void DeclareUpgrades(global::Stride.Assets.UpgradeRegistry registry)
-            => registry.Project("2.0.0", _ => throw new InvalidOperationException("The project can't be changed"));
+            => registry.Project("2.0.0", "Change the project", _ => throw new InvalidOperationException("The project can't be changed"));
     }
 
     /// <summary>

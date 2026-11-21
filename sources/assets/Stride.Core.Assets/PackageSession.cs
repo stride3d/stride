@@ -1350,7 +1350,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 }
                 catch (NotImplementedException)
                 {
-                    // Unsupported rule configuration (e.g. resolveSince above the from-version) is an
+                    // A rule whose changes the runner can't write (e.g. an added document) is an
                     // upgrader-authoring error — surface it loudly instead of degrading to a warning.
                     throw;
                 }

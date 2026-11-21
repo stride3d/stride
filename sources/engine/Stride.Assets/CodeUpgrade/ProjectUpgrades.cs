@@ -53,6 +53,7 @@ public sealed class ProjectUpgradeContext
 }
 
 /// <summary>
-/// One <c>Project</c> registration: the gate version the change landed at, and the structural action to run.
+/// One <c>Project</c> registration: the gate version the change landed at, its title, the structural action to run, and
+/// whether it only keeps the place of a removed step.
 /// </summary>
-internal sealed record ProjectUpgradeRegistration(PackageVersion GateVersion, ProjectUpgrade Upgrade);
+internal sealed record ProjectUpgradeRegistration(PackageVersion GateVersion, string Title, ProjectUpgrade Upgrade, bool IsRetired = false);

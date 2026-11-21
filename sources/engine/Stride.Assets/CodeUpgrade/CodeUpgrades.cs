@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,7 +30,11 @@ namespace Stride.Assets;
 /// </param>
 public sealed record SymbolRewrite(
     Func<Compilation, IEnumerable<ISymbol>> ResolveSymbols,
-    Action<DocumentEditor, SyntaxNode, ISymbol> RewriteReference);
+    Action<DocumentEditor, SyntaxNode, ISymbol> RewriteReference)
+{
+    /// <summary>What the rewrite changes, in one line of Markdown: the title of a step made of this rewrite alone.</summary>
+    public string Description { get; init; }
+}
 
 /// <summary>
 /// Factory helpers for declaring code migrations. Import with
@@ -38,26 +43,59 @@ public sealed record SymbolRewrite(
 public static partial class CodeUpgrades
 {
     /// <summary>
-    /// Batches symbol rewrites into one <see cref="CodeUpgrade"/>: all symbols are resolved and their
-    /// references found against the ORIGINAL solution, edits collected, then applied once per document.
-    /// Matchers in one batch are order-independent (each matches the original symbols) and must not
-    /// depend on each other's edits — put a genuine dependency in a separate <see cref="CodeUpgrade"/>.
+    /// Batches symbol rewrites into one step: all symbols are resolved and their references found against
+    /// the ORIGINAL solution, edits collected, then applied once per document. Matchers in one batch are
+    /// order-independent (each matches the original symbols) and must not depend on each other's edits,
+    /// nor on those of other steps (see <see cref="CodeUpgrade"/>). The step's title joins the descriptions
+    /// of the rewrites: give a batch of several rewrites a title of its own with
+    /// <see cref="Rewrite(string, SymbolRewrite[])"/>.
     /// </summary>
-    public static CodeUpgrade Rewrite(params SymbolRewrite[] rewrites)
+    public static CodeStep Rewrite(params SymbolRewrite[] rewrites)
     {
         ArgumentNullException.ThrowIfNull(rewrites);
-        return (solution, targets, cancellationToken) => SymbolRewriteEngine.ApplyAsync(solution, targets, rewrites, cancellationToken);
+        if (rewrites.Any(x => string.IsNullOrWhiteSpace(x.Description)))
+            throw new ArgumentException("A rewrite has no description: give the step a title with Rewrite(title, ...).", nameof(rewrites));
+        return Rewrite(string.Join("; ", rewrites.Select(x => x.Description)), rewrites);
+    }
+
+    /// <summary>
+    /// Batches symbol rewrites into one step titled <paramref name="title"/>, as <see cref="Rewrite(SymbolRewrite[])"/> does.
+    /// </summary>
+    public static CodeStep Rewrite(string title, params SymbolRewrite[] rewrites)
+    {
+        ArgumentNullException.ThrowIfNull(rewrites);
+        return new CodeStep(title, (solution, targets, cancellationToken) => SymbolRewriteEngine.ApplyAsync(solution, targets, rewrites, cancellationToken));
     }
 
     /// <summary>
     /// Raw escape hatch: wrap an arbitrary <see cref="CodeUpgrade"/> (full Roslyn) for cases the member
     /// helpers don't cover — structural multi-node patterns, conditional/cross-cutting rewrites, etc.
     /// </summary>
-    public static CodeUpgrade Custom(CodeUpgrade upgrade)
+    /// <param name="title">What the step changes, in one line of Markdown.</param>
+    /// <param name="upgrade">The migration.</param>
+    public static CodeStep Custom(string title, CodeUpgrade upgrade) => new(title, upgrade);
+
+    /// <summary>
+    /// Runs the migrations of <paramref name="steps"/> one after the other as one step titled <paramref name="title"/>, for
+    /// changes that a user makes as one, such as the same rename of several members.
+    /// </summary>
+    public static CodeStep Combine(string title, params CodeStep[] steps)
     {
-        ArgumentNullException.ThrowIfNull(upgrade);
-        return upgrade;
+        ArgumentNullException.ThrowIfNull(steps);
+        return new CodeStep(title, async (solution, targets, cancellationToken) =>
+        {
+            foreach (var step in steps)
+                solution = await step.Upgrade(solution, targets, cancellationToken);
+            return solution;
+        });
     }
+
+    /// <summary>
+    /// A step that was removed: it keeps the place of that step in its gate, so the IDs of the next steps stay, and does
+    /// nothing. A step is never deleted from a gate; only a whole gate may go.
+    /// </summary>
+    /// <param name="title">The title of the removed step.</param>
+    public static CodeStep Retired(string title) => new(title, static (solution, _, _) => Task.FromResult(solution)) { IsRetired = true };
 
     /// <summary>
     /// Migrates a property that became a (parameterless) method: <c>x.Foo</c> → <c>x.Foo()</c>.
@@ -96,7 +134,7 @@ public static partial class CodeUpgrades
                     .WithLeadingTrivia(expression.GetLeadingTrivia())
                     .WithTrailingTrivia(expression.GetTrailingTrivia());
                 editor.ReplaceNode(target, rewritten);
-            });
+            }) { Description = $"Call `{TypeName(declaringType)}.{propertyName}` as a method" };
     }
 
     /// <summary>
@@ -142,7 +180,7 @@ public static partial class CodeUpgrades
                     .WithLeadingTrivia(invocation.GetLeadingTrivia())
                     .WithTrailingTrivia(invocation.GetTrailingTrivia());
                 editor.ReplaceNode(invocation, rewritten);
-            });
+            }) { Description = $"Read `{TypeName(declaringType)}.{methodName}` as a property" };
     }
 
     /// <summary>
@@ -171,7 +209,7 @@ public static partial class CodeUpgrades
                         continue;
                     editor.ReplaceNode(nameColon.Name, SyntaxFactory.IdentifierName(newParameterName).WithTriviaFrom(nameColon.Name));
                 }
-            });
+            }) { Description = methodName == ".ctor" ? $"Rename the parameter `{oldParameterName}` of the `{TypeName(declaringType)}` constructor to `{newParameterName}`" : $"Rename the parameter `{oldParameterName}` of `{TypeName(declaringType)}.{methodName}` to `{newParameterName}`" };
     }
 
     /// <summary>
@@ -233,7 +271,7 @@ public static partial class CodeUpgrades
                 {
                     editor.ReplaceNode(name, newName);
                 }
-            });
+            }) { Description = $"Move `{oldTypeName}.{memberName}` to `{newTypeName}.{newMemberName}`" };
 
         // The new type in place of the old one: written the same way in the same namespace (Utilities → MemoryUtilities,
         // TestNs.Utilities → TestNs.MemoryUtilities), else as its full name
@@ -271,7 +309,7 @@ public static partial class CodeUpgrades
 
                 // WithIdentifier keeps the type argument list of a generic name
                 editor.ReplaceNode(name, name.WithIdentifier(SyntaxFactory.Identifier(name.Identifier.LeadingTrivia, newMemberName, name.Identifier.TrailingTrivia)));
-            });
+            }) { Description = $"Rename `{TypeName(declaringType)}.{memberName}` to `{newMemberName}`" };
     }
 
     /// <summary>
@@ -301,7 +339,7 @@ public static partial class CodeUpgrades
                 {
                     ReplaceByReceiver(editor, conditionalAccess, conditionalAccess.Expression);
                 }
-            });
+            }) { Description = $"Remove the calls of `{TypeName(declaringType)}.{methodName}`" };
 
         // Where the value of the call is discarded, the receiver stays only if it is a statement itself (x.Foo(a); goes,
         // New().Foo(a); becomes New();)
@@ -388,7 +426,7 @@ public static partial class CodeUpgrades
                     // An entry of an object initializer or a with expression: the entry goes, the rest stays.
                     editor.RemoveNode(assignment, SyntaxRemoveOptions.KeepNoTrivia);
                 }
-            });
+            }) { Description = $"Remove the assignments and subscriptions of `{TypeName(declaringType)}.{memberName}`" };
     }
 
     /// <summary>
@@ -520,7 +558,7 @@ public static partial class CodeUpgrades
 
                 // Import the namespace once per file (the callback sees the root as edited so far)
                 editor.ReplaceNode(editor.OriginalRoot, (root, _) => root is CompilationUnitSyntax unit ? AddUsing(unit, extensionNamespace) : root);
-            });
+            }) { Description = throughMember is null ? $"Use `{TypeName(declaringType)}.{memberName}` as an extension member of `{extensionNamespace}`" : $"Use `{TypeName(declaringType)}.{memberName}` through `{throughMember}`, as an extension member of `{extensionNamespace}`" };
     }
 
     private static MemberAccessExpressionSyntax Access(ExpressionSyntax receiver, SimpleNameSyntax member)
@@ -542,7 +580,7 @@ public static partial class CodeUpgrades
     /// <param name="interfaceType">The full metadata name of the interface, e.g. <c>"Stride.Input.IInputDevice"</c>.</param>
     /// <param name="memberDeclaration">The property or event to add, as C# source.</param>
     /// <param name="memberNamespace">The namespace the member's types live in.</param>
-    public static CodeUpgrade InterfaceMemberAdd(string interfaceType, string memberDeclaration, string memberNamespace)
+    public static CodeStep InterfaceMemberAdd(string interfaceType, string memberDeclaration, string memberNamespace)
     {
         ArgumentNullException.ThrowIfNull(interfaceType);
         ArgumentNullException.ThrowIfNull(memberDeclaration);
@@ -554,7 +592,7 @@ public static partial class CodeUpgrades
             _ => throw new ArgumentException("The member must be a property or an event with accessors.", nameof(memberDeclaration)),
         };
 
-        return async (solution, targets, cancellationToken) =>
+        return new CodeStep($"Add `{memberName}` to the classes that implement `{TypeName(interfaceType)}`", async (solution, targets, cancellationToken) =>
         {
             foreach (var projectId in targets)
             {
@@ -603,7 +641,7 @@ public static partial class CodeUpgrades
                 }
             }
             return solution;
-        };
+        });
     }
 
     /// <summary>
@@ -632,7 +670,7 @@ public static partial class CodeUpgrades
     /// property inside it go to the new property too, since the old one now calls the new one. Assignments to the override,
     /// such as a get-only auto-property set in the constructor, go to the new property as well, since the old one has no setter.
     /// </summary>
-    public static CodeUpgrade PropertyOverrideRename(string declaringType, string propertyName, string newPropertyName, SyntaxKind newAccessibility)
+    public static CodeStep PropertyOverrideRename(string declaringType, string propertyName, string newPropertyName, SyntaxKind newAccessibility)
         => OverrideRename<PropertyDeclarationSyntax>(declaringType, propertyName, newPropertyName, newAccessibility,
             symbol => (symbol as IPropertySymbol)?.OverriddenProperty,
             (declaration, name) => declaration.WithIdentifier(SyntaxFactory.Identifier(name).WithTriviaFrom(declaration.Identifier)));
@@ -644,12 +682,12 @@ public static partial class CodeUpgrades
     /// <paramref name="newMethodName"/> with the accessibility <paramref name="newAccessibility"/>, and <c>base.</c> calls of the
     /// method inside it go to the new method too, since the old one now calls the new one.
     /// </summary>
-    public static CodeUpgrade MethodOverrideRename(string declaringType, string methodName, string newMethodName, SyntaxKind newAccessibility)
+    public static CodeStep MethodOverrideRename(string declaringType, string methodName, string newMethodName, SyntaxKind newAccessibility)
         => OverrideRename<MethodDeclarationSyntax>(declaringType, methodName, newMethodName, newAccessibility,
             symbol => (symbol as IMethodSymbol)?.OverriddenMethod,
             (declaration, name) => declaration.WithIdentifier(SyntaxFactory.Identifier(name).WithTriviaFrom(declaration.Identifier)));
 
-    private static CodeUpgrade OverrideRename<TDeclaration>(string declaringType, string memberName, string newMemberName, SyntaxKind newAccessibility,
+    private static CodeStep OverrideRename<TDeclaration>(string declaringType, string memberName, string newMemberName, SyntaxKind newAccessibility,
         Func<ISymbol, ISymbol> overriddenMember, Func<TDeclaration, string, TDeclaration> rename)
         where TDeclaration : MemberDeclarationSyntax
     {
@@ -659,7 +697,7 @@ public static partial class CodeUpgrades
         if (!SyntaxFacts.IsAccessibilityModifier(newAccessibility))
             throw new ArgumentException("The accessibility must be an accessibility keyword.", nameof(newAccessibility));
 
-        return async (solution, targets, cancellationToken) =>
+        return new CodeStep($"Move the overrides of `{TypeName(declaringType)}.{memberName}` to `{SyntaxFacts.GetText(newAccessibility)} {newMemberName}`", async (solution, targets, cancellationToken) =>
         {
             foreach (var projectId in targets)
             {
@@ -724,7 +762,7 @@ public static partial class CodeUpgrades
                 }
             }
             return solution;
-        };
+        });
 
         bool Overrides(ISymbol member, ImmutableArray<ISymbol> overridden)
         {
@@ -747,10 +785,10 @@ public static partial class CodeUpgrades
     /// dead weight that turns into a compile error once the namespace is gone, while a used one means the
     /// code needs manual porting anyway and is left for the user to see.
     /// </summary>
-    public static CodeUpgrade RemoveUnusedUsings(params string[] namespaces)
+    public static CodeStep RemoveUnusedUsings(params string[] namespaces)
     {
         ArgumentNullException.ThrowIfNull(namespaces);
-        return async (solution, targets, cancellationToken) =>
+        return new CodeStep($"Remove the unused `using` directives of {string.Join(", ", namespaces.Select(x => $"`{x}`"))}", async (solution, targets, cancellationToken) =>
         {
             foreach (var projectId in targets)
             {
@@ -789,7 +827,7 @@ public static partial class CodeUpgrades
                 }
             }
             return solution;
-        };
+        });
     }
 
     /// <summary>
@@ -888,4 +926,7 @@ public static partial class CodeUpgrades
                 yield return member;
         }
     }
+
+    // The name of a type in a step's title: Stride.Graphics.CommandList -> CommandList
+    private static string TypeName(string metadataName) => metadataName[(metadataName.LastIndexOf('.') + 1)..];
 }

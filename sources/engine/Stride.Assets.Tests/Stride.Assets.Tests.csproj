@@ -34,6 +34,7 @@
     <Compile Include="TestConvexHullMesh.cs" />
     <Compile Include="TestPluginPackageUpgrade.cs" />
     <Compile Include="TestUpgraderGates.cs" />
+    <Compile Include="TestUpgradeSteps.cs" />
     <Compile Include="TestAudioProjectUpgrade.cs" />
     <Compile Include="TestMacOSProjectUpgrade.cs" />
     <Compile Include="TestAssetConstantsTargets.cs" />
