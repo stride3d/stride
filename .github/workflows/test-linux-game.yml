@@ -102,9 +102,11 @@ jobs:
           mode: restore
           lane: Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Install runtime dependencies
+        # The Ubuntu mirrors sometimes hang: stop well before the job's limit (a slow mirror takes up to 7 min).
+        timeout-minutes: 10
         run: |
           sudo apt-get update
-          sudo apt-get install -y libopenal-dev libvulkan1 xvfb lld vulkan-validationlayers libva2 libva-drm2 libva-x11-2
+          sudo apt-get install -y libopenal-dev libvulkan1 xvfb vulkan-validationlayers libva2 libva-drm2 libva-x11-2
       - name: Start virtual display
         run: |
           # Lavapipe's x11 WSI needs a display server to expose VK_KHR_swapchain,
