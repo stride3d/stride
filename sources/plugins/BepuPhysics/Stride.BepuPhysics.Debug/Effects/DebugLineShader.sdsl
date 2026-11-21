@@ -14,7 +14,7 @@ shader DebugLineShader : ShaderBase, Transformation, PositionStream4, ColorBase
     float2 ViewportSize;
     float LineWidth;
 
-    stage override void VSMain()
+    module override void VSMain()
     {
         streams.ShadingPosition = mul(streams.Position, WorldViewProjection);
     }
@@ -51,7 +51,7 @@ shader DebugLineShader : ShaderBase, Transformation, PositionStream4, ColorBase
         triangleStream.RestartStrip();
     }
 
-    stage override void PSMain()
+    module override void PSMain()
     {
         streams.ColorTarget = streams.Color;
     }

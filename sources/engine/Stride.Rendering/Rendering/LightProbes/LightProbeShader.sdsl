@@ -10,22 +10,22 @@ namespace Stride.Rendering.LightProbes
     {
         cbuffer PerView.LightProbes
         {
-            stage int IgnoredProbeStart;
+            module int IgnoredProbeStart;
         }
         rgroup PerView.LightProbes
         {
 #ifdef STRIDE_MULTISAMPLE_COUNT 
   #if STRIDE_MULTISAMPLE_COUNT > 1
-            stage Texture2DMS<uint, STRIDE_MULTISAMPLE_COUNT> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
+            module Texture2DMS<uint, STRIDE_MULTISAMPLE_COUNT> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
   #else
-            stage Texture2D<uint> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
+            module Texture2D<uint> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
   #endif
 #else
-            stage Texture2DMS<uint> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
+            module Texture2DMS<uint> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
 #endif
-            stage Buffer<uint4> LightProbeTetrahedronProbeIndices; // tetrahaedron ID => 4 probe IDs
-            stage Buffer<float4> LightProbeTetrahedronMatrices; // tetrahaedron ID => world to tetrahedron space matrix
-            stage Buffer<float4> LightProbeCoefficients; // probe ID => SH coefficients, padded to float4 (no three-float texel buffers on Metal)
+            module Buffer<uint4> LightProbeTetrahedronProbeIndices; // tetrahaedron ID => 4 probe IDs
+            module Buffer<float4> LightProbeTetrahedronMatrices; // tetrahaedron ID => world to tetrahedron space matrix
+            module Buffer<float4> LightProbeCoefficients; // probe ID => SH coefficients, padded to float4 (no three-float texel buffers on Metal)
         }
 
         void FetchLightProbe(inout float3 sphericalColors[TOrder * TOrder], uint lightprobeIndex, float weight)

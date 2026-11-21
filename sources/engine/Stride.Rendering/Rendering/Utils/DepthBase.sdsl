@@ -12,7 +12,7 @@ shader DepthBase : Camera, Texturing
     rgroup PerView.Depth
     {
         //[Link("RenderTarget.DepthStencilSource")]
-        stage Texture2D DepthStencil;
+        module Texture2D DepthStencil;
     }
 
     // Sample the depth from the texture

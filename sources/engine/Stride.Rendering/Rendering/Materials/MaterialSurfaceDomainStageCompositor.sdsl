@@ -8,7 +8,7 @@ namespace Stride.Rendering.Materials
         compose IMaterialSurface materialDomainStage;
         compose IStreamInitializer streamInitializerDomainStage;
 
-        stage override void TessellateDomain()
+        module override void TessellateDomain()
         {
             base.TessellateDomain();
 

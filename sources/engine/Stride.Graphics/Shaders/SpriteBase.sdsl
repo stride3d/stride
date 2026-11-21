@@ -5,7 +5,7 @@ shader SpriteBase : ShaderBase, Texturing
     // -------------------------------------
     // streams
     // -------------------------------------
-    stage stream float4 Position : POSITION;
+    module stream float4 Position : POSITION;
 
     cbuffer PerDraw
     {
@@ -13,24 +13,24 @@ shader SpriteBase : ShaderBase, Texturing
         // uniforms
         // -------------------------------------
         // A general transformation matrix
-        stage float4x4 MatrixTransform = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+        module float4x4 MatrixTransform = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     }
         
     // -------------------------------------
     // VertexShader
     // -------------------------------------
-    stage override void VSMain()
+    module override void VSMain()
     {
         streams.ShadingPosition = mul(streams.Position, MatrixTransform);
     }
 
     // Shading of the sprite
-    stage override void PSMain()
+    module override void PSMain()
     {
         streams.ColorTarget = Shading();
     }
 
-    stage float4 Shading()
+    module float4 Shading()
     {
         return Texture0.Sample(Sampler, streams.TexCoord);
     }

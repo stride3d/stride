@@ -10,7 +10,7 @@ shader CSConstArrayInfer
 {
     static const uint info[] = { 0, 1, 2, 3, 4, 5, 6 };
 
-    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    module stream uint3 DispatchThreadId : SV_DispatchThreadID;
     RWStructuredBuffer<uint> Out;
 
     [numthreads(1, 1, 1)]

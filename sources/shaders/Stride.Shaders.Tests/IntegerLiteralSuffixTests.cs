@@ -156,14 +156,14 @@ public class IntegerLiteralSuffixTests
     [Fact]
     public void LiteralsParseInAShader()
     {
-        var result = SDSLParser.Parse("shader S { stage uint Output; void M(int c) { Output = c != 0 ? 1u : 0u; Output = 0x10u + 0x80000000L + 017 + 0ul; } };");
+        var result = SDSLParser.Parse("shader S { module uint Output; void M(int c) { Output = c != 0 ? 1u : 0u; Output = 0x10u + 0x80000000L + 017 + 0ul; } };");
         Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
     }
 
     [Fact]
     public void UnsupportedSuffixIsReportedInAShader()
     {
-        var result = SDSLParser.Parse("shader S { stage uint Output; void M() { Output = 0u16; } };");
+        var result = SDSLParser.Parse("shader S { module uint Output; void M() { Output = 0u16; } };");
         Assert.Contains(result.Errors, e => e.Message.Contains("8-bit and 16-bit"));
     }
 

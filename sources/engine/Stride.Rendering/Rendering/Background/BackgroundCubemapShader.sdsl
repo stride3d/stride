@@ -3,10 +3,10 @@
 
 shader BackgroundCubemapShader : BackgroundShader
 {
-    stage TextureCube Cubemap;
+    module TextureCube Cubemap;
 
     // Shading of the sprite
-    stage override float4 Shading()
+    module override float4 Shading()
     { 
 		var directionVector = float3(1, 1-2*streams.TexCoord.y, 1-2*streams.TexCoord.x);
         return Intensity * Cubemap.Sample(LinearSampler, normalize(directionVector));

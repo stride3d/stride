@@ -11,7 +11,7 @@ namespace Stride.Rendering.Images
     shader CoCLinearDepthShader : ImageEffectShader, Camera, CircleOfConfusion
     {
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             // Linearizes the depth for view space
             float depth = Texture0.Sample(Sampler, streams.TexCoord).x;

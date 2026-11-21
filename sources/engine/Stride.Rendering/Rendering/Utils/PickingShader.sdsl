@@ -10,10 +10,10 @@ namespace Stride.Rendering
     {
         cbuffer PerDraw
         {
-            stage float4 PickingData;
+            module float4 PickingData;
         }
 
-        stage override void PSMain()
+        module override void PSMain()
         {
             float modelComponentId = PickingData.x + (min(streams.InstanceID, 1023.0) / 1024.0);
             float meshMaterialIndex = PickingData.y;

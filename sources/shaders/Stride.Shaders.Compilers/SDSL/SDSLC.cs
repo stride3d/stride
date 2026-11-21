@@ -99,7 +99,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     }
                 }
 
-                // Hints for composition authors, such as a stage method that forces a full import: nothing a game user acts on
+                // Hints for composition authors, such as a module method that forces a full import: nothing a game user acts on
                 foreach (var info in table.Infos)
                     log.Debug(info.ToString(filename));
 

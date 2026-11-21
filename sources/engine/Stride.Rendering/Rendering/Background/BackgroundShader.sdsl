@@ -3,10 +3,10 @@
 
 shader BackgroundShader : SpriteBase
 {
-    stage float Intensity;
+    module float Intensity;
 
     // Shading of the sprite
-    stage override float4 Shading()
+    module override float4 Shading()
     { 
         return Intensity * base.Shading();
     }

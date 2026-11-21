@@ -5,7 +5,7 @@
 /// </summary>
 shader PositionVertexTransform : ShaderBase, Transformation, PositionStream
 {
-    stage override void VSMain()
+    module override void VSMain()
     {
         base.VSMain();
         streams.PositionWS = mul(streams.Position, World);

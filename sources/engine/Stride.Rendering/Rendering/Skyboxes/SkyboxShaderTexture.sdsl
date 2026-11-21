@@ -5,9 +5,9 @@ namespace Stride.Rendering.Skyboxes
 {
     shader SkyboxShaderTexture : SkyboxShaderBase, Math
     {
-        stage Texture2D Texture;
+        module Texture2D Texture;
 
-        override stage float4 Shading()
+        override module float4 Shading()
         {
             var samplingDir = normalize(streams.skyboxViewDirection);
 			var samplingDirSquare = float3(samplingDir.x*samplingDir.x, samplingDir.y*samplingDir.y, samplingDir.z*samplingDir.z);

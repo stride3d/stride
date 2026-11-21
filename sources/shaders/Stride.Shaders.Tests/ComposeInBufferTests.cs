@@ -12,11 +12,11 @@ public class ComposeInBufferTests
 {
     [Theory]
     // VL.Addons' TextureControlTriangle_ShaderFX
-    [InlineData("shader S { rgroup PerMaterial { stage Texture2D ShrinkTexture; stage compose ComputeFloat ShrinkStrength; } };", "Composition ShrinkStrength", "rgroup PerMaterial")]
+    [InlineData("shader S { rgroup PerMaterial { module Texture2D ShrinkTexture; module compose ComputeFloat ShrinkStrength; } };", "Composition ShrinkStrength", "rgroup PerMaterial")]
     [InlineData("shader S { cbuffer PerDraw { float Scale; compose ComputeColor Color; } };", "Composition Color", "cbuffer PerDraw")]
     [InlineData("shader S { cbuffer PerDraw { float Scale; [Link(\"X\")] compose ComputeColor Color; } };", "Composition Color", "cbuffer PerDraw")]
     // VL.Addons' Sprite_ShaderFX
-    [InlineData("shader S { cbuffer PerDraw { stage float2 GridSize; stage stream float2 ObjectUV; } };", "Stream ObjectUV", "cbuffer PerDraw")]
+    [InlineData("shader S { cbuffer PerDraw { module float2 GridSize; module stream float2 ObjectUV; } };", "Stream ObjectUV", "cbuffer PerDraw")]
     public void MemberThatIsNotABufferMemberSaysSo(string code, string member, string block)
     {
         var error = SDSLParser.Parse(code).Errors[0];
@@ -34,7 +34,7 @@ public class ComposeInBufferTests
     [Fact]
     public void OutsideTheBlockIsFine()
     {
-        var result = SDSLParser.Parse("shader S { rgroup PerMaterial { stage Texture2D ShrinkTexture; } stage compose ComputeFloat ShrinkStrength; stage stream float2 ObjectUV; };");
+        var result = SDSLParser.Parse("shader S { rgroup PerMaterial { module Texture2D ShrinkTexture; } stage compose ComputeFloat ShrinkStrength; module stream float2 ObjectUV; };");
         Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
     }
 }

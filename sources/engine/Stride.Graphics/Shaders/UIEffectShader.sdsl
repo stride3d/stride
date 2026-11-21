@@ -5,14 +5,14 @@ shader UIEffectShader<bool TSRgb> : ShaderBase, Texturing
     // -------------------------------------
     // streams
     // -------------------------------------
-    stage stream float4 Position : POSITION;
-    stage stream float4 Color : COLOR;
-    stage stream float Swizzle : BATCH_SWIZZLE;
+    module stream float4 Position : POSITION;
+    module stream float4 Color : COLOR;
+    module stream float Swizzle : BATCH_SWIZZLE;
             
     // -------------------------------------
     // VertexShader
     // -------------------------------------
-    stage override void VSMain()
+    module override void VSMain()
     {
         streams.ShadingPosition = streams.Position;
         if (TSRgb)
@@ -22,12 +22,12 @@ shader UIEffectShader<bool TSRgb> : ShaderBase, Texturing
     }
         
     // Shading of the sprite
-    stage override void PSMain()
+    module override void PSMain()
     {
         streams.ColorTarget = Shading();
     }
 
-    stage float4 Shading()
+    module float4 Shading()
     {
         float4 sampledColor = Texture0.Sample(Sampler, streams.TexCoord);
         float4 swizzledColor = streams.Swizzle == 0? sampledColor: sampledColor.rrrr;

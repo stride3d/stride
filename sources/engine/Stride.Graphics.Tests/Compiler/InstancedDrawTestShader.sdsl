@@ -8,15 +8,15 @@ namespace Stride.Graphics.Tests
     /// </summary>
     shader InstancedDrawTestShader : ShaderBase
     {
-        stage stream float2 Position : POSITION;
-        stage stream float4 InstanceColor : COLOR;
+        module stream float2 Position : POSITION;
+        module stream float4 InstanceColor : COLOR;
 
-        stage override void VSMain()
+        module override void VSMain()
         {
             streams.ShadingPosition = float4(streams.Position, 0.0f, 1.0f);
         }
 
-        stage override void PSMain()
+        module override void PSMain()
         {
             streams.ColorTarget = streams.InstanceColor;
         }

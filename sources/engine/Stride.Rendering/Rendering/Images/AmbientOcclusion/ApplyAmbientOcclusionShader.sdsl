@@ -5,7 +5,7 @@ namespace Stride.Rendering.Images
 {
     shader ApplyAmbientOcclusionShader : ImageEffectShader
     {
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             //*****************************
             float4 color     = Texture0.SampleLevel(Sampler, streams.TexCoord, 0);

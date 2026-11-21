@@ -8,7 +8,7 @@ shader StaticFromMember
 {
     stream float4 ColorTarget : SV_Target0;
 
-    stage float2 ViewSize;
+    module float2 ViewSize;
     static float2 R = ViewSize;
 
     void PSMain()

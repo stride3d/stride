@@ -17,7 +17,7 @@ shader StageParentHelper
 // Mimics MaterialTreeDisplacementFeature inheriting TerrainQuery.
 shader StageChildComposition : StageParentHelper
 {
-    stage void PreTransform()
+    module void PreTransform()
     {
         float4 c = ComputeHelper();
     }
@@ -30,7 +30,7 @@ shader CompositionStageInheritedNotPromotedToRootShader
     stream float4 Position : POSITION;
     stream float4 ShadingPosition : SV_Position;
 
-    stage void PreTransform() {}
+    module void PreTransform() {}
 
     compose StageChildComposition vertexStageComposition;
 

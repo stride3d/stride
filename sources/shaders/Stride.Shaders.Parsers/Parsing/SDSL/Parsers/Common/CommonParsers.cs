@@ -98,6 +98,7 @@ public static class Parsers
         while (
             Tokens.AnyOf(
                 [
+                    "module",
                     "stage",
                     "override",
                     "clone",
@@ -110,7 +111,7 @@ public static class Parsers
             && Spaces1(ref scanner, result, out _))
         {
             matched = true;
-            if (match == "stage")
+            if (match is "module" or "stage")
                 isStaged = true;
             else if (match == "override")
                 isOverride = true;
@@ -142,6 +143,7 @@ public static class Parsers
         while (
             Tokens.AnyOf(
                 [
+                    "module",
                     "stage",
                     "compose",
                     "stream",
@@ -169,7 +171,7 @@ public static class Parsers
             && Spaces1(ref scanner, result, out _))
         {
             matched = true;
-            if (match == "stage")
+            if (match is "module" or "stage")
                 isStaged = true;
             else if (match == "compose")
                 isCompose = true;

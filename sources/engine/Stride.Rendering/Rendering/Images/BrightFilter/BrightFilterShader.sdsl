@@ -13,12 +13,12 @@ namespace Stride.Rendering.Images
     internal shader BrightFilterShader : ImageEffectShader
     {
         [Color]
-        stage float3 ColorModulator;
+        module float3 ColorModulator;
 
-        stage float BrightPassSteepness = 2.0f;
-        stage float ThresholdOffset = 0.2f;
+        module float BrightPassSteepness = 2.0f;
+        module float ThresholdOffset = 0.2f;
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
 

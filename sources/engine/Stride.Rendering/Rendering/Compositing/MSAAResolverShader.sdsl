@@ -10,18 +10,18 @@ namespace Stride.Rendering.Compositing
     {
         // Reference: https://github.com/TheRealMJP/MSAAFilter
 
-        stage float4 SvPosUnpack;
-        stage float2 TextureSizeLess1;
+        module float4 SvPosUnpack;
+        module float2 TextureSizeLess1;
 #ifndef INPUT_MSAA_SAMPLES
-		stage Texture2DMS<float4> InputTexture;
+		module Texture2DMS<float4> InputTexture;
 #elif INPUT_MSAA_SAMPLES == 1
-		stage Texture2DMS<float4, 1> InputTexture;
+		module Texture2DMS<float4, 1> InputTexture;
 #elif INPUT_MSAA_SAMPLES == 2
-		stage Texture2DMS<float4, 2> InputTexture;
+		module Texture2DMS<float4, 2> InputTexture;
 #elif INPUT_MSAA_SAMPLES == 4
-		stage Texture2DMS<float4, 4> InputTexture;
+		module Texture2DMS<float4, 4> InputTexture;
 #elif INPUT_MSAA_SAMPLES == 8
-		stage Texture2DMS<float4, 8> InputTexture;
+		module Texture2DMS<float4, 8> InputTexture;
 #else
         #error "Unsupported amount of MSAA texture samples."
 #endif
@@ -159,7 +159,7 @@ namespace Stride.Rendering.Compositing
             return (int2)(clipPos * SvPosUnpack.xy + SvPosUnpack.zw);
         }
 
-        override stage float4 Shading()
+        override module float4 Shading()
         {
             float4 output = 0;
 			int2 pixelPos = ClipPosToUvPos(streams.Position.xy);

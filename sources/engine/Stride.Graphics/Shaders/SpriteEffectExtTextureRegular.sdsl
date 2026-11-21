@@ -2,25 +2,25 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 shader SpriteEffectExtTextureRegular : ShaderBase
 {
-    stage Texture2D TextureRegular;
+    module Texture2D TextureRegular;
 
-    stage SamplerState Sampler;
-    stage float MipLevel;
+    module SamplerState Sampler;
+    module float MipLevel;
 
-    stage stream float2 TexCoord : TEXCOORD0;
-    stage stream float4 Position : POSITION;
+    module stream float2 TexCoord : TEXCOORD0;
+    module stream float4 Position : POSITION;
 
-    stage override void VSMain()
+    module override void VSMain()
     {
         streams.ShadingPosition = streams.Position;
     }
 
-    stage override void PSMain()
+    module override void PSMain()
     {
         streams.ColorTarget = Shading();
     }
 
-    stage float4 Shading()
+    module float4 Shading()
     {
         return TextureRegular.SampleLevel(Sampler, streams.TexCoord, MipLevel);
     }

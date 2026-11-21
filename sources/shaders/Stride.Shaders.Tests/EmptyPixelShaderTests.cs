@@ -31,12 +31,12 @@ public class EmptyPixelShaderTests : IDisposable
             stream float4 ShadingPosition : SV_Position;
             stream float4 ColorTarget : SV_Target0;
 
-            stage void VSMain()
+            module void VSMain()
             {
                 streams.ShadingPosition = streams.Position;
             }
 
-            stage void PSMain()
+            module void PSMain()
             {
                 {{pixelShaderBody}}
             }
@@ -49,12 +49,12 @@ public class EmptyPixelShaderTests : IDisposable
     [InlineData(GraphicsPlatform.Vulkan)]
     public void EmptyOverrideDropsThePixelShader(GraphicsPlatform platform)
     {
-        var stages = Mix(platform, "override stage void PSMain() { }");
+        var stages = Mix(platform, "override module void PSMain() { }");
         Assert.Equal(new[] { ShaderStage.Vertex }, stages);
     }
 
     [Theory]
-    [InlineData(GraphicsPlatform.Direct3D11, "override stage void PSMain() { clip(-1); }")]
+    [InlineData(GraphicsPlatform.Direct3D11, "override module void PSMain() { clip(-1); }")]
     [InlineData(GraphicsPlatform.Direct3D11, "")]
     public void PixelShaderThatDoesSomethingStays(GraphicsPlatform platform, string members)
     {
@@ -66,7 +66,7 @@ public class EmptyPixelShaderTests : IDisposable
     [Fact]
     public void OverrideThatCallsAnEmptyBaseKeepsThePixelShader()
     {
-        var stages = Mix(GraphicsPlatform.Direct3D11, "override stage void PSMain() { base.PSMain(); }", baseBody: "");
+        var stages = Mix(GraphicsPlatform.Direct3D11, "override module void PSMain() { base.PSMain(); }", baseBody: "");
         Assert.Equal(new[] { ShaderStage.Vertex, ShaderStage.Pixel }, stages.Order());
     }
 

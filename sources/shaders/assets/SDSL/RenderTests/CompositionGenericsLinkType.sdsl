@@ -15,7 +15,7 @@ shader ComputeLinkStage<LinkType Link1> : Compute
     cbuffer Test
     {
         [Link("Link1")]
-        stage int Test1;
+        module int Test1;
     }
 
     override float Compute()
@@ -48,7 +48,7 @@ shader GenericsLinkType
 
     cbuffer Test
     {
-        stage int TestBase;
+        module int TestBase;
     }
 
     void PSMain()

@@ -15,7 +15,7 @@ namespace Stride.Rendering.Images
         compose ComputeColor directionalBlurA;
         compose ComputeColor directionalBlurB;
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             // First diagonal blur
             float4 blurColorA = directionalBlurA.Compute();

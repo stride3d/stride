@@ -8,10 +8,10 @@ namespace Stride.Rendering.Images
     /// </summary>
     internal shader SphericalHarmonicsRenderer<int THarmonicsOrder>: SphericalHarmonicsBase<THarmonicsOrder>, ImageEffectShader, Texturing
     {    
-        [Color] stage float3 SHCoefficients[CoefficientsCount];
+        [Color] module float3 SHCoefficients[CoefficientsCount];
 
         // Shading of the sprite
-        stage override void PSMain()
+        module override void PSMain()
         {
             float3 ColorTargets[6];
             for( uint i=0; i<6; ++i)

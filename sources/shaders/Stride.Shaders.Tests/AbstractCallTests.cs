@@ -29,7 +29,7 @@ public class AbstractCallTests : IDisposable
 
             abstract float4 Filter(float4 color);
 
-            stage float4 Shading()
+            module float4 Shading()
             {
                 return Filter(float4(1.0, 1.0, 1.0, 1.0));
             }
@@ -45,7 +45,7 @@ public class AbstractCallTests : IDisposable
     // Shading is not replaced
     [InlineData("")]
     // The override calls the replaced Shading
-    [InlineData("stage override float4 Shading() { return base.Shading() * 0.5; }")]
+    [InlineData("module override float4 Shading() { return base.Shading() * 0.5; }")]
     public void CalledAbstractMethodIsAnError(string members)
     {
         var (ok, log) = Mix(members);
@@ -54,7 +54,7 @@ public class AbstractCallTests : IDisposable
     }
 
     [Theory]
-    [InlineData("stage override float4 Shading() { return 0.5; }")]
+    [InlineData("module override float4 Shading() { return 0.5; }")]
     [InlineData("override float4 Filter(float4 color) { return color * 0.5; }")]
     public void UncalledOrImplementedAbstractMethodIsFine(string members)
     {

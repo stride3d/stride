@@ -25,19 +25,19 @@ namespace Stride.Rendering.Materials
         cbuffer PerMaterial
         {
             [Color]
-            stage float3 HairSpecularColor1;    // The color of the primary specular reflection.
+            module float3 HairSpecularColor1;    // The color of the primary specular reflection.
       
             [Color]
-            stage float3 HairSpecularColor2;    // The color of the secondary specular reflection.
+            module float3 HairSpecularColor2;    // The color of the secondary specular reflection.
             
-            stage float HairScalesAngle;
-            stage float HairSpecularShiftRatio;
-            stage float HairSpecularExponent1;
-            stage float HairSpecularExponent2;
-            stage float HairSpecularScale1;
-            stage float HairSpecularScale2;
-            stage float HairShiftNoiseScale;    // Controls how much the noise should affect the specular highlight direction.
-            stage float HairGlintsNoiseStrength;    // Controls how much the glints noise should affect the secondary reflections.
+            module float HairScalesAngle;
+            module float HairSpecularShiftRatio;
+            module float HairSpecularExponent1;
+            module float HairSpecularExponent2;
+            module float HairSpecularScale1;
+            module float HairSpecularScale2;
+            module float HairShiftNoiseScale;    // Controls how much the noise should affect the specular highlight direction.
+            module float HairGlintsNoiseStrength;    // Controls how much the glints noise should affect the secondary reflections.
         }
         
         /// <summary>

@@ -25,7 +25,7 @@ shader CallNonStageFromStageMethodInherited : CallNonStageFromStageMethodInherit
         streams.ShadingPosition = streams.Position;
     }
 
-    stage void PSMain()
+    module void PSMain()
     {
         streams.ColorTarget = ComputeColor();
     }

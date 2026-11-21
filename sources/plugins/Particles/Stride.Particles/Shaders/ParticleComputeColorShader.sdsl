@@ -12,7 +12,7 @@ shader ParticleComputeColorShader : ParticleBase
     compose ComputeColor  baseColor;
 
     // Shading of the sprite
-    stage override float4 Shading()
+    module override float4 Shading()
     {
         // -----------------------------------------------
         // Base particle color

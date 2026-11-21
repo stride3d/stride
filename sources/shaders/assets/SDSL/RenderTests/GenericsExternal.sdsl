@@ -6,7 +6,7 @@ shader ExternalClass<int TArraySize>
 {
     cbuffer PerView
     {
-        stage float Data[TArraySize];
+        module float Data[TArraySize];
     };
 }
 
@@ -30,7 +30,7 @@ shader GenericsExternalShader
 
 	compose CompositionBase ShadingColor0;
 
-	stage float4 Shading()
+	module float4 Shading()
     {
         return ShadingColor0.Compute();
     }

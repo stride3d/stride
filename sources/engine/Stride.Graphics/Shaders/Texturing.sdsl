@@ -3,60 +3,60 @@
 shader Texturing
 {
     // Default texture slots - might be automatically used by the material
-    stage Texture2D Texture0;
-    stage float2 Texture0TexelSize;
-    stage Texture2D Texture1;
-    stage float2 Texture1TexelSize;
-    stage Texture2D Texture2;
-    stage float2 Texture2TexelSize;
-    stage Texture2D Texture3;
-    stage float2 Texture3TexelSize;
-    stage Texture2D Texture4;
-    stage float2 Texture4TexelSize;
-    stage Texture2D Texture5;
-    stage float2 Texture5TexelSize;
-    stage Texture2D Texture6;
-    stage float2 Texture6TexelSize;
-    stage Texture2D Texture7;
-    stage float2 Texture7TexelSize;
-    stage Texture2D Texture8;
-    stage float2 Texture8TexelSize;
-    stage Texture2D Texture9;
-    stage float2 Texture9TexelSize;
+    module Texture2D Texture0;
+    module float2 Texture0TexelSize;
+    module Texture2D Texture1;
+    module float2 Texture1TexelSize;
+    module Texture2D Texture2;
+    module float2 Texture2TexelSize;
+    module Texture2D Texture3;
+    module float2 Texture3TexelSize;
+    module Texture2D Texture4;
+    module float2 Texture4TexelSize;
+    module Texture2D Texture5;
+    module float2 Texture5TexelSize;
+    module Texture2D Texture6;
+    module float2 Texture6TexelSize;
+    module Texture2D Texture7;
+    module float2 Texture7TexelSize;
+    module Texture2D Texture8;
+    module float2 Texture8TexelSize;
+    module Texture2D Texture9;
+    module float2 Texture9TexelSize;
 
     // Default texture cube slots
-    stage TextureCube TextureCube0;
-    stage TextureCube TextureCube1;
-    stage TextureCube TextureCube2;
-    stage TextureCube TextureCube3;
+    module TextureCube TextureCube0;
+    module TextureCube TextureCube1;
+    module TextureCube TextureCube2;
+    module TextureCube TextureCube3;
 
     // Default texture 3D slots
-    stage Texture3D Texture3D0;
-    stage Texture3D Texture3D1;
-    stage Texture3D Texture3D2;
-    stage Texture3D Texture3D3;
+    module Texture3D Texture3D0;
+    module Texture3D Texture3D1;
+    module Texture3D Texture3D2;
+    module Texture3D Texture3D3;
 
     // Default sampler
-    stage SamplerState Sampler;
+    module SamplerState Sampler;
 
-    stage SamplerState PointSampler
+    module SamplerState PointSampler
     {
         Filter = MIN_MAG_MIP_POINT;
     };
 
-    stage SamplerState LinearSampler
+    module SamplerState LinearSampler
     {
         Filter = MIN_MAG_MIP_LINEAR;
     };
 
-    stage SamplerState LinearBorderSampler
+    module SamplerState LinearBorderSampler
     {
         Filter = MIN_MAG_MIP_LINEAR;
         AddressU = Border;
         AddressV = Border;
     };
 
-    stage SamplerComparisonState LinearClampCompareLessEqualSampler
+    module SamplerComparisonState LinearClampCompareLessEqualSampler
     {
         Filter = COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
         AddressU = Clamp;
@@ -65,12 +65,12 @@ shader Texturing
 
     };
 
-    stage SamplerState AnisotropicSampler
+    module SamplerState AnisotropicSampler
     {
         Filter = ANISOTROPIC;
     };
 
-    stage SamplerState AnisotropicRepeatSampler
+    module SamplerState AnisotropicRepeatSampler
     {
         Filter = ANISOTROPIC;
         AddressU = Wrap;
@@ -78,47 +78,47 @@ shader Texturing
         MaxAnisotropy = 16;
     };
 
-    stage SamplerState PointRepeatSampler
+    module SamplerState PointRepeatSampler
     {
         Filter = MIN_MAG_MIP_POINT;
         AddressU = Wrap;
         AddressV = Wrap;
     };
 
-    stage SamplerState LinearRepeatSampler
+    module SamplerState LinearRepeatSampler
     {
         Filter = MIN_MAG_MIP_LINEAR;
         AddressU = Wrap;
         AddressV = Wrap;
     };
 
-    stage SamplerState RepeatSampler
+    module SamplerState RepeatSampler
     {
         AddressU = Wrap;
         AddressV = Wrap;
     };
 
     // Default custom samplers - might be automatically used by the materials
-    stage SamplerState Sampler0;
-    stage SamplerState Sampler1;
-    stage SamplerState Sampler2;
-    stage SamplerState Sampler3;
-    stage SamplerState Sampler4;
-    stage SamplerState Sampler5;
-    stage SamplerState Sampler6;
-    stage SamplerState Sampler7;
-    stage SamplerState Sampler8;
-    stage SamplerState Sampler9;
+    module SamplerState Sampler0;
+    module SamplerState Sampler1;
+    module SamplerState Sampler2;
+    module SamplerState Sampler3;
+    module SamplerState Sampler4;
+    module SamplerState Sampler5;
+    module SamplerState Sampler6;
+    module SamplerState Sampler7;
+    module SamplerState Sampler8;
+    module SamplerState Sampler9;
 
     // Texcoord attribute inputs
-    stage stream float2 TexCoord : TEXCOORD0;
-    stage stream float2 TexCoord1 : TEXCOORD1;
-    stage stream float2 TexCoord2 : TEXCOORD2;
-    stage stream float2 TexCoord3 : TEXCOORD3;
-    stage stream float2 TexCoord4 : TEXCOORD4;
-    stage stream float2 TexCoord5 : TEXCOORD5;
-    stage stream float2 TexCoord6 : TEXCOORD6;
-    stage stream float2 TexCoord7 : TEXCOORD7;
-    stage stream float2 TexCoord8 : TEXCOORD8;
-    stage stream float2 TexCoord9 : TEXCOORD9;
+    module stream float2 TexCoord : TEXCOORD0;
+    module stream float2 TexCoord1 : TEXCOORD1;
+    module stream float2 TexCoord2 : TEXCOORD2;
+    module stream float2 TexCoord3 : TEXCOORD3;
+    module stream float2 TexCoord4 : TEXCOORD4;
+    module stream float2 TexCoord5 : TEXCOORD5;
+    module stream float2 TexCoord6 : TEXCOORD6;
+    module stream float2 TexCoord7 : TEXCOORD7;
+    module stream float2 TexCoord8 : TEXCOORD8;
+    module stream float2 TexCoord9 : TEXCOORD9;
 };

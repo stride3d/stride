@@ -6,7 +6,7 @@ namespace Stride.Shaders.Tests;
 // int values (-1, thread - 512) are the largest uints. Thread 0 alone checks the original values
 shader CSInterlockedUint
 {
-    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    module stream uint3 DispatchThreadId : SV_DispatchThreadID;
 
     RWStructuredBuffer<uint> Values;
 

@@ -3,12 +3,12 @@ namespace Stride.Shaders.Tests;
 
 shader QualifiedNonStageRoot : QualifiedNonStageBase
 {
-    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    module stream uint3 DispatchThreadId : SV_DispatchThreadID;
 
     RWTexture3D<float4> WriteTex;
 
     [numthreads(8, 8, 8)]
-    stage void CSMain()
+    module void CSMain()
     {
         WriteTex[streams.DispatchThreadId] = float4(QualifiedNonStageBase.Value, 0, 0, 1);
     }

@@ -461,7 +461,7 @@ public class ShaderWriter : NodeWalker
             WriteLine("]");
         }
 
-        if (shaderMember.IsStaged) Write("stage").WriteSpace();
+        if (shaderMember.IsStaged) Write("module").WriteSpace();
         if (shaderMember.StreamKind != StreamKind.None) Write(shaderMember.StreamKind.ToString().ToLowerInvariant()).WriteSpace();
         if (shaderMember.StorageClass != StorageClass.None) Write(shaderMember.StorageClass.ToString().ToLowerInvariant()).WriteSpace();
 
@@ -478,7 +478,7 @@ public class ShaderWriter : NodeWalker
 
     public override void VisitShaderMethod(ShaderMethod shaderMethod)
     {
-        if (shaderMethod.IsStaged) Write("stage").WriteSpace();
+        if (shaderMethod.IsStaged) Write("module").WriteSpace();
         if (shaderMethod.IsOverride) Write("override").WriteSpace();
         if (shaderMethod.IsStatic) Write("static").WriteSpace();
 

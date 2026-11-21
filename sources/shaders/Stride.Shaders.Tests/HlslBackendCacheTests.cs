@@ -53,7 +53,7 @@ public class HlslBackendCacheTests : IDisposable
         File.WriteAllText(shaderPath, $$"""
             shader {{shaderName}} : SpriteBase
             {
-                stage override float4 Shading()
+                module override float4 Shading()
                 {
                     return float4({{color}});
                 }

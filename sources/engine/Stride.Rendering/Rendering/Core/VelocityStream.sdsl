@@ -4,9 +4,9 @@
 shader VelocityStream : ShaderBase
 {
     // Screen space velocity
-    stage stream float2 velocity;
+    module stream float2 velocity;
 
-    stage override void VSMain()
+    module override void VSMain()
     {
         base.VSMain();
         streams.velocity = float2(0,0);

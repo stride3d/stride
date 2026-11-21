@@ -7,28 +7,28 @@ shader SpriteEffectExtTexture : ShaderBase
     //stage float4 Color = float4(1,1,1,1);
 
     //[ExternalOES]
-    stage Texture2D StrideInternal_TextureExt0;    // DO NOT RENAME THIS VARIABLE! The ShaderCompiler specifically looks for "TextureExt0".
-    stage float MipLevel;
-    stage float Gamma;
+    module Texture2D StrideInternal_TextureExt0;    // DO NOT RENAME THIS VARIABLE! The ShaderCompiler specifically looks for "TextureExt0".
+    module float MipLevel;
+    module float Gamma;
     //stage Texture2DExternalOES StrideInternal_TextureExt0;
 
-    stage SamplerState Sampler;
+    module SamplerState Sampler;
 
-    stage stream float2 TexCoord : TEXCOORD0;
-    stage stream float4 Position : POSITION;
+    module stream float2 TexCoord : TEXCOORD0;
+    module stream float4 Position : POSITION;
 
     /*cbuffer PerDraw
     {
         stage float4x4 MatrixTransform;
     }*/
 
-    stage override void VSMain()
+    module override void VSMain()
     {
         //streams.ShadingPosition = mul(streams.Position, MatrixTransform);
         streams.ShadingPosition = streams.Position;
     }
 
-    stage override void PSMain()
+    module override void PSMain()
     {
         streams.ColorTarget = Shading();
     }
@@ -85,7 +85,7 @@ shader SpriteEffectExtTexture : ShaderBase
         return pow(color, Gamma);
     }
 
-    stage float4 Shading()
+    module float4 Shading()
     {
         //return StrideInternal_TextureExt0.Sample(Sampler, streams.TexCoord) * Color;
 

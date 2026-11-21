@@ -6,22 +6,22 @@ namespace Stride.Rendering.LightProbes
     shader BakeLightProbeShader : PositionStream4, Texturing
     {
 		// Default SV_POSITION output for VS/GS shaders
-		stage stream float4 ShadingPosition : SV_Position;
+		module stream float4 ShadingPosition : SV_Position;
 
-		stage stream uint LightProbeId : LIGHTPROBE_ID;
-		stage stream uint LightProbeIdOutput : SV_Target0;
+		module stream uint LightProbeId : LIGHTPROBE_ID;
+		module stream uint LightProbeIdOutput : SV_Target0;
 
 	    cbuffer PerDraw
 		{
-			stage float4x4 MatrixTransform;
+			module float4x4 MatrixTransform;
 		}
 
-		stage void VSMain()
+		module void VSMain()
 		{
 			streams.ShadingPosition = mul(streams.Position, MatrixTransform);
 		}
 
-		stage void PSMain()
+		module void PSMain()
 		{
 			streams.LightProbeIdOutput = streams.LightProbeId;
 		}

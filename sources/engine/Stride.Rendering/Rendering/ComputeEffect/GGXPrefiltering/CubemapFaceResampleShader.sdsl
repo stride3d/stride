@@ -13,12 +13,12 @@ namespace Stride.Rendering.Images
         TextureCube RadianceMap;
 
         // The mipmap level to read
-        stage float MipLevel;
+        module float MipLevel;
 
         // The face being written
-        stage int Face;
+        module int Face;
 
-        override stage float4 Shading()
+        override module float4 Shading()
         {
             float3 direction = normalize(CubemapUtils.ConvertTexcoordsNoFlip(streams.TexCoord, Face));
 

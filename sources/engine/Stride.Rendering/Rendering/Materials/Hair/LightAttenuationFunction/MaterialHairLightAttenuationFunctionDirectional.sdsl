@@ -9,9 +9,9 @@ namespace Stride.Rendering.Materials
         cbuffer PerMaterial
         {
             [Link("THardnessReciprocal")]
-			stage float HardnessReciprocal; // == 1.0 / hardness
+			module float HardnessReciprocal; // == 1.0 / hardness
             [Link("TBoundaryShift")]
-			stage float BoundaryShift;    // Range: [0.0 ... 0.5]
+			module float BoundaryShift;    // Range: [0.0 ... 0.5]
         }
 
         float CalculateNdotL(void)

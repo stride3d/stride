@@ -8,10 +8,10 @@ namespace Stride.Rendering.Images
         cbuffer PerFrame
         {
             [Color]
-            stage float3 LightColor;
+            module float3 LightColor;
         }
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             float4 color = Texture0.Sample(LinearSampler, streams.TexCoord);
             if(TColor)

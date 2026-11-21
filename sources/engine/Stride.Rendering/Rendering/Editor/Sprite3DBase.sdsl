@@ -3,9 +3,9 @@
 
 shader Sprite3DBase : SpriteBase
 {
-    stage float SliceCoordinate;  
+    module float SliceCoordinate;  
 
-    override stage float4 Shading()
+    override module float4 Shading()
     {
         return Texture3D0.Sample(Sampler, float3(streams.TexCoord, SliceCoordinate));
     }

@@ -9,7 +9,7 @@ namespace Stride.Rendering.Materials
     {
         rgroup PerMaterial
         {
-            stage Texture2D EnvironmentLightingDFG_LUT;
+            module Texture2D EnvironmentLightingDFG_LUT;
         }
 
         override float3 Compute(float3 specularColor, float alphaR, float nDotV)

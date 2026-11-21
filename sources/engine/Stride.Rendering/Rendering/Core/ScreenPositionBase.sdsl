@@ -7,15 +7,15 @@
 shader ScreenPositionBase : ShaderBase
 {
     // The position in screen space
-    stage stream float4 ScreenPosition;
+    module stream float4 ScreenPosition;
 
-    stage override void VSMain()
+    module override void VSMain()
     {
         base.VSMain();
         streams.ScreenPosition = streams.ShadingPosition;
     }
 
-    stage override void PSMain()
+    module override void PSMain()
     {
         streams.ScreenPosition /= streams.ScreenPosition.w;
         base.PSMain();

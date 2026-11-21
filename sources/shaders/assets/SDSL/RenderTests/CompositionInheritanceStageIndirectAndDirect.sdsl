@@ -10,7 +10,7 @@ shader ExternalClass
 {
     cbuffer PerView
     {
-        stage float Eye;
+        module float Eye;
     };
 }
 
@@ -28,7 +28,7 @@ shader CompositionExternalBase
 
 	cbuffer PerView
     {
-        stage float Eye2;
+        module float Eye2;
     };
 
 	compose CompositionBase ShadingColor0;
@@ -36,7 +36,7 @@ shader CompositionExternalBase
 
 shader CompositionInheritanceStageIndirectAndDirect : CompositionExternalBase, ExternalClass
 {
-	stage float4 Shading()
+	module float4 Shading()
     {
         return ShadingColor0.Compute() + Eye2 / 255.0 + Eye / 255.0;
     }

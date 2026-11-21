@@ -15,7 +15,7 @@ namespace Stride.Rendering.Images
         // Halo factor
         float HaloFactor;
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             float3 result = float3(0.0, 0.0, 0.0);
             float2 originalUV = streams.TexCoord;

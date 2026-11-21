@@ -4,13 +4,13 @@ namespace Stride.Rendering.Voxels
 {
     shader BufferToTexture : LocalSamples, ComputeShaderBase, VoxelPositionStream, DataPacking
     {
-        stage RWBuffer<uint> VoxelFragments;
+        module RWBuffer<uint> VoxelFragments;
         
-        stage float3 clipMapResolution;
+        module float3 clipMapResolution;
 
-        stage float  storageUints;
+        module float  storageUints;
 
-        stage uint  clipOffset;
+        module uint  clipOffset;
 
         compose VoxelAttribute AttributesTemp[];
         compose VoxelAttribute AttributesIndirect[];

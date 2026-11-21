@@ -62,7 +62,7 @@ public class EffectReloadTests : IDisposable
     private string ShaderWithColor(string color) => $$"""
         shader {{shaderName}} : SpriteBase
         {
-            stage override float4 Shading()
+            module override float4 Shading()
             {
                 return float4({{color}});
             }

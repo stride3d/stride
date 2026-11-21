@@ -10,7 +10,7 @@ namespace Stride.Rendering.Shadows
         /// --------------------------------------------------------------------------------
         /// Pixel Shader
         /// --------------------------------------------------------------------------------
-        override stage void PSMain()
+        override module void PSMain()
         {
             float depth = streams.ShadingPosition.z;
 

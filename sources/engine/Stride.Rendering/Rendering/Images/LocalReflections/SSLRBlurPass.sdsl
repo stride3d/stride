@@ -13,7 +13,7 @@ namespace Stride.Rendering.Images
 		// 5 - 9-tap blur
 		#define SSR_BLUR_STEPS 3
 		
-		override stage float4 Shading()
+		override module float4 Shading()
 		{
 		#if CONVOLVE_VERTICAL
 			const float2 offsets[SSR_BLUR_STEPS] = {

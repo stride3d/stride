@@ -6,5 +6,5 @@
 shader ColorBase
 {
     // A color attribute
-    stage stream float4 Color : COLOR;
+    module stream float4 Color : COLOR;
 };

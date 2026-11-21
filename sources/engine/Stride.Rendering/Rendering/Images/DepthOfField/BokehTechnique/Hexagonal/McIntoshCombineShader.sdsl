@@ -12,7 +12,7 @@ namespace Stride.Rendering.Images
     shader McIntoshCombineShader : ImageEffectShader
     {
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             float4 minimum =  min( Texture0.Sample(Sampler, streams.TexCoord),
                                    Texture1.Sample(Sampler, streams.TexCoord) );

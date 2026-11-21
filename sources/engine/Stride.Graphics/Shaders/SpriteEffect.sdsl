@@ -4,10 +4,10 @@ shader SpriteEffect : SpriteBase
 {
     // Color used to tint the sprite
     [Color]
-    stage float4 Color = float4(1,1,1,1);
+    module float4 Color = float4(1,1,1,1);
 
     // Shading of the sprite
-    stage override float4 Shading()
+    module override float4 Shading()
     {
         return base.Shading() * Color;
     }

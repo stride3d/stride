@@ -52,7 +52,7 @@ public class UnsupportedStageFeatureTests : IDisposable
     }
 
     [Theory]
-    [InlineData("stage stream int TessFactor = 16;", "TessFactor", "16")]
+    [InlineData("module stream int TessFactor = 16;", "TessFactor", "16")]
     [InlineData("stream float Size = 1.5f;", "Size", "1.5f")]
     [InlineData("patchstream float4 Edges = float4(1, 1, 1, 1);", "Edges", "float4(1, 1, 1, 1)")]
     public void StreamInitialValueIsAnError(string declaration, string name, string value)

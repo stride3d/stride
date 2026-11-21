@@ -10,9 +10,9 @@ namespace Stride.Rendering.Images
     {
         cbuffer Data
         {
-            stage float EdgeFadeFactor;
+            module float EdgeFadeFactor;
 
-			stage float4x4 VP;
+			module float4x4 VP;
         };
 
 		// go into clip space (-1:1 from bottom/left to up/right)
@@ -68,7 +68,7 @@ namespace Stride.Rendering.Images
 	        return saturate(borderDist > value ? 1.0 : borderDist / value);
         }
 
-        override stage float4 Shading()
+        override module float4 Shading()
         {
 			// Inputs Mapping:
 			// Texture0 - Scene Color

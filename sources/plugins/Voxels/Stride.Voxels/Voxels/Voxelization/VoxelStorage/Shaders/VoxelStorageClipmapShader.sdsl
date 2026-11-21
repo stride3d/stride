@@ -28,7 +28,7 @@ shader VoxelStorageClipmapShader : VoxelStorageShader, Texturing, ShaderBaseStre
         #define clipOffsetIn clipOffset
         #define clipPosIn ((uint)clipPos)
     #else
-        stage stream uint clipIndex;
+        module stream uint clipIndex;
         #define clipScaleIn perClipMapOffsetScale[streams.clipIndex].w
         #define clipOffsetIn perClipMapOffsetScale[streams.clipIndex].xyz
         #define clipPosIn ((streams.clipIndex) * clipMapResolutionI.x * clipMapResolutionI.y * clipMapResolutionI.z)

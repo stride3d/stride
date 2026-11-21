@@ -14,16 +14,16 @@ namespace Stride.Rendering.Images
         TextureCube RadianceMap;
         
         // The number of mipmap available
-        stage float MipmapCount;
+        module float MipmapCount;
 
         // The roughness of the GGX distribution
-        stage float Roughness;
+        module float Roughness;
 
         // The current face
-        stage int Face;
+        module int Face;
 
         // compute the pre-filtered environment map for input (group) direction
-        override stage float4 Shading()
+        override module float4 Shading()
         {
             // Calculate the direction of the texel in the cubemap
             float3 R = normalize(CubemapUtils.ConvertTexcoordsNoFlip(streams.TexCoord, Face));

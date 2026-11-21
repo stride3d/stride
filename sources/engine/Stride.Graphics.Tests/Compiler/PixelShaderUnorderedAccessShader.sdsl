@@ -2,16 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 shader PixelShaderUnorderedAccessShader : ShaderBase
 {
-    stage stream float2 Position : POSITION;
+    module stream float2 Position : POSITION;
 
-    stage RWBuffer<uint> Output;
+    module RWBuffer<uint> Output;
 
-    stage override void VSMain()
+    module override void VSMain()
     {
         streams.ShadingPosition = float4(streams.Position, 0.0f, 1.0f);
     }
 
-    stage override void PSMain()
+    module override void PSMain()
     {
         Output[0] = 0xC0FFEE;
         streams.ColorTarget = float4(0, 0, 0, 1);

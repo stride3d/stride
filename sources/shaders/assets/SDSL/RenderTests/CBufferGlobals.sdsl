@@ -6,7 +6,7 @@ shader CBufferGlobals
 {
     stream float4 ColorTarget : SV_Target0;
 
-    stage float Test;
+    module float Test;
 
 	void PSMain()
 	{

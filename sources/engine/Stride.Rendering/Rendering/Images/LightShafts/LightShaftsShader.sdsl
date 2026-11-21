@@ -5,11 +5,11 @@ namespace Stride.Rendering.Images
 {
     shader LightShaftsShader<int SampleCount> : ImageEffectShader, PostEffectBoundingRay<SampleCount>, LightStream, NormalStream
     {
-        stage compose DirectLightGroup lightGroup;
+        module compose DirectLightGroup lightGroup;
 
         cbuffer PerFrame
         {
-            stage float DensityFactor;
+            module float DensityFactor;
         };
 
         override float3 ComputeColorIn(float4 positionWS, float stepSize, int stepIndex)

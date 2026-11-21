@@ -18,8 +18,8 @@ public class ThisMemberTests : IDisposable
     }
 
     [Theory]
-    [InlineData("return this.Shared;", "(9,16): SDSL0192: this.Shared: Shared is a stage member, shared by every instance, so 'this.' doesn't apply to it. Write Shared.")]
-    [InlineData("return this.Exposure;", "(9,16): SDSL0192: this.Exposure: Exposure is a stage member, shared by every instance, so 'this.' doesn't apply to it. Write Exposure.")]
+    [InlineData("return this.Shared;", "(9,16): SDSL0192: this.Shared: Shared is a module member, shared by every instance, so 'this.' doesn't apply to it. Write Shared.")]
+    [InlineData("return this.Exposure;", "(9,16): SDSL0192: this.Exposure: Exposure is a module member, shared by every instance, so 'this.' doesn't apply to it. Write Exposure.")]
     [InlineData("return base.Scale;", "(9,16): SDSL0192: base.Scale: Scale is a variable, which is not overridden, so 'base.' doesn't apply to it. Write Scale.")]
     [InlineData("float Missing = 1; return this.Missing;", "(9,40): SDSL0112: Could not resolve member Missing in expression this of type ThisMemberError")]
     [InlineData("return this.Twice;", "(9,21): SDSL0112: Could not resolve member Twice in expression this of type ThisMemberError")]
@@ -28,7 +28,7 @@ public class ThisMemberTests : IDisposable
         File.WriteAllText(Path.Combine(sourceDir.FullName, "ThisMemberError.sdsl"), $$"""
             shader ThisMemberError
             {
-                stage float Shared;
+                module float Shared;
                 float Scale;
                 float Twice() { return Scale * 2; }
 
@@ -37,7 +37,7 @@ public class ThisMemberTests : IDisposable
                     {{body}}
                 }
 
-                cbuffer Globals { stage float Exposure; }
+                cbuffer Globals { module float Exposure; }
             };
             """);
         var exception = Assert.Throws<InvalidOperationException>(() => new ShaderLoader(sourceDir.FullName, "./assets/Stride/SDSL").LoadExternalBuffer("ThisMemberError", [], out _, out _, out _));

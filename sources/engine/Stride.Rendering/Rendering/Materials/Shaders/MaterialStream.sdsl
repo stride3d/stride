@@ -7,7 +7,7 @@ namespace Stride.Rendering.Materials
         /// <summary>
         /// The blending applied between the current and previous material attributes
         /// </summary>
-        stage stream float matBlend;
+        module stream float matBlend;
     
         override void ResetStream()
         {

@@ -6,11 +6,11 @@
 shader PositionStream4
 {
     // The position attribute
-    stage stream float4 Position : POSITION;
+    module stream float4 Position : POSITION;
     
     // The position in world space
-    stage stream float4 PositionWS : POSITION_WS;
+    module stream float4 PositionWS : POSITION_WS;
 
     // The depth in view space
-    stage stream float DepthVS : DEPTH_VS;
+    module stream float DepthVS : DEPTH_VS;
 };

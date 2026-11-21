@@ -8,7 +8,7 @@ shader AbstractCallInReplacedMethodBase
 
     abstract float4 Filter(float4 color);
 
-    stage float4 Shading()
+    module float4 Shading()
     {
         return Filter(float4(1.0, 1.0, 1.0, 1.0));
     }
@@ -27,7 +27,7 @@ shader AbstractCallInReplacedMethodBase
 // Replaces both methods that call Filter, without a base call: their bodies never run, so nothing has to implement Filter
 shader AbstractCallInReplacedMethod : AbstractCallInReplacedMethodBase
 {
-    stage override float4 Shading()
+    module override float4 Shading()
     {
         return float4(0.2, 0.4, 0.6, 1.0);
     }

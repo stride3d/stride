@@ -5,7 +5,7 @@
 /// </summary>
 shader TransformationZero : TransformationBase, PositionStream4
 {
-    stage override void BaseTransformVS()
+    module override void BaseTransformVS()
     {
         streams.Position = float4(0.0f, 0.0f, 0.0f, 1.0f);
         base.BaseTransformVS();
