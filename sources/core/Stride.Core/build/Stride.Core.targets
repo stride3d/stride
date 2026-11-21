@@ -124,8 +124,10 @@
   NuGet tweaks
   *****************************************************************************************************************************
   -->
-  <!-- Workaround to copy .xml and .pdb files for new csproj targeting (https://github.com/dotnet/sdk/issues/1458#issuecomment-401497095) -->
-  <Target Name="_StrideResolveCopyLocalNuGetPackagePdbsAndXml"
+  <!-- Copy the .pdb next to each package DLL, for the file and line of Stride frames in a game's stack traces.
+       Not CopyDebugSymbolFilesFromPackages: it reads the package's file list, and misses the .pdb of a DLL that the
+       dev packages redirect to the checkout's bin. The .xml documentation files stay out: a game never reads them. -->
+  <Target Name="_StrideResolveCopyLocalNuGetPackagePdbs"
            Condition="$(CopyLocalLockFileAssemblies) == true"
            AfterTargets="ResolveReferences">
     <ItemGroup>
@@ -133,10 +135,6 @@
         Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).pdb')"
         Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
                     and Exists('%(RootDir)%(Directory)%(Filename).pdb')" />
-      <ReferenceCopyLocalPaths
-        Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')"
-        Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
-                    and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
     </ItemGroup>
   </Target>
   
