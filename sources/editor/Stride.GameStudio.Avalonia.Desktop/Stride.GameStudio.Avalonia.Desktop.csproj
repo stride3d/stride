@@ -37,6 +37,76 @@
     <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
   </ItemGroup>
 
+  <!-- Soft references to the plugins so their dev packages are up to date on every editor build -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio\Stride.Audio.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Assets\Stride.Audio.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Editor\Stride.Audio.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Editor.Avalonia\Stride.Audio.Editor.Avalonia.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Editor\Stride.Physics.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles\Stride.Particles.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Avalonia\Stride.SpriteStudio.Editor.Avalonia.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI\Stride.UI.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Assets\Stride.UI.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Editor\Stride.UI.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Editor.Avalonia\Stride.UI.Editor.Avalonia.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Video\Stride.Video\Stride.Video.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Video\Stride.Video.Assets\Stride.Video.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Video\Stride.Video.Editor\Stride.Video.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Voxels\Stride.Voxels\Stride.Voxels.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Voxels\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportArgs.cs" Link="Crash\CrashReportArgs.cs" />
     <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportData.cs" Link="Crash\CrashReportData.cs" />
