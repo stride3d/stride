@@ -11,9 +11,8 @@ shader CallNonStageFromStageMethodInheritedBase
     }
 }
 
-// Stage method calls non-stage method from an inherited shader.
-// This tests that ImportStageOnly correctly imports the parent fully
-// when a stage method references its non-stage members.
+// Module method calls an instance method of an inherited shader.
+// Allowed because the shader is mixed at the root: it is the effect's only instance.
 shader CallNonStageFromStageMethodInherited : CallNonStageFromStageMethodInheritedBase
 {
     stream float4 ColorTarget : SV_Target0;

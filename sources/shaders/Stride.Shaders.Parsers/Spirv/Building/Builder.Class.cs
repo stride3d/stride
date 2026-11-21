@@ -25,7 +25,14 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Stride.Shaders.Spirv.Building;
 
-public record class ShaderMixinInstantiation(List<ShaderClassInstantiation> Mixins, Dictionary<string, ShaderMixinInstantiation[]> Compositions);
+public record class ShaderMixinInstantiation(List<ShaderClassInstantiation> Mixins, Dictionary<string, ShaderMixinInstantiation[]> Compositions)
+{
+    /// <summary>
+    /// Root only: name of a class instantiation used in a composition → name of the root entry holding its module part, when
+    /// they differ (another instantiation with the same module identity, see <see cref="ShaderClassInstantiation.ModuleIdentity"/>).
+    /// </summary>
+    public Dictionary<string, string> RootAliases { get; } = new();
+}
 
 public record struct ShaderBuffers(SpirvContext Context, SpirvBuffer Buffer)
 {
@@ -50,7 +57,7 @@ public enum ResolveStep
     Mix,
 }
 
-public record class ShaderClassInstantiation(string ClassName, ConstantExpression[] GenericArguments, bool ImportStageOnly = false) : IEquatable<ShaderClassInstantiation>
+public record class ShaderClassInstantiation(string ClassName, ConstantExpression[] GenericArguments) : IEquatable<ShaderClassInstantiation>
 {
     public ShaderBuffers? Buffer { get; set; }
 
@@ -67,9 +74,31 @@ public record class ShaderClassInstantiation(string ClassName, ConstantExpressio
     /// </summary>
     public bool IsModule { get; set; }
 
+    /// <summary>
+    /// Root entry holding only the module part (<c>module</c> members and struct types) of a class used in compositions:
+    /// its companion module, once per effect. The composition copies hold the instance members.
+    /// </summary>
+    public bool IsCompanionModule { get; set; }
+
+    /// <summary>
+    /// Identity of the module part: the class name with the generic arguments it doesn't use replaced by <c>*</c>.
+    /// Two instantiations with the same identity share one companion module. Set by the mixer.
+    /// </summary>
+    public string? ModuleIdentity { get; set; }
+
+    /// <summary>
+    /// The composition where a companion module's class was first met (for error messages). Set by the mixer.
+    /// </summary>
+    public string? CompositionPath { get; set; }
+
+    /// <summary>
+    /// Names of the classes this class inherits, transitively (companion modules of compositions only). Set by the mixer.
+    /// </summary>
+    public List<string>? AncestorNames { get; set; }
+
     public string ToClassNameWithGenerics()
     {
-        if ((GenericArguments == null || GenericArguments.Length == 0) && !ImportStageOnly)
+        if (GenericArguments == null || GenericArguments.Length == 0)
             return ClassName;
 
         var result = new StringBuilder();
@@ -84,7 +113,7 @@ public record class ShaderClassInstantiation(string ClassName, ConstantExpressio
         return result.ToString();
     }
 
-    public override string ToString() => $"{(ImportStageOnly ? "stage " : string.Empty)}{ToClassNameWithGenerics()} Symbol: {Symbol} Buffer: {(Buffer != null ? "set" : "empty")}";
+    public override string ToString() => $"{(IsCompanionModule ? "companion module " : string.Empty)}{ToClassNameWithGenerics()} Symbol: {Symbol} Buffer: {(Buffer != null ? "set" : "empty")}";
 
     public virtual bool Equals(ShaderClassInstantiation? shaderClassSource)
     {

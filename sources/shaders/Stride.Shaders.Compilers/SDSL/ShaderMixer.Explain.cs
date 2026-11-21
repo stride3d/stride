@@ -18,8 +18,9 @@ public partial class ShaderMixer
     /// How the last <see cref="MergeSDSL"/> linked the effect, as diff-friendly text (one fact per line): for each mixin node
     /// (the root, then each composition), the final mixin order, the members each shader placed in that node, and for each
     /// method the override chain from the first definition to the winner (the one called; <c>base</c> goes one step left).
-    /// Members of a <c>stage</c> shader used in a composition are placed in the root node; that shader then appears there as
-    /// "stage only". A shader used only through static references is a "module", once in the root node.
+    /// The <c>module</c> members and struct types of a shader used in a composition are its "companion module", once in the
+    /// root node (unused generic arguments shown as <c>*</c>). A shader used only through static references is a "module",
+    /// once in the root node.
     /// </summary>
     public string? Explanation { get; private set; }
 
@@ -36,7 +37,14 @@ public partial class ShaderMixer
             builder.AppendLine($"node {nodePath}");
 
             foreach (var shader in node.Shaders)
-                builder.AppendLine($"  {(shader.IsModule ? "module" : "mixin")} {shader.ShaderName}{(shader.ImportStageOnly ? " (stage only)" : "")}");
+            {
+                builder.AppendLine(shader switch
+                {
+                    { IsCompanionModule: true } => $"  companion module {shader.ModuleIdentity ?? shader.ShaderName}",
+                    { IsModule: true } => $"  module {shader.ShaderName}",
+                    _ => $"  mixin {shader.ShaderName}",
+                });
+            }
 
             foreach (var shader in node.Shaders)
             {
@@ -51,7 +59,7 @@ public partial class ShaderMixer
                     }
                     else
                     {
-                        builder.AppendLine($"  {(shader.StageVariables.Contains(name) ? "stage " : "")}var {shader.ShaderName}.{name} : {StripPointer(type)}");
+                        builder.AppendLine($"  {(shader.StageVariables.Contains(name) ? "module " : "")}var {shader.ShaderName}.{name} : {StripPointer(type)}");
                     }
                 }
             }
@@ -74,7 +82,7 @@ public partial class ShaderMixer
                         owner += " (abstract)";
                     return owner;
                 });
-                builder.AppendLine($"  {(isStage ? "stage " : "")}method {signature} = {string.Join(" > ", chain)}");
+                builder.AppendLine($"  {(isStage ? "module " : "")}method {signature} = {string.Join(" > ", chain)}");
             }
         }
         return builder.ToString();

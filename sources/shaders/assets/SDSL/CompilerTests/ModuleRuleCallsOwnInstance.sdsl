@@ -1,0 +1,20 @@
+// Module code calls an instance method of its own class.
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleCallsOwnInstance : ModuleRuleSlot
+{
+    float Helper()
+    {
+        return 1.0;
+    }
+
+    module float4 Run()
+    {
+        return Helper();
+    }
+
+    override float4 Compute()
+    {
+        return Run();
+    }
+};

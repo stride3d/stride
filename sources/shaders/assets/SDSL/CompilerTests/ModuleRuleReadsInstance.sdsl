@@ -1,0 +1,17 @@
+// Module code reads an instance member: wrong when the shader is used in a composition (one Value per slot).
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleReadsInstance : ModuleRuleSlot
+{
+    static float Value;
+
+    module float4 ReadValue()
+    {
+        return Value;
+    }
+
+    override float4 Compute()
+    {
+        return ReadValue();
+    }
+};

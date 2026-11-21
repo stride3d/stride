@@ -1,0 +1,56 @@
+// PSMain(ExpectedResult=#05050505)
+
+namespace Stride.Shaders.Tests;
+
+// The companion module of a composition shader uses a struct type of a parent that is only in compositions
+// (like LightClusteredPointGroup using PointLightDataInternal of LightPoint): the struct type is in that
+// parent's companion module, placed before.
+
+shader CompanionModuleStructOwner
+{
+    struct CompanionData
+    {
+        float Value;
+    };
+};
+
+shader CompanionModuleStructUserBase
+{
+    float Compute()
+    {
+        return 0.0;
+    }
+};
+
+shader CompanionModuleStructUser : CompanionModuleStructUserBase, CompanionModuleStructOwner
+{
+    module float MakeValue()
+    {
+        CompanionData data;
+        data.Value = 5.0;
+        return data.Value;
+    }
+
+    override float Compute()
+    {
+        return MakeValue();
+    }
+};
+
+shader CompanionModuleStructRoot
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    compose CompanionModuleStructUserBase Comp0;
+
+    void PSMain()
+    {
+        streams.ColorTarget = Comp0.Compute() / 255.0;
+    }
+};
+
+effect CompanionModuleStruct
+{
+    mixin CompanionModuleStructRoot;
+    mixin compose Comp0 = CompanionModuleStructUser;
+}

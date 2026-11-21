@@ -1,0 +1,15 @@
+// An instance override of a module method: in a composition it would be a chain of its own that nothing calls.
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleWrongOverride : ModuleRuleSlot, ModuleRuleModuleBase
+{
+    override float Factor()
+    {
+        return 2.0;
+    }
+
+    override float4 Compute()
+    {
+        return Factor();
+    }
+};

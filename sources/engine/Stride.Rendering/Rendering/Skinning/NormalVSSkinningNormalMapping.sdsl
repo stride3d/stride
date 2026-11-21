@@ -5,7 +5,7 @@
 /// </summary>
 shader NormalVSSkinningNormalMapping : NormalFromNormalMapping
 {
-    override float3x3 GetTangentWorldTransform()
+    override module float3x3 GetTangentWorldTransform()
     {
         // TangentMatrix is already in world space, so return an identity matrix here
         return float3x3(1,0,0, 0,1,0, 0,0,1);

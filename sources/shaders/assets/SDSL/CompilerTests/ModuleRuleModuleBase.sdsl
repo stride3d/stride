@@ -1,0 +1,9 @@
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleModuleBase
+{
+    module float Factor()
+    {
+        return 1.0;
+    }
+};

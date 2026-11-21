@@ -1,0 +1,22 @@
+// PSMain(ExpectedResult=#03030303)
+
+namespace Stride.Shaders.Tests;
+
+// Module code of a shader mixed at the root may read its instance members: the root shader is the effect's only instance.
+shader RootModuleCodeReadsInstanceMember
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    static float Value;
+
+    module float4 ComputeColor()
+    {
+        return Value / 255.0;
+    }
+
+    void PSMain()
+    {
+        Value = 3.0;
+        streams.ColorTarget = ComputeColor();
+    }
+};

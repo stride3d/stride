@@ -1,0 +1,61 @@
+// PSMain(ExpectedResult=#02020202)
+
+namespace Stride.Shaders.Tests;
+
+// A composition shader calls a module method whose module helper is overridden by a shader mixed at the root
+// (like NormalUpdate.UpdateTangentToWorld calling GetTangentWorldTransform, overridden by NormalFromNormalMapping).
+
+shader ModuleHelperBase
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    module float GetFactor()
+    {
+        return 1.0;
+    }
+
+    module float ComputeValue()
+    {
+        return GetFactor();
+    }
+};
+
+shader ModuleHelperOverride : ModuleHelperBase
+{
+    override module float GetFactor()
+    {
+        return 2.0;
+    }
+};
+
+shader ModuleHelperUserBase
+{
+    float Compute()
+    {
+        return 0.0;
+    }
+};
+
+shader ModuleHelperUser : ModuleHelperUserBase, ModuleHelperBase
+{
+    override float Compute()
+    {
+        return ComputeValue();
+    }
+};
+
+shader ModuleHelperRoot : ModuleHelperOverride
+{
+    compose ModuleHelperUserBase Comp0;
+
+    void PSMain()
+    {
+        streams.ColorTarget = Comp0.Compute() / 255.0;
+    }
+};
+
+effect ModuleHelperOverridden
+{
+    mixin ModuleHelperRoot;
+    mixin compose Comp0 = ModuleHelperUser;
+}

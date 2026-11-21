@@ -1,0 +1,68 @@
+// PSMain(ExpectedResult=#07070707)
+
+namespace Stride.Shaders.Tests;
+
+// A composition shader contributes through its companion module, and the contribution calls module helpers
+// of a per-effect-only parent (like MaterialTreeDisplacementFeature calling the TerrainQuery helpers).
+
+shader TerrainLikeData
+{
+    module float HeightScale()
+    {
+        return 2.0;
+    }
+};
+
+shader TerrainLikeQuery : TerrainLikeData
+{
+    module float GetHeight(float x)
+    {
+        return x * HeightScale();
+    }
+};
+
+shader ModuleContributionCallsHelpersBase
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    module void TransformPosition()
+    {
+    }
+};
+
+shader ModuleContributionFeatureBase
+{
+    void Compute()
+    {
+    }
+};
+
+shader TreeDisplacementLike : ModuleContributionFeatureBase, ModuleContributionCallsHelpersBase, TerrainLikeQuery
+{
+    override void Compute()
+    {
+    }
+
+    module override void TransformPosition()
+    {
+        base.TransformPosition();
+        streams.ColorTarget += GetHeight(3.5) / 255.0;
+    }
+};
+
+shader ModuleContributionCallsHelpersRoot : ModuleContributionCallsHelpersBase
+{
+    compose ModuleContributionFeatureBase Feature;
+
+    void PSMain()
+    {
+        streams.ColorTarget = 0;
+        TransformPosition();
+    }
+};
+
+effect ModuleContributionCallsHelpers
+{
+    mixin ModuleContributionCallsHelpersRoot;
+    mixin compose Feature = TreeDisplacementLike;
+}
