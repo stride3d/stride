@@ -58,9 +58,9 @@ public class StrideGameTemplateSmokeTests
 
             // Stride.Templates.Common.targets sets PackageOutputPath=$(StrideRoot)bin\packages\,
             // so all Stride.Templates.* pack outputs land in the engine's shared package feed
-            // dir (same one consumers will restore from). Stride.Templates.Tests.csproj has a
-            // BeforeBuild target that explicitly Packs all three template projects — the
-            // in-test pack below is a fallback for non-build invocations.
+            // dir (same one consumers will restore from). Building this test project packs
+            // Stride.Templates.Games; the content packs exist only after a build with
+            // StridePackContentTemplates on (CI), so locally the build below makes them.
             string? nupkg = FindNupkg(enginePackagesDir, packageId);
             if (nupkg == null)
             {
@@ -357,6 +357,10 @@ public class StrideGameTemplateSmokeTests
             RedirectStandardError = true,
             UseShellExecute = false,
         };
+        // A reused MSBuild node or the MSBuild server inherits the redirected pipes and keeps them open after dotnet
+        // exits, so the reads below would wait until it times out (about 15 minutes).
+        psi.Environment["MSBUILDDISABLENODEREUSE"] = "1";
+        psi.Environment["DOTNET_CLI_USE_MSBUILD_SERVER"] = "0";
         foreach (var a in args)
             psi.ArgumentList.Add(a);
 
