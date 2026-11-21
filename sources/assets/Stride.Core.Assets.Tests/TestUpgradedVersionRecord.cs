@@ -229,6 +229,34 @@ public class TestUpgradedVersionRecord : IDisposable
     }
 
     [Fact]
+    public void AProjectGettingThePackageThroughAProjectReferenceHasItsCodeMigrated()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.CodeRules" Version="1.0.0" />""");
+        var windows = WriteProject("Game.Windows", """<ProjectReference Include="..\Game\Game.csproj" />""");
+
+        LoadAndSave(WriteSolution(game, windows), parameters => parameters.AutoCompileProjects = true);
+
+        Assert.Contains(new UFile(game), CodeRunner.MigratedProjects);
+        Assert.Contains(new UFile(windows), CodeRunner.MigratedProjects);
+    }
+
+    [Fact]
+    public void AProjectThatReferencesARefusedProjectHasNoCodeMigrated()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.CodeRules" Version="1.0.0" />""");
+        var windows = WriteProject("Game.Windows", """<ProjectReference Include="..\Game\Game.csproj" />""");
+
+        LoadAndSave(WriteSolution(game, windows), parameters =>
+        {
+            parameters.AutoCompileProjects = true;
+            parameters.PackageUpgradeRequested = (package, _)
+                => package.Meta.Name == "Game" ? PackageUpgradeRequestedAnswer.DoNotUpgrade : PackageUpgradeRequestedAnswer.Upgrade;
+        });
+
+        Assert.DoesNotContain(new UFile(windows), CodeRunner.MigratedProjects);
+    }
+
+    [Fact]
     public void AnUnrestoredSolutionStopsTheUpgrade()
     {
         var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.CodeRules" Version="1.0.0" />""");
@@ -239,11 +267,14 @@ public class TestUpgradedVersionRecord : IDisposable
         var result = LoadAndSave(WriteSolution(game, windows), out var report);
 
         Assert.Equal(before, ReadFiles(game, windows));
-        AssertError(result, "The upgrade of [Game] is stopped: the solution [Game.slnx] isn't restored");
-        AssertError(result, "The upgrade of [Game.Windows] is stopped: the project it references, [Game], could not be upgraded");
-        Assert.Equal(new Dictionary<string, UpgradeStepStatus> { ["Continue the upgrade"] = UpgradeStepStatus.Failed },
-            StepStatuses(report, game, "UpgradeRecord.CodeRules"));
-        Assert.True(File.Exists(ReportFile(game)));
+        // The executable is migrated with its game library, so it stops for the same reason
+        foreach (var (project, name) in new[] { (game, "Game"), (windows, "Game.Windows") })
+        {
+            AssertError(result, $"The upgrade of [{name}] is stopped: the solution [Game.slnx] isn't restored");
+            Assert.Equal(new Dictionary<string, UpgradeStepStatus> { ["Continue the upgrade"] = UpgradeStepStatus.Failed },
+                StepStatuses(report, project, "UpgradeRecord.CodeRules"));
+            Assert.True(File.Exists(ReportFile(project)));
+        }
     }
 
     [Fact]
