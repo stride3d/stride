@@ -87,6 +87,26 @@ namespace Stride.Core.Presentation.Tests
             Assert.False(ConvertMulti(new XOrMultiConverter(), null, DependencyProperty.UnsetValue, "text"));
         }
 
+        [Theory]
+        [InlineData(typeof(float?), true)]
+        [InlineData(typeof(int?), true)]
+        [InlineData(typeof(float), false)]
+        [InlineData(typeof(string), false)]
+        public void TestIsNullableReportsNullableValueTypes(Type type, bool expected)
+        {
+            var converter = new IsNullable();
+
+            Assert.Equal(expected, converter.Convert(type, typeof(bool), null, CultureInfo.CurrentCulture));
+        }
+
+        [Fact]
+        public void TestIsNullableRejectsNonTypeValues()
+        {
+            var converter = new IsNullable();
+
+            Assert.Throws<ArgumentException>(() => converter.Convert("not a type", typeof(bool), null, CultureInfo.CurrentCulture));
+        }
+
         private static bool ConvertMulti(System.Windows.Data.IMultiValueConverter converter, object parameter, params object[] values)
         {
             return (bool)converter.Convert(values, typeof(bool), parameter, CultureInfo.InvariantCulture);

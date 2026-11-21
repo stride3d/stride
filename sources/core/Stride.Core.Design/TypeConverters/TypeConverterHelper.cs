@@ -23,6 +23,13 @@ public static class TypeConverterHelper
         if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
 #endif
 
+        // A conversion to a nullable value type is done through its underlying type
+        var underlyingType = Nullable.GetUnderlyingType(destinationType);
+        if (underlyingType is not null)
+        {
+            return CanConvert(sourceType, underlyingType);
+        }
+
         var context = new DestinationTypeDescriptorContext(destinationType);
         // already same type or inherited (also works with interface), or
         // implements IConvertible, or
@@ -46,6 +53,14 @@ public static class TypeConverterHelper
 #else
         if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
 #endif
+
+        // A conversion to a nullable value type is done through its underlying type:
+        // the boxed underlying value is the boxed representation of the nullable value.
+        var underlyingType = Nullable.GetUnderlyingType(destinationType);
+        if (underlyingType is not null)
+        {
+            return TryConvert(source, underlyingType, out target);
+        }
 
         if (source != null)
         {

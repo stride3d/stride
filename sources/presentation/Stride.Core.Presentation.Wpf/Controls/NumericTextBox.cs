@@ -120,6 +120,11 @@ namespace Stride.Core.Presentation.Controls
         public static readonly DependencyProperty MouseValidationTriggerProperty = DependencyProperty.Register(nameof(MouseValidationTrigger), typeof(MouseValidationTrigger), typeof(NumericTextBox), new PropertyMetadata(MouseValidationTrigger.OnMouseUp));
 
         /// <summary>
+        /// Identifies the <see cref="AllowNull"/> dependency property.
+        /// </summary>
+        public static readonly DependencyProperty AllowNullProperty = DependencyProperty.Register(nameof(AllowNull), typeof(bool), typeof(NumericTextBox), new PropertyMetadata(BooleanBoxes.FalseBox));
+
+        /// <summary>
         /// Raised when the <see cref="Value"/> property has changed.
         /// </summary>
         public static readonly RoutedEvent ValueChangedEvent = EventManager.RegisterRoutedEvent("ValueChanged", RoutingStrategy.Bubble, typeof(RoutedPropertyChangedEventHandler<double?>), typeof(NumericTextBox));
@@ -243,6 +248,13 @@ namespace Stride.Core.Presentation.Controls
         public MouseValidationTrigger MouseValidationTrigger { get { return (MouseValidationTrigger)GetValue(MouseValidationTriggerProperty); } set { SetValue(MouseValidationTriggerProperty, value); } }
 
         /// <summary>
+        /// Gets or sets whether an empty text can be committed as a <see langword="null"/> value.
+        /// When <see langword="true"/> and the text is empty, the <see cref="Value"/> is set to <see langword="null"/> on validation,
+        /// instead of reverting to the previous value. This is only valid for nullable target types.
+        /// </summary>
+        public bool AllowNull { get { return (bool)GetValue(AllowNullProperty); } set { SetValue(AllowNullProperty, value.Box()); } }
+
+        /// <summary>
         /// Raised when the <see cref="Value"/> property has changed.
         /// </summary>
         public event RoutedPropertyChangedEventHandler<double?> ValueChanged { add { AddHandler(ValueChangedEvent, value); } remove { RemoveHandler(ValueChangedEvent, value); } }
@@ -312,7 +324,11 @@ namespace Stride.Core.Presentation.Controls
         protected sealed override void OnValidated()
         {
             double? value;
-            if (TryParseValue(Text, out var parsedValue))
+            if (AllowNull && string.IsNullOrWhiteSpace(Text))
+            {
+                value = null;
+            }
+            else if (TryParseValue(Text, out var parsedValue))
             {
                 value = parsedValue;
             }
@@ -328,6 +344,9 @@ namespace Stride.Core.Presentation.Controls
 
         protected override bool IsTextCompatibleWithValueBinding(string text)
         {
+            if (AllowNull && string.IsNullOrWhiteSpace(text))
+                return true;
+
             return TryParseValue(text, out _);
         }
 
@@ -337,7 +356,11 @@ namespace Stride.Core.Presentation.Controls
         {
             baseValue = base.CoerceTextForValidation(baseValue);
             double? value;
-            if (TryParseValue(baseValue, out var parsedValue))
+            if (AllowNull && string.IsNullOrWhiteSpace(baseValue))
+            {
+                value = null;
+            }
+            else if (TryParseValue(baseValue, out var parsedValue))
             {
                 value = parsedValue;
 
@@ -465,7 +488,7 @@ namespace Stride.Core.Presentation.Controls
                 numericInput.SetCurrentValue(MaximumProperty, numericInput.Minimum);
                 needValidation = true;
             }
-            if (numericInput.Value < numericInput.Minimum)
+            if (numericInput.Value.HasValue && numericInput.Value < numericInput.Minimum)
             {
                 numericInput.SetCurrentValue(ValueProperty, numericInput.Minimum);
                 needValidation = true;
@@ -491,7 +514,7 @@ namespace Stride.Core.Presentation.Controls
                 numericInput.SetCurrentValue(MinimumProperty, numericInput.Maximum);
                 needValidation = true;
             }
-            if (numericInput.Value > numericInput.Maximum)
+            if (numericInput.Value.HasValue && numericInput.Value > numericInput.Maximum)
             {
                 numericInput.SetCurrentValue(ValueProperty, numericInput.Maximum);
                 needValidation = true;

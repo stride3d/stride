@@ -799,6 +799,10 @@
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
         </DataTrigger>
+        <!-- An empty text commits a null value, as the member type allows it -->
+        <DataTrigger Binding="{Binding Type, Converter={sd:IsNullable}}" Value="True">
+          <Setter TargetName="TextBox" Property="AllowNull" Value="True"/>
+        </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
   </edvw:TypeMatchTemplateProvider>
@@ -902,6 +906,10 @@
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="TextBox" Property="WatermarkContent" Value="≠"/>
         </DataTrigger>
+        <!-- An empty text commits a null value, as the member type allows it -->
+        <DataTrigger Binding="{Binding Type, Converter={sd:IsNullable}}" Value="True">
+          <Setter TargetName="TextBox" Property="AllowNull" Value="True"/>
+        </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
   </pvdr:RangedValueTemplateProvider>
@@ -925,6 +933,10 @@
     <DataTemplate.Triggers>
       <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
         <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
+      </DataTrigger>
+      <!-- An empty text commits a null value, as the member type allows it -->
+      <DataTrigger Binding="{Binding Type, Converter={sd:IsNullable}}" Value="True">
+        <Setter TargetName="TextBox" Property="AllowNull" Value="True"/>
       </DataTrigger>
     </DataTemplate.Triggers>
   </DataTemplate>
@@ -950,6 +962,10 @@
     <DataTemplate.Triggers>
       <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
         <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
+      </DataTrigger>
+      <!-- An empty text commits a null value, as the member type allows it -->
+      <DataTrigger Binding="{Binding Type, Converter={sd:IsNullable}}" Value="True">
+        <Setter TargetName="TextBox" Property="AllowNull" Value="True"/>
       </DataTrigger>
     </DataTemplate.Triggers>
   </DataTemplate>
@@ -1241,6 +1257,10 @@
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
+        </DataTrigger>
+        <!-- An empty text commits a null value, as the member type allows it -->
+        <DataTrigger Binding="{Binding Type, Converter={sd:IsNullable}}" Value="True">
+          <Setter TargetName="TextBox" Property="AllowNull" Value="True"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
