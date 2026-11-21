@@ -52,6 +52,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Yaml.Schemas;
+using DataContractAttribute = Stride.Core.DataContractAttribute;
 
 namespace Stride.Core.Yaml.Serialization
 {
@@ -222,6 +223,17 @@ namespace Stride.Core.Yaml.Serialization
                 // Try to resolve the type from registered assemblies
                 type = ResolveType(tagAsType);
 
+                // Reject types that were resolved from an untrusted tag but aren't
+                // actually meant to be deserialized (no [DataContract] anywhere in
+                // their type hierarchy). Without this, any tag naming any public,
+                // parameterless-constructible type loaded in the process (including
+                // framework types) would be instantiated and have its properties
+                // populated directly from untrusted YAML content.
+                if (type != null && !IsDataContractType(type))
+                {
+                    type = null;
+                }
+
                 // Register a type that was found
                 tagToType.Add(shortTag, new MappedType(type, false));
                 if (type != null && !typeToTag.ContainsKey(type))
@@ -231,6 +243,28 @@ namespace Stride.Core.Yaml.Serialization
             }
 
             return type;
+        }
+
+        /// <summary>
+        /// Determines whether <paramref name="type"/> (or a base type it inherits
+        /// <see cref="DataContractAttribute.Inherited"/> from) is marked as a
+        /// deserializable contract. Mirrors the walk in
+        /// <see cref="Stride.Core.Reflection.TypeDescriptors.ObjectDescriptor"/>'s
+        /// constructor, which uses the same attribute to resolve default member mode.
+        /// </summary>
+        private static bool IsDataContractType(Type type)
+        {
+            var currentType = type;
+            while (currentType != null)
+            {
+                var dataContractAttribute = (DataContractAttribute)Attribute.GetCustomAttribute(currentType, typeof(DataContractAttribute), false);
+                if (dataContractAttribute != null && (dataContractAttribute.Inherited || currentType == type))
+                {
+                    return true;
+                }
+                currentType = currentType.BaseType;
+            }
+            return false;
         }
 
         public virtual string TagFromType(Type type)
