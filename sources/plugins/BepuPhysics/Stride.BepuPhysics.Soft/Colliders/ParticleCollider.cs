@@ -1,0 +1,122 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.ComponentModel;
+using BepuPhysics;
+using BepuPhysics.Collidables;
+using BepuPhysics.Trees;
+using BepuUtilities.Memory;
+using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Definitions.Colliders;
+using Stride.BepuPhysics.Systems;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Rendering;
+using NRigidPose = BepuPhysics.RigidPose;
+
+namespace Stride.BepuPhysics.Soft.Colliders;
+
+/// <summary>
+/// The sphere every particle of a <see cref="SoftBodyComponent"/> collides with.
+/// </summary>
+/// <remarks> Made by the soft body for itself: no other collidable can be given one, and a soft body takes no other collider. </remarks>
+[DataContract]
+internal sealed class ParticleCollider : ICollider
+{
+    private float _radius;
+
+    /// <summary>
+    /// The radius of each particle, zero picks one from the spacing between particles.
+    /// </summary>
+    /// <remarks>
+    /// Larger particles close the gaps other objects could slip through, but keep them further from the surface.
+    /// </remarks>
+    [DefaultValue(0f)]
+    public float Radius
+    {
+        get => _radius;
+        set
+        {
+            var previous = _radius;
+            _radius = MathF.Max(0f, value);
+            if (_radius != previous)
+                Component?.TryUpdateFeatures();
+        }
+    }
+
+    /// <summary> The radius the particles were created with </summary>
+    [DataMemberIgnore]
+    public float ActualRadius { get; private set; }
+
+    internal CollidableComponent? Component { get; private set; }
+
+    CollidableComponent? ICollider.Component
+    {
+        get => Component;
+        set => Component = value;
+    }
+
+    // In a simulation the particles move on their own and the debug view draws them as lines. Out of one, as in the editor,
+    // the model of the entity stands for the body, or the gizmo of the collidable could not be seen nor picked
+    int ICollider.Transforms => ModelOutOfSimulation() is null ? 0 : 1;
+
+    void ICollider.GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
+    {
+        if (transforms.Length == 0)
+            return;
+
+        transforms[0].PositionLocal = Vector3.Zero;
+        transforms[0].RotationLocal = Quaternion.Identity;
+        transforms[0].Scale = MeshCollider.ComputeMeshScale(collidable);
+    }
+
+    bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, bool shouldCalculateInertia, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
+    {
+        centerOfMass = Vector3.Zero;
+        inertia = default;
+        if (Component is not SoftBodyComponent softBody || softBody.TryPrepareTopology(out var spacing) == false)
+        {
+            index = default;
+            return false;
+        }
+
+        ActualRadius = Radius > 0f ? Radius : spacing * softBody.DefaultRadiusFraction;
+        index = shapes.Add(new Sphere(ActualRadius));
+        return true;
+    }
+
+    void ICollider.Detach(Shapes shapes, BufferPool pool, TypedIndex index)
+    {
+        shapes.Remove(index);
+    }
+
+    void ICollider.AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cache)
+    {
+        cache = null;
+        if (ModelOutOfSimulation() is not { } model)
+            return;
+
+        shapeCache.GetModelCache(model, out var modelCache);
+        BasicMeshBuffers data;
+        modelCache.GetBuffers(out data.Vertices, out data.Indices);
+        buffer.Add(data);
+        cache = modelCache;
+    }
+
+    /// <summary> The model the soft body would be built from, null once it is in a simulation or when it has none </summary>
+    private Model? ModelOutOfSimulation()
+    {
+        return Component is { Simulation: null, Entity: { } entity } && entity.Get<ModelComponent>()?.Model is { Meshes.Count: > 0 } model ? model : null;
+    }
+
+    void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler, BufferPool pool)
+    {
+        if (hitHandler.AllowTest(0)
+            && shapes.GetShape<Sphere>(shapeIndex.Index).RayTest(pose, ray.Origin, ray.Direction, out var t, out var normal)
+            && t <= maximumT)
+        {
+            hitHandler.OnRayHit(ray, ref maximumT, t, normal, 0);
+        }
+    }
+}

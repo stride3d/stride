@@ -1,0 +1,74 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+/// <summary>
+/// Moves a vertex embedded in a cell of a volumetric soft body's lattice as the eight particles of the cell expect it:
+/// each one carries the vertex along with its frame, as a bone would, and the vertex blends them.
+/// </summary>
+/// <remarks>
+/// The weights level off on the faces of the cell, where only the particles of the face have a say: the surface and its
+/// normals are the same seen from the cell on either side, which the interpolation of SoftBodyLatticeDeformation does not give.
+/// </remarks>
+shader SoftBodySmoothLatticeDeformation : SoftBodyLatticeDeformation
+{
+    rgroup PerDraw.SoftBodyFrames
+    {
+        // Three vectors per particle: where a step along x, y and z of the lattice leads around it, in world space.
+        // Four floats each, the size the particles have, so both buffers are laid out the same on every graphics API
+        stage StructuredBuffer<float4> Frames;
+    }
+
+    override void Deform()
+    {
+        float3 t = streams.CellCoordinates;
+
+        // 3t² - 2t³ and its slope, flat at both ends and beyond them, where vertices outside the lattice are
+        float3 c = saturate(t);
+        float3 s = c * c * (3 - 2 * c);
+        float3 ds = 6 * c * (1 - c);
+
+        uint corners[8];
+        corners[0] = streams.CellCorners0.x;
+        corners[1] = streams.CellCorners0.y;
+        corners[2] = streams.CellCorners0.z;
+        corners[3] = streams.CellCorners0.w;
+        corners[4] = streams.CellCorners1.x;
+        corners[5] = streams.CellCorners1.y;
+        corners[6] = streams.CellCorners1.z;
+        corners[7] = streams.CellCorners1.w;
+
+        float3 position = 0;
+        float3 dx = 0;
+        float3 dy = 0;
+        float3 dz = 0;
+        for (uint i = 0; i < 8; i++)
+        {
+            // Corners are numbered by their offset on each axis: bit 0 is x, bit 1 is y and bit 2 is z
+            float3 corner = float3(i & 1, (i >> 1) & 1, i >> 2);
+            float3 w = lerp(1 - s, s, corner);
+            float3 dw = lerp(-ds, ds, corner);
+            float weight = w.x * w.y * w.z;
+
+            uint particle = corners[i];
+            float3 stepX = Frames[particle * 3].xyz;
+            float3 stepY = Frames[particle * 3 + 1].xyz;
+            float3 stepZ = Frames[particle * 3 + 2].xyz;
+
+            // Where this particle would put the vertex, were the lattice deformed everywhere as it is around it
+            float3 offset = t - corner;
+            float3 expected = Particle(particle) + stepX * offset.x + stepY * offset.y + stepZ * offset.z;
+            position += expected * weight;
+            dx += expected * (dw.x * w.y * w.z) + stepX * weight;
+            dy += expected * (w.x * dw.y * w.z) + stepY * weight;
+            dz += expected * (w.x * w.y * dw.z) + stepZ * weight;
+        }
+
+        // Normals transform with the cofactor matrix, the inverse transpose up to a scale that the normalization removes
+        float3 n = streams.meshNormal;
+        float3 normal = cross(dy, dz) * n.x + cross(dz, dx) * n.y + cross(dx, dy) * n.z;
+        float4 restTangent = streams.meshTangent;
+        float3 tangent = dx * restTangent.x + dy * restTangent.y + dz * restTangent.z;
+
+        SetMeshVertex(position, normal, tangent, restTangent.w);
+    }
+};
