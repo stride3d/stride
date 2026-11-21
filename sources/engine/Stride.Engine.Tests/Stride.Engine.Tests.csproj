@@ -29,6 +29,7 @@
     <Compile Include="ParameterCollectionUpdateEngineTest.cs" />
     <Compile Include="RenderFeatureTestBase.cs" />
     <Compile Include="RenderFeatureTests.cs" />
+    <Compile Include="TestModelRenderStageSelection.cs" />
     <Compile Include="EntityUpdateEngineTest.cs" />
     <Compile Include="AnimatedModelTests.cs" />
     <Compile Include="MorphTargetTests.cs" />
