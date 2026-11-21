@@ -101,6 +101,8 @@ public class ParsingTests1
     // `class`, the old spelling of `shader`, is an error that says the new one, in each form of a class declaration; the upgrade reads it
     [Theory]
     [InlineData("class A { };")]
+    [InlineData("partial class A { };")]
+    [InlineData("internal partial class A { };")]
     [InlineData("[Root]\nclass A { };")]
     [InlineData("class A<float Scale> : B<Scale> { };")]
     [InlineData("namespace N\n{\n    class A { };\n}\n")]
@@ -165,6 +167,25 @@ public class ParsingTests1
         Assert.Equal(["Base<1>"], classes[0].Mixins.Select(x => x.ToString()));
         Assert.Equal("import Other<2,PerMaterial>", classes[0].Elements.OfType<ShaderImport>().Single().ToString());
         Assert.Equal("import M", classes[1].Elements.OfType<ShaderImport>().Single().ToString());
+    }
+
+    // `partial` and `extend` are keywords only before `struct`: they stay valid names elsewhere
+    [Fact]
+    public void PartialAndExtendStructs()
+    {
+        var result = SDSLParser.Parse("""
+            module M
+            {
+                partial struct P { float partial; };
+                extend struct Q { float extend; };
+                struct R { float a; };
+                float F() { float partial = 1; float extend = 2; return partial + extend; }
+            };
+            """);
+        Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
+        var structs = ((ShaderFile)result.AST!).RootDeclarations.OfType<ShaderClass>().Single().Elements.OfType<ShaderStruct>().ToList();
+        Assert.Equal([ShaderStructKind.Partial, ShaderStructKind.Extend, ShaderStructKind.Plain], structs.Select(x => x.Kind));
+        Assert.Equal(["partial", "extend", "a"], structs.Select(x => x.Members.Single().Name.Name));
     }
 
     // Regression test: a trailing-dot float literal (e.g. "1.") is valid per the HLSL grammar

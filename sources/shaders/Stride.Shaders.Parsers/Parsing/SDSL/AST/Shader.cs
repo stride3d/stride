@@ -71,6 +71,11 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     /// Declared <c>module X</c>: every member is a module member, and the class exists once per effect, at the root.
     /// </summary>
     public bool IsModule { get; set; }
+
+    /// <summary>
+    /// Written <c>partial shader X</c>: accepted and ignored (SDSL0214).
+    /// </summary>
+    public bool IsPartial { get; set; }
     public ShaderAttributeList? Attributes { get; set; }
 
     /// <summary>
@@ -141,11 +146,18 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         // Matrix layout of struct members, known before the struct is built: a struct is a key of context.Types, which
         // compares members, so it can't change once registered (SPIR-V and HLSL have opposite meanings for rows / columns)
         var memberLayouts = new Dictionary<(int, int), TypeModifier>();
+        // Partial struct views: the owner on the struct, the declaring class on each member
+        var partialOwners = new Dictionary<int, string>();
+        var partialDeclarers = new Dictionary<(int, int), string>();
         for (var i = start; i < end; i++)
         {
             var instruction = context[i];
             if (instruction.Op == Op.OpMemberDecorate && (OpMemberDecorate)instruction is { Decoration: Decoration.ColMajor or Decoration.RowMajor } memberDecorate)
                 memberLayouts[(memberDecorate.StructureType, memberDecorate.Member)] = memberDecorate.Decoration == Decoration.ColMajor ? TypeModifier.RowMajor : TypeModifier.ColumnMajor;
+            else if (instruction.Op == Op.OpDecorateString && (OpDecorateString)instruction is { Decoration: Decoration.PartialStructSDSL } partialDecorate)
+                partialOwners[partialDecorate.Target] = partialDecorate.Value;
+            else if (instruction.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)instruction is { Decoration: Decoration.PartialFieldSDSL } fieldDecorate)
+                partialDeclarers[(fieldDecorate.StructType, fieldDecorate.Member)] = fieldDecorate.Value;
         }
 
         for (var i = start; i < end; i++)
@@ -220,6 +232,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             else if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
             {
                 var structName = context.Names[typeStructInstruction.ResultId];
+                var structId = typeStructInstruction.ResultId;
                 var fieldsData = typeStructInstruction.MemberTypes;
                 var fields = new List<StructuredTypeMember>();
                 for (var index = 0; index < fieldsData.WordCount; index++)
@@ -243,7 +256,13 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                         var s when s.StartsWith("type.") => new ConstantBufferSymbol(structName.Substring("type.".Length), fields),
                         _ => throw new InvalidOperationException(),
                     }
-                    : new StructType(structName, fields);
+                    : partialOwners.TryGetValue(typeStructInstruction.ResultId, out var partialOwner)
+                        ? new StructType(structName, fields)
+                        {
+                            PartialOwner = partialOwner,
+                            PartialDeclarers = Enumerable.Range(0, fields.Count).Select(index => partialDeclarers.GetValueOrDefault((structId, index), partialOwner)).ToList(),
+                        }
+                        : new StructType(structName, fields);
                 RegisterType(typeStructInstruction.ResultId, structType);
             }
             else if (instruction.Op == Op.OpTypeArray && (OpTypeArray)instruction is { } typeArray)
@@ -664,6 +683,10 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             Inherit(table, context, mixin.Symbol!, true);
         }
 
+        if (IsPartial)
+            table.AddWarning(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0214, Name.Name)));
+        PartialStructs.DeclareViews(table, context, this);
+
         // Process symbols and generate types
         foreach (var td in Elements.OfType<TypeDef>())
             table.AddError(new(td.Info, $"typedef is not implemented: '{td}'"));
@@ -813,7 +836,9 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         foreach (var structType in shaderType.StructTypes)
         {
             // Struct types are real SymbolTypes — register them for type resolution
-            table.DeclaredTypes.TryAdd(structType.Type.Name, structType.Type);
+            // (a partial struct is registered with the view of the class being compiled, PartialStructs.DeclareViews)
+            if (structType.Type is not StructType { PartialOwner: not null })
+                table.DeclaredTypes.TryAdd(structType.Type.Name, structType.Type);
         }
 
 

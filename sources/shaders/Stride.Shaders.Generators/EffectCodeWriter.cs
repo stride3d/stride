@@ -102,7 +102,26 @@ public class EffectCodeWriter : ShaderWriter
     public override void VisitShaderStruct(ShaderStruct shaderStruct)
     {
         // Register struct in table
-        shaderStruct.ProcessSymbol(table, table.Context);
+        if (shaderStruct.Kind == ShaderStructKind.Plain)
+        {
+            shaderStruct.ProcessSymbol(table, table.Context);
+            return;
+        }
+
+        // A partial struct is never in a cbuffer (no keys): its fields in this file are enough to resolve other structs
+        if (table.DeclaredTypes.ContainsKey(shaderStruct.TypeName.Name))
+            return;
+        var members = new List<StructuredTypeMember>();
+        foreach (var member in shaderStruct.Members)
+        {
+            member.TypeName.ProcessSymbol(table);
+            members.Add(new(member.Name, member.TypeName.Type!, member.TypeModifier));
+        }
+        table.DeclaredTypes.Add(shaderStruct.TypeName.Name, new StructType(shaderStruct.TypeName.Name, members)
+        {
+            PartialOwner = "",
+            PartialDeclarers = members.Select(_ => "").ToList(),
+        });
     }
 
     protected void WriteVariableAsParameterKey(bool isSdfx, TypeName typeName, Identifier name, Expression? initialValue, List<ShaderAttribute> attributes, string declaringTypeName)

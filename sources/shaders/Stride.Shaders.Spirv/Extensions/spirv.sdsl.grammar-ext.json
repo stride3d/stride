@@ -648,6 +648,28 @@
             "enumerant": "PatchConstantFuncSDSL",
             "value": 8070,
             "version": "1.0"
+          },
+          {
+            "enumerant": "PartialStructSDSL",
+            "value": 8080,
+            "parameters": [
+              {
+                "kind": "LiteralString",
+                "name": "'Owner'"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "PartialFieldSDSL",
+            "value": 8081,
+            "parameters": [
+              {
+                "kind": "LiteralString",
+                "name": "'Declarer'"
+              }
+            ],
+            "version": "1.0"
           }
         ]
     },

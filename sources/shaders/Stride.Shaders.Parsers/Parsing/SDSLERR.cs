@@ -132,6 +132,17 @@ public static class SDSLErrorMessages
     public const string SDSL0243 = "SDSL0243: && within ||: {0} computes {1} first. Add parentheses around it to make it clear.";
     public const string SDSL0244 = "SDSL0244: {0} has lower precedence than {1}: {2} computes {3} first. Add parentheses to make it clear.";
 
+    // Partial structs
+
+    public const string SDSL0120 = "SDSL0120: {0}.{1} is declared by both {2} and {3}. Rename one, or move the field into a module both import.";
+    public const string SDSL0121 = "SDSL0121: {0} extends struct {1}, but no partial struct {1} is visible. Import (or inherit) the class that declares 'partial struct {1}'.";
+    public const string SDSL0122 = "SDSL0122: {0} extends struct {1}, but {2} declares {1} without 'partial', so it can't get more fields. Add 'partial' to its declaration in {2}, or rename this struct.";
+    public const string SDSL0123 = "SDSL0123: {0} declares struct {1}, but {2} already declares 'partial struct {1}'. Write 'extend struct {1}' to add fields to it, or rename this struct.";
+    public const string SDSL0124 = "SDSL0124: {0} sees two partial structs named {1}, declared by {2} and {3}. Rename one of them.";
+    public const string SDSL0125 = "SDSL0125: {0} {1} has type {2}, which is or contains the partial struct {3}. The fields of a partial struct depend on the effect, so it can't be in streams, cbuffers, buffers or groupshared variables. Use a plain struct there.";
+    public const string SDSL0126 = "SDSL0126: {0} declares 'partial struct {1}', but {0} is generic. A partial struct has one owner per effect: declare it in a class without generic parameters.";
+    public const string SDSL0127 = "SDSL0127: field {2} of partial struct {1} in {0} has the struct type {3}. A field of a partial struct can't be a struct yet. Use fields of scalar, vector, matrix or array types.";
+
     // Definition checks: found when a class compiles, reported as warnings (errors with ShaderLoaderBase.WarningsAsErrors)
 
     public const string SDSL0200 = "SDSL0200: {0}.{1}() is marked 'override', but no inherited class declares {1}: it starts a new method, and calls made through a parent never reach it. Inherit the class that declares {1}, or remove 'override'.";
@@ -154,4 +165,6 @@ public static class SDSLErrorMessages
     public const string SDSL0211 = "SDSL0211: [Pure] on shader {0}: only a module can be pure. Remove [Pure], or make {0} a module.";
     public const string SDSL0212 = "SDSL0212: {0}.{1}(): 'clone' has no effect since Stride 4.4. Remove it.";
     public const string SDSL0213 = "SDSL0213: [Pure] module {0}: {1} in {2}() works only in a pixel shader, and a pure module can run in any stage. Compute the value in the caller and pass it as a parameter, or remove [Pure] from {0}.";
+    public const string SDSL0214 = "SDSL0214: 'partial' on {0} has no meaning and is ignored. Remove it.";
+    public const string SDSL0215 = "SDSL0215: {0} sees two structs named {1}, declared by {2} and {3}: {1} means the one of {2} (the first inherited or imported). Rename one of them.";
 }

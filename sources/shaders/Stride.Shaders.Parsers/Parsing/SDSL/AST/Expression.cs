@@ -1379,6 +1379,15 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     EmitOpAccessChain(accessChainIds, i);
                     break;
                 case (PointerType { BaseType: StructType s } p, Identifier field):
+                    // Field indices of a partial struct are those of the view of the class being compiled
+                    if (s.PartialOwner != null)
+                    {
+                        if (table.DeclaredTypes.TryGetValue(s.Name, out var view) && view is StructType partialView && partialView.Equals(s))
+                            s = partialView;
+                        // Seen only through a compose type or a static reference: the view registered first
+                        else if (table.Context.Types.TryGetValue(s, out var viewId) && table.Context.ReverseTypes[viewId] is StructType registeredView)
+                            s = registeredView;
+                    }
                     var index = s.TryGetFieldIndex(field);
                     if (compiler == null)
                     {
