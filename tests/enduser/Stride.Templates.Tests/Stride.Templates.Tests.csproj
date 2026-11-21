@@ -16,10 +16,10 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- ProjectReferences trigger Build on each template project, which in turn auto-packs them
-       via Stride.Templates.Common.targets' GeneratePackageOnBuild=true. Result: bin/packages
-       has all the nupkgs by the time the smoke test runs. ReferenceOutputAssembly=false
-       keeps these as build-order constraints only — no compile-time assembly link. -->
+  <!-- ProjectReferences build each template project, which packs it into bin/packages
+       (Stride.Templates.Common.targets). The content packs (Starters, Samples, AssetPacks) pack only with
+       StridePackContentTemplates on; with it off, their build removes this checkout's packs, and the smoke test
+       builds the missing ones itself. ReferenceOutputAssembly=false keeps these as build-order constraints only. -->
   <ItemGroup>
     <ProjectReference Include="..\..\..\sources\templates\Stride.Templates.AssetPacks\Stride.Templates.AssetPacks.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
