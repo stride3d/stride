@@ -14,7 +14,7 @@ In order of importance:
 1. Correctness: logic errors, wrong conditions, null handling, races and thread safety, wrong disposal order, GPU or native resources that are never disposed, event handlers that are never removed.
 2. Design: see "Design" below.
 3. Compatibility:
-   - A public API change that breaks user code: say clearly that it is breaking. When a machine can fix the user code, it needs a code upgrader (see [AGENTS.md](AGENTS.md)).
+   - A public API change that breaks user code: say clearly that it is breaking. When a machine can fix the user code, it needs a code upgrader (see [AGENTS.md](AGENTS.md) and "Upgraders" below).
    - Serialization: a change to a `[DataContract]` or `[DataMember]` type, or to a serializer. An asset format change needs an asset upgrader and an `[AssetFormatVersion]` bump. A binary serializer change may need a version bump, so old build caches are not reused.
    - Platforms: Windows, Linux, macOS, Android and iOS, and the graphics APIs (Direct3D 11, Direct3D 12, Vulkan). Code that works on only some of them, without a guard, is a problem.
 4. Performance on hot paths (every frame, every draw, every entity): allocations, LINQ, boxing, closures, locks, repeated lookups.
@@ -53,6 +53,17 @@ Project direction:
 - Game Studio is moving from WPF to Avalonia. Large work only for WPF is a question to raise.
 - The boundary between the editor and the game should be shaped like one between processes: async messages and serialized data.
 - A "drop the X dependency" or "separate X from Y" change is a layering cleanup: the feature stays. Don't read it as a removal.
+
+## Upgraders
+
+For a change to an upgrader (a `PackageUpgrader`, the steps of `StridePackageUpgrader`, the helpers of [CodeUpgrade](sources/engine/Stride.Assets/CodeUpgrade)), check:
+
+- Each code rule works on the code as the user wrote it, and never relies on what an earlier rule changed: a rule that only matches code another rule wrote is a problem. The code binds against the Stride packages the project had, which can be as old as the `PackageMinimumVersion` of the upgrader.
+- Each new rule has a test with the code before and after (`TestCodeUpgrade`). A rule that could change what the code does without a build error (an overload that still binds, a member of the same name) also checks what the upgraded code binds to.
+- Each new step has a title that says what it changes, in one line. `Custom` rules and project steps need a title written by hand.
+- Steps are only added at the end of their gate. A step is never removed or moved: it is replaced in place by `Retired(...)` (`registry.RetiredProject(...)` for a project step). [StridePackageUpgrader.Steps.md](sources/engine/Stride.Assets/StridePackageUpgrader.Steps.md) lists the IDs: in its diff, no ID moves to another step. Lines are only added at the end of a gate, and a retired step keeps its line, with `Retired: ` before its title.
+- A project step changes files through `ProjectUpgradeContext` (`WriteFile`, `MoveFile`, `UnitFailed`), never directly, so that a step that throws changes nothing.
+- Each new step has a section in the upgrade guide page of its release (stride-docs), whose heading starts with its ID: `### Stride-4.5.0-P2 Add the plugin packages whose assets the project has`. The build of stride-docs fails when a step of the list has none: without it, the link of the step opens the top of the page.
 
 ## CI failures
 
