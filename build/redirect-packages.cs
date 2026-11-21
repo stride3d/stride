@@ -252,6 +252,7 @@ if (adopt.Length == 0)
     if (coreVersion != null && coreVersion != version)
     {
         version = coreVersion;
+        stampPath = Path.Combine(nugetDevDir, $".devpackages-{version}");
         Console.WriteLine($"Version resolved from pack output: {version}");
     }
 }
