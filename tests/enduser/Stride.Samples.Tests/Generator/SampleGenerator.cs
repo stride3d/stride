@@ -25,7 +25,6 @@ namespace Stride.Samples.Generator;
 /// </summary>
 public static class SampleGenerator
 {
-    private const int RestoreTimeoutSeconds = 600;
     private const int UpgradeTimeoutSeconds = 900;
 
     public static PackageSession Generate(UDirectory outputPath, Guid templateGuid, string sampleName, LoggerResult logger)
@@ -107,22 +106,19 @@ public static class SampleGenerator
         var log = Path.Combine(directory, "upgrade.log");
         var watch = Stopwatch.StartNew();
 
-        var restore = RunDotnet(["restore", solution, "--nologo"], directory, log, RestoreTimeoutSeconds);
-        if (restore.ExitCode != 0)
+        // The files the upgrade overwrites only just came from the template: nothing to back up
+        var upgrade = RunDotnet([FindAssetCompiler(), "upgrade", solution, "--no-backup"], directory, log, UpgradeTimeoutSeconds, nodeReuse: true);
+        if (upgrade.ExitCode != 0)
         {
-            if (!restore.Output.Any(IsStridePackageNotFound))
-                throw new InvalidOperationException($"The restore of {sampleName} before its upgrade failed (exit code {restore.ExitCode}); see {log}:\n{Tail(restore.Output)}");
+            // The upgrade restores the sample first, and stops there, with nothing changed, when the restore fails
+            if (!upgrade.Output.Any(IsStridePackageNotFound))
+                throw new InvalidOperationException($"The upgrade of {sampleName} to Stride {StridePackageUpgrader.CurrentVersion} failed (exit code {upgrade.ExitCode}); see {log}:\n{Tail(upgrade.Output)}");
 
             Console.WriteLine($"[{sampleName}] NOT upgraded: no feed has the Stride version it is written for. Its references move to {StridePackageUpgrader.CurrentVersion} as they are.");
             foreach (var project in Directory.EnumerateFiles(directory, "*.csproj", SearchOption.AllDirectories))
                 StridePackageUpgrader.UpgradeProjectVersions(project, logger);
             return;
         }
-
-        // The files the upgrade overwrites only just came from the template: nothing to back up
-        var upgrade = RunDotnet([FindAssetCompiler(), "upgrade", solution, "--no-backup"], directory, log, UpgradeTimeoutSeconds);
-        if (upgrade.ExitCode != 0)
-            throw new InvalidOperationException($"The upgrade of {sampleName} to Stride {StridePackageUpgrader.CurrentVersion} failed (exit code {upgrade.ExitCode}); see {log}:\n{Tail(upgrade.Output)}");
 
         Console.WriteLine($"[{sampleName}] upgraded to Stride {StridePackageUpgrader.CurrentVersion} in {watch.Elapsed.TotalSeconds:F0} s");
     }
@@ -155,7 +151,8 @@ public static class SampleGenerator
     }
 
     /// <summary>Runs <c>dotnet</c> with <paramref name="arguments"/>, and appends its output to <paramref name="logPath"/>.</summary>
-    internal static (int ExitCode, IReadOnlyList<string> Output) RunDotnet(IReadOnlyList<string> arguments, string workingDirectory, string logPath, int timeoutSeconds)
+    /// <param name="nodeReuse">Whether MSBuild may keep its nodes for reuse: only for a program that shuts them down when it ends.</param>
+    internal static (int ExitCode, IReadOnlyList<string> Output) RunDotnet(IReadOnlyList<string> arguments, string workingDirectory, string logPath, int timeoutSeconds, bool nodeReuse = false)
     {
         var startInfo = new ProcessStartInfo("dotnet")
         {
@@ -167,8 +164,9 @@ public static class SampleGenerator
         foreach (var argument in arguments)
             startInfo.ArgumentList.Add(argument);
         // A node that MSBuild keeps for reuse holds the output streams open, so the wait for their end below would last
-        // as long as the node idles. The variable also reaches the builds inside the asset compiler, which an argument does not.
-        startInfo.Environment["MSBUILDDISABLENODEREUSE"] = "1";
+        // as long as the node idles. The variable also reaches the builds that a program runs inside, which an argument does not.
+        if (!nodeReuse)
+            startInfo.Environment["MSBUILDDISABLENODEREUSE"] = "1";
 
         var output = new List<string> { $"> dotnet {string.Join(' ', arguments)}" };
         void Collect(string? line)
