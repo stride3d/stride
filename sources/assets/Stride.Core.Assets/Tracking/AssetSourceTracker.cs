@@ -303,6 +303,17 @@ public sealed class AssetSourceTracker : IDisposable
         }
     }
 
+    /// <summary>
+    /// Gets the full paths of the source files of the assets that this instance tracks.
+    /// </summary>
+    public IReadOnlyList<string> GetSourceFiles()
+    {
+        lock (ThisLock)
+        {
+            return [.. mapSourceFilesToAssets.Keys];
+        }
+    }
+
     internal void TrackAssetImportInput(AssetId assetId, string inputPath)
     {
         lock (ThisLock)

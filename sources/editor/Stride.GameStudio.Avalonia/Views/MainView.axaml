@@ -148,6 +148,13 @@
             <Image Source="{StaticResource ImageBuildProject}"/>
           </MenuItem.Icon>
         </MenuItem>
+        <!-- Builds even when nothing changed since the last build, which Build project and Start project skip -->
+        <MenuItem Name="ForceBuildProjectMenuItem"
+                  Command="{cmd:Command Stride.Project.ForceBuild}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageBuildProject}"/>
+          </MenuItem.Icon>
+        </MenuItem>
         <MenuItem Name="StartProjectMenuItem"
                   Command="{cmd:Command Stride.Project.Start}">
           <MenuItem.Icon>
