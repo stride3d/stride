@@ -92,6 +92,7 @@ resources
 resx
 ruleset
 runsettings
+rvtrn
 sd*
 settings
 sh
@@ -112,6 +113,7 @@ targets
 template
 tga
 tif
+tiff
 tmtheme
 tt
 ttf

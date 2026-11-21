@@ -1,0 +1,12 @@
+!HeightfieldAsset
+Id: 2d9e9ca8-6931-4bfe-8680-ba92f39be620
+SerializedVersion: {Stride: 1.0.0.0}
+Tags: []
+Size: 512.0
+Subdivision: 1024
+CoarseBlockInterval: 64
+Layer: !Stride.Heightfield.Assets.HeightfieldTexture,Stride.Heightfield.Assets
+    Texture: 69c63ea3-3d29-4c67-90b5-02a28584d70c:Heightfield/With Input/Height Input
+    HeightMultiplier: 100.0
+    Tiling: 1.0
+    BilinearSampling: true

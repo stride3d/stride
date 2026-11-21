@@ -102,3 +102,4 @@ deps/FFmpeg/*/ffmpeg filter=lfs diff=lfs merge=lfs -text
 
 # sprite studio
 *.ssae filter=lfs diff=lfs merge=lfs -text
+*.tiff filter=lfs diff=lfs merge=lfs -text
