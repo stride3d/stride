@@ -189,7 +189,9 @@ namespace Stride.Rendering
                 || materialPass.HasTransparency != renderMesh.MaterialPass?.HasTransparency)
             {
                 renderMesh.IsShadowCaster = isShadowCaster;
-                VisibilityGroup.NeedActiveRenderStageReevaluation = true;
+                // Registration selects stages for a new mesh individually.
+                if (renderMesh.VisibilityObjectNode != StaticObjectNodeReference.Invalid)
+                    VisibilityGroup.NeedActiveRenderStageReevaluation = true;
             }
 
             renderMesh.MaterialPass = materialPass;
