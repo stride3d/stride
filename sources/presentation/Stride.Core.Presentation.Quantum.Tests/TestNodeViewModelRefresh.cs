@@ -106,4 +106,55 @@ public class TestNodeViewModelRefresh
         Assert.Contains(MinimumKey, notifiedProperties);
         Assert.Contains(GraphViewModel.HasAssociatedDataPrefix + MinimumKey, notifiedProperties);
     }
+
+    [Fact]
+    public void TestChildrenStillFollowTheirNodesAfterAnAttachedPropertyRefresh()
+    {
+        var testContext = new TestContainerContext();
+        var instance = new Types.ClassWithRef { String = "Root", Ref = new Types.ClassWithRef { String = "Child" } };
+        var viewModel = testContext.CreateInstanceContext(instance).CreateViewModel();
+        var reference = viewModel.RootNode.GetChild(nameof(Types.ClassWithRef.Ref))!;
+
+        // An attached property of the node changes: it refreshes and builds its children again, from the same presenters
+        reference.NodePresenters.First().AttachedProperties.Set(Minimum, 1.0);
+        Assert.Equal(1.0, (double)reference.AssociatedData[MinimumKey]);
+
+        // A child changed from the grid still reaches the object, and its node is told
+        var child = reference.GetChild(nameof(Types.ClassWithRef.String))!;
+        var notifiedProperties = new HashSet<string>();
+        child.PropertyChanged += (_, e) => notifiedProperties.Add(e.PropertyName!);
+        child.NodeValue = "Changed";
+
+        Assert.Equal("Changed", instance.Ref.String);
+        Assert.Contains(nameof(NodeViewModel.NodeValue), notifiedProperties);
+    }
+
+    [Fact]
+    public void TestAnAttachedPropertyRefreshLeavesNoOldNodeListening()
+    {
+        var testContext = new TestContainerContext();
+        var instance = new Types.ClassWithRef { String = "Root", Ref = new Types.ClassWithRef { String = "Child", Ref = new Types.ClassWithRef { String = "Grandchild" } } };
+        var viewModel = testContext.CreateInstanceContext(instance).CreateViewModel();
+        var reference = viewModel.RootNode.GetChild(nameof(Types.ClassWithRef.Ref))!;
+        var oldGrandchild = reference.GetChild(nameof(Types.ClassWithRef.Ref))!.GetChild(nameof(Types.ClassWithRef.String))!;
+        var oldNotifications = 0;
+        oldGrandchild.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(NodeViewModel.NodeValue))
+                ++oldNotifications;
+        };
+
+        reference.NodePresenters.First().AttachedProperties.Set(Minimum, 1.0);
+
+        // The node two levels down still follows its member; the node it replaced is destroyed and hears nothing
+        var grandchild = reference.GetChild(nameof(Types.ClassWithRef.Ref))!.GetChild(nameof(Types.ClassWithRef.String))!;
+        Assert.NotSame(oldGrandchild, grandchild);
+        var notifiedProperties = new HashSet<string>();
+        grandchild.PropertyChanged += (_, e) => notifiedProperties.Add(e.PropertyName!);
+        grandchild.NodeValue = "Changed";
+
+        Assert.Equal("Changed", instance.Ref.Ref.String);
+        Assert.Contains(nameof(NodeViewModel.NodeValue), notifiedProperties);
+        Assert.Equal(0, oldNotifications);
+    }
 }
