@@ -8,6 +8,7 @@
              xmlns:vm="using:Stride.Core.Assets.Presentation.ViewModels"
              xmlns:vm2="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
+             xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.SolutionExplorerView"
              x:DataType="vm2:SessionViewModel">
@@ -57,6 +58,11 @@
         <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectedSolutionItemsCommand}"/>
         <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameDirectoryOrPackageCommand}" CommandParameter="{Binding AssetCollection.SelectedLocations}"/>
       </sd:EditCommands.Bindings>
+      <!-- A location selected from outside the tree (the folders of the asset view, the session that opens) shows: its
+           folders, package and category expand and its row scrolls into view -->
+      <Interaction.Behaviors>
+        <caeb:TreeViewFollowSelectionBehavior/>
+      </Interaction.Behaviors>
       <!-- The context menu of the solution explorer, in groups shown when one of
            their commands applies to the selection; its items bind the commands of the registry by their identifier, which
            act on the selection the menu opened on -->
