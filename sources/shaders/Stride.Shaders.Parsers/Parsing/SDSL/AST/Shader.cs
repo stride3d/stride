@@ -685,13 +685,13 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
 
         if (IsPartial)
             table.AddWarning(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0214, Name.Name)));
-        PartialStructs.DeclareViews(table, context, this);
+        // Structs (plain and partial views) first, in the order they contain each other
+        if (!PartialStructs.DeclareStructs(table, context, this))
+            return;
 
         // Process symbols and generate types
         foreach (var td in Elements.OfType<TypeDef>())
             table.AddError(new(td.Info, $"typedef is not implemented: '{td}'"));
-        foreach (var member in Elements.OfType<ShaderStruct>())
-            member.ProcessSymbol(table, context);
         foreach (var member in Elements.OfType<ShaderMember>())
             member.ProcessSymbol(table, context);
         foreach (var member in Elements.OfType<ShaderBuffer>())
@@ -836,7 +836,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         foreach (var structType in shaderType.StructTypes)
         {
             // Struct types are real SymbolTypes — register them for type resolution
-            // (a partial struct is registered with the view of the class being compiled, PartialStructs.DeclareViews)
+            // (a partial struct is registered with the view of the class being compiled, PartialStructs.DeclareStructs)
             if (structType.Type is not StructType { PartialOwner: not null })
                 table.DeclaredTypes.TryAdd(structType.Type.Name, structType.Type);
         }

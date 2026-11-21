@@ -141,7 +141,8 @@ public static class SDSLErrorMessages
     public const string SDSL0124 = "SDSL0124: {0} sees two partial structs named {1}, declared by {2} and {3}. Rename one of them.";
     public const string SDSL0125 = "SDSL0125: {0} {1} has type {2}, which is or contains the partial struct {3}. The fields of a partial struct depend on the effect, so it can't be in streams, cbuffers, buffers or groupshared variables. Use a plain struct there.";
     public const string SDSL0126 = "SDSL0126: {0} declares 'partial struct {1}', but {0} is generic. A partial struct has one owner per effect: declare it in a class without generic parameters.";
-    public const string SDSL0127 = "SDSL0127: field {2} of partial struct {1} in {0} has the struct type {3}. A field of a partial struct can't be a struct yet. Use fields of scalar, vector, matrix or array types.";
+    // SDSL0127: reserved (a field of a partial struct couldn't be a struct; lifted before the first release)
+    public const string SDSL0128 = "SDSL0128: struct {0} contains itself: {1}. A struct can't contain itself, directly or through an array. Remove one of these fields.";
 
     // Definition checks: found when a class compiles, reported as warnings (errors with ShaderLoaderBase.WarningsAsErrors)
 

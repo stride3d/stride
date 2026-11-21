@@ -1,0 +1,146 @@
+// PSMain(ExpectedResult=#01020304)
+
+namespace Stride.Shaders.Tests;
+
+// A partial struct as a field of another partial struct, each with parts from different classes. The effect's structs:
+// PartialOuter a, b, inner and PartialInner x, y, z. The root and the composition see PartialOuter a, inner (inner is
+// field 1, field 2 in the effect); the root sees PartialInner x, z (z is field 1, field 2 in the effect), the composition
+// x, y. b is added by a second root mixin that no other class imports.
+
+module PartialOuterOwner
+{
+    partial struct PartialOuter
+    {
+        float a;
+    };
+};
+
+module PartialInnerOwner
+{
+    partial struct PartialInner
+    {
+        float x;
+    };
+};
+
+module PartialInnerY
+{
+    import PartialInnerOwner;
+
+    extend struct PartialInner
+    {
+        float y;
+    };
+
+    float GetY(PartialInner i)
+    {
+        return i.y;
+    }
+};
+
+module PartialInnerZ
+{
+    import PartialInnerOwner;
+
+    extend struct PartialInner
+    {
+        float z;
+    };
+};
+
+module PartialOuterInner
+{
+    import PartialOuterOwner;
+    import PartialInnerOwner;
+
+    extend struct PartialOuter
+    {
+        PartialInner inner;
+    };
+};
+
+module PartialOuterB
+{
+    import PartialOuterOwner;
+
+    extend struct PartialOuter
+    {
+        float b;
+    };
+};
+
+module PartialOuterZ
+{
+    import PartialOuterInner;
+    import PartialInnerZ;
+
+    float GetOuterZ(PartialOuter o)
+    {
+        return o.inner.z;
+    }
+};
+
+shader PartialInPartialLayerBase
+{
+    import PartialOuterOwner;
+
+    void Apply(inout PartialOuter o)
+    {
+        o.a = 0.0;
+    }
+
+    float Read(PartialOuter o)
+    {
+        return 0.0;
+    }
+};
+
+shader PartialInPartialLayer : PartialInPartialLayerBase
+{
+    import PartialOuterInner;
+    import PartialInnerY;
+
+    override void Apply(inout PartialOuter o)
+    {
+        float a = o.a;
+        base.Apply(o);
+        o.a = a;
+        o.inner.y = 2.0 / 255.0;
+        o.inner.x = 4.0 / 255.0;
+    }
+
+    override float Read(PartialOuter o)
+    {
+        return GetY(o.inner);
+    }
+};
+
+shader PartialInPartialRoot
+{
+    import PartialOuterZ;
+
+    stream float4 ColorTarget : SV_Target0;
+
+    compose PartialInPartialLayerBase Layer;
+
+    void PSMain()
+    {
+        PartialOuter o = (PartialOuter)0;
+        o.a = 1.0 / 255.0;
+        o.inner.z = 3.0 / 255.0;
+        Layer.Apply(o);
+        streams.ColorTarget = float4(o.a, Layer.Read(o), GetOuterZ(o), o.inner.x);
+    }
+};
+
+shader PartialInPartialRootB
+{
+    import PartialOuterB;
+};
+
+effect PartialStructInPartial
+{
+    mixin PartialInPartialRoot;
+    mixin PartialInPartialRootB;
+    mixin compose Layer = PartialInPartialLayer;
+}
