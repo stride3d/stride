@@ -299,21 +299,13 @@ public static class ScreenshotRunner
             return result;
         }
 
-        // AOT lands the self-contained native exe in the publish/ subfolder; the JIT build path varies
-        // (some csprojs set RuntimeIdentifier, others don't).
+        // AOT lands the self-contained native exe in the publish/ subfolder
         var exeName = $"{sampleName}.{HostPlatform.Folder}{HostPlatform.ExeExt}";
-        var exeCandidates = aot
-            ? new[] { Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, HostPlatform.Rid, "publish", exeName) }
-            : new[]
-            {
-                Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, HostPlatform.Rid, exeName),
-                Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, exeName),
-            };
-        var exePath = exeCandidates.FirstOrDefault(File.Exists);
-        if (exePath is null)
+        var exePath = Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, HostPlatform.Rid, aot ? "publish" : "", exeName);
+        if (!File.Exists(exePath))
         {
             result.Status = "missing-exe";
-            result.Detail = string.Join(" | ", exeCandidates);
+            result.Detail = exePath;
             result.Duration = stopwatch.Elapsed;
             return result;
         }
@@ -561,6 +553,7 @@ public static class ScreenshotRunner
     /// Lives above the per-sample dir because SampleGenerator wipes the sample dir at the start of
     /// regeneration. Next to it goes the NuGet config of the repository's samples: a sample written for an
     /// older engine restores that release before its upgrade, so Stride.* also comes from nuget.org there.
+    /// A Directory.Build.props gives the platform projects the host RID.
     /// </summary>
     private static void EnsureSamplesGeneratedTargets(string worktreeRoot)
     {
@@ -573,6 +566,13 @@ public static class ScreenshotRunner
             .Replace("$STRIDE_DEV_VERSION$", GetStrideDevVersion(worktreeRoot));
 
         File.WriteAllText(Path.Combine(samplesGeneratedDir, "Directory.Build.targets"), content);
+
+        // The host RID keeps the natives of other platforms (over 300 MB a sample) out of the output. It goes in
+        // the platform projects, not on the command line: a solution build refuses -r (NETSDK1134).
+        new XDocument(new XElement("Project",
+            new XElement("PropertyGroup",
+                new XAttribute("Condition", $"'$(StrideAutoTesting)' == 'true' And $(MSBuildProjectName.EndsWith('.{HostPlatform.Folder}'))"),
+                new XElement("RuntimeIdentifier", HostPlatform.Rid)))).Save(Path.Combine(samplesGeneratedDir, "Directory.Build.props"));
     }
 
     /// <summary>
