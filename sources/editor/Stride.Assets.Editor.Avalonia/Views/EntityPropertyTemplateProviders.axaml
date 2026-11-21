@@ -194,7 +194,7 @@
         </Slider>
         <sd:NumericTextBox Grid.Column="1" Margin="6,2,2,2"
                            Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, UpdateSourceTrigger=Explicit}"
-                           DecimalPlaces="3"/>
+                           DecimalPlaces="3" DisplayUpDownButtons="False"/>
       </Grid>
     </DataTemplate>
   </aev:MorphWeightTemplateProvider>

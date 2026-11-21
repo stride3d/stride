@@ -9,19 +9,36 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Stride.Core.Mathematics;
+using Point = Avalonia.Point;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
 [TemplatePart("PART_TextBox", typeof(TextBox), IsRequired = true)]
+[TemplatePart("PART_IncreaseButton", typeof(RepeatButton))]
+[TemplatePart("PART_DecreaseButton", typeof(RepeatButton))]
+[PseudoClasses(DragHorizontalPseudoClass, DragVerticalPseudoClass)]
 public sealed class NumericTextBox : TemplatedControl
 {
+    /// <summary>
+    /// The distance in pixels the mouse moves to add or remove one <see cref="SmallChange"/> to the value.
+    /// </summary>
+    public const double DragSpeed = 3;
+
+    // How far the mouse moves with the button down before the press becomes a drag
+    private const double MinimumDragDistance = 4;
+    private const string DragHorizontalPseudoClass = ":drag-horizontal";
+    private const string DragVerticalPseudoClass = ":drag-vertical";
+
     private bool internalValueSet;
     // The value comes from text the user typed and is not written to the source yet
     private bool hasPendingEdit;
     private bool isSyncingTextAndValueProperties;
     private bool isTextChangedFromUI;
+    private bool isUpdatingValueRatio;
 
     static NumericTextBox()
     {
@@ -30,12 +47,15 @@ public sealed class NumericTextBox : TemplatedControl
         MinimumProperty.Changed.AddClassHandler<NumericTextBox>(OnMinimumPropertyChanged);
         TextProperty.Changed.AddClassHandler<NumericTextBox, string?>(OnTextPropertyChanged);
         ValueProperty.Changed.AddClassHandler<NumericTextBox, double?>(OnValuePropertyChanged);
+        ValueRatioProperty.Changed.AddClassHandler<NumericTextBox, double>(OnValueRatioPropertyChanged);
     }
 
     public NumericTextBox()
     {
         // The inner text box moves its caret with the arrows: the steps take them first
         AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+        // The inner text box takes the focus on a press: a drag starts before it does
+        AddHandler(PointerPressedEvent, OnPreviewPointerPressed, RoutingStrategies.Tunnel);
     }
 
     public static readonly StyledProperty<int> DecimalPlacesProperty =
@@ -65,8 +85,26 @@ public sealed class NumericTextBox : TemplatedControl
     public static readonly StyledProperty<string?> PlaceholderTextProperty =
         TextBox.PlaceholderTextProperty.AddOwner<NumericTextBox>();
 
+    public static readonly StyledProperty<double> ValueRatioProperty =
+        AvaloniaProperty.Register<NumericTextBox, double>(nameof(ValueRatio));
+
+    public static readonly StyledProperty<bool> AllowMouseDragProperty =
+        AvaloniaProperty.Register<NumericTextBox, bool>(nameof(AllowMouseDrag), true);
+
+    public static readonly StyledProperty<bool> DisplayUpDownButtonsProperty =
+        AvaloniaProperty.Register<NumericTextBox, bool>(nameof(DisplayUpDownButtons), true);
+
+    public static readonly StyledProperty<MouseValidationTrigger> MouseValidationTriggerProperty =
+        AvaloniaProperty.Register<NumericTextBox, MouseValidationTrigger>(nameof(MouseValidationTrigger), MouseValidationTrigger.OnMouseUp);
+
     public static readonly RoutedEvent<NumericTextBoxValueChangedEventArgs> ValueChangedEvent =
         RoutedEvent.Register<NumericTextBox, NumericTextBoxValueChangedEventArgs>(nameof(ValueChanged), RoutingStrategies.Bubble);
+
+    public static readonly RoutedEvent<RepeatButtonPressedEventArgs> RepeatButtonPressedEvent =
+        RoutedEvent.Register<NumericTextBox, RepeatButtonPressedEventArgs>(nameof(RepeatButtonPressed), RoutingStrategies.Bubble);
+
+    public static readonly RoutedEvent<RepeatButtonPressedEventArgs> RepeatButtonReleasedEvent =
+        RoutedEvent.Register<NumericTextBox, RepeatButtonPressedEventArgs>(nameof(RepeatButtonReleased), RoutingStrategies.Bubble);
 
     public int DecimalPlaces
     {
@@ -128,6 +166,42 @@ public sealed class NumericTextBox : TemplatedControl
         set => SetValue(PlaceholderTextProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets where the value is between <see cref="Minimum"/> (0) and <see cref="Maximum"/> (1).
+    /// </summary>
+    public double ValueRatio
+    {
+        get => GetValue(ValueRatioProperty);
+        set => SetValue(ValueRatioProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether dragging the mouse over the box, when it doesn't have the focus, changes the value.
+    /// </summary>
+    public bool AllowMouseDrag
+    {
+        get => GetValue(AllowMouseDragProperty);
+        set => SetValue(AllowMouseDragProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the box shows the up and down buttons that add or remove <see cref="SmallChange"/>.
+    /// </summary>
+    public bool DisplayUpDownButtons
+    {
+        get => GetValue(DisplayUpDownButtonsProperty);
+        set => SetValue(DisplayUpDownButtonsProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets when a value changed with the mouse is written to the source.
+    /// </summary>
+    public MouseValidationTrigger MouseValidationTrigger
+    {
+        get => GetValue(MouseValidationTriggerProperty);
+        set => SetValue(MouseValidationTriggerProperty, value);
+    }
+
     public event EventHandler<NumericTextBoxValueChangedEventArgs>? ValueChanged
     {
         add => AddHandler(ValueChangedEvent, value);
@@ -135,9 +209,47 @@ public sealed class NumericTextBox : TemplatedControl
     }
 
     /// <summary>
+    /// Raised when one of the spin buttons is pressed.
+    /// </summary>
+    public event EventHandler<RepeatButtonPressedEventArgs>? RepeatButtonPressed
+    {
+        add => AddHandler(RepeatButtonPressedEvent, value);
+        remove => RemoveHandler(RepeatButtonPressedEvent, value);
+    }
+
+    /// <summary>
+    /// Raised when one of the spin buttons is released.
+    /// </summary>
+    public event EventHandler<RepeatButtonPressedEventArgs>? RepeatButtonReleased
+    {
+        add => AddHandler(RepeatButtonReleasedEvent, value);
+        remove => RemoveHandler(RepeatButtonReleasedEvent, value);
+    }
+
+    /// <summary>
     /// Gets the TextBox template part.
     /// </summary>
     private TextBox? TextBox { get; set; }
+
+    /// <summary>
+    /// Gets the up button template part.
+    /// </summary>
+    private RepeatButton? IncreaseButton { get; set; }
+
+    /// <summary>
+    /// Gets the down button template part.
+    /// </summary>
+    private RepeatButton? DecreaseButton { get; set; }
+
+    /// <summary>
+    /// Gets the mouse gesture in progress (a press or a drag over the text, or a held spin button), if any.
+    /// </summary>
+    private MouseGesture? Gesture { get; set; }
+
+    /// <summary>
+    /// Gets whether the value can be changed: a read-only box shows its value only.
+    /// </summary>
+    private bool CanChangeValue => TextBox is not { IsReadOnly: true };
 
     protected override void OnInitialized()
     {
@@ -160,6 +272,9 @@ public sealed class NumericTextBox : TemplatedControl
         {
             TextBox.PropertyChanged += OnTextBoxPropertyChanged;
         }
+
+        IncreaseButton = ApplySpinButton(IncreaseButton, e.NameScope.Find<RepeatButton>("PART_IncreaseButton"));
+        DecreaseButton = ApplySpinButton(DecreaseButton, e.NameScope.Find<RepeatButton>("PART_DecreaseButton"));
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -260,6 +375,7 @@ public sealed class NumericTextBox : TemplatedControl
                 SyncTextAndValueProperties(false, null, true);
         }
 
+        UpdateValueRatio();
         RaiseEvent(new NumericTextBoxValueChangedEventArgs(ValueChangedEvent, oldValue, newValue));
     }
 
@@ -367,6 +483,7 @@ public sealed class NumericTextBox : TemplatedControl
             needValidation = true;
         }
 
+        sender.UpdateValueRatio();
         if (needValidation)
         {
             sender.SyncTextAndValueProperties(false, null, true);
@@ -387,6 +504,7 @@ public sealed class NumericTextBox : TemplatedControl
             needValidation = true;
         }
 
+        sender.UpdateValueRatio();
         if (needValidation)
         {
             sender.SyncTextAndValueProperties(false, null, true);
@@ -401,5 +519,245 @@ public sealed class NumericTextBox : TemplatedControl
     private static void OnValuePropertyChanged(NumericTextBox sender, AvaloniaPropertyChangedEventArgs<double?> e)
     {
         sender.OnValuePropertyChanged(e.OldValue.GetValueOrDefault(), e.NewValue.GetValueOrDefault());
+    }
+
+    private static void OnValueRatioPropertyChanged(NumericTextBox sender, AvaloniaPropertyChangedEventArgs<double> e)
+    {
+        // A ratio set from outside moves the value; the value only shows its ratio
+        if (!sender.isUpdatingValueRatio && sender.CanChangeValue)
+        {
+            sender.SetCurrentValue(ValueProperty, MathUtil.Lerp(sender.Minimum, sender.Maximum, e.NewValue.GetValueOrDefault()));
+        }
+    }
+
+    private void UpdateValueRatio()
+    {
+        isUpdatingValueRatio = true;
+        try
+        {
+            SetCurrentValue(ValueRatioProperty, Value is { } value ? MathUtil.InverseLerp(Minimum, Maximum, value) : 0.0);
+        }
+        finally
+        {
+            isUpdatingValueRatio = false;
+        }
+    }
+
+    /// <summary>
+    /// Writes the value to the source of the binding, for the changes made with the mouse.
+    /// </summary>
+    internal void UpdateValueSource()
+    {
+        BindingOperations.GetBindingExpressionBase(this, ValueProperty)?.UpdateSource();
+    }
+
+    /// <summary>
+    /// Adds a step to the value, as the arrows and the spin buttons do.
+    /// </summary>
+    private void Step(double change)
+    {
+        // Increasing an empty value starts from the minimum, decreasing it from the maximum
+        var value = (Value ?? (change > 0 ? Minimum : Maximum)) + change;
+        SetCurrentValue(ValueProperty, MathUtil.Clamp(value, Minimum, Maximum));
+    }
+
+    private RepeatButton? ApplySpinButton(RepeatButton? oldButton, RepeatButton? newButton)
+    {
+        if (oldButton is not null)
+        {
+            oldButton.Click -= OnSpinButtonClick;
+            oldButton.PropertyChanged -= OnSpinButtonPropertyChanged;
+        }
+        if (newButton is not null)
+        {
+            newButton.Click += OnSpinButtonClick;
+            newButton.PropertyChanged += OnSpinButtonPropertyChanged;
+        }
+        return newButton;
+    }
+
+    private void OnSpinButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (!CanChangeValue)
+            return;
+
+        Step(ReferenceEquals(sender, IncreaseButton) ? SmallChange : -SmallChange);
+        TextBox?.SelectAll();
+        // A held button writes once, on release, unless every step is written
+        if (Gesture is not { Kind: MouseGestureKind.SpinButton } || MouseValidationTrigger == MouseValidationTrigger.OnMouseMove)
+        {
+            UpdateValueSource();
+        }
+        e.Handled = true;
+    }
+
+    private void OnSpinButtonPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property != Button.IsPressedProperty || sender is not RepeatButton button)
+            return;
+
+        var which = ReferenceEquals(button, IncreaseButton) ? NumericTextBoxRepeatButton.IncreaseButton : NumericTextBoxRepeatButton.DecreaseButton;
+        if (button.IsPressed)
+        {
+            Gesture = new MouseGesture(MouseGestureKind.SpinButton, Value, default);
+            RaiseEvent(new RepeatButtonPressedEventArgs(RepeatButtonPressedEvent, which));
+        }
+        else
+        {
+            var gesture = Gesture;
+            Gesture = null;
+            // One write for the whole press, so one change to undo
+            if (gesture is { Kind: MouseGestureKind.SpinButton } && MouseValidationTrigger == MouseValidationTrigger.OnMouseUp && !Equals(gesture.StartValue, Value))
+            {
+                UpdateValueSource();
+            }
+            RaiseEvent(new RepeatButtonPressedEventArgs(RepeatButtonReleasedEvent, which));
+        }
+    }
+
+    private void OnPreviewPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        // Over the text of a box that doesn't have the focus: the press can become a drag. A box with the focus selects
+        // its text with the mouse.
+        if (!AllowMouseDrag || !CanChangeValue || TextBox is not { } textBox || textBox.IsKeyboardFocusWithin)
+            return;
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed || e.Source is not Visual source || !IsOverText(textBox, source))
+            return;
+
+        Gesture = new MouseGesture(MouseGestureKind.Press, Value, e.GetPosition(this));
+        e.Pointer.Capture(this);
+        e.Handled = true;
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        if (Gesture is not { Kind: MouseGestureKind.Press or MouseGestureKind.Drag } gesture)
+            return;
+
+        var position = e.GetPosition(this);
+        var offset = position - gesture.LastPosition;
+        if (gesture.Kind == MouseGestureKind.Press)
+        {
+            if (Math.Abs(offset.X) <= MinimumDragDistance && Math.Abs(offset.Y) <= MinimumDragDistance)
+                return;
+
+            // The direction of the first move is the direction of the whole drag
+            gesture.Kind = MouseGestureKind.Drag;
+            gesture.Orientation = Math.Abs(offset.X) >= Math.Abs(offset.Y) ? Orientation.Horizontal : Orientation.Vertical;
+            gesture.LastPosition = position;
+            // The cursor shows the direction
+            PseudoClasses.Set(gesture.Orientation == Orientation.Horizontal ? DragHorizontalPseudoClass : DragVerticalPseudoClass, true);
+            TextBox?.SelectAll();
+            e.Handled = true;
+            return;
+        }
+
+        // Right and up increase the value
+        gesture.Delta += gesture.Orientation == Orientation.Horizontal ? offset.X : -offset.Y;
+        gesture.LastPosition = position;
+        var steps = Math.Truncate(gesture.Delta / DragSpeed);
+        if (steps != 0)
+        {
+            gesture.Delta -= steps * DragSpeed;
+            SetCurrentValue(ValueProperty, MathUtil.Clamp((Value ?? 0.0) + steps * SmallChange, Minimum, Maximum));
+            TextBox?.SelectAll();
+            if (MouseValidationTrigger == MouseValidationTrigger.OnMouseMove)
+            {
+                UpdateValueSource();
+            }
+        }
+        e.Handled = true;
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+        if (Gesture is not { Kind: MouseGestureKind.Press or MouseGestureKind.Drag } gesture)
+            return;
+
+        // Ends the gesture before the capture goes, so that losing the capture doesn't cancel it
+        Gesture = null;
+        ClearDragPseudoClasses();
+        e.Pointer.Capture(null);
+        e.Handled = true;
+        if (gesture.Kind == MouseGestureKind.Press)
+        {
+            // A click without a drag edits the text
+            TextBox?.Focus(NavigationMethod.Pointer);
+            TextBox?.SelectAll();
+        }
+        else if (MouseValidationTrigger == MouseValidationTrigger.OnMouseUp && !Equals(gesture.StartValue, Value))
+        {
+            // One write for the whole drag, so one change to undo
+            UpdateValueSource();
+        }
+    }
+
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+        if (Gesture is not { Kind: MouseGestureKind.Press or MouseGestureKind.Drag } gesture)
+            return;
+
+        // The drag was interrupted (another window took the mouse): the value goes back to what the source has
+        Gesture = null;
+        ClearDragPseudoClasses();
+        if (gesture.Kind == MouseGestureKind.Drag && MouseValidationTrigger == MouseValidationTrigger.OnMouseUp)
+        {
+            SetCurrentValue(ValueProperty, gesture.StartValue);
+        }
+    }
+
+    private void ClearDragPseudoClasses()
+    {
+        PseudoClasses.Set(DragHorizontalPseudoClass, false);
+        PseudoClasses.Set(DragVerticalPseudoClass, false);
+    }
+
+    private static bool IsOverText(TextBox textBox, Visual source)
+    {
+        // The spin buttons sit in the text box, beside the text
+        for (var visual = source; visual is not null && !ReferenceEquals(visual, textBox); visual = visual.GetVisualParent())
+        {
+            if (visual is RepeatButton)
+                return false;
+        }
+        return ReferenceEquals(source, textBox) || textBox.IsVisualAncestorOf(source);
+    }
+
+    private enum MouseGestureKind
+    {
+        /// <summary>
+        /// The mouse button is down over the text, and the mouse hasn't moved enough to drag.
+        /// </summary>
+        Press,
+        /// <summary>
+        /// The mouse drags the value.
+        /// </summary>
+        Drag,
+        /// <summary>
+        /// A spin button is held.
+        /// </summary>
+        SpinButton,
+    }
+
+    private sealed class MouseGesture(MouseGestureKind kind, double? startValue, Point position)
+    {
+        public MouseGestureKind Kind { get; set; } = kind;
+
+        /// <summary>
+        /// The value when the gesture started: a gesture that ends on it writes nothing.
+        /// </summary>
+        public double? StartValue { get; } = startValue;
+
+        public Point LastPosition { get; set; } = position;
+
+        public Orientation Orientation { get; set; }
+
+        /// <summary>
+        /// The distance moved that didn't make a whole step yet.
+        /// </summary>
+        public double Delta { get; set; }
     }
 }

@@ -36,14 +36,16 @@ public sealed class TemplateProviderTests
     [AvaloniaFact]
     public void TheViewPluginRegistersTheEntityAndCurveProviders()
     {
-        // The entity providers and the curve one (the merged default providers belong to the core plugin)
-        var expected = new EntityPropertyTemplateProviders().Values.OfType<TemplateProviderBase>().Count() + 1;
+        // The entity providers, the asset ones and the curve one (the merged default providers belong to the core plugin)
+        var expected = new EntityPropertyTemplateProviders().Values.OfType<TemplateProviderBase>().Count()
+            + new AssetPropertyTemplateProviders().Values.OfType<TemplateProviderBase>().Count() + 1;
 
         var registered = PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView)).TemplateProviders;
 
         Assert.Equal(expected, registered.Count);
         Assert.Contains(registered, x => x is EntityReferenceTemplateProvider);
         Assert.Contains(registered, x => x is ComputeCurveTemplateProvider);
+        Assert.Contains(registered, x => x is SpriteFontFontNameTemplateProvider);
     }
 
     [AvaloniaFact]

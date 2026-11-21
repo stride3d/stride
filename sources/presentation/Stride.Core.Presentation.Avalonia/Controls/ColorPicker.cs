@@ -21,7 +21,8 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 /// </summary>
 /// <remarks>
 /// <see cref="Color"/> is written only when the user picks a color: when a drag on the square or on the strip ends, or
-/// when a component is typed. Showing a color, and the steps of a drag, write nothing.
+/// when a component is typed. Showing a color, and the steps of a drag, write nothing. A drag on a component box, or a held
+/// spin button, shows each step as the square does, and the box writes the component once at the end.
 /// </remarks>
 [TemplatePart("PART_ColorSurface", typeof(Panel))]
 [TemplatePart("PART_ColorSelector", typeof(Control))]
@@ -175,6 +176,22 @@ public sealed class ColorPicker : TemplatedControl
     /// </summary>
     private Control? DraggedSurface { get; set; }
 
+    /// <summary>
+    /// Gets the component that each box of the template edits.
+    /// </summary>
+    private Dictionary<NumericTextBox, StyledProperty<float>> FloatComponentBoxes { get; } = [];
+
+    /// <summary>
+    /// Gets the channel that each RGBA box of the template edits.
+    /// </summary>
+    private Dictionary<NumericTextBox, StyledProperty<byte>> ByteComponentBoxes { get; } = [];
+
+    /// <summary>
+    /// Gets the hue, saturation and brightness shown before an RGBA box showed its steps, or <c>null</c> if none is: a gray
+    /// has no hue, and black no saturation either, so going back to the color does not give them back.
+    /// </summary>
+    private (float Hue, float Saturation, float Brightness)? HsbBeforeBoxSteps { get; set; }
+
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
@@ -189,6 +206,18 @@ public sealed class ColorPicker : TemplatedControl
             surface.PointerCaptureLost -= OnSurfacePointerCaptureLost;
             surface.SizeChanged -= OnSurfaceSizeChanged;
         }
+
+        foreach (var box in FloatComponentBoxes.Keys.Concat(ByteComponentBoxes.Keys))
+            box.ValueChanged -= OnComponentBoxValueChanged;
+        FloatComponentBoxes.Clear();
+        ByteComponentBoxes.Clear();
+        AddComponentBox(e.NameScope, "HueTextBox", HueProperty, FloatComponentBoxes);
+        AddComponentBox(e.NameScope, "SaturationTextBox", SaturationProperty, FloatComponentBoxes);
+        AddComponentBox(e.NameScope, "BrightnessTextBox", BrightnessProperty, FloatComponentBoxes);
+        AddComponentBox(e.NameScope, "RedTextBox", RedProperty, ByteComponentBoxes);
+        AddComponentBox(e.NameScope, "GreenTextBox", GreenProperty, ByteComponentBoxes);
+        AddComponentBox(e.NameScope, "BlueTextBox", BlueProperty, ByteComponentBoxes);
+        AddComponentBox(e.NameScope, "AlphaTextBox", AlphaProperty, ByteComponentBoxes);
 
         ColorSurface = e.NameScope.Find<Panel>("PART_ColorSurface");
         ColorSelector = e.NameScope.Find<Control>("PART_ColorSelector");
@@ -210,11 +239,28 @@ public sealed class ColorPicker : TemplatedControl
         UpdateVisuals();
     }
 
+    private void AddComponentBox<T>(INameScope nameScope, string name, StyledProperty<T> component, Dictionary<NumericTextBox, StyledProperty<T>> boxes)
+    {
+        if (nameScope.Find<NumericTextBox>(name) is not { } box)
+            return;
+
+        boxes[box] = component;
+        box.ValueChanged += OnComponentBoxValueChanged;
+    }
+
     private void OnColorChanged()
     {
         if (isCommitting)
             return;
 
+        ShowColor();
+    }
+
+    /// <summary>
+    /// Shows <see cref="Color"/> in the components and the visuals.
+    /// </summary>
+    private void ShowColor()
+    {
         ShownColor = Color;
         isSyncingComponents = true;
         try
@@ -282,6 +328,96 @@ public sealed class ColorPicker : TemplatedControl
         Commit();
     }
 
+    private void OnComponentBoxValueChanged(object? sender, NumericTextBoxValueChangedEventArgs e)
+    {
+        // Only the steps of a gesture on a box: not a component the picker shows, nor a drag on the square
+        if (isSyncingComponents || DraggedSurface is not null || sender is not NumericTextBox box || e.NewValue is not { } value)
+            return;
+
+        if (ByteComponentBoxes.TryGetValue(box, out var channel))
+        {
+            var component = (byte)Math.Round(MathUtil.Clamp(value, 0.0, 255.0));
+            if (component == GetValue(channel))
+            {
+                ShowColorAgain();
+                return;
+            }
+
+            // The other channels keep their precision
+            var color = Color;
+            if (channel == RedProperty)
+                color.R = component / 255f;
+            else if (channel == GreenProperty)
+                color.G = component / 255f;
+            else if (channel == BlueProperty)
+                color.B = component / 255f;
+            else
+                color.A = component / 255f;
+            HsbBeforeBoxSteps ??= (Hue, Saturation, Brightness);
+            ShownColor = color;
+            isSyncingComponents = true;
+            try
+            {
+                SetHsbComponents();
+            }
+            finally
+            {
+                isSyncingComponents = false;
+            }
+            UpdateVisuals();
+        }
+        else if (FloatComponentBoxes.TryGetValue(box, out var hsbComponent))
+        {
+            if (Math.Abs(value - GetValue(hsbComponent)) < 1e-3)
+            {
+                ShowColorAgain();
+                return;
+            }
+
+            var hue = hsbComponent == HueProperty ? CoerceHue(this, (float)value) : Hue;
+            var saturation = hsbComponent == SaturationProperty ? CoercePercentage(this, (float)value) : Saturation;
+            var brightness = hsbComponent == BrightnessProperty ? CoercePercentage(this, (float)value) : Brightness;
+            ShownColor = new ColorHSV(hue, saturation / 100f, brightness / 100f, Color.A).ToColor();
+            isSyncingComponents = true;
+            try
+            {
+                SetRgbaComponents();
+            }
+            finally
+            {
+                isSyncingComponents = false;
+            }
+            // The square and the strip show the stepped component
+            UpdateVisuals(hue, saturation, brightness);
+        }
+    }
+
+    /// <summary>
+    /// Shows <see cref="Color"/> again after the steps of a box went back to its component, as when a drag is cancelled.
+    /// </summary>
+    private void ShowColorAgain()
+    {
+        if (ShownColor == Color && HsbBeforeBoxSteps is null)
+            return;
+
+        isSyncingComponents = true;
+        try
+        {
+            if (HsbBeforeBoxSteps is { } hsb)
+            {
+                SetCurrentValue(HueProperty, hsb.Hue);
+                SetCurrentValue(SaturationProperty, hsb.Saturation);
+                SetCurrentValue(BrightnessProperty, hsb.Brightness);
+            }
+        }
+        finally
+        {
+            isSyncingComponents = false;
+        }
+        HsbBeforeBoxSteps = null;
+        ShowColor();
+    }
+
     private void SetHsbComponents()
     {
         var hsv = ColorHSV.FromColor(ShownColor);
@@ -309,6 +445,7 @@ public sealed class ColorPicker : TemplatedControl
     /// </summary>
     private void Commit()
     {
+        HsbBeforeBoxSteps = null;
         if (ShownColor == Color)
             return;
 
@@ -397,26 +534,28 @@ public sealed class ColorPicker : TemplatedControl
         }
     }
 
-    private void UpdateVisuals()
+    private void UpdateVisuals() => UpdateVisuals(Hue, Saturation, Brightness);
+
+    private void UpdateVisuals(float hue, float saturation, float brightness)
     {
         if (ColorSurface is not null)
         {
-            var hue = new ColorHSV(Hue, 1f, 1f, 1f).ToColor().ToAvaloniaColor();
+            var hueColor = new ColorHSV(hue, 1f, 1f, 1f).ToColor().ToAvaloniaColor();
             ColorSurface.Background = new LinearGradientBrush
             {
                 StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
                 EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
-                GradientStops = { new GradientStop(Colors.White, 0), new GradientStop(hue, 1) },
+                GradientStops = { new GradientStop(Colors.White, 0), new GradientStop(hueColor, 1) },
             };
             if (ColorSelector is not null)
             {
-                Canvas.SetLeft(ColorSelector, Saturation / 100.0 * ColorSurface.Bounds.Width);
-                Canvas.SetTop(ColorSelector, Brightness / 100.0 * ColorSurface.Bounds.Height);
+                Canvas.SetLeft(ColorSelector, saturation / 100.0 * ColorSurface.Bounds.Width);
+                Canvas.SetTop(ColorSelector, brightness / 100.0 * ColorSurface.Bounds.Height);
             }
         }
         if (HueSurface is not null && HueSelector is not null)
         {
-            Canvas.SetLeft(HueSelector, Hue / 360.0 * HueSurface.Bounds.Width - HueSelector.Bounds.Width / 2);
+            Canvas.SetLeft(HueSelector, hue / 360.0 * HueSurface.Bounds.Width - HueSelector.Bounds.Width / 2);
         }
         if (Preview is not null)
         {

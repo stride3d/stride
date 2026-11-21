@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
@@ -107,6 +108,31 @@ public sealed class NodeNamePickerTests
     }
 
     [AvaloniaFact]
+    public void ClickingANodeAfterTypingSetsTheNodeOnce()
+    {
+        var (window, box, link) = Show();
+
+        box.Focus();
+        Dispatcher.UIThread.RunJobs();
+        box.Text = string.Empty;
+        window.KeyTextInput("Sp");
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(["Spine"], ShownNodes(box));
+
+        // The press on the item of the list takes the focus from the text before the item is picked
+        var item = ShownItems(box).Single();
+        var root = Assert.IsAssignableFrom<TopLevel>(TopLevel.GetTopLevel(item));
+        var center = item.TranslatePoint(new Point(item.Bounds.Width / 2, item.Bounds.Height / 2), root)!.Value;
+        root.MouseDown(center, MouseButton.Left);
+        root.MouseUp(center, MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal("Spine", link.NodeName);
+        Assert.Equal(1, link.Sets);
+        window.Close();
+    }
+
+    [AvaloniaFact]
     public void EscapeShowsTheNameAgainWithoutChangingIt()
     {
         var (window, box, link) = Show();
@@ -148,6 +174,12 @@ public sealed class NodeNamePickerTests
         var popup = box.GetVisualDescendants().OfType<Popup>().Single();
         var list = Assert.IsAssignableFrom<Control>(popup.Child).GetSelfAndVisualDescendants().OfType<ListBox>().Single();
         return list.Items.OfType<NodeInformation>().Select(x => x.Name).ToList();
+    }
+
+    private static List<ListBoxItem> ShownItems(AutoCompleteBox box)
+    {
+        var popup = box.GetVisualDescendants().OfType<Popup>().Single();
+        return Assert.IsAssignableFrom<Control>(popup.Child).GetVisualDescendants().OfType<ListBoxItem>().ToList();
     }
 
     // What the node link updaters (PhysicsNodeLinkNodeUpdater, ModelNodeLinkNodeUpdater) set on the component

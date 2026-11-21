@@ -42,6 +42,7 @@ TemplateProviders:
   Stride.Core.Assets.Editor.Avalonia.Views.RangedValueTemplateProvider RangedValueTemplateProvider
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider String
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider DateTime
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Guid
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider TimeSpan
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Color
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Color3
