@@ -113,7 +113,13 @@ public class RootNodePresenter : NodePresenterBase
 
     private void OnItemChanged(object? sender, ItemChangeEventArgs e)
     {
+        // An item whose value only changed updates its own presenter: the collection keeps its items
+        if (IsValueOnlyItemChange(RootNode, e))
+        {
+            RaiseValueChanged(Value, true);
+            return;
+        }
         Refresh();
-        RaiseValueChanged(Value);
+        RaiseValueChangedAfterRefresh(Value);
     }
 }

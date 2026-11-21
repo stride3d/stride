@@ -12,6 +12,8 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
     private readonly INodePresenterFactoryInternal factory;
     private readonly List<INodePresenter> children = [];
     private HashSet<INodePresenter>? dependencies;
+    // The dependencies added by AddDependency: any change of theirs refreshes this node
+    private HashSet<INodePresenter>? refreshingDependencies;
 
     protected NodePresenterBase(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter? parent)
     {
@@ -30,6 +32,7 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
     {
         if (disposing)
         {
+            IsDisposed = true;
             if (dependencies != null)
             {
                 foreach (var dependency in dependencies)
@@ -39,6 +42,11 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
             }
         }
     }
+
+    /// <summary>
+    /// Gets whether this presenter was disposed (its parent was refreshed, or its tree destroyed).
+    /// </summary>
+    internal bool IsDisposed { get; private set; }
 
     public INodePresenter this[string childName] => TryGetChild(childName) ?? throw new KeyNotFoundException($"Key {childName} not found in {nameof(INodePresenter)}");
 
@@ -61,6 +69,8 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
     public bool IsVisible { get; set; } = true;
 
     public bool IsReadOnly { get; set; }
+
+    public bool RefreshOnValueChange { get; set; }
 
     public int? Order { get; set; }
 
@@ -130,11 +140,15 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
     {
         ArgumentNullException.ThrowIfNull(node);
 
-        dependencies ??= [];
-        if (dependencies.Add(node))
-        {
-            node.ValueChanged += DependencyChanged;
-        }
+        Subscribe(node);
+        (refreshingDependencies ??= []).Add(node);
+    }
+
+    public void AddValueDependency(INodePresenter node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        Subscribe(node);
     }
 
     protected void Refresh()
@@ -149,6 +163,48 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
         // And recompute them from the current value.
         factory.CreateChildren(this, ParentingNode, PropertyProvider);
+    }
+
+    /// <summary>
+    /// Gets whether a change from <paramref name="oldValue"/> to <paramref name="newValue"/> changes the value only, so that this
+    /// presenter keeps its children and is not refreshed.
+    /// </summary>
+    /// <param name="oldValue">The value before the change.</param>
+    /// <param name="newValue">The value after the change.</param>
+    /// <param name="hasObjectNode">Whether the value has an object node of its own (its members or its items are shown as children).</param>
+    /// <param name="declaredType">The declared type of the value, or <c>null</c> if unknown.</param>
+    /// <returns><c>true</c> if both values are leaves of the same type and nothing asks for a refresh, <c>false</c> otherwise.</returns>
+    /// <remarks>
+    /// A value written to a member of a value type is converted to that type (an <see cref="int"/> written to a <see cref="float"/>,
+    /// for example, as an undo of a write made through a row of another type does): the values of such a member always have the same type.
+    /// </remarks>
+    /// <seealso cref="INodePresenter.RefreshOnValueChange"/>
+    protected bool IsValueOnlyChange(object? oldValue, object? newValue, bool hasObjectNode, Type? declaredType)
+    {
+        return !RefreshOnValueChange && !hasObjectNode && oldValue is not null && newValue is not null
+               && (oldValue.GetType() == newValue.GetType() || declaredType is { IsValueType: true });
+    }
+
+    /// <summary>
+    /// Gets whether a change of an item of <paramref name="collection"/> changes the value of that item only, so that the
+    /// presenter of the collection keeps its children and is not refreshed.
+    /// </summary>
+    /// <param name="collection">The node of the collection.</param>
+    /// <param name="e">The change of the item.</param>
+    /// <returns><c>true</c> if an item was replaced by a leaf of the same type, <c>false</c> otherwise (an item added or removed, for example).</returns>
+    protected bool IsValueOnlyItemChange(IObjectNode? collection, ItemChangeEventArgs e)
+    {
+        ArgumentNullException.ThrowIfNull(e);
+        return e.ChangeType == ContentChangeType.CollectionUpdate && collection is not null && IsValueOnlyChange(e.OldValue, e.NewValue, HasItemNode(collection, e.Index), null);
+    }
+
+    /// <summary>
+    /// Gets whether the item at <paramref name="index"/> of <paramref name="collection"/> has an object node of its own.
+    /// </summary>
+    protected static bool HasItemNode(IObjectNode collection, NodeIndex index)
+    {
+        ArgumentNullException.ThrowIfNull(collection);
+        return collection.ItemReferences is { } references && references.HasIndex(index) && collection.IndexedTarget(index) is not null;
     }
 
     protected void AttachCommands()
@@ -167,14 +223,86 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
     protected void RaiseValueChanged(object? oldValue)
     {
-        ValueChanged?.Invoke(this, new ValueChangedEventArgs(oldValue));
+        RaiseValueChanged(oldValue, false);
+    }
+
+    protected void RaiseValueChanged(object? oldValue, bool isValueOnly)
+    {
+        ValueChanged?.Invoke(this, new ValueChangedEventArgs(oldValue, isValueOnly));
+    }
+
+    /// <summary>
+    /// Raises <see cref="ValueChanging"/> for a change of the value only, on this presenter and on its descendants (the virtual
+    /// nodes that the updaters add under a leaf, such as the components of a vector, show a part of its value).
+    /// </summary>
+    /// <param name="newValue">The new value of the node.</param>
+    protected void RaiseValueOnlyChanging(object? newValue)
+    {
+        RaiseValueChanging(newValue);
+        foreach (var descendant in children.DepthFirst(x => x.Children))
+        {
+            (descendant as NodePresenterBase)?.RaiseValueChanging(descendant.Value);
+        }
+    }
+
+    /// <summary>
+    /// Raises <see cref="ValueChanged"/> for a change of the value only, on this presenter and on its descendants.
+    /// </summary>
+    /// <param name="oldValue">The old value of the node.</param>
+    /// <seealso cref="RaiseValueOnlyChanging"/>
+    protected void RaiseValueOnlyChanged(object? oldValue)
+    {
+        RaiseValueChanged(oldValue, true);
+        foreach (var descendant in children.DepthFirst(x => x.Children))
+        {
+            (descendant as NodePresenterBase)?.RaiseValueChanged(descendant.Value, true);
+        }
+    }
+
+    /// <summary>
+    /// Raises <see cref="ValueChanged"/> after a refresh of this presenter: at once, or at the end of the batch in progress (see
+    /// <see cref="INodePresenterFactory.BeginBatch"/>), once its tree is finalized.
+    /// </summary>
+    /// <param name="oldValue">The old value of the node.</param>
+    protected void RaiseValueChangedAfterRefresh(object? oldValue)
+    {
+        if (factory is NodePresenterFactory batchingFactory && batchingFactory.TryDeferValueChanged(this, oldValue))
+            return;
+
+        RaiseValueChanged(oldValue);
+    }
+
+    /// <summary>
+    /// Raises <see cref="ValueChanged"/> at the end of a batch, unless this presenter was disposed in the meantime.
+    /// </summary>
+    internal void RaiseDeferredValueChanged(object? oldValue)
+    {
+        if (!IsDisposed)
+            RaiseValueChanged(oldValue);
+    }
+
+    private void Subscribe(INodePresenter node)
+    {
+        dependencies ??= [];
+        if (dependencies.Add(node))
+        {
+            node.ValueChanged += DependencyChanged;
+        }
     }
 
     private void DependencyChanged(object? sender, ValueChangedEventArgs e)
     {
+        if (e.IsValueOnly && sender is INodePresenter dependency && refreshingDependencies?.Contains(dependency) != true)
+        {
+            // A dependency added by AddValueDependency: this node shows its value, and only that changed
+            RaiseValueChanging(Value);
+            RaiseValueChanged(Value, true);
+            return;
+        }
+
         RaiseValueChanging(Value);
         Refresh();
-        RaiseValueChanged(Value);
+        RaiseValueChangedAfterRefresh(Value);
     }
 
     void IInitializingNodePresenter.AddChild(IInitializingNodePresenter child)
