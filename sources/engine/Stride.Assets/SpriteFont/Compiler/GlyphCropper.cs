@@ -75,7 +75,7 @@
 // particular purpose and non-infringement.
 //--------------------------------------------------------------------
 
-using SixLabors.ImageSharp;
+using Stride.Core.Mathematics;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {

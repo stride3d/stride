@@ -81,9 +81,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 using Stride.Graphics;
 using Stride.Graphics.Font;
 
@@ -116,7 +113,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             foreach (Glyph glyph in glyphs)
                 GlyphCropper.Crop(glyph);
 
-            Image<Rgba32> bitmap = GlyphPacker.ArrangeGlyphs(glyphs);
+            FontBitmap bitmap = GlyphPacker.ArrangeGlyphs(glyphs);
 
             // Automatically detect whether this is a monochromatic or color font?
             //if (fontAsset.Format == FontTextureFormat.Auto)

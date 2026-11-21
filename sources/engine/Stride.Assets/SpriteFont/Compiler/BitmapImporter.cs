@@ -78,8 +78,7 @@
 using System;
 using System.Collections.Generic;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using Stride.Core.Mathematics;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
@@ -94,7 +93,7 @@ namespace Stride.Assets.SpriteFont.Compiler
     internal class BitmapImporter : IFontImporter
     {
         // Magenta marker — fully opaque (255, 0, 255, 255).
-        private static readonly Rgba32 MarkerColor = new Rgba32(255, 0, 255, 255);
+        private static readonly Color MarkerColor = new Color(255, 0, 255, 255);
 
         // Properties hold the imported font data.
         public IEnumerable<Glyph> Glyphs { get; private set; }
@@ -106,11 +105,15 @@ namespace Stride.Assets.SpriteFont.Compiler
         public void Import(SpriteFontAsset options, List<char> characters)
         {
             // Load the source bitmap.
-            Image<Rgba32> bitmap;
+            FontBitmap bitmap;
 
             try
             {
-                bitmap = Image.Load<Rgba32>(options.FontSource.GetFontPath());
+                bitmap = FontBitmap.Load(options.FontSource.GetFontPath());
+            }
+            catch (PlatformNotSupportedException)
+            {
+                throw;
             }
             catch
             {
@@ -148,7 +151,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
         // Seems to be the same as this one: http://www.tonicodes.net/blog/creating-custom-fonts-with-outline-for-wp7-and-xna/
         // Searches a 2D bitmap for characters that are surrounded by a marker pink color.
-        static IEnumerable<Rectangle> FindGlyphs(Image<Rgba32> bitmap)
+        static IEnumerable<Rectangle> FindGlyphs(FontBitmap bitmap)
         {
             for (int y = 1; y < bitmap.Height; y++)
             {
@@ -180,9 +183,9 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Checks whether a color is the magic magenta marker value.
-        static bool IsMarkerColor(Rgba32 color)
+        static bool IsMarkerColor(Color color)
         {
-            return color.PackedValue == MarkerColor.PackedValue;
+            return color == MarkerColor;
         }
     }
 }

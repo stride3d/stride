@@ -521,8 +521,11 @@ namespace Stride.Graphics
         /// <param name="makeACopy">True to copy the content of the buffer to a new allocated buffer, false otherwise.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
-        /// <returns>An new image.</returns>
-        /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
+        /// <returns>A new image.</returns>
+        /// <remarks>
+        /// If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose.
+        /// This method support the following format: <c>dds, bmp, jpg, png, gif, tiff</c>. GIF and TIFF are supported only on Windows.
+        /// </remarks>
         [Obsolete("Use span instead")]
         public static Image Load(DataPointer dataBuffer, bool makeACopy = false, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
@@ -536,8 +539,11 @@ namespace Stride.Graphics
         /// <param name="makeACopy">True to copy the content of the buffer to a new allocated buffer, false otherwise.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
-        /// <returns>An new image.</returns>
-        /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
+        /// <returns>A new image.</returns>
+        /// <remarks>
+        /// If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose.
+        /// This method support the following format: <c>dds, bmp, jpg, png, gif, tiff</c>. GIF and TIFF are supported only on Windows.
+        /// </remarks>
         public static unsafe Image Load(Span<byte> dataBuffer, bool makeACopy = false, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
             fixed (void* ptr = dataBuffer)
@@ -554,8 +560,11 @@ namespace Stride.Graphics
         /// <param name="makeACopy">True to copy the content of the buffer to a new allocated buffer, false otherwise.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
-        /// <returns>An new image.</returns>
-        /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
+        /// <returns>A new image.</returns>
+        /// <remarks>
+        /// If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose.
+        /// This method support the following format: <c>dds, bmp, jpg, png, gif, tiff</c>. GIF and TIFF are supported only on Windows.
+        /// </remarks>
         public static Image Load(IntPtr dataPointer, int dataSize, bool makeACopy = false, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
             return Load(dataPointer, dataSize, makeACopy, null, loadAsSRGB, alphaLoadMode);
@@ -567,8 +576,8 @@ namespace Stride.Graphics
         /// <param name="buffer">Reference to a managed buffer.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
-        /// <returns>An new image.</returns>
-        /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
+        /// <returns>A new image.</returns>
+        /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff</c>. GIF and TIFF are supported only on Windows.</remarks>
         public static unsafe Image Load(byte[] buffer, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
             ArgumentNullException.ThrowIfNull(buffer);
@@ -592,8 +601,8 @@ namespace Stride.Graphics
         /// <param name="imageStream">The image stream.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture. If false, the image is loaded in its default format.</param>
         /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
-        /// <returns>An new image.</returns>
-        /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
+        /// <returns>A new image.</returns>
+        /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff</c>. GIF and TIFF are supported only on Windows.</remarks>
         public static Image Load(Stream imageStream, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
             ArgumentNullException.ThrowIfNull(imageStream);
@@ -608,8 +617,7 @@ namespace Stride.Graphics
         /// Saves this instance to a stream.
         /// </summary>
         /// <param name="imageStream">The destination stream.</param>
-        /// <param name="fileType">Specify the output format.</param>
-        /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
+        /// <param name="fileType">Specify the output format. GIF and TIFF are supported only on Windows.</param>
         public void Save(Stream imageStream, ImageFileType fileType)
         {
             ArgumentNullException.ThrowIfNull(imageStream);
@@ -717,8 +725,9 @@ namespace Stride.Graphics
         /// <param name="handle">The handle.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
-        /// <returns></returns>
-        /// <exception cref="NotSupportedException"></exception>
+        /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff</c>. GIF and TIFF are supported only on Windows.</remarks>
+        /// <returns>A new <see cref="Image"/> instance.</returns>
+        /// <exception cref="NotSupportedException">Thrown if the image format is not supported.</exception>
         private static Image Load(IntPtr dataPointer, int dataSize, bool makeACopy, GCHandle? handle, bool loadAsSRGB = true, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
             foreach (var loadSaveDelegate in loadSaveDelegates)
@@ -745,8 +754,7 @@ namespace Stride.Graphics
         /// <param name="count">The number of buffers to save.</param>
         /// <param name="description">Global description of the buffer.</param>
         /// <param name="imageStream">The destination stream.</param>
-        /// <param name="fileType">Specify the output format.</param>
-        /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
+        /// <param name="fileType">Specify the output format. GIF and TIFF are supported only on Windows.</param>
         internal static void Save(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream, ImageFileType fileType)
         {
             foreach (var loadSaveDelegate in loadSaveDelegates)
@@ -764,8 +772,11 @@ namespace Stride.Graphics
         {
             Register(ImageFileType.Stride, ImageHelper.LoadFromMemory, ImageHelper.SaveFromMemory);
             Register(ImageFileType.Dds, DDSHelper.LoadFromDDSMemory, DDSHelper.SaveToDDSStream);
-            Register(ImageFileType.Gif, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveGifFromMemory);
-            Register(ImageFileType.Tiff, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveTiffFromMemory);
+            if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+            {
+                Register(ImageFileType.Gif, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveGifFromMemory);
+                Register(ImageFileType.Tiff, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveTiffFromMemory);
+            }
             Register(ImageFileType.Bmp, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveBmpFromMemory);
             Register(ImageFileType.Jpg, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveJpgFromMemory);
             Register(ImageFileType.Png, StandardImageHelper.LoadFromMemory, StandardImageHelper.SavePngFromMemory);

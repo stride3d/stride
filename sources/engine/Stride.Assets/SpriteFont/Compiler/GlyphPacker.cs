@@ -78,15 +78,14 @@
 using System;
 using System.Collections.Generic;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using Stride.Core.Mathematics;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
     // Helper for arranging many small bitmaps onto a single larger surface.
     internal static class GlyphPacker
     {
-        public static Image<Rgba32> ArrangeGlyphs(Glyph[] sourceGlyphs)
+        public static FontBitmap ArrangeGlyphs(Glyph[] sourceGlyphs)
         {
             // Build up a list of all the glyphs needing to be arranged.
             List<ArrangedGlyph> glyphs = new List<ArrangedGlyph>();
@@ -127,9 +126,9 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Once arranging is complete, copies each glyph to its chosen position in the single larger output bitmap.
-        static Image<Rgba32> CopyGlyphsToOutput(List<ArrangedGlyph> glyphs, int width, int height)
+        static FontBitmap CopyGlyphsToOutput(List<ArrangedGlyph> glyphs, int width, int height)
         {
-            var output = new Image<Rgba32>(width, height);
+            var output = new FontBitmap(width, height);
 
             foreach (ArrangedGlyph glyph in glyphs)
             {
