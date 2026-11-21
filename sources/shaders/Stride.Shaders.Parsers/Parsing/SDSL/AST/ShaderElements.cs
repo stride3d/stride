@@ -402,7 +402,10 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
                 else if (attributesInfo.LinkName != null)
                     context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, Specification.Decoration.LinkSDSL, attributesInfo.LinkName));
                 if (attributesInfo.Color)
+                {
+                    DefinitionChecks.CheckColor(table, member.Info, member.Name, member.Type);
                     context.Add(new OpMemberDecorate(context.GetOrRegister(Type), index, Specification.Decoration.ColorSDSL, new EnumerantParameters()));
+                }
             }
         }
 
@@ -478,7 +481,7 @@ public sealed partial class RGroup(string name, TextLocation info) : ShaderBuffe
         }
     }
 
-    internal static void DecorateVariableLinkInfo(SymbolTable table, ShaderClass shaderClass, SpirvContext context, TextLocation info, string memberName, List<ShaderAttribute>? attributes, int variableId)
+    internal static void DecorateVariableLinkInfo(SymbolTable table, ShaderClass shaderClass, SpirvContext context, TextLocation info, string memberName, List<ShaderAttribute>? attributes, int variableId, SymbolType? type = null)
     {
         var attributesInfo = CBuffer.ProcessAttributes(table, context, info, attributes);
         if (attributesInfo.LinkId is int linkId)
@@ -486,7 +489,10 @@ public sealed partial class RGroup(string name, TextLocation info) : ShaderBuffe
         else if (attributesInfo.LinkName != null)
             context.Add(new OpDecorateString(variableId, Specification.Decoration.LinkSDSL, attributesInfo.LinkName));
         else if (attributesInfo.Color)
+        {
+            DefinitionChecks.CheckColor(table, info, memberName, type);
             context.Add(new OpDecorate(variableId, Specification.Decoration.ColorSDSL, new EnumerantParameters()));
+        }
     }
 }
 

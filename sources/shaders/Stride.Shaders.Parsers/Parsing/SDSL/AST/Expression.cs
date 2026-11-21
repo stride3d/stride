@@ -1312,6 +1312,8 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         methodCall.MemberCallBaseType = ((PointerType)currentValueType).BaseType;
                         methodCall.ProcessSymbol(table);
                         accessor.Type = methodCall.Type;
+                        if (i == 0 && Source is Identifier { Name: "base" })
+                            DefinitionChecks.CheckBaseCall(table, methodCall);
                         break;
                     }
 

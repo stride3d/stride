@@ -393,6 +393,14 @@
       ]
     },
     {
+      "opname": "OpDiagnosticSDSL",
+      "opcode": 8033,
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind" : "LiteralString", "name" : "'Message'" }
+      ]
+    },
+    {
       "opname": "OpEffectSDFX",
       "opcode": 9000,
       "class": "Miscellaneous",

@@ -98,6 +98,9 @@ internal sealed class BufferLinkInfo
                 case Op.OpSourceHashSDSL:
                     link.Kind = InstructionLinkKind.SourceHash;
                     break;
+                case Op.OpDiagnosticSDSL:
+                    link.Kind = InstructionLinkKind.Diagnostic;
+                    break;
                 case Op.OpString:
                     link.Kind = InstructionLinkKind.String;
                     Strings[index] = ((OpString)i).Value;
@@ -162,6 +165,7 @@ internal enum InstructionLinkKind : byte
 {
     None,
     SourceHash,
+    Diagnostic,
     String,
     Source,
     Function,

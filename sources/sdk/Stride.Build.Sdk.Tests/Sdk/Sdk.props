@@ -41,6 +41,9 @@
     <!-- Enable assembly processor for test projects -->
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
 
+    <!-- Engine shaders stay free of shader class warnings (SDSL02xx): they fail the effect compile in tests -->
+    <StrideShaderWarningsAsErrors Condition="'$(StrideShaderWarningsAsErrors)' == ''">true</StrideShaderWarningsAsErrors>
+
     <!-- Microsoft.NET.Test.Sdk ships Microsoft.CodeCoverage.targets which injects
          MsCoverageReferencedPathMaps BeforeTargets=CoreCompile. The target serially walks
          every transitive ProjectReference (vstest#15295) and blocks CoreCompile until done,

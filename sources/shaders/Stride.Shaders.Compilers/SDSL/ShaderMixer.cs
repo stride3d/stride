@@ -593,8 +593,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     var include = true;
                     switch (link.Kind)
                     {
-                        // Skip source hash (doesn't make sense during mixing, as it's not a 1 sdsl <=> 1 spv mapping anymore)
+                        // Skip source hash (doesn't make sense during mixing, as it's not a 1 sdsl <=> 1 spv mapping anymore) and class warnings (reported when loaded)
                         case InstructionLinkKind.SourceHash:
+                        case InstructionLinkKind.Diagnostic:
                             include = false;
                             break;
                         // Deduplicate OpString/OpSource: keep only one per unique filename
@@ -1430,7 +1431,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpImportFunctionSDSL
                 || i.Op == Op.OpImportVariableSDSL
                 || i.Op == Op.OpFunctionMetadataSDSL
-                || i.Op == Op.OpSourceHashSDSL)
+                || i.Op == Op.OpSourceHashSDSL
+                || i.Op == Op.OpDiagnosticSDSL)
                 return true;
             if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && (Decoration)i.Words[2] is
                     Decoration.FunctionParameterDefaultValueSDSL

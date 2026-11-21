@@ -39,6 +39,11 @@
        when imported after this file — same import-order issue documented on
        StrideRunAssemblyProcessor in Stride.AssemblyProcessor.targets. -->
 
+  <!-- StrideShaderWarningsAsErrors: shader class warnings (SDSL02xx) fail the effects compiled at run time too -->
+  <ItemGroup Condition="'$(StrideShaderWarningsAsErrors)' == 'true'">
+    <RuntimeHostConfigurationOption Include="Stride.Shaders.WarningsAsErrors" Value="true" />
+  </ItemGroup>
+
   <PropertyGroup>
     <!--Semi-hack: Microsoft.Android.Sdk execs 'inner' MSBuild's for each Android RID if you do not explicity set any <RuntimeIdentifiers> in your game's Android.csproj,
         which triggers this compiler to execute when this happens causing the compiler to run with the same 'build-path' but differing 'output-path' which ends up locking files.
@@ -263,6 +268,11 @@
       <!-- Append the createdump vars, joined without an empty entry (which Exec would reject). -->
       <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' != ''">$(_StrideCompileAssetCrashEnvVars);DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=$(_StrideCompileAssetNativeDumpType);DOTNET_DbgMiniDumpName=&quot;$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp&quot;</_StrideCompileAssetCrashEnvVars>
       <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' == ''">DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=$(_StrideCompileAssetNativeDumpType);DOTNET_DbgMiniDumpName=&quot;$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp&quot;</_StrideCompileAssetCrashEnvVars>
+      <!-- The compiler's environment: the crash-capture variables, and the switch that makes shader class warnings (SDSL02xx) fail the
+           effects the asset build compiles -->
+      <_StrideCompileAssetEnvVars>$(_StrideCompileAssetCrashEnvVars)</_StrideCompileAssetEnvVars>
+      <_StrideCompileAssetEnvVars Condition="'$(StrideShaderWarningsAsErrors)' == 'true' And '$(_StrideCompileAssetEnvVars)' != ''">$(_StrideCompileAssetEnvVars);STRIDE_SHADER_WARNINGS_AS_ERRORS=1</_StrideCompileAssetEnvVars>
+      <_StrideCompileAssetEnvVars Condition="'$(StrideShaderWarningsAsErrors)' == 'true' And '$(_StrideCompileAssetEnvVars)' == ''">STRIDE_SHADER_WARNINGS_AS_ERRORS=1</_StrideCompileAssetEnvVars>
 
       <!-- The adopt step below writes the recovered StoredCrash to the store; route it to the caller's crash dir
            too (only STRIDE_CRASH_DIR is needed, not the createdump vars) so a GameStudio-triggered build's native
@@ -283,8 +293,8 @@
          abnormal code, unlike a clean asset error (BuildResultCode: 1 build error, 2 command-line error, 100
          cancelled). ErrorAndContinue (not true=WarnAndContinue) keeps the compiler's echoed error lines as errors,
          not warnings; the <Error> below re-fails the build. EnvironmentVariables carries the crash-capture env
-         (createdump + crash-dir routing), empty only when both are unset. -->
-    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" EnvironmentVariables="$(_StrideCompileAssetCrashEnvVars)" ContinueOnError="ErrorAndContinue" StandardOutputImportance="$(_StrideCompileAssetOutputImportance)">
+         (createdump + crash-dir routing) and the shader warnings switch, empty only when all are unset. -->
+    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" EnvironmentVariables="$(_StrideCompileAssetEnvVars)" ContinueOnError="ErrorAndContinue" StandardOutputImportance="$(_StrideCompileAssetOutputImportance)">
       <Output TaskParameter="ExitCode" PropertyName="_StrideCompileAssetExitCode" />
     </Exec>
 
