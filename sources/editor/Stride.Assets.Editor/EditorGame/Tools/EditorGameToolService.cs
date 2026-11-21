@@ -43,7 +43,7 @@ namespace Stride.Assets.Editor.EditorGame.Tools;
 /// settings of the scene, through the toolbar.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 210)]
-public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorGameToolService, IEditorGameToolViewModelService, IEditorGameViewDependent
+public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorGameToolService, IEditorGameToolViewModelService, IEditorGameSelectionRectangleService, IEditorGameViewDependent
 {
     // The key bindings of the scene editor settings, read as they are used so that a change applies at once, as in WPF (the
     // switch key when the view opens)
@@ -101,6 +101,12 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
 
     /// <inheritdoc/>
     public event EventHandler<IEditorViewTool>? ToolFailed;
+
+    /// <inheritdoc/>
+    public bool IsRectangleSelectionEnabled { get; set; }
+
+    /// <inheritdoc/>
+    public event EventHandler<RectangleF?>? SelectionRectangleChanged;
 
     private EditorViewToolSet ToolSet => toolSet ?? throw new InvalidOperationException("The service is not initialized.");
 
@@ -320,8 +326,13 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
                 if (frame.IsMouseAvailable && Game.Input.IsKeyPressed(SnapSelectionToGrid))
                     SnapSelectionToGridPositions();
 
+                ToolSet.IsRectangleSelectionEnabled = IsRectangleSelectionEnabled;
+                var rectangle = ToolSet.SelectionRectangle;
                 var clicks = await ToolSet.Update(frame);
-                IsControllingMouse = ToolSet.IsUsingMouse && IsMouseAvailable;
+                // The mouse stays with the view while it draws a selection rectangle
+                IsControllingMouse = (ToolSet.IsUsingMouse || ToolSet.SelectionRectangle is not null) && IsMouseAvailable;
+                if (ToolSet.SelectionRectangle != rectangle)
+                    SelectionRectangleChanged?.Invoke(this, ToolSet.SelectionRectangle);
                 foreach (var click in clicks)
                 {
                     Dispatch(click);
@@ -343,6 +354,9 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
             DownButtons = input.DownButtons.ToHashSet(),
             PressedKeys = input.PressedKeys.ToHashSet(),
             MouseDelta = input.MouseDelta * new Vector2(backBuffer.Width, backBuffer.Height),
+            MousePosition = input.MousePosition,
+            PressPosition = input.PointerEvents.FirstOrDefault(x => x is { EventType: PointerEventType.Pressed, Pointer: IMouseDevice })?.Position,
+            IsAltDown = input.IsKeyDown(Keys.LeftAlt) || input.IsKeyDown(Keys.RightAlt),
             IsMouseAvailable = IsMouseAvailable,
             IsMouseAvailableToContextMenu = Context.Camera is IEditorGameMouseService camera ? IsMouseAvailableExcept(camera) : IsMouseAvailable,
             HasCameraMoved = HasCameraMoved(),
@@ -367,6 +381,12 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
     private void Dispatch(EditorViewToolClick toolClick)
     {
         var input = Game.Input;
+        if (toolClick.Rectangle is { } rectangle)
+        {
+            var mode = RectangleSelection.ModeOf(input.IsKeyDown(Keys.LeftCtrl) || input.IsKeyDown(Keys.RightCtrl), input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift));
+            Selection.SelectInRectangle(rectangle, mode, Context.Camera.ViewMatrix * Context.Camera.ProjectionMatrix);
+            return;
+        }
         var entity = Selection.GetEntityUnderMouse(out var picking);
         var isCtrlDown = input.IsKeyDown(Keys.LeftCtrl) || input.IsKeyDown(Keys.RightCtrl);
         if (toolClick.ToSelection)
