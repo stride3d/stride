@@ -32,7 +32,7 @@ namespace Stride.Assets.Presentation.ViewModels;
 /// folders, sorted by name, then its entities, in the order of the asset, then (for a scene) its child scenes.
 /// </summary>
 public abstract class EntityHierarchyItemViewModel : AssetCompositeItemViewModel<EntityHierarchyViewModel, EntityHierarchyItemViewModel>,
-    IAssetPartViewModel, IIsEditableViewModel, IAddChildViewModel, IInsertChildViewModel, IEntityHierarchyItemViewModel
+    IAssetPartViewModel, IIsEditableViewModel, IExpandableViewModel, IAddChildViewModel, IInsertChildViewModel, IEntityHierarchyItemViewModel
 {
     private readonly ObservableList<EntityViewModel> subEntities = [];
     private bool isEditing;

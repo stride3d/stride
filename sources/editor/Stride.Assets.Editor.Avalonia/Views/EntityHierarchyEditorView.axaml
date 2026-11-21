@@ -14,6 +14,7 @@
              xmlns:conv="using:Stride.Assets.Editor.Avalonia.Converters"
              xmlns:local="using:Stride.Assets.Editor.Avalonia.Views"
              xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
+             xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.EntityHierarchyEditorView"
              x:DataType="vm:EntityHierarchyEditorViewModel">
@@ -187,6 +188,8 @@
              assets to the scene; the assets of the asset view drop too (a prefab, a model, a scene onto a scene...) -->
         <Interaction.Behaviors>
           <dd:TreeViewDragDropBehavior CanInsert="True" AllowDropOnEmptyArea="True"/>
+          <!-- An entity selected in the view, the history or a command shows: its parents expand and its row scrolls into view -->
+          <caeb:TreeViewFollowSelectionBehavior/>
         </Interaction.Behaviors>
         <!-- Cut, Copy and Rename only while the tree has the focus -->
         <sd:EditCommands.Bindings>
