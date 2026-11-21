@@ -25,6 +25,8 @@ For most new asset types, writing one `INodePresenterUpdater` subclass is all th
 | `Commands` | `List<INodePresenterCommand>` | Commands shown as buttons or context menu entries |
 | `Order` | `int?` | Sort order within the parent (settable) |
 | `AddDependency(node, bool)` | method | Refresh this node when another node changes |
+| `AddValueDependency(node)` | method | Show another node's value: when only that value changes, this node changes its value too, without a refresh |
+| `RefreshOnValueChange` | `bool` | Refresh this node on every change of its value, even when only its value changes (settable) |
 | `Factory` | `INodePresenterFactory` | Factory for creating virtual presenters |
 
 ## `IAssetNodePresenter` Extensions
@@ -50,7 +52,9 @@ When a property grid opens for an asset, `AssetNodePresenterFactory` runs the fo
 3. Calls `UpdateNode(presenter)` on every registered `INodePresenterUpdater` — once per node, after all of that node's children have been created.
 4. After the full tree is built, calls `FinalizeTree(root)` on every registered `INodePresenterUpdater` — once, with the root presenter.
 
-The tree is rebuilt whenever a node's value changes (so `UpdateNode` is called again for affected nodes, and `FinalizeTree` is called again for the whole tree).
+When a node's value changes, the node is refreshed: its children are built again, `UpdateNode` is called again on them and on the node, and `FinalizeTree` is called again for the whole tree.
+
+The exception is a node whose value is a leaf (a primitive, an enum, a string, a vector, a color, a content reference) and whose new value has the same type as the old one. Only its value changes: the node keeps its children and its attached properties, no updater runs, and its `ValueChanged` event says so (`ValueChangedEventArgs.IsValueOnly`). So an updater that reads a leaf's value to change the tree, to show or hide other members in `FinalizeTree` or to set the node's own attached properties in `UpdateNode`, sets `RefreshOnValueChange` on that node, so that its changes refresh it. An updater that changes another node from that value adds a dependency instead (see [`AddDependency`](#adddependency)): a dependency is refreshed on every change, value-only or not.
 
 **Updater registration:** Updaters are NOT auto-discovered. You must register your updater explicitly in the plugin class for your assembly. For engine assets, register in `StrideNodePresenters.Register` (`sources/editor/Stride.Assets.Editor/Quantum/NodePresenters/StrideNodePresenters.cs`): both editors' default plugins call it, so the updater runs in both. An updater for one editor only goes in its plugin's `InitializeSession`, after that call (for the WPF editor, `StrideDefaultAssetsWpfPlugin`). A plugin of your own registers its updaters in its `InitializeSession`:
 
@@ -179,6 +183,13 @@ nodeA.AddDependency(nodeB, refreshOnNestedNodeChanges: false);
 
 // node A also refreshes when any child of node B changes
 nodeA.AddDependency(nodeB, refreshOnNestedNodeChanges: true);
+```
+
+`AddValueDependency` is for a node that only shows the value of another one (an inlined member, or a value computed from another, such as a texture's absolute size from its size). When only the value of the dependency changes, the node raises a change of its own value, without a refresh; any other change refreshes it, as `AddDependency` does:
+
+```csharp
+// node A shows a value computed from node B's value, and follows it in place
+nodeA.AddValueDependency(nodeB);
 ```
 
 Navigating category nodes: if your asset uses `[Display(category: "Size")]`, the category node is named using `CategoryData.ComputeCategoryNodeName("Size")`. Use this helper to build the node name:
