@@ -126,9 +126,11 @@ jobs:
 
       - name: Install runtime dependencies (Linux)
         if: runner.os == 'Linux'
+        # The Ubuntu mirrors sometimes hang: stop well before the job's limit (a slow mirror takes up to 7 min).
+        timeout-minutes: 10
         run: |
           sudo apt-get update
-          sudo apt-get install -y libopenal-dev libvulkan1 xvfb lld vulkan-validationlayers libva2 libva-drm2 libva-x11-2
+          sudo apt-get install -y libopenal-dev libvulkan1 xvfb vulkan-validationlayers libva2 libva-drm2 libva-x11-2
 
       # PackageStore at test runtime calls Settings.LoadDefaultSettings(null) which only loads
       # user + machine configs, NOT the workspace's nuget.config (no walkup with null root).
@@ -300,10 +302,12 @@ jobs:
 
       - name: Install build dependencies (Linux)
         if: runner.os == 'Linux'
+        # The Ubuntu mirrors sometimes hang: stop well before the job's limit (a slow mirror takes up to 7 min).
+        timeout-minutes: 10
         run: |
           sudo apt-get update
           # libva: the asset compiler's ffmpeg (sound and video assets)
-          sudo apt-get install -y lld libva2 libva-drm2 libva-x11-2
+          sudo apt-get install -y libva2 libva-drm2 libva-x11-2
 
       # The consumer-template generation (NuGetConsumerTests → PackageStore) reads the *user* NuGet
       # config (Settings.LoadDefaultSettings(null) ignores the workspace config), so register the

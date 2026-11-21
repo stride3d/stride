@@ -1,19 +1,13 @@
 name: Set up Lavapipe on a Linux runner
 description: >-
-  Install the Vulkan loader, start a virtual display, and register Lavapipe (the software driver of
-  Stride.Dependencies.Lavapipe) as the Vulkan ICD through VK_DRIVER_FILES. Lavapipe's x11 WSI needs a display server
-  to expose VK_KHR_swapchain, which Stride's GraphicsDevice requires even for offscreen rendering. The user NuGet
-  config must list nuget.org: the package is restored from outside the workspace.
+  Start a virtual display, and register Lavapipe (the software driver of Stride.Dependencies.Lavapipe) as the Vulkan
+  ICD through VK_DRIVER_FILES. Lavapipe's x11 WSI needs a display server to expose VK_KHR_swapchain, which Stride's
+  GraphicsDevice requires even for offscreen rendering. The Ubuntu image already has the Vulkan loader and Xvfb. The
+  user NuGet config must list nuget.org: the package is restored from outside the workspace.
 
 runs:
   using: composite
   steps:
-    - name: Install the Vulkan loader and Xvfb
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libvulkan1 xvfb
-
     - name: Start virtual display
       shell: bash
       run: |

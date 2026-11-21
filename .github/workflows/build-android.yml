@@ -64,11 +64,6 @@ jobs:
           accept-android-sdk-licenses: true
           log-accepted-android-sdk-licenses: true
           packages: platform-tools
-      # Off Windows, the desktop TFM of the runtime projects links its native libraries with the system lld
-      # (Stride.Native.targets), which the Ubuntu image lacks.
-      - name: Install lld
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y lld
       - name: Build
         shell: pwsh
         run: |
