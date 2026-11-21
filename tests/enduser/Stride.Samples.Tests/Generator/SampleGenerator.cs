@@ -123,10 +123,12 @@ public static class SampleGenerator
         Console.WriteLine($"[{sampleName}] upgraded to Stride {StridePackageUpgrader.CurrentVersion} in {watch.Elapsed.TotalSeconds:F0} s");
     }
 
-    // NU1101: no feed has the package; NU1102: no feed has that version of it
+    // NU1101: no feed has the package; NU1102: no feed has that version of it; NU1103: the feeds have only prereleases
+    // above that version, such as the dev packages of this engine
     private static bool IsStridePackageNotFound(string line)
         => (line.Contains("NU1101", StringComparison.Ordinal) || line.Contains("NU1102", StringComparison.Ordinal))
-            && line.Contains("Unable to find package Stride", StringComparison.Ordinal);
+            && line.Contains("Unable to find package Stride", StringComparison.Ordinal)
+            || line.Contains("NU1103", StringComparison.Ordinal) && line.Contains("Unable to find a stable package Stride", StringComparison.Ordinal);
 
     private static string Tail(IReadOnlyList<string> lines) => string.Join('\n', lines.Skip(Math.Max(0, lines.Count - 40)));
 
