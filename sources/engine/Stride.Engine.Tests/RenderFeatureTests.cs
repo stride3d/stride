@@ -2,11 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 using Xunit;
 
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Regression;
@@ -18,6 +20,10 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.ProceduralModels;
+using Stride.Rendering.Voxels;
+using Stride.Rendering.Voxels.VoxelGI;
+using Stride.Shaders;
+using Stride.Shaders.Compiler;
 
 namespace Stride.Engine.Tests;
 
@@ -25,9 +31,16 @@ namespace Stride.Engine.Tests;
 /// One test per rendering feature no sample uses: MSAA, temporal anti-aliasing, ambient occlusion, depth of field, local
 /// reflections, cubemap backgrounds, a spot light projecting a texture and thin glass. Each test turns on its feature only.
 /// </summary>
+/// <remarks>
+/// The tests without screenshot draw features only to compile their shaders, so the shader corpus captures their
+/// permutations: clear coat, instancing, skinned tangents, mesh velocity, voxel global illumination and the scene editor's
+/// render modes.
+/// </remarks>
 public class RenderFeatureTests : RenderFeatureTestBase
 {
     public enum BackgroundMode { None, Cubemap3D, Cubemap2D }
+
+    public enum VoxelMode { None, Default, Variant }
 
     // Temporal anti-aliasing and depth of field autofocus build up over the previous frames
     private const int ScreenshotFrame = 10;
@@ -50,6 +63,41 @@ public class RenderFeatureTests : RenderFeatureTestBase
     /// Adds a glass sphere (thin glass specular model): C# mixes the transmittance stream into the material's shading node.
     /// </summary>
     public bool ThinGlass { get; init; }
+
+    /// <summary>
+    /// Adds a clear coat sphere: its first pass mixes the metal flakes surface shaders.
+    /// </summary>
+    public bool ClearCoat { get; init; }
+
+    /// <summary>
+    /// Draws the teapot and the skinned knight with instancing: the instanced normal mapping and skinning transformations.
+    /// </summary>
+    public bool Instancing { get; init; }
+
+    /// <summary>
+    /// Adds the skinned knight with its tangents skinned too. No importer asks for it, so it is set on the meshes by code.
+    /// </summary>
+    public bool SkinningTangent { get; init; }
+
+    /// <summary>
+    /// Adds the per-mesh velocity of temporal anti-aliasing. No compositor registers it, so it is added by code.
+    /// </summary>
+    public bool MeshVelocity { get; init; }
+
+    /// <summary>
+    /// Draws three teapots with the scene editor's single stream render modes: diffuse, tangent normal and world normal.
+    /// </summary>
+    public bool MaterialStreamFilters { get; init; }
+
+    /// <summary>
+    /// Voxel global illumination. The variant uses the voxelization, march set and layout the defaults don't.
+    /// </summary>
+    public VoxelMode Voxels { get; init; }
+
+    /// <summary>
+    /// Compiles the scene editor's effect for a mesh whose effect failed to compile.
+    /// </summary>
+    public bool EditorErrorEffect { get; init; }
 
     /// <summary>
     /// False for a render that isn't the same on every run (e.g. it depends on GPU readback timing): it then only
@@ -142,6 +190,147 @@ public class RenderFeatureTests : RenderFeatureTestBase
             glass.Transform.Position = new Vector3(0.3f, 0.6f, 1.5f);
             Scene.Entities.Add(glass);
         }
+
+        var meshRenderFeature = SceneSystem.GraphicsCompositor.RenderFeatures.OfType<MeshRenderFeature>().First();
+
+        if (ClearCoat)
+        {
+            var clearCoatMaterial = Material.New(GraphicsDevice, new MaterialDescriptor
+            {
+                Attributes =
+                {
+                    Diffuse = new MaterialDiffuseMapFeature(new ComputeColor(new Color4(0.6f, 0.05f, 0.05f, 1.0f))),
+                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
+                    MicroSurface = new MaterialGlossinessMapFeature(new ComputeFloat(0.6f)),
+                    Specular = new MaterialMetalnessMapFeature(new ComputeFloat(0.5f)),
+                    SpecularModel = new MaterialSpecularMicrofacetModelFeature(),
+                    ClearCoat = new MaterialClearCoatFeature(),
+                },
+            }, Content);
+            var sphere = new Entity { new ModelComponent(new ProceduralModelDescriptor(new SphereProceduralModel { Radius = 0.5f, MaterialInstance = { Material = clearCoatMaterial } }).GenerateModel(Services)) };
+            sphere.Transform.Position = new Vector3(0.3f, 0.6f, 1.5f);
+            Scene.Entities.Add(sphere);
+        }
+
+        if (Instancing)
+        {
+            meshRenderFeature.RenderFeatures.Add(new InstancingRenderFeature());
+
+            // Three copies side by side of the normal mapped teapot, and of the knight
+            var teapotModel = new ProceduralModelDescriptor(new TeapotProceduralModel { Size = 0.5f, MaterialInstance = { Material = Content.Load<Material>("c100_chr_ch00_Knight_KINGHT") } }).GenerateModel(Services);
+            Scene.Entities.Add(CreateInstanced(teapotModel, new Vector3(-1, 0.3f, 1.5f)));
+            Scene.Entities.Add(CreateInstanced(Content.Load<Model>("knight Model"), new Vector3(-1, 0, 0.5f)));
+        }
+
+        if (SkinningTangent)
+        {
+            var knightModel = Content.Load<Model>("knight Model");
+            foreach (var mesh in knightModel.Meshes)
+                mesh.Parameters.Set(MaterialKeys.HasSkinningTangent, true);
+            var knight = new Entity { new ModelComponent(knightModel) };
+            knight.Transform.Position = new Vector3(-0.5f, 0, 1);
+            Scene.Entities.Add(knight);
+        }
+
+        if (MeshVelocity)
+            meshRenderFeature.RenderFeatures.Add(new MeshVelocityRenderFeature());
+
+        if (MaterialStreamFilters)
+        {
+            var normalStreams = new MaterialNormalMapFeature().GetStreams().ToList();
+            var filters = new[] { MaterialDiffuseMapFeature.DiffuseStream.Filter, normalStreams[0].Filter, normalStreams[1].Filter };
+            var streamFilterFeature = new MaterialStreamFilterRenderFeature();
+            meshRenderFeature.RenderFeatures.Add(streamFilterFeature);
+
+            // One normal mapped teapot per filter
+            var knightMaterial = Content.Load<Material>("c100_chr_ch00_Knight_KINGHT");
+            for (int i = 0; i < filters.Length; i++)
+            {
+                var teapot = new ModelComponent(new ProceduralModelDescriptor(new TeapotProceduralModel { Size = 0.5f, MaterialInstance = { Material = knightMaterial } }).GenerateModel(Services));
+                var entity = new Entity { teapot };
+                entity.Transform.Position = new Vector3(i - 1, 0.3f, 1.5f);
+                Scene.Entities.Add(entity);
+                streamFilterFeature.Filters.Add(teapot, filters[i]);
+            }
+        }
+
+        if (Voxels != VoxelMode.None)
+        {
+            UseVoxelRenderer(meshRenderFeature);
+
+            var emissionOpacity = new VoxelAttributeEmissionOpacity();
+            var volume = new VoxelVolumeComponent { Attributes = { emissionOpacity }, VoxelVolumeSize = 8 };
+            var voxelLight = new LightVoxel { Volume = volume };
+            if (Voxels == VoxelMode.Variant)
+            {
+                volume.VoxelizationMethod = new VoxelizationMethodSingleAxis();
+                emissionOpacity.VoxelLayout = new VoxelLayoutAnisotropic();
+                voxelLight.DiffuseMarcher = new VoxelMarchSetRandomHemisphere();
+            }
+            var volumeEntity = new Entity { volume };
+            volumeEntity.Transform.Position = new Vector3(0, 1, 0);
+            Scene.Entities.Add(volumeEntity);
+            Scene.Entities.Add(new Entity { new LightComponent { Type = voxelLight } });
+        }
+
+        if (EditorErrorEffect)
+        {
+            // What StrideEditorForwardShadingEffect mixes when SceneEditorParameters.IsEffectError is set (the editor's
+            // effects are not in this package, its shaders are)
+            var errorEffect = new ShaderMixinSource { Name = "StrideEditorForwardShadingEffect" };
+            foreach (var shader in new[] { "ShaderBase", "ShadingBase", "TransformationBase", "TransformationWAndVP", "CompilationErrorShader" })
+                errorEffect.Mixins.Add(new ShaderClassSource(shader));
+            var compilerParameters = new CompilerParameters();
+            compilerParameters.EffectParameters.Platform = GraphicsDevice.Platform;
+            compilerParameters.EffectParameters.Profile = GraphicsDevice.ShaderProfile ?? GraphicsDevice.Features.RequestedProfile;
+            var result = EffectSystem.Compiler.Compile(errorEffect, compilerParameters).Bytecode.WaitForResult();
+            Assert.True(result.Bytecode != null, result.CompilationLog?.ToText());
+        }
+    }
+
+    private Entity CreateInstanced(Model model, Vector3 position)
+    {
+        var instances = new InstancingUserArray();
+        instances.UpdateWorldMatrices([.. Enumerable.Range(0, 3).Select(i => Matrix.Translation(position + new Vector3(i, 0, 0)))]);
+        return new Entity { new ModelComponent(model), new InstancingComponent { Type = instances } };
+    }
+
+    /// <summary>
+    /// Replaces the forward renderer with the voxel one, set up like <c>DefaultGraphicsCompositorVoxels</c>: two voxelization
+    /// stages, the voxel render feature and pipeline processor, and the voxel light renderer.
+    /// </summary>
+    private void UseVoxelRenderer(MeshRenderFeature meshRenderFeature)
+    {
+        var compositor = SceneSystem.GraphicsCompositor;
+        var voxelStages = new List<RenderStage> { new("VoxelizationPassFirst", "Voxelizer"), new("VoxelizationPassSecond", "Voxelizer2") };
+        foreach (var stage in voxelStages)
+        {
+            compositor.RenderStages.Add(stage);
+            meshRenderFeature.RenderStageSelectors.Add(new MeshTransparentRenderStageSelector
+            {
+                OpaqueRenderStage = stage,
+                TransparentRenderStage = stage,
+                EffectName = "StrideForwardShadingEffectVXGI.VoxelizeToFragmentsEffect",
+            });
+        }
+        meshRenderFeature.PipelineProcessors.Add(new VoxelPipelineProcessor { VoxelRenderStage = voxelStages });
+        meshRenderFeature.RenderFeatures.Add(new VoxelRenderFeature());
+        meshRenderFeature.RenderFeatures.OfType<ForwardLightingRenderFeature>().First().LightRenderers.Add(new LightVoxelRenderer());
+
+        var forwardRenderer = (ForwardRenderer)compositor.SingleView;
+        var voxelRenderer = new ForwardRendererVoxels
+        {
+            Clear = forwardRenderer.Clear,
+            LightProbes = forwardRenderer.LightProbes,
+            OpaqueRenderStage = forwardRenderer.OpaqueRenderStage,
+            TransparentRenderStage = forwardRenderer.TransparentRenderStage,
+            PostEffects = forwardRenderer.PostEffects,
+            VoxelRenderer = new VoxelRenderer { VoxelStages = voxelStages },
+        };
+        voxelRenderer.ShadowMapRenderStages.AddRange(forwardRenderer.ShadowMapRenderStages);
+        var renderers = ((SceneRendererCollection)((SceneCameraRenderer)compositor.Game).Child).Children;
+        renderers[renderers.IndexOf(forwardRenderer)] = voxelRenderer;
+        compositor.SingleView = voxelRenderer;
     }
 
     protected override void RegisterTests()
@@ -203,4 +392,81 @@ public class RenderFeatureTests : RenderFeatureTestBase
 
     [SkippableFact]
     public void ThinGlassSpecular() => RunGameTest(new RenderFeatureTests { ThinGlass = true, Screenshot = false, TestName = nameof(ThinGlassSpecular) });
+
+    [SkippableFact]
+    public void ClearCoatSpecular() => RunGameTest(new RenderFeatureTests { ClearCoat = true, Screenshot = false, TestName = nameof(ClearCoatSpecular) });
+
+    // A skinned model adds run-to-run noise: no screenshot
+    [SkippableFact]
+    public void InstancingNormalMapAndSkinning() => RunGameTest(new RenderFeatureTests { Instancing = true, Screenshot = false, TestName = nameof(InstancingNormalMapAndSkinning) });
+
+    [SkippableFact]
+    public void SkinningWithTangents() => RunGameTest(new RenderFeatureTests { SkinningTangent = true, Screenshot = false, TestName = nameof(SkinningWithTangents) });
+
+    [SkippableFact]
+    public void TemporalAntiAliasingMeshVelocity() => RunGameTest(new RenderFeatureTests
+    {
+        PostEffects = x => x.Antialiasing = new TemporalAntiAliasEffect(),
+        MeshVelocity = true,
+        Screenshot = false,
+        TestName = nameof(TemporalAntiAliasingMeshVelocity),
+    });
+
+    [SkippableFact]
+    public void EditorMaterialStreamFilters() => RunGameTest(new RenderFeatureTests { MaterialStreamFilters = true, Screenshot = false, TestName = nameof(EditorMaterialStreamFilters) });
+
+    [SkippableFact]
+    public void EditorEffectErrorFallback() => RunGameTest(new RenderFeatureTests { EditorErrorEffect = true, Screenshot = false, TestName = nameof(EditorEffectErrorFallback) });
+
+    private const string VoxelGlobalIlluminationUnsupported = "MoltenVK has no geometry shaders for the default voxelization, and the tri-axis voxelization pipeline fails to create there";
+
+    [SkippableFact]
+    public void VoxelGlobalIllumination()
+    {
+        Skip.If(Platform.Type is PlatformType.macOS or PlatformType.iOS, VoxelGlobalIlluminationUnsupported);
+        RunGameTest(new RenderFeatureTests { Voxels = VoxelMode.Default, Screenshot = false, TestName = nameof(VoxelGlobalIllumination) });
+    }
+
+    [SkippableFact]
+    public void VoxelGlobalIlluminationVariant()
+    {
+        Skip.If(Platform.Type is PlatformType.macOS or PlatformType.iOS, VoxelGlobalIlluminationUnsupported);
+        RunGameTest(new RenderFeatureTests { Voxels = VoxelMode.Variant, Screenshot = false, TestName = nameof(VoxelGlobalIlluminationVariant) });
+    }
+
+    /// <summary>
+    /// Sets a material stream filter per model. The scene editor's render modes set one for the whole scene.
+    /// </summary>
+    private class MaterialStreamFilterRenderFeature : SubRenderFeature
+    {
+        private StaticObjectPropertyKey<RenderEffect> renderEffectKey;
+
+        public Dictionary<ModelComponent, ShaderSource> Filters { get; } = [];
+
+        protected override void InitializeCore()
+        {
+            base.InitializeCore();
+
+            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
+        }
+
+        public override void PrepareEffectPermutations(RenderDrawContext context)
+        {
+            var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
+            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
+
+            foreach (var renderObject in RootRenderFeature.RenderObjects)
+            {
+                if (renderObject.Source is not ModelComponent model || !Filters.TryGetValue(model, out var filter))
+                    continue;
+
+                for (int i = 0; i < effectSlotCount; ++i)
+                {
+                    var renderEffect = renderEffects[renderObject.StaticObjectNode * effectSlotCount + i];
+                    if (renderEffect != null && renderEffect.IsUsedDuringThisFrame(RenderSystem))
+                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.PixelStageSurfaceFilter, filter);
+                }
+            }
+        }
+    }
 }
