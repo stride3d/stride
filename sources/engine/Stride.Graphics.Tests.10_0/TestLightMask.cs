@@ -32,7 +32,10 @@ namespace Stride.Graphics.Tests
             /// <summary>Red lights (ambient and shadowed directional) in the first layer, blue ones in the second.</summary>
             RedAndBlueMasked,
 
-            /// <summary>The same red and blue lights, left in every light layer.</summary>
+            /// <summary>The same red and blue lights, in every light layer.</summary>
+            RedAndBlueInEveryLayer,
+
+            /// <summary>The same red and blue lights, left in the default layer, which is the first.</summary>
             RedAndBlueDefault,
 
             /// <summary>A skybox light in the first layer.</summary>
@@ -107,9 +110,13 @@ namespace Stride.Graphics.Tests
                     AddLights(scene, Color.Red, LightLayerMask.Layer0);
                     AddLights(scene, Color.Blue, LightLayerMask.Layer1);
                     break;
-                case Lights.RedAndBlueDefault:
+                case Lights.RedAndBlueInEveryLayer:
                     AddLights(scene, Color.Red, LightLayerMask.All);
                     AddLights(scene, Color.Blue, LightLayerMask.All);
+                    break;
+                case Lights.RedAndBlueDefault:
+                    AddLights(scene, Color.Red, null);
+                    AddLights(scene, Color.Blue, null);
                     break;
                 case Lights.SkyboxMasked:
                     var lightingScene = Content.Load<Scene>("LightingTests/LightingScene");
@@ -126,14 +133,21 @@ namespace Stride.Graphics.Tests
             SceneSystem.GraphicsCompositor = compositor;
         }
 
-        private static void AddLights(Scene scene, Color color, LightLayerMask layers)
+        /// <param name="layers">The light layers of the lights, or null to leave them at the default.</param>
+        private static void AddLights(Scene scene, Color color, LightLayerMask? layers)
         {
-            var ambient = new LightComponent { Type = new LightAmbient { Color = new ColorRgbProvider(color) }, Intensity = 0.25f, LightLayers = layers };
+            var ambient = new LightComponent { Type = new LightAmbient { Color = new ColorRgbProvider(color) }, Intensity = 0.25f };
 
             // A directional light shines down -Z, from the camera onto the cube's front face
             var directionalType = new LightDirectional { Color = new ColorRgbProvider(color) };
             directionalType.Shadow.Enabled = true;
-            var directional = new LightComponent { Type = directionalType, Intensity = 0.5f, LightLayers = layers };
+            var directional = new LightComponent { Type = directionalType, Intensity = 0.5f };
+
+            if (layers.HasValue)
+            {
+                ambient.LightLayers = layers.Value;
+                directional.LightLayers = layers.Value;
+            }
 
             scene.Entities.Add(new Entity { ambient });
             scene.Entities.Add(new Entity { directional });
@@ -175,12 +189,21 @@ namespace Stride.Graphics.Tests
         }
 
         [SkippableFact]
-        public void LightsWithTheDefaultMaskLightEveryView()
+        public void LightsInEveryLayerLightEveryView()
+        {
+            var (layer0, layer1) = RenderViews(Lights.RedAndBlueInEveryLayer);
+
+            Assert.True(layer0.R > 64 && layer0.B > 64 && layer0.G < 8, $"The Layer0 view should be lit red and blue, got {layer0}");
+            Assert.True(layer1.R > 64 && layer1.B > 64 && layer1.G < 8, $"The Layer1 view should be lit red and blue, got {layer1}");
+        }
+
+        [SkippableFact]
+        public void LightsLeftAtTheDefaultAreInTheFirstLayer()
         {
             var (layer0, layer1) = RenderViews(Lights.RedAndBlueDefault);
 
             Assert.True(layer0.R > 64 && layer0.B > 64 && layer0.G < 8, $"The Layer0 view should be lit red and blue, got {layer0}");
-            Assert.True(layer1.R > 64 && layer1.B > 64 && layer1.G < 8, $"The Layer1 view should be lit red and blue, got {layer1}");
+            Assert.True(layer1.R < 8 && layer1.G < 8 && layer1.B < 8, $"The Layer1 view should not be lit, got {layer1}");
         }
 
         [SkippableFact]
