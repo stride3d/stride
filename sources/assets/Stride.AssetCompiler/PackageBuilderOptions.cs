@@ -19,6 +19,8 @@ namespace Stride.AssetCompiler
         public bool NoBackup { get; set; }
         // Upgrade verb only: write every asset in the current format, also the ones the upgrade did not change.
         public bool ResaveAll { get; set; }
+        // Upgrade verb only: the file the upgrade report is written to, in Markdown, or null.
+        public string UpgradeReportPath { get; set; }
         // This should not be a list
         public bool DisableAutoCompileProjects { get; set; }
         public string ProjectConfiguration { get; set; }

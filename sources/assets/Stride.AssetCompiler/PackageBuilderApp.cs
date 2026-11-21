@@ -138,6 +138,7 @@ namespace Stride.AssetCompiler
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "no-backup", "Upgrade verb only: skip backing up the files the upgrade overwrites (backup is on by default).", v => options.NoBackup = v != null },
                 { "resave-all", "Upgrade verb only: save every asset in the current format, also the ones the upgrade did not change.", v => options.ResaveAll = v != null },
+                { "report=", "Upgrade verb only: write what the upgrade did to each project, in Markdown, to this file.", v => options.UpgradeReportPath = v },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
                 {
                     if (!string.IsNullOrEmpty(v))
@@ -516,6 +517,18 @@ namespace Stride.AssetCompiler
             }
 
             sessionResult.Session.Save(options.Logger);
+
+            if (!string.IsNullOrEmpty(options.UpgradeReportPath))
+            {
+                try
+                {
+                    System.IO.File.WriteAllText(options.UpgradeReportPath, UpgradeReportWriter.FormatUpgrade(sessionResult.Session.UpgradeReport, System.IO.Path.GetFileName(upgradeTarget), DateTime.Now));
+                }
+                catch (Exception e) when (e is System.IO.IOException or UnauthorizedAccessException)
+                {
+                    options.Logger.Error($"Could not write the upgrade report [{options.UpgradeReportPath}]", e);
+                }
+            }
             return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
         }
 

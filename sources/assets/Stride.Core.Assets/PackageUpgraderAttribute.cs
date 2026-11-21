@@ -25,6 +25,13 @@ public class PackageUpgraderAttribute : Attribute
     /// </summary>
     public string Name { get => name ?? PackageNames[0]; set => name = value; }
 
+    /// <summary>
+    /// The address of the upgrade guide's section about a step, with <c>{version}</c> for the major and minor numbers of the
+    /// step's gate and <c>{id}</c> for its ID in lower case, e.g. <c>https://example.com/upgrade/{version}.html#{id}</c>;
+    /// <c>null</c> when the upgrader has no guide.
+    /// </summary>
+    public string? HelpLinkFormat { get; set; }
+
     public PackageVersion PackageMinimumVersion { get; }
 
     public PackageVersionRange? UpdatedVersionRange => updatedVersionRange;
@@ -35,4 +42,9 @@ public class PackageUpgraderAttribute : Attribute
         PackageMinimumVersion = new PackageVersion(packageMinimumVersion);
         _ = PackageVersionRange.TryParse(packageUpdatedVersionRange, out updatedVersionRange);
     }
+
+    /// <summary>The address of the upgrade guide's section about the step <paramref name="id"/> gated at <paramref name="gate"/>, or <c>null</c>.</summary>
+    public string? GetHelpLink(string id, PackageVersion gate)
+        => HelpLinkFormat?.Replace("{version}", $"{gate.Version.Major}.{gate.Version.Minor}", StringComparison.Ordinal)
+            .Replace("{id}", id.ToLowerInvariant(), StringComparison.Ordinal);
 }

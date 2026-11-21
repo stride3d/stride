@@ -32,7 +32,7 @@ public delegate void ProjectUpgrade(ProjectUpgradeContext context);
 public sealed class ProjectUpgradeContext
 {
     private readonly List<(string Path, Action Apply, string DoneMessage)> pendingChanges = [];
-    private readonly List<string> failedUnits = [];
+    private readonly List<UpgradeUnitFailure> failedUnits = [];
 
     internal ProjectUpgradeContext(Project project, SolutionProject solutionProject, UFile projectFullPath, ILogger log)
     {
@@ -64,7 +64,7 @@ public sealed class ProjectUpgradeContext
     public bool IsDirty { get; set; }
 
     /// <summary>The files that steps could not change, from <see cref="UnitFailed"/>.</summary>
-    internal IReadOnlyList<string> FailedUnits => failedUnits;
+    internal IReadOnlyList<UpgradeUnitFailure> FailedUnits => failedUnits;
 
     /// <summary>
     /// Writes <paramref name="text"/> to the file <paramref name="path"/> once the step returned, after the backup took a copy.
@@ -113,13 +113,28 @@ public sealed class ProjectUpgradeContext
     public void UnitFailed(string path, Exception exception)
     {
         ArgumentNullException.ThrowIfNull(path);
-        failedUnits.Add(path);
+        failedUnits.Add(new UpgradeUnitFailure(path, Exception: exception));
         Log.Warning($"Could not upgrade [{Path.GetRelativePath(ProjectFullPath.GetFullDirectory().ToOSPath(), path)}] of [{ProjectFullPath.GetFileName()}]; it is left unchanged.", exception);
     }
 
-    /// <summary>Applies the file changes of the step that returned.</summary>
-    internal void ApplyChanges()
+    /// <summary>
+    /// Reports a file the step could not change, with what to do by hand: it is left as it is, and the step changes the other files.
+    /// </summary>
+    /// <param name="path">The full path of the file.</param>
+    /// <param name="error">Why it could not be changed, and what to do by hand.</param>
+    public void UnitFailed(string path, string error)
     {
+        ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(error);
+        failedUnits.Add(new UpgradeUnitFailure(path, Error: error));
+        Log.Warning($"[{Path.GetRelativePath(ProjectFullPath.GetFullDirectory().ToOSPath(), path)}] of [{ProjectFullPath.GetFileName()}] is left unchanged: {error}");
+    }
+
+    /// <summary>Applies the file changes of the step that returned.</summary>
+    /// <returns>The full paths of the files changed.</returns>
+    internal List<string> ApplyChanges()
+    {
+        var changedFiles = new List<string>();
         foreach (var (path, apply, doneMessage) in pendingChanges)
         {
             try
@@ -131,15 +146,17 @@ public sealed class ProjectUpgradeContext
                 UnitFailed(path, e);
                 continue;
             }
+            changedFiles.Add(path);
             if (doneMessage is not null)
                 Log.Info(doneMessage);
         }
         pendingChanges.Clear();
+        return changedFiles;
     }
 }
 
 /// <summary>
-/// One <c>Project</c> registration: the gate version the change landed at, its title, the structural action to run, and
-/// whether it only keeps the place of a removed step.
+/// One <c>Project</c> registration: the gate version the change landed at, its title, the structural action to run, whether
+/// it only keeps the place of a removed step, and whether a project it leaves unchanged may behave differently.
 /// </summary>
-internal sealed record ProjectUpgradeRegistration(PackageVersion GateVersion, string Title, ProjectUpgrade Upgrade, bool IsRetired = false);
+internal sealed record ProjectUpgradeRegistration(PackageVersion GateVersion, string Title, ProjectUpgrade Upgrade, bool IsRetired = false, bool MayChangeBehaviour = false);

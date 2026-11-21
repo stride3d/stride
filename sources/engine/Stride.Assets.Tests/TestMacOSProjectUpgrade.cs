@@ -109,7 +109,7 @@ namespace Stride.Assets.Tests
         }
 
         [Fact]
-        public void WarnsWhenOsxX64ComesFromAnImportedFile()
+        public void ReportsOsxX64FromAnImportedFileAsLeft()
         {
             // As from a Directory.Build.props: nothing in the project file to change
             File.WriteAllText(Path.Combine(directory, "Platform.props"), """
@@ -126,6 +126,9 @@ namespace Stride.Assets.Tests
                 """);
 
             Assert.False(context.IsDirty);
+            var unit = Assert.Single(context.FailedUnits);
+            Assert.Equal(Path.Combine(directory, "Game.macOS.csproj"), unit.Path);
+            Assert.Contains("imported file", unit.Error, StringComparison.Ordinal);
             Assert.Contains(log.Messages, m => m.Type == LogMessageType.Warning && m.Text.Contains("imported file", StringComparison.Ordinal));
         }
 

@@ -29,7 +29,7 @@ using static Stride.Assets.CodeUpgrades;
 
 namespace Stride.Assets
 {
-    [PackageUpgrader(new[] { "Stride.Foundation", "Stride.Core", "Stride.Engine" }, "4.0.0.0", CurrentVersion, Name = UpgraderName)]
+    [PackageUpgrader(new[] { "Stride.Foundation", "Stride.Core", "Stride.Engine" }, "4.0.0.0", CurrentVersion, Name = UpgraderName, HelpLinkFormat = "https://doc.stride3d.net/en/upgrade/{version}.html#{id}")]
     public partial class StridePackageUpgrader : CodePackageUpgrader
     {
         // Should match Stride.nupkg
@@ -166,8 +166,8 @@ namespace Stride.Assets
                     MemberToExtension("Stride.Engine.ScriptComponent", "Audio", "Stride.Audio", throughMember: "Game")),
 
                 // 4.5: the assembly processor no longer names hand-written parameter keys; a source generator does, for
-                // the types marked [EffectKeys] (#3584).
-                AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute"),
+                // the types marked [EffectKeys] (#3584). A type left without it still compiles, and its keys have no name.
+                AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute") with { MayChangeBehaviour = true },
 
                 // 4.5: the assembly processor no longer pools the delegates passed to the Dispatcher; its callbacks take
                 // their captures as a state, in a static lambda (#3680).
@@ -473,7 +473,7 @@ namespace Stride.Assets
             {
                 // Stride.Engine comes from an imported file (Directory.Build.props): no reference to copy. A project that
                 // gets it through a project reference gets audio the same way.
-                context.Log.Warning($"Audio is no longer part of Stride.Engine, and [{context.ProjectFullPath.GetFileName()}] gets Stride.Engine from an imported file, not its project file: add a Stride.Audio reference where it gets Stride.Engine if it uses audio.");
+                context.UnitFailed(context.ProjectFullPath.ToOSPath(), "audio is no longer part of Stride.Engine, which this project gets from an imported file: if it uses audio, add a Stride.Audio reference where it gets Stride.Engine.");
             }
         }
 
@@ -507,17 +507,24 @@ namespace Stride.Assets
 
         // 4.5: a project with assets of a plugin package it does not reference gets that package, shaped like its
         // Stride.Engine reference, so those assets keep loading and compiling.
-        private static void AddPluginPackageReferences(ProjectUpgradeContext context)
+        internal static void AddPluginPackageReferences(ProjectUpgradeContext context)
         {
             var project = context.Project;
             var packageReferences = project.Xml.ItemGroups.SelectMany(g => g.Items).Where(x => x.ItemType == "PackageReference").ToArray();
             var engineReference = packageReferences.FirstOrDefault(x => string.Equals(x.Include, "Stride.Engine", StringComparison.OrdinalIgnoreCase));
             var projectDir = context.ProjectFullPath.GetFullDirectory().ToOSPath();
-            var missingPackages = FindMissingPluginPackages(projectDir, packageReferences.Select(x => x.Include)).ToList();
+            // The references of imported files count, so that a retry finds the packages added there by hand
+            var evaluatedPackages = project.GetItems("PackageReference").Select(x => x.EvaluatedInclude).ToList();
+            var missingPackages = FindMissingPluginPackages(projectDir, packageReferences.Select(x => x.Include).Concat(evaluatedPackages)).ToList();
             if (engineReference == null)
             {
-                // Stride.Engine comes from elsewhere (Directory.Build.props, another package): no reference to copy
-                if (missingPackages.Count > 0)
+                if (missingPackages.Count == 0)
+                    return;
+                // Stride.Engine comes from an imported file (Directory.Build.props): no reference to copy. Through a project
+                // reference, the referenced project may bring the packages.
+                if (evaluatedPackages.Contains("Stride.Engine", StringComparer.OrdinalIgnoreCase))
+                    context.UnitFailed(context.ProjectFullPath.ToOSPath(), $"the project has assets of the {string.Join(", ", missingPackages)} package(s), which Stride.Assets no longer holds, and gets Stride.Engine from an imported file: add them where it gets Stride.Engine.");
+                else
                     context.Log.Warning($"The project has assets of the {string.Join(", ", missingPackages)} package(s), which Stride.Assets no longer holds, but no Stride.Engine reference in its project file to add them next to: add them where the project gets Stride.Engine.");
                 return;
             }

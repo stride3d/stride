@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -17,14 +18,51 @@ namespace Stride.Assets;
 /// <see cref="CodeUpgrades.Custom"/>) ultimately produces one of these, inside a <see cref="CodeStep"/>.
 /// </summary>
 /// <remarks>
-/// A migration must work on the code as the user wrote it, and never rely on what an earlier migration changed:
-/// the runner may later run each migration on the original solution and merge their edits.
+/// A migration must work on the code as the user wrote it, and never rely on what an earlier migration changed: the runner
+/// also runs it alone on the original solution, and reports each change it made there but not in the fold. A document it
+/// can't change is reported with <see cref="CodeUpgradeUnits.Failed"/>, and the other documents still change.
 /// </remarks>
 /// <param name="solution">The solution opened against the from-version closure (symbols resolve at the old version).</param>
 /// <param name="targets">The projects to migrate (their <see cref="ProjectId"/>s).</param>
 /// <param name="cancellationToken">The cancellation token.</param>
 /// <returns>The updated solution.</returns>
 public delegate Task<Solution> CodeUpgrade(Solution solution, IReadOnlyList<ProjectId> targets, CancellationToken cancellationToken);
+
+/// <summary>
+/// Reports, from a running <see cref="CodeUpgrade"/>, the documents it could not change.
+/// </summary>
+public static class CodeUpgradeUnits
+{
+    private static readonly AsyncLocal<Action<DocumentId, Exception>?> CurrentHandler = new();
+
+    /// <summary>
+    /// Reports that the running step could not change the document <paramref name="documentId"/>: the runner leaves it as it was
+    /// before the step, and no later step changes it. Outside the runner, the exception is thrown again.
+    /// </summary>
+    public static void Failed(DocumentId documentId, Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(documentId);
+        ArgumentNullException.ThrowIfNull(exception);
+        if (CurrentHandler.Value is { } handler)
+            handler(documentId, exception);
+        else
+            ExceptionDispatchInfo.Throw(exception);
+    }
+
+    // Sends the failures to handler until the result is disposed; called from the async method that runs the step, so the
+    // step and the tasks it starts see the handler
+    internal static IDisposable Collect(Action<DocumentId, Exception> handler)
+    {
+        var previous = CurrentHandler.Value;
+        CurrentHandler.Value = handler;
+        return new Scope(previous);
+    }
+
+    private sealed class Scope(Action<DocumentId, Exception>? previous) : IDisposable
+    {
+        public void Dispose() => CurrentHandler.Value = previous;
+    }
+}
 
 /// <summary>
 /// One step of a code upgrade: a migration, and the title the upgrade report and the upgrade guide show for it.
@@ -41,6 +79,12 @@ public sealed record CodeStep(string Title, CodeUpgrade Upgrade)
 
     /// <summary>Whether the step was retired: it keeps the place of a removed step, so the IDs of the next steps stay, and does nothing.</summary>
     public bool IsRetired { get; internal init; }
+
+    /// <summary>
+    /// Whether code the step leaves unchanged may still compile and behave differently, so that the build doesn't show it:
+    /// the report lists what the step left first.
+    /// </summary>
+    public bool MayChangeBehaviour { get; init; }
 }
 
 /// <summary>
@@ -92,12 +136,13 @@ public sealed class UpgradeRegistry
     /// <param name="version">The version at which the structural change landed (e.g. <c>"4.4.0.0"</c>).</param>
     /// <param name="title">What the step changes, in one line of Markdown, shown in the upgrade report and the upgrade guide.</param>
     /// <param name="upgrade">The structural action to apply.</param>
-    public void Project(string version, string title, ProjectUpgrade upgrade)
+    /// <param name="mayChangeBehaviour">Whether a project the step leaves unchanged may still build and behave differently (see <see cref="CodeStep.MayChangeBehaviour"/>).</param>
+    public void Project(string version, string title, ProjectUpgrade upgrade, bool mayChangeBehaviour = false)
     {
         ArgumentNullException.ThrowIfNull(version);
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
         ArgumentNullException.ThrowIfNull(upgrade);
-        projectUpgrades.Add(new ProjectUpgradeRegistration(new PackageVersion(version), title, upgrade));
+        projectUpgrades.Add(new ProjectUpgradeRegistration(new PackageVersion(version), title, upgrade, MayChangeBehaviour: mayChangeBehaviour));
     }
 
     /// <summary>
@@ -126,18 +171,18 @@ public sealed class UpgradeRegistry
         foreach (var registration in codeUpgrades)
         {
             foreach (var step in registration.Steps)
-                Add(registration.GateVersion, 'C', step.Title, step.IsRetired);
+                Add(registration.GateVersion, 'C', step.Title, step.IsRetired, step.MayChangeBehaviour, step);
         }
         foreach (var registration in projectUpgrades)
-            Add(registration.GateVersion, 'P', registration.Title, registration.IsRetired);
+            Add(registration.GateVersion, 'P', registration.Title, registration.IsRetired, registration.MayChangeBehaviour, registration);
         return steps;
 
-        void Add(PackageVersion gateVersion, char kind, string title, bool isRetired)
+        void Add(PackageVersion gateVersion, char kind, string title, bool isRetired, bool mayChangeBehaviour, object declaration)
         {
             var gate = FormatGate(gateVersion.Version);
             var index = counts.GetValueOrDefault((gate, kind)) + 1;
             counts[(gate, kind)] = index;
-            steps.Add(new DeclaredUpgradeStep($"{upgraderName}-{gate}-{kind}{index}", gateVersion, title, isRetired));
+            steps.Add(new DeclaredUpgradeStep($"{upgraderName}-{gate}-{kind}{index}", gateVersion, title, isRetired, declaration) { MayChangeBehaviour = mayChangeBehaviour });
         }
     }
 
@@ -152,6 +197,11 @@ public sealed class UpgradeRegistry
 internal sealed record CodeUpgradeRegistration(PackageVersion GateVersion, IReadOnlyList<CodeStep> Steps);
 
 /// <summary>
-/// A declared step of an upgrader, with its ID (see <see cref="UpgradeRegistry.GetSteps"/>).
+/// A declared step of an upgrader, with its ID (see <see cref="UpgradeRegistry.GetSteps"/>) and its declaration: the
+/// <see cref="CodeStep"/> or the <see cref="ProjectUpgradeRegistration"/>.
 /// </summary>
-internal sealed record DeclaredUpgradeStep(string Id, PackageVersion GateVersion, string Title, bool IsRetired);
+internal sealed record DeclaredUpgradeStep(string Id, PackageVersion GateVersion, string Title, bool IsRetired, object Declaration)
+{
+    /// <inheritdoc cref="CodeStep.MayChangeBehaviour"/>
+    public bool MayChangeBehaviour { get; init; }
+}

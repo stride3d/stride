@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Stride.Core;
+using Stride.Core.Assets;
 using Xunit;
 using static Stride.Assets.CodeUpgrades;
 
@@ -121,6 +122,15 @@ public class TestUpgradeSteps
             $"The upgrade steps changed. Run this test with {UpdateStepListVariable}=1 to update {Path.GetFileName(path)}, and check in its diff that each existing ID keeps its step: steps are only appended to a gate.");
     }
 
+    // The upgrade guide isn't versioned: its pages are under /en/ of the documentation, not under a version or /latest/
+    [Fact]
+    public void StrideStepsLinkToTheirSectionOfTheUpgradeGuide()
+    {
+        var attribute = typeof(StridePackageUpgrader).GetCustomAttributes(typeof(PackageUpgraderAttribute), false).Cast<PackageUpgraderAttribute>().Single();
+
+        Assert.Equal("https://doc.stride3d.net/en/upgrade/4.5.html#stride-4.5.0-c3", attribute.GetHelpLink("Stride-4.5.0-C3", new PackageVersion("4.5.0")));
+    }
+
     private static string WriteStepList(IEnumerable<DeclaredUpgradeStep> steps)
     {
         var builder = new StringBuilder();
@@ -134,7 +144,7 @@ public class TestUpgradeSteps
 
             """);
         foreach (var step in steps.OrderBy(x => new Version(UpgradeRegistry.FormatGate(x.GateVersion.Version))))
-            builder.Append($"| `{step.Id}` | {(step.IsRetired ? "Retired: " : "")}{step.Title} |\n");
+            builder.Append($"| `{step.Id}` | {(step.IsRetired ? "Retired: " : "")}{step.Title}{(step.MayChangeBehaviour ? " (may change behaviour silently)" : "")} |\n");
         return builder.ToString().Replace("\r\n", "\n");
     }
 

@@ -1,0 +1,259 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Stride.Core.IO;
+
+namespace Stride.Core.Assets;
+
+/// <summary>
+/// The status of an upgrade step in an <see cref="UpgradeReport"/>.
+/// </summary>
+public enum UpgradeStepStatus
+{
+    /// <summary>The step did not run, because the upgrade stopped before it.</summary>
+    NotRun,
+
+    /// <summary>The step ran on every file it changes.</summary>
+    Done,
+
+    /// <summary>
+    /// The step ran, but left some files unchanged (see <see cref="UpgradeStepResult.FailedUnits"/>), or did not make some of
+    /// the changes it found (see <see cref="UpgradeStepResult.MissedChanges"/>).
+    /// </summary>
+    Partial,
+
+    /// <summary>The step failed, and changed nothing.</summary>
+    Failed,
+}
+
+/// <summary>
+/// How the upgrade of a project ended.
+/// </summary>
+public enum UpgradeOutcome
+{
+    /// <summary>Every step that applies ran, done or partial.</summary>
+    Completed,
+
+    /// <summary>A step of the whole project failed, and every file of the project was put back as it was before the upgrade.</summary>
+    Reverted,
+
+    /// <summary>
+    /// A step of the whole project failed, and the files stay as the upgrade left them: the project records the upgrade with the
+    /// steps to finish by hand (see <see cref="PackageUpgrader.UnfinishedMetadata"/>).
+    /// </summary>
+    Kept,
+
+    /// <summary>A step of the whole project failed, and the files stay as the upgrade left them, with no backup to put them back from.</summary>
+    Stopped,
+}
+
+/// <summary>
+/// A step an upgrader declares, as <see cref="PackageUpgrader.GetUpgradeSteps"/> lists it.
+/// </summary>
+/// <param name="Id">The ID of the step, e.g. <c>Stride-4.5.0-P2</c>.</param>
+/// <param name="Title">What the step changes, in one line of Markdown.</param>
+/// <param name="HelpLink">The page of the upgrade guide about the step, or <c>null</c>.</param>
+/// <param name="MayChangeBehaviour">
+/// Whether code the step leaves unchanged may still compile and behave differently, so that the build doesn't show what is
+/// left to do.
+/// </param>
+public sealed record UpgradeStepInfo(string Id, string Title, string? HelpLink, bool MayChangeBehaviour = false);
+
+/// <summary>
+/// A file an upgrade step could not change, and why.
+/// </summary>
+/// <param name="Path">The full path of the file.</param>
+/// <param name="Error">Why the step could not change it, or <c>null</c>.</param>
+/// <param name="Exception">The exception that stopped the change, or <c>null</c>.</param>
+public sealed record UpgradeUnitFailure(string Path, string? Error = null, Exception? Exception = null);
+
+/// <summary>
+/// A change an upgrade step found in the code, but did not make.
+/// </summary>
+/// <param name="Path">The full path of the file.</param>
+/// <param name="Line">The line of the change in the code the upgrade wrote, from 1.</param>
+/// <param name="Column">The column of the change, from 1.</param>
+/// <param name="Change">The change, e.g. <c>fmt.IsSRgb() → fmt.IsSRgb</c>.</param>
+public sealed record UpgradeMissedChange(string Path, int Line, int Column, string Change);
+
+/// <summary>
+/// What an upgrade step did to a project.
+/// </summary>
+public sealed class UpgradeStepResult
+{
+    internal UpgradeStepResult(string? id, string title, string? helpLink, bool mayChangeBehaviour = false)
+    {
+        Id = id;
+        Title = title;
+        HelpLink = helpLink;
+        MayChangeBehaviour = mayChangeBehaviour;
+    }
+
+    /// <summary>The ID of the step, or <c>null</c> for a part of the upgrade that is not a declared step (a hook of the upgrader).</summary>
+    public string? Id { get; }
+
+    /// <summary>What the step changes, in one line of Markdown.</summary>
+    public string Title { get; }
+
+    /// <summary>The page of the upgrade guide about the step, or <c>null</c>.</summary>
+    public string? HelpLink { get; }
+
+    /// <inheritdoc cref="UpgradeStepInfo.MayChangeBehaviour"/>
+    public bool MayChangeBehaviour { get; }
+
+    /// <summary>The status of the step.</summary>
+    public UpgradeStepStatus Status { get; set; }
+
+    /// <summary>The full paths of the files the step changed.</summary>
+    public List<string> ChangedFiles { get; } = [];
+
+    /// <summary>The number of edits the step made in the code, or 0 for a step that doesn't count them.</summary>
+    public int Edits { get; set; }
+
+    /// <summary>The files the step could not change, which it left as they were.</summary>
+    public List<UpgradeUnitFailure> FailedUnits { get; } = [];
+
+    /// <summary>The changes the step found in the code, but did not make.</summary>
+    public List<UpgradeMissedChange> MissedChanges { get; } = [];
+
+    /// <summary>Why the step failed, or <c>null</c>.</summary>
+    public string? Error { get; set; }
+
+    /// <summary>The exception that failed the step, or <c>null</c>.</summary>
+    public Exception? Exception { get; set; }
+
+    /// <summary>Whether the step left something to do by hand.</summary>
+    public bool IsLeftover => Status != UpgradeStepStatus.Done;
+
+    /// <summary>Sets <see cref="Status"/> once the step ran: partial when it left files or changes, else done.</summary>
+    public void SetRan() => Status = FailedUnits.Count > 0 || MissedChanges.Count > 0 ? UpgradeStepStatus.Partial : UpgradeStepStatus.Done;
+
+    /// <summary>Sets the step as failed, with the message of <paramref name="exception"/>.</summary>
+    public void SetFailed(Exception exception)
+    {
+        Status = UpgradeStepStatus.Failed;
+        Error = exception.Message;
+        Exception = exception;
+    }
+}
+
+/// <summary>
+/// What the steps of one upgrader did to a project.
+/// </summary>
+public sealed class UpgraderReport
+{
+    /// <summary>A report with the <paramref name="steps"/> of the upgrader, not run yet.</summary>
+    public UpgraderReport(string name, PackageVersion fromVersion, PackageVersion? toVersion, IEnumerable<UpgradeStepInfo> steps)
+    {
+        Name = name;
+        FromVersion = fromVersion;
+        ToVersion = toVersion;
+        Steps.AddRange(steps.Select(x => new UpgradeStepResult(x.Id, x.Title, x.HelpLink, x.MayChangeBehaviour)));
+    }
+
+    /// <summary>The <see cref="PackageUpgraderAttribute.Name"/> of the upgrader.</summary>
+    public string Name { get; }
+
+    /// <summary>The version the project is upgraded from.</summary>
+    public PackageVersion FromVersion { get; }
+
+    /// <summary>The version the project is upgraded to.</summary>
+    public PackageVersion? ToVersion { get; }
+
+    /// <summary>The steps that apply to the project, in the order they run, then the parts of the upgrade that failed outside a step.</summary>
+    public List<UpgradeStepResult> Steps { get; } = [];
+
+    /// <summary>The step with the ID <paramref name="id"/>, or <c>null</c>.</summary>
+    public UpgradeStepResult? Find(string id) => Steps.FirstOrDefault(x => x.Id == id);
+
+    /// <summary>
+    /// Adds a part of the upgrade that failed outside a declared step, such as the update of the package references.
+    /// </summary>
+    public UpgradeStepResult AddFailure(string title, string? error = null, Exception? exception = null)
+    {
+        var result = new UpgradeStepResult(null, title, null) { Status = UpgradeStepStatus.Failed, Error = error ?? exception?.Message, Exception = exception };
+        Steps.Add(result);
+        return result;
+    }
+}
+
+/// <summary>
+/// What the upgrade did to one project.
+/// </summary>
+public sealed class ProjectUpgradeReport
+{
+    internal ProjectUpgradeReport(UFile projectFullPath)
+    {
+        ProjectFullPath = projectFullPath;
+    }
+
+    /// <summary>The full path of the project file.</summary>
+    public UFile ProjectFullPath { get; }
+
+    /// <summary>The upgraders that upgraded the project, in the order they ran.</summary>
+    public List<UpgraderReport> Upgraders { get; } = [];
+
+    /// <summary>Whether the upgrade left something to do by hand: a step that failed, was partial or did not run.</summary>
+    public bool HasLeftovers => Upgraders.SelectMany(x => x.Steps).Any(x => x.IsLeftover);
+
+    /// <summary>Whether a step of the whole project failed: the steps after it did not run.</summary>
+    public bool HasFailed => Upgraders.SelectMany(x => x.Steps).Any(x => x.Status == UpgradeStepStatus.Failed);
+
+    /// <summary>How the upgrade ended.</summary>
+    public UpgradeOutcome Outcome { get; set; }
+
+    /// <summary>
+    /// The IDs of the steps an earlier upgrade left to finish by hand, which the user marked as finished before this upgrade,
+    /// or empty.
+    /// </summary>
+    public List<string> ContinuedFromUnfinished { get; } = [];
+
+    // The session logged the report and wrote upgrade-report.md: a later load of the missing references does not again
+    internal bool IsPublished { get; set; }
+}
+
+/// <summary>
+/// What the upgrade of a session did to each project: the steps of each upgrader with their status.
+/// </summary>
+public sealed class UpgradeReport
+{
+    private readonly Lock gate = new();
+
+    /// <summary>The upgraded projects.</summary>
+    public List<ProjectUpgradeReport> Projects { get; } = [];
+
+    /// <summary>
+    /// The report of <paramref name="upgrader"/> on the project <paramref name="projectFullPath"/>, upgraded from
+    /// <paramref name="fromVersion"/>: added the first time, with the steps that apply not run yet.
+    /// </summary>
+    public UpgraderReport GetOrAdd(UFile projectFullPath, PackageUpgrader upgrader, PackageVersion fromVersion)
+    {
+        ArgumentNullException.ThrowIfNull(projectFullPath);
+        ArgumentNullException.ThrowIfNull(upgrader);
+        ArgumentNullException.ThrowIfNull(fromVersion);
+        lock (gate)
+        {
+            var project = Projects.FirstOrDefault(x => x.ProjectFullPath == projectFullPath);
+            if (project is null)
+            {
+                project = new ProjectUpgradeReport(projectFullPath);
+                Projects.Add(project);
+            }
+
+            var report = project.Upgraders.FirstOrDefault(x => x.Name == upgrader.Attribute.Name);
+            if (report is null)
+            {
+                report = new UpgraderReport(upgrader.Attribute.Name, fromVersion, upgrader.Attribute.UpdatedVersionRange?.MinVersion, upgrader.GetUpgradeSteps(fromVersion));
+                project.Upgraders.Add(report);
+            }
+            return report;
+        }
+    }
+
+    /// <summary>The report of the upgrader named <paramref name="upgraderName"/> on the project, or <c>null</c>.</summary>
+    public UpgraderReport? Find(UFile projectFullPath, string upgraderName)
+    {
+        lock (gate)
+            return Projects.FirstOrDefault(x => x.ProjectFullPath == projectFullPath)?.Upgraders.FirstOrDefault(x => x.Name == upgraderName);
+    }
+}

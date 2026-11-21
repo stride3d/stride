@@ -11,6 +11,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Stride.Assets;
+using Stride.Core;
+using Stride.Core.Assets;
+using Stride.Core.Diagnostics;
 using Xunit;
 using static Stride.Assets.CodeUpgrades;
 
@@ -38,7 +41,22 @@ public class TestCodeUpgrade
     // documentationMode: the one the project is opened with; None for a project that generates no documentation file
     private static async Task<string> ApplyAsync(string source, DocumentationMode documentationMode, params CodeStep[] steps)
     {
-        using var workspace = new AdhocWorkspace();
+        var (workspace, solution, projectId, documentId) = CreateSolution(source, documentationMode);
+        using var _ = workspace;
+
+        IReadOnlyList<ProjectId> targets = [projectId];
+        foreach (var step in steps)
+            solution = await step.Upgrade(solution, targets, CancellationToken.None);
+
+        var document = solution.GetDocument(documentId);
+        var text = await document.GetTextAsync();
+        return text.ToString();
+    }
+
+    // A project of one document, opened as the runner opens it
+    private static (AdhocWorkspace Workspace, Solution Solution, ProjectId ProjectId, DocumentId DocumentId) CreateSolution(string source, DocumentationMode documentationMode, string? filePath = null)
+    {
+        var workspace = new AdhocWorkspace();
         var projectId = ProjectId.CreateNewId();
         var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Create(), "TestProject", "TestProject", LanguageNames.CSharp)
             .WithMetadataReferences(FrameworkReferences())
@@ -49,17 +67,10 @@ public class TestCodeUpgrade
 
         var documentId = DocumentId.CreateNewId(projectId);
         // Give the document a real path: the engine only migrates on-disk user source (it writes back by path).
-        var solution = workspace.CurrentSolution.AddDocument(documentId, "Test.cs", SourceText.From(source), filePath: Path.Combine(Path.GetTempPath(), "Test.cs"));
+        var solution = workspace.CurrentSolution.AddDocument(documentId, "Test.cs", SourceText.From(source), filePath: filePath ?? Path.Combine(Path.GetTempPath(), "Test.cs"));
         // As the runner opens it
         solution = RoslynCodeUpgradeRunner.ParseDocumentationComments(solution);
-
-        IReadOnlyList<ProjectId> targets = [projectId];
-        foreach (var step in steps)
-            solution = await step.Upgrade(solution, targets, CancellationToken.None);
-
-        var document = solution.GetDocument(documentId);
-        var text = await document.GetTextAsync();
-        return text.ToString();
+        return (workspace, solution, projectId, documentId);
     }
 
     // No error, and every cref names something
@@ -680,6 +691,204 @@ public class TestCodeUpgrade
         // The unrelated same-named method is untouched.
         Assert.Contains("o.UnsetRenderTargets()", result);
         AssertCompiles(result);
+    }
+
+    // The runner's fold: a step that throws is reported failed and changes nothing, and the steps after it still run
+    [Fact]
+    public async Task TheFoldReportsWhatEachStepDid()
+    {
+        var source = """
+            namespace TestNs
+            {
+                class Target { public void Old() { } }
+                class Usage { void A(Target t) => t.Old(); }
+            }
+            """;
+        var (workspace, solution, projectId, documentId) = CreateSolution(source, DocumentationMode.Parse);
+        using var _ = workspace;
+        List<(CodeStep Step, string Id)> steps =
+        [
+            (Rewrite(MemberRename("TestNs.Target", "Old", "New")), "My-1.0.0-C1"),
+            (Custom("Throws", (input, targets, cancellationToken) => throw new InvalidOperationException("The step throws")), "My-1.0.0-C2"),
+            (Custom("Changes nothing", (input, targets, cancellationToken) => Task.FromResult(input)), "My-1.0.0-C3"),
+        ];
+        var report = new UpgraderReport("My", new PackageVersion("0.9.0"), new PackageVersion("1.0.0"), steps.Select(x => new UpgradeStepInfo(x.Id, x.Step.Title, null)));
+        var log = new LoggerResult();
+
+        solution = await RoslynCodeUpgradeRunner.ApplyStepsAsync(solution, projectId, steps, report, "Test.csproj", log, CancellationToken.None);
+
+        Assert.Equal([UpgradeStepStatus.Done, UpgradeStepStatus.Failed, UpgradeStepStatus.Done], report.Steps.Select(x => x.Status));
+        Assert.Equal([1, 0, 0], report.Steps.Select(x => x.ChangedFiles.Count));
+        Assert.Equal([1, 0, 0], report.Steps.Select(x => x.Edits));
+        Assert.Equal("The step throws", report.Steps[1].Error);
+        Assert.IsType<InvalidOperationException>(report.Steps[1].Exception);
+        Assert.Contains(log.Messages, x => x.Type == LogMessageType.Warning && x.Text.StartsWith("My-1.0.0-C2: ", StringComparison.Ordinal));
+        Assert.Contains("t.New()", (await solution.GetDocument(documentId).GetTextAsync()).ToString());
+    }
+
+    // A change a step makes on the code as the user wrote it, but not in the fold, is reported; a document a step can't change
+    // stays as it was before that step, also for the steps after it
+    [Fact]
+    public async Task TheFoldReportsTheChangesNotMadeAndFreezesADocumentAStepCantChange()
+    {
+        var source = """
+            namespace TestNs
+            {
+                class Target { public void Old() { } }
+                class Usage { void A(Target t) => t.Old(); }
+            }
+            """;
+        var (workspace, solution, projectId, documentId) = CreateSolution(source, DocumentationMode.Parse);
+        using var _ = workspace;
+        List<(CodeStep Step, string Id)> steps =
+        [
+            (Rewrite(MemberRename("TestNs.Target", "Old", "New")), "My-1.0.0-C1"),
+            // Its match is the call the first step renamed: it no longer binds
+            (Rewrite(MemberRename("TestNs.Target", "Old", "Other")), "My-1.0.0-C2"),
+            (Custom("Fails on the document", async (input, targets, cancellationToken) =>
+            {
+                CodeUpgradeUnits.Failed(documentId, new InvalidOperationException("The document can't be changed"));
+                return input.WithDocumentText(documentId, SourceText.From((await input.GetDocument(documentId)!.GetTextAsync(cancellationToken)) + "// Three"));
+            }), "My-1.0.0-C3"),
+            (Custom("Changes the document", async (input, targets, cancellationToken)
+                => input.WithDocumentText(documentId, SourceText.From((await input.GetDocument(documentId)!.GetTextAsync(cancellationToken)) + "// Four"))), "My-1.0.0-C4"),
+        ];
+        var report = new UpgraderReport("My", new PackageVersion("0.9.0"), new PackageVersion("1.0.0"), steps.Select(x => new UpgradeStepInfo(x.Id, x.Step.Title, null)));
+
+        solution = await RoslynCodeUpgradeRunner.ApplyStepsAsync(solution, projectId, steps, report, "Test.csproj", new LoggerResult(), CancellationToken.None);
+
+        Assert.Equal([UpgradeStepStatus.Done, UpgradeStepStatus.Partial, UpgradeStepStatus.Partial, UpgradeStepStatus.Done], report.Steps.Select(x => x.Status));
+        var missed = Assert.Single(report.Steps[1].MissedChanges);
+        Assert.Equal((4, "Old → Other"), (missed.Line, missed.Change));
+        Assert.Equal("The document can't be changed", Assert.Single(report.Steps[2].FailedUnits).Exception?.Message);
+        Assert.Empty(report.Steps[3].ChangedFiles);
+        var text = (await solution.GetDocument(documentId)!.GetTextAsync()).ToString();
+        Assert.Contains("t.New()", text);
+        Assert.DoesNotContain("//", text);
+    }
+
+    // The place of a change not made is in the code the upgrade writes, after the lines the steps before and after it added
+    [Fact]
+    public async Task AChangeNotMadeIsPlacedInTheUpgradedCode()
+    {
+        var source = """
+            namespace TestNs
+            {
+                class Target { public void Old() { } }
+                class Usage { void A(Target t) => t.Old(); }
+            }
+            """;
+        var (workspace, solution, projectId, documentId) = CreateSolution(source, DocumentationMode.Parse);
+        using var _ = workspace;
+        List<(CodeStep Step, string Id)> steps =
+        [
+            (Custom("Adds a line", async (input, targets, cancellationToken)
+                => input.WithDocumentText(documentId, SourceText.From("// One\n" + await input.GetDocument(documentId)!.GetTextAsync(cancellationToken)))), "My-1.0.0-C1"),
+            (Rewrite(MemberRename("TestNs.Target", "Old", "New")), "My-1.0.0-C2"),
+            // Its match is the call the step before renamed: it no longer binds
+            (Rewrite(MemberRename("TestNs.Target", "Old", "Other")), "My-1.0.0-C3"),
+            (Custom("Adds another line", async (input, targets, cancellationToken)
+                => input.WithDocumentText(documentId, SourceText.From("// Four\n" + await input.GetDocument(documentId)!.GetTextAsync(cancellationToken)))), "My-1.0.0-C4"),
+        ];
+        var report = new UpgraderReport("My", new PackageVersion("0.9.0"), new PackageVersion("1.0.0"), steps.Select(x => new UpgradeStepInfo(x.Id, x.Step.Title, null)));
+
+        solution = await RoslynCodeUpgradeRunner.ApplyStepsAsync(solution, projectId, steps, report, "Test.csproj", new LoggerResult(), CancellationToken.None);
+
+        Assert.Equal([UpgradeStepStatus.Done, UpgradeStepStatus.Done, UpgradeStepStatus.Partial, UpgradeStepStatus.Done], report.Steps.Select(x => x.Status));
+        var missed = Assert.Single(report.Steps[2].MissedChanges);
+        Assert.Equal((6, "Old → Other"), (missed.Line, missed.Change));
+        var line = (await solution.GetDocument(documentId)!.GetTextAsync()).Lines[missed.Line - 1].ToString();
+        Assert.StartsWith("New()", line[(missed.Column - 1)..], StringComparison.Ordinal);
+    }
+
+    // A change a step makes on the code as the user wrote it, in code an earlier step deleted, is not a change left to make
+    [Fact]
+    public async Task AChangeInCodeAnEarlierStepDeletedIsNotReported()
+    {
+        var source = """
+            namespace TestNs
+            {
+                class Target { public void Old() { } }
+                class Usage { void A(Target t) => t.Old(); }
+            }
+            """;
+        var (workspace, solution, projectId, documentId) = CreateSolution(source, DocumentationMode.Parse);
+        using var _ = workspace;
+        List<(CodeStep Step, string Id)> steps =
+        [
+            (Custom("Deletes the usage", async (input, targets, cancellationToken) =>
+            {
+                var text = await input.GetDocument(documentId)!.GetTextAsync(cancellationToken);
+                var line = text.Lines.Single(x => x.ToString().Contains("class Usage", StringComparison.Ordinal));
+                return input.WithDocumentText(documentId, text.WithChanges(new TextChange(line.SpanIncludingLineBreak, "")));
+            }), "My-1.0.0-C1"),
+            (Rewrite(MemberRename("TestNs.Target", "Old", "New")), "My-1.0.0-C2"),
+        ];
+        var report = new UpgraderReport("My", new PackageVersion("0.9.0"), new PackageVersion("1.0.0"), steps.Select(x => new UpgradeStepInfo(x.Id, x.Step.Title, null)));
+
+        solution = await RoslynCodeUpgradeRunner.ApplyStepsAsync(solution, projectId, steps, report, "Test.csproj", new LoggerResult(), CancellationToken.None);
+
+        Assert.DoesNotContain("Usage", (await solution.GetDocument(documentId)!.GetTextAsync()).ToString(), StringComparison.Ordinal);
+        Assert.Empty(report.Steps[1].MissedChanges);
+        Assert.Equal([UpgradeStepStatus.Done, UpgradeStepStatus.Done], report.Steps.Select(x => x.Status));
+    }
+
+    // A file the upgrade can't write stays as it was: the steps that changed it report it left unchanged
+    [Fact]
+    public async Task AFileThatCantBeWrittenIsReportedLeftUnchanged()
+    {
+        var source = """
+            namespace TestNs
+            {
+                class Target { public void Old() { } }
+                class Usage { void A(Target t) => t.Old(); }
+            }
+            """;
+        var folder = Directory.CreateTempSubdirectory("stride-code-upgrade-").FullName;
+        var path = Path.Combine(folder, "Test.cs");
+        File.WriteAllText(path, source);
+        File.SetAttributes(path, FileAttributes.ReadOnly);
+        try
+        {
+            var (workspace, solution, projectId, documentId) = CreateSolution(source, DocumentationMode.Parse, path);
+            using var _ = workspace;
+            List<(CodeStep Step, string Id)> steps = [(Rewrite(MemberRename("TestNs.Target", "Old", "New")), "My-1.0.0-C1")];
+            var report = new UpgraderReport("My", new PackageVersion("0.9.0"), new PackageVersion("1.0.0"), steps.Select(x => new UpgradeStepInfo(x.Id, x.Step.Title, null)));
+            var upgraded = await RoslynCodeUpgradeRunner.ApplyStepsAsync(solution, projectId, steps, report, "Test.csproj", new LoggerResult(), CancellationToken.None);
+
+            var written = await RoslynCodeUpgradeRunner.WriteChangedDocumentsAsync(upgraded, solution, [report], null, new LoggerResult(), CancellationToken.None);
+
+            Assert.Equal(0, written);
+            Assert.Equal(source, File.ReadAllText(path));
+            var step = Assert.Single(report.Steps);
+            Assert.Equal(UpgradeStepStatus.Partial, step.Status);
+            Assert.Empty(step.ChangedFiles);
+            Assert.Equal(path, Assert.Single(step.FailedUnits).Path);
+        }
+        finally
+        {
+            File.SetAttributes(path, FileAttributes.Normal);
+            Directory.Delete(folder, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData(2, 3, "C()", "B() → C()")]
+    [InlineData(6, 0, "\n    [X]", "add [X]")]
+    [InlineData(0, 6, "", "remove A.B();")]
+    public void AChangeIsDescribedOnOneLine(int start, int length, string newText, string expected)
+    {
+        Assert.Equal(expected, RoslynCodeUpgradeRunner.DescribeChange(SourceText.From("A.B();"), new TextChange(new TextSpan(start, length), newText)));
+    }
+
+    [Fact]
+    public void APlaceIsMappedThroughTheEarlierChanges()
+    {
+        // "aaa bbb ccc": bbb -> b, then ccc moves 2 to the left, and a span in bbb covers what replaced it
+        List<TextChange> changes = [new(new TextSpan(4, 3), "b")];
+        Assert.Equal(new TextSpan(6, 3), RoslynCodeUpgradeRunner.MapSpan(new TextSpan(8, 3), changes));
+        Assert.Equal(new TextSpan(4, 1), RoslynCodeUpgradeRunner.MapSpan(new TextSpan(5, 1), changes));
+        Assert.Equal(new TextSpan(0, 3), RoslynCodeUpgradeRunner.MapSpan(new TextSpan(0, 3), changes));
     }
 
     [Theory]
@@ -1593,10 +1802,11 @@ public class TestCodeUpgrade
 
         var step = Combine("Move the overrides",
             PropertyOverrideRename("VR.TouchController", "Trigger", "RawTrigger", SyntaxKind.ProtectedKeyword),
-            MethodOverrideRename("VR.TouchController", "IsPressed", "IsRawPressed", SyntaxKind.ProtectedKeyword));
+            MethodOverrideRename("VR.TouchController", "IsPressed", "IsRawPressed", SyntaxKind.ProtectedKeyword) with { MayChangeBehaviour = true });
         var result = await ApplyAsync(source, step);
 
         Assert.Equal("Move the overrides", step.Title);
+        Assert.True(step.MayChangeBehaviour);
         Assert.Contains("protected override float RawTrigger => 1;", result);
         // The second migration runs on the code the first one changed
         Assert.Contains("protected override bool IsRawPressed(int button) => Trigger > 0;", result);

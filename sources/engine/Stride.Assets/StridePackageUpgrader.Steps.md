@@ -15,7 +15,7 @@ Written by `TestUpgradeSteps.StrideStepsMatchTheirList`: run it with `STRIDE_UPD
 | `Stride-4.4.0-P1` | Reference `Stride.AssetCompiler`, and rename the generated `.sdsl.cs` and `.sdfx.cs` files to `.bak` |
 | `Stride-4.4.2-P1` | Declare effects with `effect` instead of `shader` in `.sdfx` files |
 | `Stride-4.5.0-C1` | Use `Game.Audio` as an extension member of `Stride.Audio` |
-| `Stride-4.5.0-C2` | Add `[EffectKeys]` to the types that hold static `ParameterKey` fields |
+| `Stride-4.5.0-C2` | Add `[EffectKeys]` to the types that hold static `ParameterKey` fields (may change behaviour silently) |
 | `Stride-4.5.0-C3` | Pass what the `Dispatcher` callbacks capture as a state, to static lambdas |
 | `Stride-4.5.0-P1` | Add a `Stride.Audio` reference, since audio left `Stride.Engine` |
 | `Stride-4.5.0-P2` | Add the plugin packages whose assets the project has |

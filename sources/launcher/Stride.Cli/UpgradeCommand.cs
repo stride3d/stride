@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
 using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Cli.Core;
 
 // upgrade: migrate a project's assets to a newer installed Stride version (what Game Studio does on open).
@@ -16,11 +17,15 @@ internal static class UpgradeCommand
         };
         var versionOptions = new CliVersion.Options($"Stride version to upgrade to (4.4.0 or newer), installed first when it isn't; {CliVersion.Options.LineHelp}. Defaults to the newest installed release (nightlies: project upgrades might not be fully tested).");
         var noBackup = new Option<bool>("--no-backup") { Description = "Skip the automatic backup of files the upgrade modifies before editing in place." };
+        var report = new Option<string?>("--report") { Description = "Write what the upgrade did to each project, in Markdown, to this file (Stride 4.5 and newer). It doesn't change the upgrade-report.md of a project." };
+        var verbose = new Option<bool>("--verbose", "-v") { Description = "Show the verbose log of the upgrade, with every step also when all of them are done." };
 
         var command = new Command("upgrade", "Upgrade a project to a newer installed Stride version.");
         command.Arguments.Add(path);
         versionOptions.AddTo(command);
         command.Options.Add(noBackup);
+        command.Options.Add(report);
+        command.Options.Add(verbose);
         command.SetAction(async (parseResult, cancellationToken) =>
         {
             var cwd = Environment.CurrentDirectory;
@@ -113,6 +118,18 @@ internal static class UpgradeCommand
             var args = new List<string> { "upgrade", input };
             if (parseResult.GetValue(noBackup))
                 args.Add("--no-backup");
+            if (parseResult.GetValue(verbose))
+                args.Add("--verbose");
+            if (parseResult.GetValue(report) is { Length: > 0 } reportPath)
+            {
+                // An older asset compiler ignores options it doesn't know: one that writes the report uses UpgradeReportWriter
+                if (!DotNetHostSelector.ReferencesType(compiler, "UpgradeReportWriter"))
+                {
+                    Console.Error.WriteLine($"The Asset Compiler of Stride {target} can't write an upgrade report: --report needs a newer version.");
+                    return 1;
+                }
+                args.Add($"--report={Path.GetFullPath(reportPath)}");
+            }
 
             Console.WriteLine($"Upgrading {Path.GetFileName(input)} to Stride {target}...");
             return Tools.Run(compiler, $"the Asset Compiler for Stride {target}", args, wait: true, sessionPath: input, toolReadsHostArgs: false);

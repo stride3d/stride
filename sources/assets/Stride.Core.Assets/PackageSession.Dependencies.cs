@@ -159,7 +159,7 @@ partial class PackageSession
 
             // The source migration writes user files, so it needs the same confirmation as the package upgrade.
             if (projectCodeUpgrades.Count > 0 && PackageLoadParameters.ShouldUpgrade(RequestPackageUpgrade(project.Package, pendingPackageUpgrades, loadParameters)))
-                result.AddRange(projectCodeUpgrades);
+                result.AddRange(projectCodeUpgrades.Select(x => x with { Report = UpgradeReport.GetOrAdd(x.ProjectFullPath, x.Upgrader, x.FromVersion) }));
         }
         return result;
     }
@@ -352,7 +352,7 @@ partial class PackageSession
 
             if (pendingPackageUpgrades.Count > 0)
             {
-                if (IsUpgradeStopped(project, log))
+                if (IsUpgradeStopped(project, pendingPackageUpgrades, log))
                     return;
 
                 // Need upgrades, let's ask user confirmation
@@ -394,6 +394,7 @@ partial class PackageSession
                     }
                     catch (Exception e)
                     {
+                        ReportOf(this, package, pendingPackageUpgrade)?.AddFailure("Update the package references", e.Message);
                         log.Error($"Could not upgrade the package references of [{project.FullPath.GetFileName()}]. {RestoreFromBackupHint}", e);
                         failedUpgrades.Add(package);
                         return;
@@ -401,8 +402,12 @@ partial class PackageSession
 
                     var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
                     var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
+                    var report = ReportOf(this, package, pendingPackageUpgrade);
                     if (!packageUpgrader.UpgradeBeforeAssembliesLoaded(loadParameters, package.Session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage))
                     {
+                        // A step that failed reported itself
+                        if (report is not null && report.Steps.All(x => x.Status != UpgradeStepStatus.Failed))
+                            report.AddFailure("Upgrade the project before its assemblies load");
                         log.Error($"Error while upgrading package [{package.Meta.Name}] for [{pendingPackageUpgrade.Dependency.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{expectedVersion}]. {RestoreFromBackupHint}");
                         failedUpgrades.Add(package);
                         return;

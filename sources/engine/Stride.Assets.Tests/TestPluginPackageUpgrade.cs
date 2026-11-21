@@ -2,6 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
+using Microsoft.Build.Evaluation;
+using Stride.Core.Assets;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 using Xunit;
 
 namespace Stride.Assets.Tests
@@ -48,6 +52,40 @@ namespace Stride.Assets.Tests
             File.WriteAllText(Path.Combine(directory, "Assets", "MainScene.sdscene"), "");
 
             Assert.Empty(StridePackageUpgrader.FindMissingPluginPackages(directory, ["Stride.Engine"]));
+        }
+
+        [Theory]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        public void LeavesThePackagesToAddWhenStrideEngineComesFromAnImportedFile(bool videoImported, bool leftToAdd)
+        {
+            // As from a Directory.Build.props, where the user adds the packages by hand before a retry
+            File.WriteAllText(Path.Combine(directory, "Assets", "Intro.sdvid"), "");
+            var video = videoImported ? "<PackageReference Include=\"Stride.Video\" Version=\"4.5.0\" />" : "";
+            File.WriteAllText(Path.Combine(directory, "Engine.props"), $"""
+                <Project>
+                  <ItemGroup>
+                    <PackageReference Include="Stride.Engine" Version="4.5.0" />
+                    {video}
+                  </ItemGroup>
+                </Project>
+                """);
+            var path = Path.Combine(directory, "Game.csproj");
+            File.WriteAllText(path, """
+                <Project>
+                  <Import Project="Engine.props" />
+                </Project>
+                """);
+            var project = new Project(path, null, null, new Microsoft.Build.Evaluation.ProjectCollection());
+            var context = new ProjectUpgradeContext(project, null!, new UFile(path), new LoggerResult());
+
+            StridePackageUpgrader.AddPluginPackageReferences(context);
+
+            Assert.False(context.IsDirty);
+            if (leftToAdd)
+                Assert.Contains("Stride.Video", Assert.Single(context.FailedUnits).Error, StringComparison.Ordinal);
+            else
+                Assert.Empty(context.FailedUnits);
         }
     }
 }

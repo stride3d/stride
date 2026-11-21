@@ -87,7 +87,8 @@ public static partial class CodeUpgrades
             foreach (var step in steps)
                 solution = await step.Upgrade(solution, targets, cancellationToken);
             return solution;
-        });
+        })
+        { MayChangeBehaviour = steps.Any(x => x.MayChangeBehaviour) };
     }
 
     /// <summary>

@@ -24,6 +24,19 @@ public abstract class PackageUpgrader
     public const string UpgradeRecordItem = "StridePackageUpgradeRecord";
 
     /// <summary>
+    /// The metadata of an <see cref="UpgradeRecordItem"/> that lists, separated by <c>;</c>, the IDs of the steps an upgrade
+    /// kept after a failure left to finish by hand. No upgrade runs on the project while it is set: the user removes it once
+    /// these steps are done ("Mark upgrade as finished" in Game Studio, <c>stride upgrade --mark-finished</c>).
+    /// </summary>
+    public const string UnfinishedMetadata = "Unfinished";
+
+    /// <summary>
+    /// The steps the upgrader runs on a project upgraded from <paramref name="fromVersion"/>, in the order they run, for the
+    /// <see cref="UpgradeReport"/>. Empty by default: an upgrader without declared steps reports only its failures.
+    /// </summary>
+    public virtual IReadOnlyList<UpgradeStepInfo> GetUpgradeSteps(PackageVersion fromVersion) => [];
+
+    /// <summary>
     /// Performs a preprocessing step of package migration, before assembly references are loaded.
     /// </summary>
     /// <param name="loadParameters">The load parameters.</param>
