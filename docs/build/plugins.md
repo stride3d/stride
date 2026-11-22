@@ -358,7 +358,7 @@ Game Studio reloads a plugin's assemblies while the session stays open. It asks 
 
 - **A plugin project of the solution**: an edit of its code (`.cs`), its views (`.axaml`, `.xaml`), its resources (`.resx`) or its `.csproj` builds it again, and it reloads.
 - **A dependency built locally** (a dev-redirect to a source tree, as `build/redirect-packages.cs` sets up): Game Studio watches the assemblies the checkout built. When they are rebuilt, they reload.
-- **A `PackageReference` version change** in a project of the solution: the project restores, and the dependency loads its new version. A library loaded from another build of the same version (a plugin's own copy) is no change.
+- **A `PackageReference` version change** in a project of the solution: the project restores, and the dependency loads its new version. In a source checkout (dev-redirect packages), a library is compared with the checkout's build, which the game builds against, not with the copy the redirect package keeps.
 
 With any of these, the loaded assemblies that reference a reloaded one reload too, whatever their package, dependencies first: a reference stays bound to the copy it loaded first. Each assembly gets a load context of its own. A reference resolves to the session's current copy first, then to Game Studio's own copy, then to the package's files. The whole set builds before anything reloads: if one build fails, nothing reloads, and the changes stay pending.
 
