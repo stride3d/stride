@@ -93,7 +93,7 @@ namespace Stride.Graphics
         private Texture[] drawTextures;
         private List<Buffer> lastFrameBuffers;
 
-        private readonly int vertexStructSize;
+        private protected readonly int vertexStructSize;
         private readonly int indexStructSize;
 
         /// <summary>
@@ -428,7 +428,7 @@ namespace Stride.Graphics
             DrawBatchPerTextureAndPass(sprites, offset, count);
         }
 
-        private void DrawBatchPerTextureAndPass(ElementInfo[] sprites, int offset, int count)
+        private protected virtual void DrawBatchPerTextureAndPass(ElementInfo[] sprites, int offset, int count)
         {
             ResourceContext.VertexBufferPosition = ResourceContext.VertexCount;
             ResourceContext.IndexBufferPosition = ResourceContext.IndexCount;
