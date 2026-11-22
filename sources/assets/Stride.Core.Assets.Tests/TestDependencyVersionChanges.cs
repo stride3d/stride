@@ -142,6 +142,23 @@ public class TestDependencyVersionChanges : IDisposable
     }
 
     [Fact]
+    public void LibraryOfTheSameVersionFromAnotherBuildIsNoChange()
+    {
+        // An editor plugin's own copy, built apart from the package the game restores
+        var name = "Stride.LibraryProbe" + Guid.NewGuid().ToString("N");
+        var pluginCopy = Path.Combine(directory, "Plugin", name + ".dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(pluginCopy)!);
+        File.Move(EmitLibrary(name, "1.0.4", typeCount: 1), pluginCopy);
+        EmitLibrary(name, "1.0.4", typeCount: 2);
+        var library = session.AssemblyContainer.LoadAssemblyFromPath(pluginCopy);
+        Assert.NotNull(library);
+        WriteLockFile((name, "1.0.4", [name + ".dll"]));
+
+        Assert.Empty(session.FindDependencyVersionChanges(gameProject));
+        session.AssemblyContainer.UnloadAssembly(library);
+    }
+
+    [Fact]
     public void LibraryCopiedNextToTheGameIsNoChange()
     {
         var name = "Stride.LibraryProbe" + Guid.NewGuid().ToString("N");
@@ -173,7 +190,7 @@ public class TestDependencyVersionChanges : IDisposable
 
     private string EmitLibrary(string name, string version, int typeCount)
     {
-        var builder = new PersistedAssemblyBuilder(new AssemblyName(name), typeof(object).Assembly);
+        var builder = new PersistedAssemblyBuilder(new AssemblyName(name) { Version = new Version(version) }, typeof(object).Assembly);
         var module = builder.DefineDynamicModule(name);
         for (var i = 0; i < typeCount; i++)
             module.DefineType("LibraryType" + i, TypeAttributes.Public).CreateType();

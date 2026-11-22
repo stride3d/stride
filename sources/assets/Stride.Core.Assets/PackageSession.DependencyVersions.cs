@@ -193,7 +193,9 @@ partial class PackageSession
             {
                 var name = Path.GetFileNameWithoutExtension(newPath);
                 var loadedAssembly = loadedAssemblies.FirstOrDefault(x => string.Equals(x.Assembly.GetName().Name, name, StringComparison.OrdinalIgnoreCase));
-                if (loadedAssembly is not null && !IsSameFile(loadedAssembly.Path, newPath))
+                // Another build of the same version (an editor plugin's own copy) is no change, unless the restore moved
+                // the dependency to another version
+                if (loadedAssembly is not null && !IsSameFile(loadedAssembly.Path, newPath) && (oldPaths.Count > 0 || !IsSameVersion(loadedAssembly.Assembly, newPath)))
                     libraryChange.Libraries.Add((loadedAssembly, newPath));
             }
             if (libraryChange.Libraries.Count == 0 && oldPaths.Count == 0)
@@ -203,6 +205,18 @@ partial class PackageSession
             changes.Add(libraryChange);
         }
         return changes;
+    }
+
+    private static bool IsSameVersion(System.Reflection.Assembly assembly, string path)
+    {
+        try
+        {
+            return System.Reflection.AssemblyName.GetAssemblyName(path).Version == assembly.GetName().Version;
+        }
+        catch (Exception e) when (e is IOException or BadImageFormatException)
+        {
+            return false;
+        }
     }
 
     // A copy next to the game (copied to its output) is the same version as the package cache's file
