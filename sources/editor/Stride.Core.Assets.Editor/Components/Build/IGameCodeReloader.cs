@@ -23,8 +23,9 @@ public interface IGameCodeReloader
     /// <param name="builtAssemblies">The assembly each rebuilt project produced, by project file.</param>
     /// <param name="log">Where the reload says what it did, or why it can't reload in place.</param>
     /// <param name="undone">Called when the reload is undone: the previous code is back, so the new code waits to be reloaded again.</param>
+    /// <param name="redone">Called when the reload is redone: the new code is back.</param>
     /// <returns>Whether the code reloaded in place, or why the session has to open again in a fresh editor.</returns>
-    Task<GameCodeReloadResult> ReloadAsync(SessionViewModel session, IReadOnlyDictionary<string, string> builtAssemblies, ILogger log, Action undone);
+    Task<GameCodeReloadResult> ReloadAsync(SessionViewModel session, IReadOnlyDictionary<string, string> builtAssemblies, ILogger log, Action undone, Action redone);
 }
 
 /// <summary>

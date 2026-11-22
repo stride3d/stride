@@ -289,6 +289,55 @@ public sealed class GameCodeReloadViewModelTests
         Assert.True(test.Reload.ReloadCommand.IsEnabled);
         Assert.Equal([test.ProjectPath], test.Reload.ChangedProjects);
         Assert.Single(test.Dialogs.Messages);
+
+        // Redone: nothing waits, and the next change asks again
+        reloader.Calls[0].Redone();
+        Assert.False(test.Reload.HasPendingChanges);
+        Assert.False(test.Reload.ReloadCommand.IsEnabled);
+        test.Change("Player.cs");
+        await test.Reload.Question;
+        Assert.Equal(2, test.Dialogs.Messages.Count);
+    }
+
+    [Fact]
+    public async Task ARedoKeepsPendingAChangeMadeAfterItsUndo()
+    {
+        await using var test = await ReloadTest.CreateAsync();
+        var reloader = test.RegisterReloader(GameCodeReloadResult.InPlace);
+        test.Dialogs.PickButton = _ => ReloadButton;
+        test.Change("Player.cs");
+        await test.Reload.Question;
+        var reload = Assert.Single(reloader.Calls);
+
+        reload.Undone();
+        test.Change("Player.cs");
+        reload.Redone();
+
+        // The redone reload doesn't have that change
+        Assert.True(test.Reload.HasPendingChanges);
+        Assert.True(test.Reload.ReloadCommand.IsEnabled);
+        Assert.Equal([test.ProjectPath], test.Reload.ChangedProjects);
+    }
+
+    [Fact]
+    public async Task RedoingAnEarlierReloadKeepsTheCodeOfALaterOnePending()
+    {
+        await using var test = await ReloadTest.CreateAsync();
+        var reloader = test.RegisterReloader(GameCodeReloadResult.InPlace);
+        test.Dialogs.PickButton = _ => ReloadButton;
+        test.Change("Player.cs");
+        await test.Reload.Question;
+        test.Change("Player.cs");
+        await test.Reload.Question;
+        Assert.Equal(2, reloader.Calls.Count);
+
+        reloader.Calls[1].Undone();
+        reloader.Calls[0].Undone();
+        reloader.Calls[0].Redone();
+        Assert.True(test.Reload.HasPendingChanges);
+
+        reloader.Calls[1].Redone();
+        Assert.False(test.Reload.HasPendingChanges);
     }
 
     [Fact]
@@ -440,11 +489,11 @@ public sealed class GameCodeReloadViewModelTests
 
     private sealed class FakeGameCodeReloader(GameCodeReloadResult result) : IGameCodeReloader
     {
-        public List<(SessionViewModel Session, IReadOnlyDictionary<string, string> BuiltAssemblies, Action Undone)> Calls { get; } = [];
+        public List<(SessionViewModel Session, IReadOnlyDictionary<string, string> BuiltAssemblies, Action Undone, Action Redone)> Calls { get; } = [];
 
-        public Task<GameCodeReloadResult> ReloadAsync(SessionViewModel session, IReadOnlyDictionary<string, string> builtAssemblies, ILogger log, Action undone)
+        public Task<GameCodeReloadResult> ReloadAsync(SessionViewModel session, IReadOnlyDictionary<string, string> builtAssemblies, ILogger log, Action undone, Action redone)
         {
-            Calls.Add((session, builtAssemblies, undone));
+            Calls.Add((session, builtAssemblies, undone, redone));
             return Task.FromResult(result);
         }
     }

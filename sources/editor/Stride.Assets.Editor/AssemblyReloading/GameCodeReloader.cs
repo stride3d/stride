@@ -37,12 +37,13 @@ public sealed class GameCodeReloader : IGameCodeReloader
     private static readonly string[] UserInterfaceAssemblyPrefixes = ["Avalonia", "PresentationFramework", "PresentationCore"];
 
     /// <inheritdoc/>
-    public async Task<GameCodeReloadResult> ReloadAsync(SessionViewModel session, IReadOnlyDictionary<string, string> builtAssemblies, ILogger log, Action undone)
+    public async Task<GameCodeReloadResult> ReloadAsync(SessionViewModel session, IReadOnlyDictionary<string, string> builtAssemblies, ILogger log, Action undone, Action redone)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(builtAssemblies);
         ArgumentNullException.ThrowIfNull(log);
         ArgumentNullException.ThrowIfNull(undone);
+        ArgumentNullException.ThrowIfNull(redone);
 
         var comparer = OperatingSystem.IsLinux() ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
         var built = builtAssemblies.ToDictionary(x => Path.GetFullPath(x.Key), x => x.Value, comparer);
@@ -113,7 +114,7 @@ public sealed class GameCodeReloader : IGameCodeReloader
         foreach (var versionChange in versionChanges)
             log.Info($"[{versionChange}] loads the new version.");
         var reloadedCopies = reloaded.Keys.ToList();
-        Apply(session, log, reloaded, versionChanges, () => { }, undone);
+        Apply(session, log, reloaded, versionChanges, () => { }, undone, redone);
         log.Info($"Reloaded {string.Join(", ", reloadedCopies.Select(x => x.Assembly?.GetName().Name).NotNull())} in the editor.");
         return GameCodeReloadResult.InPlace;
     }
@@ -174,7 +175,8 @@ public sealed class GameCodeReloader : IGameCodeReloader
     /// <param name="versionChanges">The dependencies that load another version.</param>
     /// <param name="postReloadAction">Runs after the swap, and again after its undo and its redo.</param>
     /// <param name="undoAction">Runs when the reload is undone.</param>
-    public static void Apply(SessionViewModel session, ILogger log, IReadOnlyDictionary<PackageLoadedAssembly, string> assemblies, IReadOnlyList<DependencyVersionChange> versionChanges, Action postReloadAction, Action undoAction)
+    /// <param name="redoAction">Runs when the reload is redone, once the new copies are back.</param>
+    public static void Apply(SessionViewModel session, ILogger log, IReadOnlyDictionary<PackageLoadedAssembly, string> assemblies, IReadOnlyList<DependencyVersionChange> versionChanges, Action postReloadAction, Action undoAction, Action? redoAction = null)
     {
         var undoRedo = session.UndoRedoService ?? throw new InvalidOperationException("The session has no undo history.");
         using (var transaction = undoRedo.CreateTransaction())
@@ -191,6 +193,8 @@ public sealed class GameCodeReloader : IGameCodeReloader
             GameStudioAssemblyReloader.Reload(session, log, postReloadAction, undoAction, assemblies.ToDictionary(x => x.Key, x => x.Value));
             session.AllAssets.ForEach(x => x.PropertyGraph?.RefreshBase());
             session.AllAssets.ForEach(x => x.PropertyGraph?.ReconcileWithBase());
+            if (redoAction is not null)
+                undoRedo.PushOperation(new AnonymousDirtyingOperation([], null, redoAction));
 
             undoRedo.SetName(transaction, "Reload game assemblies");
         }

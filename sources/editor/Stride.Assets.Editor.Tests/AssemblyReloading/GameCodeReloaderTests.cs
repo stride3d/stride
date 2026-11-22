@@ -31,7 +31,8 @@ public sealed class GameCodeReloaderTests
 
         var log = new LoggerResult();
         var undone = 0;
-        var result = await new GameCodeReloader().ReloadAsync(fixture.Session, new Dictionary<string, string> { [probe.ProjectPath] = probe.SecondVersionPath }, log, () => undone++);
+        var redone = 0;
+        var result = await new GameCodeReloader().ReloadAsync(fixture.Session, new Dictionary<string, string> { [probe.ProjectPath] = probe.SecondVersionPath }, log, () => undone++, () => redone++);
 
         Assert.True(result.Reloaded, result.RestartReason);
         Assert.DoesNotContain(log.Messages, x => x.Type >= LogMessageType.Warning);
@@ -44,6 +45,9 @@ public sealed class GameCodeReloaderTests
         undoRedo.Undo();
         Assert.Same(probe.FirstVersion, ProbeComponent(fixture).GetType().Assembly);
         Assert.Equal(1, undone);
+        undoRedo.Redo();
+        Assert.NotSame(probe.FirstVersion, ProbeComponent(fixture).GetType().Assembly);
+        Assert.Equal(1, redone);
     }
 
     [Fact]
@@ -52,7 +56,7 @@ public sealed class GameCodeReloaderTests
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, [("MainScene", new SceneAsset())]);
         var transactions = fixture.Session.UndoRedoService.RetrieveAllTransactions().Count();
 
-        var result = await new GameCodeReloader().ReloadAsync(fixture.Session, new Dictionary<string, string> { [Path.Combine(Path.GetTempPath(), "Other.csproj")] = "Other.dll" }, new LoggerResult(), () => { });
+        var result = await new GameCodeReloader().ReloadAsync(fixture.Session, new Dictionary<string, string> { [Path.Combine(Path.GetTempPath(), "Other.csproj")] = "Other.dll" }, new LoggerResult(), () => { }, () => { });
 
         Assert.True(result.Reloaded);
         Assert.Equal(transactions, fixture.Session.UndoRedoService.RetrieveAllTransactions().Count());
@@ -69,7 +73,7 @@ public sealed class GameCodeReloaderTests
         fixture.Package.Package.LoadedAssemblies.Add(notLoaded);
         try
         {
-            var result = await new GameCodeReloader().ReloadAsync(fixture.Session, new Dictionary<string, string> { [probe.ProjectPath] = probe.SecondVersionPath }, new LoggerResult(), () => { });
+            var result = await new GameCodeReloader().ReloadAsync(fixture.Session, new Dictionary<string, string> { [probe.ProjectPath] = probe.SecondVersionPath }, new LoggerResult(), () => { }, () => { });
 
             Assert.False(result.Reloaded);
             Assert.Contains("is not loaded in this session", result.RestartReason);
@@ -93,7 +97,7 @@ public sealed class GameCodeReloaderTests
         var transactions = fixture.Session.UndoRedoService.RetrieveAllTransactions().Count();
         try
         {
-            var result = await new GameCodeReloader().ReloadAsync(fixture.Session, new Dictionary<string, string> { [projectPath] = engine.Location }, new LoggerResult(), () => { });
+            var result = await new GameCodeReloader().ReloadAsync(fixture.Session, new Dictionary<string, string> { [projectPath] = engine.Location }, new LoggerResult(), () => { }, () => { });
 
             Assert.False(result.Reloaded);
             Assert.Contains("Stride.Engine", result.RestartReason);

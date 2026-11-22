@@ -45,6 +45,8 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
     private readonly HashSet<string> changedProjects = new(PathComparer);
     // The changed projects whose project file itself changed: they restore before they build
     private readonly HashSet<string> changedProjectFiles = new(PathComparer);
+    // For each undone reload, the projects its undo made pending, which its redo takes back unless their code changed since
+    private readonly List<HashSet<string>> pendingByUndo = [];
     private SessionViewModel? session;
     private GameCodeWatcher? watcher;
     private CancellationTokenSource? sessionCancellation;
@@ -153,6 +155,8 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
             changedProjects.Add(change.ProjectPath);
             if (PathComparer.Equals(Path.GetFullPath(change.FilePath), Path.GetFullPath(change.ProjectPath)))
                 changedProjectFiles.Add(change.ProjectPath);
+            foreach (var madePending in pendingByUndo)
+                madePending.Remove(change.ProjectPath);
         }
         HasPendingChanges = true;
         UpdateCommands();
@@ -177,6 +181,7 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
         sessionCancellation = null;
         changedProjects.Clear();
         changedProjectFiles.Clear();
+        pendingByUndo.Clear();
         HasPendingChanges = false;
         askOnNextChange = false;
         questionRequested = false;
@@ -322,7 +327,8 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
 
             if (reloader is not null)
             {
-                var reload = await reloader.ReloadAsync(reloadedSession, result.AssemblyPaths, log, () => OnReloadUndone(reloadedSession, reloadedProjects));
+                var madePending = new HashSet<string>(PathComparer);
+                var reload = await reloader.ReloadAsync(reloadedSession, result.AssemblyPaths, log, () => OnReloadUndone(reloadedSession, reloadedProjects, madePending), () => OnReloadRedone(reloadedSession, madePending));
                 if (reload.Reloaded)
                 {
                     changedProjects.ExceptWith(reloadedProjects);
@@ -345,12 +351,39 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
     /// <summary>
     /// The reload was undone: the session runs the previous code again, so the new code waits to be reloaded, without asking.
     /// </summary>
-    private void OnReloadUndone(SessionViewModel reloadedSession, IReadOnlyList<string> reloadedProjects)
+    /// <param name="reloadedSession">The session of the reload.</param>
+    /// <param name="reloadedProjects">The projects the reload brought the new code of.</param>
+    /// <param name="madePending">Receives the projects that this undo made pending, for the redo.</param>
+    private void OnReloadUndone(SessionViewModel reloadedSession, IReadOnlyList<string> reloadedProjects, HashSet<string> madePending)
     {
         if (session != reloadedSession)
             return;
 
-        changedProjects.UnionWith(reloadedProjects);
+        foreach (var project in reloadedProjects)
+        {
+            if (changedProjects.Add(project))
+                madePending.Add(project);
+        }
+        if (madePending.Count > 0 && !pendingByUndo.Contains(madePending))
+            pendingByUndo.Add(madePending);
+        HasPendingChanges = changedProjects.Count > 0;
+        UpdateCommands();
+    }
+
+    /// <summary>
+    /// The reload was redone: the session runs its new code again, so the projects its undo made pending no longer wait, unless
+    /// their code changed since; the next change asks again.
+    /// </summary>
+    /// <param name="reloadedSession">The session of the reload.</param>
+    /// <param name="madePending">The projects that the undo of this reload made pending.</param>
+    private void OnReloadRedone(SessionViewModel reloadedSession, HashSet<string> madePending)
+    {
+        if (session != reloadedSession)
+            return;
+
+        changedProjects.ExceptWith(madePending);
+        madePending.Clear();
+        pendingByUndo.Remove(madePending);
         HasPendingChanges = changedProjects.Count > 0;
         UpdateCommands();
     }
