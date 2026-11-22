@@ -58,6 +58,27 @@ namespace Stride.Core.Yaml.Serialization.Serializers
             return typeDescriptor is PrimitiveDescriptor ? this : null;
         }
 
+        public override object ReadYaml(ref ObjectContext objectContext)
+        {
+            // A half was an object with its 16 bits, RawValue, while Stride had a type of its own for it
+            if (objectContext.Descriptor.Type == typeof(Half) && objectContext.Reader.Accept<MappingStart>())
+            {
+                var reader = objectContext.Reader;
+                reader.Expect<MappingStart>();
+                var value = default(Half);
+                while (!reader.Accept<MappingEnd>())
+                {
+                    var name = reader.Expect<Scalar>().Value;
+                    var bits = reader.Expect<Scalar>().Value;
+                    if (name == "RawValue")
+                        value = BitConverter.UInt16BitsToHalf(ushort.Parse(bits, CultureInfo.InvariantCulture));
+                }
+                reader.Expect<MappingEnd>();
+                return value;
+            }
+            return base.ReadYaml(ref objectContext);
+        }
+
         public override object ConvertFrom(ref ObjectContext context, Scalar scalar)
         {
             var primitiveType = (PrimitiveDescriptor) context.Descriptor;
@@ -143,6 +164,11 @@ namespace Stride.Core.Yaml.Serialization.Serializers
                     return double.Parse(text, CultureInfo.InvariantCulture);
                 case TypeCode.Decimal:
                     return decimal.Parse(text, CultureInfo.InvariantCulture);
+            }
+
+            if (type == typeof(Half))
+            {
+                return Half.Parse(text, CultureInfo.InvariantCulture);
             }
 
             // If we are expecting a type object, return directly the string
@@ -260,6 +286,10 @@ namespace Stride.Core.Yaml.Serialization.Serializers
                         if (valueType == typeof(TimeSpan))
                         {
                             text = ((TimeSpan) value).ToString("G", CultureInfo.InvariantCulture);
+                        }
+                        else if (valueType == typeof(Half))
+                        {
+                            text = AppendDecimalPoint(((Half) value).ToString("R", CultureInfo.InvariantCulture), true);
                         }
                         break;
                 }

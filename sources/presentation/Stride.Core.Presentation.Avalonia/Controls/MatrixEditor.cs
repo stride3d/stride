@@ -4,12 +4,13 @@
 using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Data;
+using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
-using Matrix = Mathematics.Matrix;
 
-public sealed class MatrixEditor : VectorEditorBase<Matrix?>
+public sealed class MatrixEditor : VectorEditorBase<Matrix4x4?>
 {
     public static readonly StyledProperty<float?> M11Property =
         AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M11), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
@@ -185,19 +186,19 @@ public sealed class MatrixEditor : VectorEditorBase<Matrix?>
     }
 
     /// <inheritdoc/>
-    protected override void UpdateComponentsFromValue(Matrix? value)
+    protected override void UpdateComponentsFromValue(Matrix4x4? value)
     {
         if (value is not { } matrix)
             return;
 
         foreach (var property in PropertyToIndex)
         {
-            SetCurrentValue(property.Key, matrix[property.Value]);
+            SetCurrentValue(property.Key, matrix[property.Value / 4, property.Value % 4]);
         }
     }
 
     /// <inheritdoc/>
-    protected override Matrix? UpdateValueFromComponent(AvaloniaProperty property)
+    protected override Matrix4x4? UpdateValueFromComponent(AvaloniaProperty property)
     {
         if (!Value.HasValue || !((float?)GetValue(property)).HasValue)
             return null;
@@ -205,15 +206,15 @@ public sealed class MatrixEditor : VectorEditorBase<Matrix?>
         var array = new float[16];
         foreach (var (localProperty, index) in PropertyToIndex)
         {
-            array[index] = property == localProperty ? ((float?)GetValue(localProperty)).Value : Value.Value[index];
+            array[index] = property == localProperty ? ((float?)GetValue(localProperty)).Value : Value.Value[index / 4, index % 4];
         }
-        return new Matrix(array);
+        return Matrix4x4.Create(array);
     }
 
     /// <inheritdoc/>
     [return: NotNull]
-    protected override Matrix? UpateValueFromFloat(float value)
+    protected override Matrix4x4? UpateValueFromFloat(float value)
     {
-        return new Matrix(value);
+        return Matrix4x4.Create(value);
     }
 }

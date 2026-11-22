@@ -4,6 +4,7 @@ using Stride.Input;
 using System;
 using System.Threading.Tasks;
 using Stride.Core;
+using System.Numerics;
 
 namespace ##Namespace##;
 
@@ -105,7 +106,7 @@ public class ##Scriptname## : AsyncScript
         }
 
         // Compute base vectors for camera movement
-        var rotation = Matrix.RotationYawPitchRoll(Yaw, Pitch, 0);
+        var rotation = Matrix4x4.CreateFromYawPitchRoll(Yaw, Pitch, 0);
         var direction = Vector3.Normalize(Vector3.TransformNormal(ForwardVector, rotation));
 
         if (Math.Abs(Input.MouseWheelDelta) > MathUtil.ZeroTolerance)
@@ -117,7 +118,7 @@ public class ##Scriptname## : AsyncScript
             }
         }
 
-        targetPos = new Vector3(Target.Transform.WorldMatrix.TranslationVector.X, Entity.Transform.WorldMatrix.TranslationVector.Y, Entity.Transform.WorldMatrix.TranslationVector.Z);
+        targetPos = new Vector3(Target.Transform.WorldMatrix.Translation.X, Entity.Transform.WorldMatrix.Translation.Y, Entity.Transform.WorldMatrix.Translation.Z);
         targetPos += OffsetFromTarget;
         position = targetPos - direction * DistanceFromTarget;
         (targetPos - position).Length();
@@ -131,8 +132,8 @@ public class ##Scriptname## : AsyncScript
         var camera = Component;
         if (camera == null) return;
 
-        var rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-        var viewMatrix = Matrix.Translation(-position) * Matrix.RotationQuaternion(rotation);
+        var rotation = Quaternion.Inverse(Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0));
+        var viewMatrix = Matrix4x4.CreateTranslation(-position) * Matrix4x4.CreateFromQuaternion(rotation);
         camera.ViewMatrix = viewMatrix;
     }
 }

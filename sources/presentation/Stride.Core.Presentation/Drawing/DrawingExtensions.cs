@@ -3,6 +3,7 @@
 
 using System.Runtime.CompilerServices;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.Presentation.Drawing;
 

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.UI.Panels
 {
@@ -354,7 +355,7 @@ namespace Stride.UI.Panels
                 childOrigin[accumulatorIndex] += startBound;
 
                 // set the arrange matrix of the child
-                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(childOrigin));
+                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix4x4.CreateTranslation(childOrigin));
 
                 // compute the size given to the child
                 var childSizeWithMargins = child.DesiredSizeWithMargins;

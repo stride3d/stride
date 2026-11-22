@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Input
 {

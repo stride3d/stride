@@ -12,7 +12,6 @@ using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
-using Half = System.Half;
 using Vector2 = System.Numerics.Vector2;
 
 namespace Stride.Heightfield.RuntimeLayer;

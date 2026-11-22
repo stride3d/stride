@@ -3,6 +3,7 @@
 
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace StrideAssetPlugin;
 
@@ -15,6 +16,6 @@ public class SpinScript : SyncScript
 
     public override void Update()
     {
-        Entity.Transform.Rotation *= Quaternion.RotationY(Speed * 0.01f);
+        Entity.Transform.Rotation = Quaternion.Concatenate(Entity.Transform.Rotation, Quaternion.CreateRotationY(Speed * 0.01f));
     }
 }

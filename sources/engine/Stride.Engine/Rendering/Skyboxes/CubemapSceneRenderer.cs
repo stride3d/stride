@@ -4,6 +4,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
+using System.Numerics;
 
 namespace Stride.Rendering.Skyboxes
 {

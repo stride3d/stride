@@ -34,7 +34,7 @@ internal unsafe struct SpanManifoldCollector(OverlapInfoStack* Ptr, int Length, 
                 continue;
 
             collidable ??= BepuSimulation.GetComponent(reference);
-            Ptr[Head++] = new(new(reference, collidable.Versioning), manifold.GetNormal(i).ToStride(), manifold.GetDepth(i));
+            Ptr[Head++] = new(new(reference, collidable.Versioning), manifold.GetNormal(i), manifold.GetDepth(i));
             if (Head >= Length)
                 return;
         }
@@ -74,7 +74,7 @@ internal readonly struct CollectionCollector(ICollection<OverlapInfo> Collection
         for (int i = 0; i < manifold.Count; ++i)
         {
             if (manifold.GetDepth(i) >= 0)
-                Collection.Add(new (simulation.GetComponent(reference), manifold.GetNormal(i).ToStride(), manifold.GetDepth(i)));
+                Collection.Add(new (simulation.GetComponent(reference), manifold.GetNormal(i), manifold.GetDepth(i)));
         }
     }
 }

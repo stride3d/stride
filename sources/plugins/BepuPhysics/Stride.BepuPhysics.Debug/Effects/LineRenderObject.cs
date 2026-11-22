@@ -6,6 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Debug.Effects;
 

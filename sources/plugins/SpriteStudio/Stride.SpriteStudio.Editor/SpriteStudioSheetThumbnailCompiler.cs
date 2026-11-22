@@ -11,6 +11,7 @@ using Stride.Engine;
 using Stride.Rendering.Compositing;
 using Stride.SpriteStudio.Assets;
 using Stride.SpriteStudio.Runtime;
+using System.Numerics;
 
 namespace Stride.SpriteStudio.Editor;
 

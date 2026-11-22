@@ -12,6 +12,7 @@ using Stride.Importer.Common;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using AssimpMaterial = Silk.NET.Assimp.Material;
+using System.Numerics;
 
 namespace Stride.Importer.ThreeD.Material
 {

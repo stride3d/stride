@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -74,7 +75,7 @@ public class TestUInt4
         Assert.Equal(8u, result.Z);
         Assert.Equal(10u, result.W);
 
-        UInt4.Add(ref v1, ref v2, out var result2);
+        var result2 = UInt4.Add(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -89,7 +90,7 @@ public class TestUInt4
         Assert.Equal(6u, result.Z);
         Assert.Equal(7u, result.W);
 
-        UInt4.Subtract(ref v1, ref v2, out var result2);
+        var result2 = UInt4.Subtract(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -106,7 +107,7 @@ public class TestUInt4
         var result2 = 2u * v;
         Assert.Equal(result, result2);
 
-        UInt4.Multiply(ref v, 2u, out var result3);
+        var result3 = UInt4.Multiply(v, 2u);
         Assert.Equal(result, result3);
     }
 
@@ -120,7 +121,7 @@ public class TestUInt4
         Assert.Equal(15u, result.Z);
         Assert.Equal(20u, result.W);
 
-        UInt4.Divide(ref v, 2u, out var result2);
+        var result2 = UInt4.Divide(v, 2u);
         Assert.Equal(result, result2);
     }
 
@@ -137,7 +138,7 @@ public class TestUInt4
         Assert.Equal(20u, result.Z);
         Assert.Equal(20u, result.W);
 
-        UInt4.Clamp(ref value, ref min, ref max, out var result2);
+        var result2 = UInt4.Clamp(value, min, max);
         Assert.Equal(result, result2);
     }
 
@@ -152,7 +153,7 @@ public class TestUInt4
         Assert.Equal(3u, result.Z);
         Assert.Equal(7u, result.W);
 
-        UInt4.Min(ref v1, ref v2, out var result2);
+        var result2 = UInt4.Min(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -167,7 +168,7 @@ public class TestUInt4
         Assert.Equal(4u, result.Z);
         Assert.Equal(8u, result.W);
 
-        UInt4.Max(ref v1, ref v2, out var result2);
+        var result2 = UInt4.Max(v1, v2);
         Assert.Equal(result, result2);
     }
 

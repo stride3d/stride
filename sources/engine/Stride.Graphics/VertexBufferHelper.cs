@@ -8,6 +8,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics.Interop;
 using Stride.Graphics.Semantics;
+using System.Numerics;
 
 namespace Stride.Graphics;
 

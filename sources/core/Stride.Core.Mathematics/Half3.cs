@@ -25,6 +25,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -157,7 +158,7 @@ public struct Half3 : IEquatable<Half3>, ISpanFormattable
     /// <c>true</c> if <paramref name="left" /> has the same value as <paramref name="right" />; otherwise, <c>false</c>.</returns>
     public static bool operator ==(Half3 left, Half3 right)
     {
-        return Equals(ref left, ref right);
+        return left.Equals(right);
     }
 
     /// <summary>
@@ -170,7 +171,7 @@ public struct Half3 : IEquatable<Half3>, ISpanFormattable
     [return: MarshalAs(UnmanagedType.U1)]
     public static bool operator !=(Half3 left, Half3 right)
     {
-        return !Equals(ref left, ref right);
+        return !left.Equals(right);
     }
     
     /// <summary>
@@ -191,26 +192,34 @@ public struct Half3 : IEquatable<Half3>, ISpanFormattable
     /// </returns>
     public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        var separator = $"{((formatProvider as CultureInfo) ?? CultureInfo.CurrentCulture).TextInfo.ListSeparator} ";
-        var handler = new DefaultInterpolatedStringHandler(separator.Length * 2, 3, formatProvider);
+        var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
+        var handler = new DefaultInterpolatedStringHandler(6, 3, formatProvider);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format);
         handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format);
         handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format);
+        handler.AppendLiteral(">");
         return handler.ToStringAndClear();
     }
 
     bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
-        var separator = $"{((provider as CultureInfo) ?? CultureInfo.CurrentCulture).TextInfo.ListSeparator} ";
         var format1 = format.Length > 0 ? format.ToString() : null;
-        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(separator.Length * 2, 3, destination, provider, out _);
+        var separator = NumberFormatInfo.GetInstance(provider).NumberGroupSeparator;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(6, 3, destination, provider, out _);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format1);
         handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format1);
         handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format1);
+        handler.AppendLiteral(">");
         return destination.TryWrite(ref handler, out charsWritten);
     }
 
@@ -221,19 +230,6 @@ public struct Half3 : IEquatable<Half3>, ISpanFormattable
     public override readonly int GetHashCode()
     {
         return HashCode.Combine(X, Y, Z);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object instances are considered equal.
-    /// </summary>
-    /// <param name="value1">The first value.</param>
-    /// <param name="value2">The second value.</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="value1" /> is the same instance as <paramref name="value2" /> or
-    /// if both are <c>null</c> references or if <c>value1.Equals(value2)</c> returns <c>true</c>; otherwise, <c>false</c>.</returns>
-    public static bool Equals(ref readonly Half3 value1, ref readonly Half3 value2)
-    {
-        return (value1.X == value2.X) && (value1.Y == value2.Y) && (value1.Z == value2.Z);
     }
 
     /// <summary>
@@ -264,7 +260,7 @@ public struct Half3 : IEquatable<Half3>, ISpanFormattable
     /// <returns>The result of the conversion.</returns>
     public static explicit operator Vector3(Half3 value)
     {
-        return new Vector3(value.X, value.Y, value.Z);
+        return new Vector3((float)value.X, (float)value.Y, (float)value.Z);
     }
 
     /// <summary>

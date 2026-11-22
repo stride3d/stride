@@ -7,6 +7,7 @@ using Stride.UI.Editor.Game;
 using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Editor.Adorners
 {

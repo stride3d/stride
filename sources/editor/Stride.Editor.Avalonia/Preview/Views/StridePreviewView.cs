@@ -10,6 +10,7 @@ using Avalonia.VisualTree;
 using Stride.Core.Mathematics;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.View;
+using System.Numerics;
 
 namespace Stride.Editor.Avalonia.Preview.Views;
 

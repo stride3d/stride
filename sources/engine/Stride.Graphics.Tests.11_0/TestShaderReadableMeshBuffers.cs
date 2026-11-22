@@ -10,6 +10,8 @@ using Stride.Core.Mathematics;
 using Stride.Graphics.Regression;
 using Stride.Rendering;
 using Stride.Rendering.ComputeEffect;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Graphics.Tests;
 
@@ -42,7 +44,7 @@ public class TestShaderReadableMeshBuffers : GraphicTestGameBase
             using var vertexBuffer = Buffer.Vertex.New(device, Positions, additionalFlags: ShaderReadable);
             using var indexBuffer = Buffer.Index.New(device, Indices, additionalFlags: ShaderReadable);
 
-            var fetched = Fetch(game, vertexBuffer, indexBuffer, IndexByteOffset, indexSize: sizeof(ushort), vertexByteOffset: 0, Vector3.SizeInBytes, indexCount: 3);
+            var fetched = Fetch(game, vertexBuffer, indexBuffer, IndexByteOffset, indexSize: sizeof(ushort), vertexByteOffset: 0, Unsafe.SizeOf<Vector3>(), indexCount: 3);
 
             Assert.Equal(new[] { new Vector4(Positions[4], 4), new Vector4(Positions[2], 2), new Vector4(Positions[0], 0) }, fetched);
         });
@@ -153,7 +155,7 @@ public class TestShaderReadableMeshBuffers : GraphicTestGameBase
             pipelineState.Update();
 
             commandList.SetPipelineState(pipelineState.CurrentState);
-            commandList.SetVertexBuffer(0, vertexBuffer, 0, Vector3.SizeInBytes);
+            commandList.SetVertexBuffer(0, vertexBuffer, 0, Unsafe.SizeOf<Vector3>());
             commandList.SetIndexBuffer(indexBuffer, IndexByteOffset, false);
             effect.Apply(game.GraphicsContext);
             commandList.DrawIndexed(3);

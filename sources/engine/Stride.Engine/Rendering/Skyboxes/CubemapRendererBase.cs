@@ -3,6 +3,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Rendering.Skyboxes
 {
@@ -27,7 +28,7 @@ namespace Stride.Rendering.Skyboxes
                 UseCustomProjectionMatrix = true,
                 UseCustomViewMatrix = true,
             };
-            Camera.ProjectionMatrix = Matrix.PerspectiveFovRH(MathUtil.DegreesToRadians(90.0f), 1.0f, Camera.NearClipPlane, Camera.FarClipPlane);
+            Camera.ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(MathUtil.DegreesToRadians(90.0f), 1.0f, Camera.NearClipPlane, Camera.FarClipPlane);
             
             // We can't render directly to the texture cube before feature level 10.1, so let's render to a standard render target and copy instead
             renderTarget = Texture.New2D(device, OutputTextureSize, OutputTextureSize, outputFormat, TextureFlags.RenderTarget);
@@ -56,16 +57,16 @@ namespace Stride.Rendering.Skyboxes
                 switch ((CubeMapFace)face)
                 {
                     case CubeMapFace.PositiveX:
-                        Camera.ViewMatrix = Matrix.LookAtRH(position, position + Vector3.UnitX, Vector3.UnitY);
+                        Camera.ViewMatrix = Matrix4x4.CreateLookAt(position, position + Vector3.UnitX, Vector3.UnitY);
                         break;
                     case CubeMapFace.NegativeX:
-                        Camera.ViewMatrix = Matrix.LookAtRH(position, position - Vector3.UnitX, Vector3.UnitY);
+                        Camera.ViewMatrix = Matrix4x4.CreateLookAt(position, position - Vector3.UnitX, Vector3.UnitY);
                         break;
                     case CubeMapFace.PositiveY:
-                        Camera.ViewMatrix = Matrix.LookAtRH(position, position + Vector3.UnitY, Vector3.UnitZ);
+                        Camera.ViewMatrix = Matrix4x4.CreateLookAt(position, position + Vector3.UnitY, Vector3.UnitZ);
                         break;
                     case CubeMapFace.NegativeY:
-                        Camera.ViewMatrix = Matrix.LookAtRH(position, position - Vector3.UnitY, -Vector3.UnitZ);
+                        Camera.ViewMatrix = Matrix4x4.CreateLookAt(position, position - Vector3.UnitY, -Vector3.UnitZ);
                         break;
                     // The Z faces look the other way on purpose. Cubemap space is the right handed world
                     // with Z negated, so the face called positive Z holds the view along world negative Z,
@@ -73,10 +74,10 @@ namespace Stride.Rendering.Skyboxes
                     // negates Z to match (SkyboxShaderCubemap, LightSkyboxShader, LightProbeShader,
                     // ComputeSphericalHarmonics). CubemapSceneRendererTests checks this face by face.
                     case CubeMapFace.PositiveZ:
-                        Camera.ViewMatrix = Matrix.LookAtRH(position, position - Vector3.UnitZ, Vector3.UnitY);
+                        Camera.ViewMatrix = Matrix4x4.CreateLookAt(position, position - Vector3.UnitZ, Vector3.UnitY);
                         break;
                     case CubeMapFace.NegativeZ:
-                        Camera.ViewMatrix = Matrix.LookAtRH(position, position + Vector3.UnitZ, Vector3.UnitY);
+                        Camera.ViewMatrix = Matrix4x4.CreateLookAt(position, position + Vector3.UnitZ, Vector3.UnitY);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

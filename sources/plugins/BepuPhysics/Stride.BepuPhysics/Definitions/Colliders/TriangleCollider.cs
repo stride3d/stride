@@ -7,6 +7,7 @@ using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -61,7 +62,7 @@ public sealed class TriangleCollider : ColliderBase
 
     internal override void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, NRigidPose localPose)
     {
-        builder.Add(new Triangle(A.ToNumeric(), B.ToNumeric(), C.ToNumeric()), localPose, Mass);
+        builder.Add(new Triangle(A, B, C), localPose, Mass);
     }
 
     internal override void OnDetach(BufferPool pool){ }

@@ -9,6 +9,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Animations;
 using Stride.Assets.Editor.ViewModels.CurveEditor.ControlPoints;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels.CurveEditor
 {

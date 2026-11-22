@@ -9,6 +9,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.ProceduralModels;
+using System.Numerics;
 
 namespace Stride.Engine.Tests;
 
@@ -71,18 +72,18 @@ public abstract class RenderFeatureTestBase : EngineTestBase
         // Thin geometry, for the anti-aliasing tests: an upright ring behind the teapot and a leaning pole beside it
         var thinMaterial = Content.Load<Material>("semiGlossMT");
         var ring = CreateModel(new TorusProceduralModel { Radius = 0.6f, Thickness = 0.06f, MaterialInstance = { Material = thinMaterial } }, new Vector3(0.7f, 0.66f, -1.3f));
-        ring.Transform.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo);
+        ring.Transform.Rotation = Quaternion.CreateRotationX(MathUtil.PiOverTwo);
         Scene.Entities.Add(ring);
         var pole = CreateModel(new CylinderProceduralModel { Height = 2, Radius = 0.03f, MaterialInstance = { Material = thinMaterial } }, new Vector3(-0.75f, 0.97f, 0.3f));
-        pole.Transform.Rotation = Quaternion.RotationZ(-0.25f);
+        pole.Transform.Rotation = Quaternion.CreateRotationZ(-0.25f);
         Scene.Entities.Add(pole);
 
         var light = new Entity { new LightComponent { Type = new LightDirectional { Color = new ColorRgbProvider(Color.White) }, Intensity = 2 } };
-        light.Transform.Rotation = Quaternion.RotationYawPitchRoll(MathUtil.Pi / 4, -MathUtil.Pi / 3, 0);
+        light.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(MathUtil.Pi / 4, -MathUtil.Pi / 3, 0);
         Scene.Entities.Add(light);
 
         Camera.Transform.Position = new Vector3(0, 1.6f, 4);
-        Camera.Transform.Rotation = Quaternion.RotationX(-0.3f);
+        Camera.Transform.Rotation = Quaternion.CreateRotationX(-0.3f);
     }
 
     private Entity CreateModel(PrimitiveProceduralModelBase model, Vector3 position)

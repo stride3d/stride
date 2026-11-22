@@ -8,6 +8,7 @@ using System;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Processors;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -42,7 +43,7 @@ public readonly struct EditorGameViewCamera
     /// <summary>
     /// Gets the view matrix of the view.
     /// </summary>
-    public Matrix ViewMatrix => Component.ViewMatrix;
+    public Matrix4x4 ViewMatrix => Component.ViewMatrix;
 
     /// <summary>
     /// Gets whether the projection of the view is orthographic.

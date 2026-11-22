@@ -8,6 +8,7 @@ using BepuPhysics.Trees;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 

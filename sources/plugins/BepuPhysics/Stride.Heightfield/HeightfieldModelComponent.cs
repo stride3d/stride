@@ -9,6 +9,7 @@ using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Rendering;
 using Stride.Rendering.ProceduralModels;
+using System.Numerics;
 
 namespace Stride.Heightfield;
 

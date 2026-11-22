@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -147,13 +148,13 @@ public class TestGeometricIntersections
     public void TestBoundingFrustumIntersection()
     {
         // Create a view frustum looking down Z axis
-        var projection = Matrix.PerspectiveFovRH(
+        var projection = Matrix4x4.CreatePerspectiveFieldOfView(
             MathUtil.PiOverFour, // 45 degrees FOV
             1.0f,                // aspect ratio
             0.1f,                // near plane
             100.0f               // far plane
         );
-        var view = Matrix.LookAtRH(
+        var view = Matrix4x4.CreateLookAt(
             new Vector3(0, 0, -10),  // camera position
             Vector3.Zero,            // looking at origin
             Vector3.UnitY            // up vector

@@ -15,6 +15,7 @@ using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.EditorGame;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -102,7 +103,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             (GizmoScalingEntity ?? GizmoRootEntity).Transform.Scale = GetGizmoScale(view.ViewMatrix, view.IsOrthographic);
         }
 
-        private Vector3 GetGizmoScale(Matrix viewMatrix, bool isOrthographic)
+        private Vector3 GetGizmoScale(Matrix4x4 viewMatrix, bool isOrthographic)
         {
             var gizmoScale = SizeFactor;
             if (gizmos.FixedSize && !isOrthographic)

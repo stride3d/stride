@@ -11,6 +11,7 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
 using Stride.Navigation;
 using Stride.Assets.Editor.EntityFactories;
+using System.Numerics;
 
 namespace Stride.Physics.Editor
 {

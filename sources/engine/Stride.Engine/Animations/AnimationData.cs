@@ -12,6 +12,7 @@ using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Updater;
+using System.Numerics;
 
 namespace Stride.Animations
 {

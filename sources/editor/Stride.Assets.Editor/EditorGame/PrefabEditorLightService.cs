@@ -9,6 +9,7 @@ using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Rendering.Lights;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -27,10 +28,10 @@ public sealed class PrefabEditorLightService : EditorGameServiceBase
         CreateLight("Prefab Editor Ambient Light", new LightAmbient(), 0.3f, scene);
 
         var directionalLight1 = CreateLight("Prefab Editor Ambient Light1", new LightDirectional(), 2.5f, scene);
-        directionalLight1.Transform.Rotation = Quaternion.RotationYawPitchRoll(MathUtil.Pi * 1.125f, MathUtil.Pi * -0.125f, 0.0f);
+        directionalLight1.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(MathUtil.Pi * 1.125f, MathUtil.Pi * -0.125f, 0.0f);
 
         var directionalLight2 = CreateLight("Prefab Editor Ambient Light2", new LightDirectional(), 2.5f, scene);
-        directionalLight2.Transform.Rotation = Quaternion.RotationYawPitchRoll(MathUtil.Pi * 0.125f, MathUtil.Pi * -0.25f, 0.0f);
+        directionalLight2.Transform.Rotation = Quaternion.CreateFromYawPitchRoll(MathUtil.Pi * 0.125f, MathUtil.Pi * -0.25f, 0.0f);
     }
 
     /// <inheritdoc />

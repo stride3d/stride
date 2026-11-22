@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Editor.Preview.View
 {

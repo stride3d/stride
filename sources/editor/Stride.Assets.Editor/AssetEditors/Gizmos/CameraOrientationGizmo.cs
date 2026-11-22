@@ -18,6 +18,7 @@ using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.EditorGame;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -120,9 +121,9 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
         public bool IsViewParallelToAxis { get; private set; }
 
-        private void UpdateCamera(Matrix view)
+        private void UpdateCamera(Matrix4x4 view)
         {
-            view.TranslationVector = new Vector3(0, 0, -OuterExtent * CameraDistanceFactor);
+            view.Translation = new Vector3(0, 0, -OuterExtent * CameraDistanceFactor);
             cameraComponent.ViewMatrix = view;
         }
 
@@ -182,7 +183,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             selectedElementIndex = -1;
 
             // Calculate the ray in the gizmo space
-            var viewInverse = Matrix.Invert(cameraComponent.ViewMatrix);
+            Matrix4x4.InvertSafe(cameraComponent.ViewMatrix, out var viewInverse);
             var viewport = gizmoViewportRenderer.Viewport;
             var mousePosition = (Input.MousePosition * gizmoViewportRenderer.OutputSize - new Vector2(viewport.X, viewport.Y)) / ViewportSize;
             var clickRay = EditorGameHelper.CalculateRayFromMousePosition(cameraComponent, mousePosition, viewInverse);
@@ -351,7 +352,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             var projectionMatrix = cameraComponent.ProjectionMatrix;
             var viewMatrix = cameraComponent.ViewMatrix;
 
-            var textureToWorldSpace = Matrix.RotationX(MathUtil.Pi) * Matrix.Translation(0, 0, OuterExtent);
+            var textureToWorldSpace = Matrix4x4.CreateRotationX(MathUtil.Pi) * Matrix4x4.CreateTranslation(0, 0, OuterExtent);
 
             var displayDirectionNames = DisplayDirectionNames;
 
@@ -375,13 +376,13 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
             public readonly string XYZComponent;
 
-            public readonly Matrix Rotation;
+            public readonly Matrix4x4 Rotation;
 
             public FaceData(string name, string xyzComponent, Vector3 angles)
             {
                 Name = name;
                 XYZComponent = xyzComponent;
-                Rotation = Matrix.RotationYawPitchRoll(angles.Y, angles.X, angles.Z);
+                Rotation = Matrix4x4.CreateFromYawPitchRoll(angles.Y, angles.X, angles.Z);
             }
         }
     }

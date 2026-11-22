@@ -210,10 +210,9 @@ public partial class SpirvContext
         AddName(bufferType, $"type.{(structuredBufferType.WriteAllowed ? "RW" : "")}StructuredBuffer.{structuredBufferType.BaseType.ToId()}");
         Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
         // A struct element gets its matrix layout on its own members; a matrix element only has this member to carry it.
-        // As for a matrix member: HLSL's default column_major is SPIR-V RowMajor, each SPIR-V row padded to its buffer alignment
         if (structuredBufferType.BaseType is MatrixType m)
         {
-            Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.RowMajor, []));
+            Buffer.Add(new OpMemberDecorate(bufferType, 0, SpirvBuilder.MatrixLayoutDecoration(TypeModifier.None), []));
             Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.MatrixStride, [SpirvBuilder.MatrixStride(m, TypeModifier.None, SpirvBuilder.AlignmentRules.StructuredBuffer)]));
         }
         Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
@@ -364,10 +363,9 @@ public partial class SpirvContext
         {
             var member = structSymbol.Members[index];
             AddMemberName(id, index, member.Name);
-            // An explicit matrix layout is kept with the type, so the mixer reads it back (SPIR-V and HLSL have opposite
-            // meanings: HLSL row_major = SPIR-V ColMajor). The default layout is chosen by the mixer.
+            // An explicit matrix layout is kept with the type, so the mixer reads it back. The default layout is chosen by the mixer.
             if (member.Type is MatrixType or ArrayType { BaseType: MatrixType } && member.TypeModifier is TypeModifier.RowMajor or TypeModifier.ColumnMajor)
-                Add(new OpMemberDecorate(id, index, member.TypeModifier == TypeModifier.RowMajor ? Specification.Decoration.ColMajor : Specification.Decoration.RowMajor, []));
+                Add(new OpMemberDecorate(id, index, SpirvBuilder.MatrixLayoutDecoration(member.TypeModifier), []));
         }
 
         Types[structSymbol] = id;

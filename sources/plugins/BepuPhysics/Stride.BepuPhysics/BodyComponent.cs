@@ -10,6 +10,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Numerics;
 
 namespace Stride.BepuPhysics;
 
@@ -193,11 +194,11 @@ public class BodyComponent : CollidableComponent
     [DataMemberIgnore]
     public Vector3 LinearVelocity
     {
-        get => BodyReference?.Velocity.Linear.ToStride() ?? default;
+        get => BodyReference?.Velocity.Linear ?? default;
         set
         {
             if (BodyReference is { } bodyRef)
-                bodyRef.Velocity.Linear = value.ToNumeric();
+                bodyRef.Velocity.Linear = value;
         }
     }
 
@@ -212,11 +213,11 @@ public class BodyComponent : CollidableComponent
     [DataMemberIgnore]
     public Vector3 AngularVelocity
     {
-        get => BodyReference?.Velocity.Angular.ToStride() ?? default;
+        get => BodyReference?.Velocity.Angular ?? default;
         set
         {
             if (BodyReference is { } bodyRef)
-                bodyRef.Velocity.Angular = value.ToNumeric();
+                bodyRef.Velocity.Angular = value;
         }
     }
 
@@ -252,7 +253,7 @@ public class BodyComponent : CollidableComponent
     [DataMemberIgnore]
     public Vector3 Position
     {
-        get => BodyReference?.Pose.Position.ToStride() ?? default;
+        get => BodyReference?.Pose.Position ?? default;
         [Obsolete($"Setter will be removed in a future version, use {nameof(SetTargetPose)} or {nameof(Teleport)}")]
         set => Teleport(value, Orientation);
     }
@@ -271,7 +272,7 @@ public class BodyComponent : CollidableComponent
     [DataMemberIgnore]
     public Quaternion Orientation
     {
-        get => BodyReference?.Pose.Orientation.ToStride() ?? Quaternion.Identity;
+        get => BodyReference?.Pose.Orientation ?? Quaternion.Identity;
         [Obsolete($"Setter will be removed in a future version, use {nameof(SetTargetPose)} or {nameof(Teleport)}")]
         set => Teleport(Position, value);
     }
@@ -353,7 +354,7 @@ public class BodyComponent : CollidableComponent
     /// <param name="impulseOffset">World space offset from the center of the body to apply the impulse at</param>
     public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
     {
-        BodyReference?.ApplyImpulse(impulse.ToNumeric(), impulseOffset.ToNumeric());
+        BodyReference?.ApplyImpulse(impulse, impulseOffset);
     }
 
     /// <summary>
@@ -364,7 +365,7 @@ public class BodyComponent : CollidableComponent
     /// </remarks>
     public void ApplyAngularImpulse(Vector3 impulse)
     {
-        BodyReference?.ApplyAngularImpulse(impulse.ToNumeric());
+        BodyReference?.ApplyAngularImpulse(impulse);
     }
 
     /// <summary>
@@ -375,7 +376,7 @@ public class BodyComponent : CollidableComponent
     /// </remarks>
     public void ApplyLinearImpulse(Vector3 impulse)
     {
-        BodyReference?.ApplyLinearImpulse(impulse.ToNumeric());
+        BodyReference?.ApplyLinearImpulse(impulse);
     }
 
     /// <summary>
@@ -431,7 +432,7 @@ public class BodyComponent : CollidableComponent
 
         float deltaTime = (float)Simulation.FixedTimeStep.TotalSeconds;
 
-        var quatDelta = Quaternion.Invert(Orientation) * targetOrientation;
+        var quatDelta = Quaternion.Concatenate(Quaternion.Inverse(Orientation), targetOrientation);
         if (quatDelta.W < 0f)
             quatDelta = -quatDelta; // q and -q are the same rotation, take the shortest arc
 
@@ -464,7 +465,7 @@ public class BodyComponent : CollidableComponent
 
         if (BodyReference is { } bodyRef)
         {
-            bodyRef.Pose.Orientation = orientation.ToNumeric();
+            bodyRef.Pose.Orientation = orientation;
             bodyRef.Pose.Position = position;
             bodyRef.UpdateBounds();
             PreviousPose = CurrentPose = bodyRef.Pose; // Update interpolation data as well

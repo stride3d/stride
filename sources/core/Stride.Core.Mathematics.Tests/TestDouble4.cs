@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -126,11 +127,11 @@ public class TestDouble4
     public void TestDouble4Normalize()
     {
         var v = new Double4(3.0, 4.0, 0.0, 0.0);
-        v.Normalize();
+        v = Double4.NormalizeSafe(v);
         Assert.Equal(1.0, v.Length(), 5);
 
         var v2 = new Double4(2.0, 3.0, 6.0, 0.0);
-        var normalized = Double4.Normalize(v2);
+        var normalized = Double4.NormalizeSafe(v2);
         Assert.Equal(1.0, normalized.Length(), 5);
     }
 
@@ -145,7 +146,7 @@ public class TestDouble4
         Assert.Equal(8.5, result.Z, 10);
         Assert.Equal(10.8, result.W, 10);
 
-        Double4.Add(ref v1, ref v2, out var result2);
+        var result2 = Double4.Add(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -160,7 +161,7 @@ public class TestDouble4
         Assert.Equal(5.7, result.Z, 10);
         Assert.Equal(6.9, result.W, 10);
 
-        Double4.Subtract(ref v1, ref v2, out var result2);
+        var result2 = Double4.Subtract(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -177,7 +178,7 @@ public class TestDouble4
         var result2 = 2.5 * v;
         Assert.Equal(result, result2);
 
-        Double4.Multiply(ref v, 2.5, out var result3);
+        var result3 = Double4.Multiply(v, 2.5);
         Assert.Equal(result, result3);
     }
 
@@ -191,7 +192,7 @@ public class TestDouble4
         Assert.Equal(15.0, result.Z);
         Assert.Equal(20.0, result.W);
 
-        Double4.Divide(ref v, 2.0, out var result2);
+        var result2 = Double4.Divide(v, 2.0);
         Assert.Equal(result, result2);
     }
 
@@ -205,7 +206,7 @@ public class TestDouble4
         Assert.Equal(-7.8, result.Z);
         Assert.Equal(9.1, result.W);
 
-        Double4.Negate(ref v, out var result2);
+        var result2 = Double4.Negate(v);
         Assert.Equal(result, result2);
     }
 
@@ -214,13 +215,13 @@ public class TestDouble4
     {
         var v1 = new Double4(2.0, 3.0, 4.0, 5.0);
         var v2 = new Double4(6.0, 7.0, 8.0, 9.0);
-        var result = Double4.Modulate(v1, v2);
+        var result = Double4.Multiply(v1, v2);
         Assert.Equal(12.0, result.X);
         Assert.Equal(21.0, result.Y);
         Assert.Equal(32.0, result.Z);
         Assert.Equal(45.0, result.W);
 
-        Double4.Modulate(ref v1, ref v2, out var result2);
+        var result2 = Double4.Multiply(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -237,7 +238,7 @@ public class TestDouble4
         Assert.Equal(10.0, result.Z);
         Assert.Equal(10.0, result.W);
 
-        Double4.Clamp(ref value, ref min, ref max, out var result2);
+        var result2 = Double4.Clamp(value, min, max);
         Assert.Equal(result, result2);
     }
 
@@ -252,7 +253,7 @@ public class TestDouble4
         Assert.Equal(3.0, result.Z);
         Assert.Equal(7.0, result.W);
 
-        Double4.Min(ref v1, ref v2, out var result2);
+        var result2 = Double4.Min(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -267,7 +268,7 @@ public class TestDouble4
         Assert.Equal(4.0, result.Z);
         Assert.Equal(8.0, result.W);
 
-        Double4.Max(ref v1, ref v2, out var result2);
+        var result2 = Double4.Max(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -282,7 +283,7 @@ public class TestDouble4
         Assert.Equal(15.0, result.Z);
         Assert.Equal(20.0, result.W);
 
-        Double4.Lerp(ref start, ref end, 0.5, out var result2);
+        var result2 = Double4.Lerp(start, end, 0.5);
         Assert.Equal(result, result2);
     }
 
@@ -297,7 +298,7 @@ public class TestDouble4
         Assert.Equal(5.0, result.Z);
         Assert.Equal(5.0, result.W);
 
-        Double4.SmoothStep(ref start, ref end, 0.5, out var result2);
+        var result2 = Double4.SmoothStep(start, end, 0.5);
         Assert.Equal(result, result2);
     }
 
@@ -313,7 +314,7 @@ public class TestDouble4
         Assert.Equal(0.0, result.Z);
         Assert.Equal(0.0, result.W);
 
-        Double4.Barycentric(ref v1, ref v2, ref v3, 0.5, 0.5, out var result2);
+        var result2 = Double4.Barycentric(v1, v2, v3, 0.5, 0.5);
         Assert.Equal(result, result2);
     }
 
@@ -330,7 +331,7 @@ public class TestDouble4
         Assert.Equal(1.5, result.Z);
         Assert.Equal(1.5, result.W);
 
-        Double4.CatmullRom(ref v1, ref v2, ref v3, ref v4, 0.5, out var result2);
+        var result2 = Double4.CatmullRom(v1, v2, v3, v4, 0.5);
         Assert.Equal(result, result2);
     }
 
@@ -347,7 +348,7 @@ public class TestDouble4
         Assert.Equal(5.0, result.Z);
         Assert.Equal(5.0, result.W);
 
-        Double4.Hermite(ref v1, ref t1, ref v2, ref t2, 0.5, out var result2);
+        var result2 = Double4.Hermite(v1, t1, v2, t2, 0.5);
         Assert.Equal(result, result2);
     }
 
@@ -355,14 +356,14 @@ public class TestDouble4
     public void TestDouble4Transform()
     {
         var v = new Double4(1.0, 0.0, 0.0, 1.0);
-        var rotation = Quaternion.RotationAxis(Vector3.UnitZ, MathUtil.PiOverTwo);
+        var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, MathUtil.PiOverTwo);
         var result = Double4.Transform(v, rotation);
         Assert.Equal(0.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
         Assert.Equal(0.0, result.Z, 5);
         Assert.Equal(1.0, result.W, 5);
 
-        Double4.Transform(ref v, ref rotation, out var result2);
+        var result2 = Double4.Transform(v, rotation);
         Assert.Equal(result.X, result2.X, 5);
         Assert.Equal(result.Y, result2.Y, 5);
         Assert.Equal(result.Z, result2.Z, 5);
@@ -434,7 +435,7 @@ public class TestDouble4
     {
         var v1 = new Double4(12, 20, 30, 40);
         var v2 = new Double4(3, 4, 5, 8);
-        var result = Double4.Demodulate(v1, v2);
+        var result = Double4.Divide(v1, v2);
 
         Assert.Equal(4.0, result.X);
         Assert.Equal(5.0, result.Y);
@@ -447,9 +448,9 @@ public class TestDouble4
     {
         var source = new[] { new Double4(1, 2, 3, 1), new Double4(5, 6, 7, 1) };
         var dest = new Double4[2];
-        var matrix = Matrix.Translation(10, 20, 30);
+        var matrix = Matrix4x4.CreateTranslation(10, 20, 30);
 
-        Double4.Transform(source, ref matrix, dest);
+        Double4.Transform(source, matrix, dest);
 
         Assert.Equal(11.0, dest[0].X);
         Assert.Equal(22.0, dest[0].Y);
@@ -462,9 +463,9 @@ public class TestDouble4
     {
         var source = new[] { new Double4(1, 0, 0, 1), new Double4(0, 1, 0, 1) };
         var dest = new Double4[2];
-        var rotation = Quaternion.RotationY(MathUtil.PiOverTwo);
+        var rotation = Quaternion.CreateRotationY(MathUtil.PiOverTwo);
 
-        Double4.Transform(source, ref rotation, dest);
+        Double4.Transform(source, rotation, dest);
 
         Assert.True(MathUtil.NearEqual((float)dest[0].Z, -1.0f));
         Assert.True(MathUtil.NearEqual((float)dest[0].X, 0.0f));
@@ -474,7 +475,7 @@ public class TestDouble4
     public void TestDouble4Deconstruct()
     {
         var v = new Double4(1, 2, 3, 4);
-        v.Deconstruct(out double x, out double y, out double z, out double w);
+        var (x, y, z, w) = v;
 
         Assert.Equal(1.0, x);
         Assert.Equal(2.0, y);

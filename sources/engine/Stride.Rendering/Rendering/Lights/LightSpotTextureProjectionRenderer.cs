@@ -10,6 +10,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Shadows;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Lights
 {
@@ -108,20 +109,21 @@ namespace Stride.Rendering.Lights
         }
 
         // Computes the view-projection matrix without any offset or scaling cascade.
-        private static Matrix ComputeWorldToTextureUVMatrix(RenderLight light)
+        private static Matrix4x4 ComputeWorldToTextureUVMatrix(RenderLight light)
         {
             var spotLight = (LightSpot)light.Type;
 
-            Matrix.Invert(ref light.WorldMatrix, out var viewMatrix);
+            Matrix4x4.InvertSafe(light.WorldMatrix, out var viewMatrix);
 
             // TODO: PERFORMANCE: This does redundant work. The view projection matrix is already calculated within "LightSpotShadowMapRenderer".
 
             // TODO: Calculation of near and far is hardcoded/approximated. We should find a better way to calculate it.
             var nearClip = 0.01f;   // TODO: This should be configurable.
-            var farClip = spotLight.Range;  // Removed the multiplication by two because I didn't see the point in it.
-            var projectionMatrix = Matrix.PerspectiveFovRH(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip); // Perspective Projection for spotlights
-            Matrix viewProjectionMatrix;
-            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out viewProjectionMatrix);
+            // Removed the multiplication by two because I didn't see the point in it.
+            // A range near zero still needs a far plane behind the near one: CreatePerspectiveFieldOfView throws when it is not
+            var farClip = MathF.Max(spotLight.Range, 2.0f * nearClip);
+            var projectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip); // Perspective Projection for spotlights
+            Matrix4x4 viewProjectionMatrix = viewMatrix * projectionMatrix;
 
             // TODO: Add an offset so we don't have to do it in the shader?
 
@@ -129,7 +131,7 @@ namespace Stride.Rendering.Lights
         }
 
         // Computes the view-projection matrix without any offset or scaling cascade.
-        private static Matrix ComputeProjectorPlaneMatrix(RenderLight light)
+        private static Matrix4x4 ComputeProjectorPlaneMatrix(RenderLight light)
         {
             var spotLight = (LightSpot)light.Type;
 
@@ -139,7 +141,7 @@ namespace Stride.Rendering.Lights
             float height = MathF.Tan(angleOuterInRadians / 2.0f) * nearClipDistance;  // TODO: Is this correct?
             float width = height * spotLight.AspectRatio;  // TODO: Is this correct?
 
-            Matrix viewMatrix = light.WorldMatrix;
+            Matrix4x4 viewMatrix = light.WorldMatrix;
 
             // Translate the matrix to position it at the near plane.
             Vector3 translation = viewMatrix.Forward * nearClipDistance;
@@ -179,7 +181,7 @@ namespace Stride.Rendering.Lights
         private class LightSpotTextureProjectionShaderData : ILightShadowMapShaderData
         {
             public float ProjectiveTextureMipMapLevel;
-            public Matrix WorldToTextureUV;
+            public Matrix4x4 WorldToTextureUV;
         }
 
         public class LightSpotTextureProjectionGroupShaderData : ITextureProjectionShaderGroupData // TODO: Make private
@@ -188,8 +190,8 @@ namespace Stride.Rendering.Lights
             private const string ShaderNameAttenuation = "LightSpotAttenuationRectangular";
 
             // Values:
-            private Matrix[] worldToTextureUV;
-            private Matrix[] projectorPlaneMatrices;
+            private Matrix4x4[] worldToTextureUV;
+            private Matrix4x4[] projectorPlaneMatrices;
             private float[] projectionTextureMipMapLevels;
             private float[] transitionAreas;
             private readonly SpotLightTextureParameters lightParameters;
@@ -198,8 +200,8 @@ namespace Stride.Rendering.Lights
             private ObjectParameterKey<Texture> projectiveTextureKey;
             private ValueParameterKey<Vector2> uvScale;
             private ValueParameterKey<Vector2> uvOffset;
-            private ValueParameterKey<Matrix> worldToProjectiveTextureUVsKey;
-            private ValueParameterKey<Matrix> projectorPlaneMatricesKey;
+            private ValueParameterKey<Matrix4x4> worldToProjectiveTextureUVsKey;
+            private ValueParameterKey<Matrix4x4> projectorPlaneMatricesKey;
             private ValueParameterKey<float> projectionTextureMipMapLevelsKey;
             private ValueParameterKey<float> transitionAreasKey;
             public ShaderMixinSource TextureProjectionShader { get; private set; }

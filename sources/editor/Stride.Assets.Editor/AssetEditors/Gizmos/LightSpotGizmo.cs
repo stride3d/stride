@@ -11,6 +11,7 @@ using Stride.Rendering;
 using Stride.Rendering.Lights;
 using Buffer = Stride.Graphics.Buffer;
 using Material = Stride.Rendering.Material;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {

@@ -7,6 +7,7 @@ using Stride.Engine;
 using Stride.Extensions;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -41,13 +42,13 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             var bodyMesh = GeometricPrimitive.Cylinder.New(GraphicsDevice, BodyLength, BodyRadius, GizmoTessellation).ToMeshDraw();
             
             var coneEntity = new Entity($"Light ray for light gizmo {root.Id}") { new ModelComponent { Model = new Model { rayMaterial, new Mesh { Draw = coneMesh } }, RenderGroup = RenderGroup } };
-            coneEntity.Transform.Rotation = Quaternion.RotationX(-MathUtil.PiOverTwo);
+            coneEntity.Transform.Rotation = Quaternion.CreateRotationX(-MathUtil.PiOverTwo);
             coneEntity.Transform.Position.Z = -BodyLength - ConeHeight * 0.5f;
             lightRay.AddChild(coneEntity);
 
             var bodyEntity = new Entity($"Light ray body for light gizmo {root.Id}") { new ModelComponent { Model = new Model { rayMaterial, new Mesh { Draw = bodyMesh } }, RenderGroup = RenderGroup } };
             bodyEntity.Transform.Position.Z = -BodyLength / 2;
-            bodyEntity.Transform.Rotation = Quaternion.RotationX(-MathUtil.PiOverTwo);
+            bodyEntity.Transform.Rotation = Quaternion.CreateRotationX(-MathUtil.PiOverTwo);
             lightRay.AddChild(bodyEntity);
 
             root.AddChild(lightRay);

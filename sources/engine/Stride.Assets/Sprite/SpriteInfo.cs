@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Assets.Sprite
 {

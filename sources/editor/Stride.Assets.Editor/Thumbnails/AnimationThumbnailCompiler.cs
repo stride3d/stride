@@ -20,6 +20,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Assets.Editor.Resources.Thumbnails;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Thumbnails
 {

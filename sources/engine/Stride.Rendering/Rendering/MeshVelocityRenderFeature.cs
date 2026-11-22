@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Rendering.Compositing;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -191,10 +192,9 @@ namespace Stride.Rendering
                     var renderPerViewNode = RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
                     var renderModelFrameInfo = RenderModelObjectInfoData[renderPerViewNode.ObjectNode];
 
-                    Matrix previousViewProjection = ViewData.PreviousViewProjection;
+                    Matrix4x4 previousViewProjection = ViewData.PreviousViewProjection;
 
-                    Matrix previousWorldViewProjection;
-                    Matrix.Multiply(ref renderModelFrameInfo.World, ref previousViewProjection, out previousWorldViewProjection);
+                    Matrix4x4 previousWorldViewProjection = renderModelFrameInfo.World * previousViewProjection;
 
                     PreviousTransformationViewInfoData[renderPerViewNodeReference] = new PreviousObjectViewInfo
                     {
@@ -243,24 +243,24 @@ namespace Stride.Rendering
 
         internal class RenderViewData
         {
-            public Matrix PreviousViewProjection;
+            public Matrix4x4 PreviousViewProjection;
             public int UsageCounter;
         }
 
         internal struct StaticObjectInfo
         {
-            public Matrix World;
+            public Matrix4x4 World;
         }
 
         internal struct PreviousObjectViewInfo
         {
-            public Matrix WorldViewProjection;
+            public Matrix4x4 WorldViewProjection;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct PreviousPerDraw
         {
-            public Matrix PreviousWorldViewProjection;
+            public Matrix4x4 PreviousWorldViewProjection;
         }
     }
 }

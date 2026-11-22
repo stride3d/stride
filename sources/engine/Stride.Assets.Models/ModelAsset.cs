@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Yaml;
 using Stride.Importer.Common;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Assets.Models
 {

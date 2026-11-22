@@ -98,10 +98,10 @@ TemplateProviders:
   Stride.Assets.Presentation.TemplateProviders.AnimationFrameTemplateProvider AnimationFrameTemplateProvider
   Stride.Assets.Presentation.TemplateProviders.ComputeCurveColor4TemplateProvider IComputeCurve<Stride.Core.Mathematics.Color4>
   Stride.Assets.Presentation.TemplateProviders.ComputeCurveFloatTemplateProvider IComputeCurve<System.Single>
-  Stride.Assets.Presentation.TemplateProviders.ComputeCurveQuaternionTemplateProvider IComputeCurve<Stride.Core.Mathematics.Quaternion>
-  Stride.Assets.Presentation.TemplateProviders.ComputeCurveVector2TemplateProvider IComputeCurve<Stride.Core.Mathematics.Vector2>
-  Stride.Assets.Presentation.TemplateProviders.ComputeCurveVector3TemplateProvider IComputeCurve<Stride.Core.Mathematics.Vector3>
-  Stride.Assets.Presentation.TemplateProviders.ComputeCurveVector4TemplateProvider IComputeCurve<Stride.Core.Mathematics.Vector4>
+  Stride.Assets.Presentation.TemplateProviders.ComputeCurveQuaternionTemplateProvider IComputeCurve<System.Numerics.Quaternion>
+  Stride.Assets.Presentation.TemplateProviders.ComputeCurveVector2TemplateProvider IComputeCurve<System.Numerics.Vector2>
+  Stride.Assets.Presentation.TemplateProviders.ComputeCurveVector3TemplateProvider IComputeCurve<System.Numerics.Vector3>
+  Stride.Assets.Presentation.TemplateProviders.ComputeCurveVector4TemplateProvider IComputeCurve<System.Numerics.Vector4>
   Stride.Assets.Presentation.TemplateProviders.EntityComponentCollectionTemplateProvider EntityComponentCollection
   Stride.Assets.Presentation.TemplateProviders.EntityComponentCollectionTemplateProvider EntityComponentCollection
   Stride.Assets.Presentation.TemplateProviders.EntityComponentReferenceTemplateProvider EntityComponentReference

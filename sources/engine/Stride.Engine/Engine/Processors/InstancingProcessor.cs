@@ -9,6 +9,7 @@ using Stride.Core.Threading;
 using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Engine.Processors
 {
@@ -143,9 +144,9 @@ namespace Stride.Engine.Processors
             }
         }
 
-        private static Buffer<Matrix> CreateMatrixBuffer(GraphicsDevice graphicsDevice, int elementCount)
+        private static Buffer<Matrix4x4> CreateMatrixBuffer(GraphicsDevice graphicsDevice, int elementCount)
         {
-            return Buffer.New<Matrix>(graphicsDevice, elementCount, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
+            return Buffer.New<Matrix4x4>(graphicsDevice, elementCount, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
         }
 
         private void UpdateInstancing(InstancingComponent instancingComponent, InstancingData instancingData)
@@ -198,7 +199,7 @@ namespace Stride.Engine.Processors
                 var ibb = instancing.BoundingBox;
                 var mbb = new BoundingBoxExt(meshInfo.BoundingBox);
 
-                Matrix.Invert(ref instancingData.ModelComponent.Skeleton.NodeTransformations[0].LocalMatrix, out var invWorld);
+                Matrix4x4.InvertSafe(instancingData.ModelComponent.Skeleton.NodeTransformations[0].LocalMatrix, out var invWorld);
                 mbb.Transform(invWorld);
 
                 var center = ibb.Center;
@@ -228,7 +229,7 @@ namespace Stride.Engine.Processors
         {
             var ibb = new BoundingBoxExt(instancing.BoundingBox);
             ibb.Transform(instancingData.TransformComponent.WorldMatrix);
-            var center = meshInfo.BoundingBox.Center + ibb.Center - instancingData.TransformComponent.WorldMatrix.TranslationVector; // World translation was applied twice now
+            var center = meshInfo.BoundingBox.Center + ibb.Center - instancingData.TransformComponent.WorldMatrix.Translation; // World translation was applied twice now
             var extend = meshInfo.BoundingBox.Extent + ibb.Extent;
             return new BoundingBox(center - extend, center + extend);
         }

@@ -1,0 +1,47 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Writes element [row][column] of a matrix to the pixel at (column, row), from a constant buffer matrix,
+    /// an element of a constant buffer array or an element of a structured buffer.
+    /// </summary>
+    shader MatrixLayoutTestShader : ShaderBase
+    {
+        stage stream float2 Position : POSITION;
+
+        cbuffer PerDraw
+        {
+            stage float4x4 TestMatrix;
+            stage float4x4 TestMatrices[2];
+            stage uint Source;
+        }
+
+        rgroup PerDraw
+        {
+            stage StructuredBuffer<float4x4> TestMatrixBuffer;
+        }
+
+        stage override void VSMain()
+        {
+            streams.ShadingPosition = float4(streams.Position, 0.0f, 1.0f);
+        }
+
+        stage override void PSMain()
+        {
+            uint column = (uint)streams.ShadingPosition.x;
+            uint row = (uint)streams.ShadingPosition.y;
+
+            float4x4 value;
+            if (Source == 0)
+                value = TestMatrix;
+            else if (Source == 1)
+                value = TestMatrices[1];
+            else
+                value = TestMatrixBuffer[1];
+
+            streams.ColorTarget = float4(value[row][column], 0.0f, 0.0f, 1.0f);
+        }
+    };
+}

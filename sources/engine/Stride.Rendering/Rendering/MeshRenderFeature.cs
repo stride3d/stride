@@ -13,6 +13,7 @@ using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Rendering
 {

@@ -9,6 +9,7 @@ using Stride.Graphics;
 using Stride.Rendering.Sprites;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {

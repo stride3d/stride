@@ -13,6 +13,7 @@ using Stride.Effects.Renderers;
 using Stride.Engine;
 using Stride.EntityModel;
 using Stride.Extensions;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {
@@ -140,7 +141,7 @@ namespace Stride.Graphics.Tests
                 // Wait next rendering frame
                 await Script.NextFrame();
 
-                teapotEntity.Transform.Rotation = Quaternion.RotationY((float)(2 * Math.PI * UpdateTime.Total.TotalMilliseconds / 5000.0f));
+                teapotEntity.Transform.Rotation = Quaternion.CreateRotationY((float)(2 * Math.PI * UpdateTime.Total.TotalMilliseconds / 5000.0f));
                 dynamicCubemapEntity.Transform.Translation = new Vector3(2f * (float)Math.Sin(2 * Math.PI * UpdateTime.Total.TotalMilliseconds / 15000.0f), 0, 0);
             }
         }

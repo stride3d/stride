@@ -25,6 +25,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -139,7 +140,7 @@ public struct Half2 : IEquatable<Half2>, ISpanFormattable
     /// <c>true</c> if <paramref name="left" /> has the same value as <paramref name="right" />; otherwise, <c>false</c>.</returns>
     public static bool operator ==(Half2 left, Half2 right)
     {
-        return Equals(ref left, ref right);
+        return left.Equals(right);
     }
 
     /// <summary>
@@ -152,7 +153,7 @@ public struct Half2 : IEquatable<Half2>, ISpanFormattable
     [return: MarshalAs(UnmanagedType.U1)]
     public static bool operator !=(Half2 left, Half2 right)
     {
-        return !Equals(ref left, ref right);
+        return !left.Equals(right);
     }
     
     /// <summary>
@@ -173,22 +174,28 @@ public struct Half2 : IEquatable<Half2>, ISpanFormattable
     /// </returns>
     public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        var separator = $"{((formatProvider as CultureInfo) ?? CultureInfo.CurrentCulture).TextInfo.ListSeparator} ";
-        var handler = new DefaultInterpolatedStringHandler(separator.Length, 3, formatProvider);
+        var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
+        var handler = new DefaultInterpolatedStringHandler(4, 2, formatProvider);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format);
         handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format);
+        handler.AppendLiteral(">");
         return handler.ToStringAndClear();
     }
 
     bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
-        var separator = $"{((provider as CultureInfo) ?? CultureInfo.CurrentCulture).TextInfo.ListSeparator} ";
         var format1 = format.Length > 0 ? format.ToString() : null;
-        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(separator.Length, 3, destination, provider, out _);
+        var separator = NumberFormatInfo.GetInstance(provider).NumberGroupSeparator;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(4, 2, destination, provider, out _);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format1);
         handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format1);
+        handler.AppendLiteral(">");
         return destination.TryWrite(ref handler, out charsWritten);
     }
 
@@ -199,19 +206,6 @@ public struct Half2 : IEquatable<Half2>, ISpanFormattable
     public override readonly int GetHashCode()
     {
         return HashCode.Combine(X, Y);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object instances are considered equal.
-    /// </summary>
-    /// <param name="value1">The first value.</param>
-    /// <param name="value2">The second value.</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="value1" /> is the same instance as <paramref name="value2" /> or
-    /// if both are <c>null</c> references or if <c>value1.Equals(value2)</c> returns <c>true</c>; otherwise, <c>false</c>.</returns>
-    public static bool Equals(ref readonly Half2 value1, ref readonly Half2 value2)
-    {
-        return (value1.X == value2.X) && (value1.Y == value2.Y);
     }
 
     /// <summary>
@@ -253,7 +247,7 @@ public struct Half2 : IEquatable<Half2>, ISpanFormattable
     /// <returns>The result of the conversion.</returns>
     public static explicit operator Vector2(Half2 value)
     {
-        return new Vector2(value.X, value.Y);
+        return new Vector2((float)value.X, (float)value.Y);
     }
 
     /// <summary>

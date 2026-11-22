@@ -3,6 +3,7 @@
 
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.Rendering.Background
 {
@@ -61,7 +62,7 @@ namespace Stride.Rendering.Background
                     renderBackground.Texture = backgroundComponent.Texture;
                     renderBackground.Intensity = backgroundComponent.Intensity;
                     renderBackground.RenderGroup = backgroundComponent.RenderGroup;
-                    renderBackground.Rotation = Quaternion.RotationMatrix(backgroundComponent.Entity.Transform.WorldMatrix);
+                    renderBackground.Rotation = Quaternion.CreateFromRotationMatrix(backgroundComponent.Entity.Transform.WorldMatrix);
 
                     ActiveBackground = renderBackground;
                     break;

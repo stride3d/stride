@@ -6,6 +6,7 @@
 using System;
 using Stride.Core.Mathematics;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.Editor.Engine;
 

@@ -15,6 +15,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.LightProbes;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Rendering.Compositing
 {
@@ -135,7 +136,7 @@ namespace Stride.Rendering.Compositing
                 var tetra = new BowyerWatsonTetrahedralization();
                 var tetraResult = tetra.Compute(lightprobePositions);*/
 
-                Matrix.Invert(ref renderView.View, out var viewInverse);
+                Matrix4x4.InvertSafe(renderView.View, out var viewInverse);
 
                 var eye = new Vector3(viewInverse.M41, viewInverse.M42, viewInverse.M43);
 
@@ -156,7 +157,7 @@ namespace Stride.Rendering.Compositing
 
                     // Compute face orientations
                     var vertex0 = lightprobePositions[face.Vertices[0]];
-                    Vector3.Subtract(ref vertex0, ref eye, out vertex0);
+                    vertex0 -= eye;
                     bool faceFrontFacing = Vector3.Dot(face.Normal, vertex0) >= 0.0f;
                     faceDirection[i] = faceFrontFacing;
 
@@ -265,14 +266,14 @@ namespace Stride.Rendering.Compositing
                     for (int i = 0; i < tetraResult.Count; ++i)
                     {
                         // Get tetrahedra matrix
-                        var tetrahedraMatrix = Matrix.Identity;
-                        tetrahedraMatrix.Column1 = matrices[i * 3 + 0];
-                        tetrahedraMatrix.Column2 = matrices[i * 3 + 1];
-                        tetrahedraMatrix.Column3 = matrices[i * 3 + 2];
+                        var tetrahedraMatrix = Matrix4x4.Identity;
+                        tetrahedraMatrix.SetColumn1(matrices[i * 3 + 0]);
+                        tetrahedraMatrix.SetColumn2(matrices[i * 3 + 1]);
+                        tetrahedraMatrix.SetColumn3(matrices[i * 3 + 2]);
 
                         // Extract and zero-out position of 3rd vertex (we get the 3x3 matrix)
-                        var vertex3 = tetrahedraMatrix.TranslationVector;
-                        tetrahedraMatrix.TranslationVector = Vector3.Zero;
+                        var vertex3 = tetrahedraMatrix.Translation;
+                        tetrahedraMatrix.Translation = Vector3.Zero;
 
                         Vector3 tetraFactors = Vector3.TransformCoordinate(eye - vertex3, tetrahedraMatrix);
                         var tetraFactorW = 1.0f - tetraFactors.X - tetraFactors.Y - tetraFactors.Z;
@@ -353,7 +354,7 @@ namespace Stride.Rendering.Compositing
                     drawContext.CommandList.SetPipelineState(bakeLightProbesPipeline.CurrentState);
 
                     // Apply the effect
-                    bakeLightProbes.Parameters.Set(BakeLightProbeShaderKeys.MatrixTransform, Matrix.Identity);
+                    bakeLightProbes.Parameters.Set(BakeLightProbeShaderKeys.MatrixTransform, Matrix4x4.Identity);
                     bakeLightProbes.Apply(drawContext.GraphicsContext);
 
                     drawContext.CommandList.Draw(3, tetraResult.Count * 4);

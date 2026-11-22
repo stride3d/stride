@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.Physics.Tests
 {
@@ -17,18 +18,18 @@ namespace Stride.Physics.Tests
 
         public static bool ScreenPositionToWorldPositionRaycast(Vector2 screenPos, CameraComponent camera, Simulation simulation)
         {
-            var invViewProj = Matrix.Invert(camera.ViewProjectionMatrix);
+            Matrix4x4.InvertSafe(camera.ViewProjectionMatrix, out var invViewProj);
 
             Vector3 sPos;
             sPos.X = screenPos.X * 2f - 1f;
             sPos.Y = 1f - screenPos.Y * 2f;
 
             sPos.Z = 0f;
-            var vectorNear = Vector3.Transform(sPos, invViewProj);
+            var vectorNear = Vector4.Transform(sPos, invViewProj);
             vectorNear /= vectorNear.W;
 
             sPos.Z = 1f;
-            var vectorFar = Vector3.Transform(sPos, invViewProj);
+            var vectorFar = Vector4.Transform(sPos, invViewProj);
             vectorFar /= vectorFar.W;
 
             var result = new List<HitResult>();

@@ -15,6 +15,7 @@ using Stride.Shaders;
 using System.Linq;
 using Stride.Core.Assets;
 using Stride.Core.Serialization.Contents;
+using System.Numerics;
 
 namespace Stride.Assets.Models
 {
@@ -113,17 +114,17 @@ namespace Stride.Assets.Models
         /// <param name="rootIndex">The root index.</param>
         /// <param name="index">The current index.</param>
         /// <returns>The matrix at this index.</returns>
-        private Matrix CombineMatricesFromNodeIndices(ModelNodeTransformation[] nodes, int rootIndex, int index)
+        private Matrix4x4 CombineMatricesFromNodeIndices(ModelNodeTransformation[] nodes, int rootIndex, int index)
         {
             if (index == -1 || index == rootIndex)
-                return Matrix.Identity;
+                return Matrix4x4.Identity;
 
             var result = nodes[index].LocalMatrix;
 
             if (index != rootIndex)
             {
                 var topMatrix = CombineMatricesFromNodeIndices(nodes, rootIndex, nodes[index].ParentIndex);
-                result = Matrix.Multiply(result, topMatrix);
+                result *= topMatrix;
             }
 
             return result;

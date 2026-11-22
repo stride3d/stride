@@ -8,6 +8,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Layering
 {
@@ -55,7 +56,7 @@ namespace Stride.UI.Tests.Layering
             MinimumWidth = 0.0f;
             MinimumHeight = 0.0f;
             MinimumDepth = 0.0f;
-            LocalMatrix = Matrix.Identity;
+            LocalMatrix = Matrix4x4.Identity;
             HorizontalAlignment = HorizontalAlignment.Stretch;
             VerticalAlignment = VerticalAlignment.Stretch;
             DepthAlignment = DepthAlignment.Back;
@@ -78,47 +79,47 @@ namespace Stride.UI.Tests.Layering
             DepthAlignment = DepthAlignment.Stretch;
             Arrange(Vector3.Zero, false);
 
-            var identity = Matrix.Identity;
-            Matrix matrix;
+            var identity = Matrix4x4.Identity;
+            Matrix4x4 matrix;
 
             // test that Identity is return when there are no transformation
             UpdateWorldMatrix(ref identity, true);
-            Assert.Equal(Matrix.Identity, WorldMatrix);
+            Assert.Equal(Matrix4x4.Identity, WorldMatrix);
 
             // test that parent matrix is return when there no internal transformations
-            var parentWorld = Matrix.LookAtLH(new Vector3(1, 2, 3), Vector3.Zero, new Vector3(0, 0, 1));
+            var parentWorld = Matrix4x4.CreateLookAtLeftHanded(new Vector3(1, 2, 3), Vector3.Zero, new Vector3(0, 0, 1));
             UpdateWorldMatrix(ref parentWorld, true);
             Assert.Equal(parentWorld, WorldMatrix);
 
             // test that child local matrix is returned parent matrix is identity and no layering has been done
-            var localMatrix = Matrix.LookAtLH(new Vector3(3, 2, 1), Vector3.Zero, new Vector3(0, 0, 1));
+            var localMatrix = Matrix4x4.CreateLookAtLeftHanded(new Vector3(3, 2, 1), Vector3.Zero, new Vector3(0, 0, 1));
             LocalMatrix = localMatrix;
             UpdateWorldMatrix(ref identity, true);
             Assert.Equal(localMatrix, WorldMatrix);
 
             // check that the composition of the parent world matrix and child local matrix is correct
-            LocalMatrix = Matrix.Translation(new Vector3(1, 2, 3));
-            matrix = Matrix.Scaling(0.5f, 0.5f, 0.5f);
+            LocalMatrix = Matrix4x4.CreateTranslation(new Vector3(1, 2, 3));
+            matrix = Matrix4x4.CreateScale(0.5f, 0.5f, 0.5f);
             UpdateWorldMatrix(ref matrix, true);
-            Assert.Equal(new Matrix(0.5f, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0.5f, 0, 0.5f, 1f, 1.5f, 1), WorldMatrix);
+            Assert.Equal(new Matrix4x4(0.5f, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0.5f, 0, 0.5f, 1f, 1.5f, 1), WorldMatrix);
 
             // check that the margin and half render size offsets are properly included in the world transformation
-            LocalMatrix = Matrix.Identity;
+            LocalMatrix = Matrix4x4.Identity;
             Margin = new Thickness(1,2,3,4,5,6);
             Arrange(new Vector3(15,27,39), false);
             UpdateWorldMatrix(ref identity, true);
-            Assert.Equal(Matrix.Translation(1+5,2+10,6+15), WorldMatrix);
+            Assert.Equal(Matrix4x4.CreateTranslation(1+5,2+10,6+15), WorldMatrix);
 
             // check that the result of the composition between margin and parent world matrix is correct
-            matrix = Matrix.Scaling(0.5f, 0.5f, 0.5f);
+            matrix = Matrix4x4.CreateScale(0.5f, 0.5f, 0.5f);
             UpdateWorldMatrix(ref matrix, true);
-            Assert.Equal(new Matrix(0.5f, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0.5f, 0, 3f, 6f, 10.5f, 1), WorldMatrix);
+            Assert.Equal(new Matrix4x4(0.5f, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0.5f, 0, 3f, 6f, 10.5f, 1), WorldMatrix);
 
             // check that the composition of the margins, local matrix and parent matrix is correct.
-            LocalMatrix = new Matrix(0,-1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,1);
-            matrix = Matrix.Scaling(0.1f, 0.2f, 0.4f);
+            LocalMatrix = new Matrix4x4(0,-1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,1);
+            matrix = Matrix4x4.CreateScale(0.1f, 0.2f, 0.4f);
             UpdateWorldMatrix(ref matrix, true);
-            Assert.Equal(new Matrix(0,-0.2f,0,0, 0.1f,0,0,0, 0,0,0.4f,0, 0.6f,2.4f,8.4f,1), WorldMatrix);
+            Utilities.AssertAreNearlyEqual(new Matrix4x4(0,-0.2f,0,0, 0.1f,0,0,0, 0,0,0.4f,0, 0.6f,2.4f,8.4f,1), WorldMatrix);
         }
 
         /// <summary>
@@ -154,7 +155,7 @@ namespace Stride.UI.Tests.Layering
             Assert.Equal(DepthAlignment.Center, newElement.DepthAlignment);
             Assert.Null(newElement.Name);
             Assert.Equal(Thickness.UniformCuboid(0), newElement.Margin);
-            Assert.Equal(Matrix.Identity, newElement.LocalMatrix);
+            Assert.Equal(Matrix4x4.Identity, newElement.LocalMatrix);
 
             /////////////////////////////////////////
             // check dependency property validators
@@ -722,7 +723,7 @@ namespace Stride.UI.Tests.Layering
 
             // - Check that changing value of "parentWorldChanged" correctly force the re-calculation of the worldMatrix
 
-            var worldMatrix = Matrix.Zero;
+            var worldMatrix = default(Matrix4x4);
             
             worldMatrix.M11 = 2;
             UpdateWorldMatrix(ref worldMatrix, true);
@@ -738,7 +739,7 @@ namespace Stride.UI.Tests.Layering
 
             // - Check that changing value of the "localMatrix" correctly force the re-calculation of the worldMatrix
 
-            var localMatrix = Matrix.Zero;
+            var localMatrix = default(Matrix4x4);
 
             localMatrix.M11 = 4;
             LocalMatrix = localMatrix;
@@ -758,7 +759,7 @@ namespace Stride.UI.Tests.Layering
 
         private void TestInvalidationSystemCore(bool parentIsCollapsed, ReturnBoolDelegate getArrangeHasBeenCalledVal)
         {
-            var worldMatrix = Matrix.Zero;
+            var worldMatrix = default(Matrix4x4);
 
             ResetElementState();
 
@@ -877,7 +878,7 @@ namespace Stride.UI.Tests.Layering
             TestNoInvalidation(() => IsEnabled = !IsEnabled);
             TestNoInvalidation(() => Opacity = Opacity / 3 + 0.5f);
             TestNoInvalidation(() => ClipToBounds = !ClipToBounds);
-            TestNoInvalidation(() => LocalMatrix = Matrix.Zero);
+            TestNoInvalidation(() => LocalMatrix = default(Matrix4x4));
 
             // - test the properties that are supposed to invalidate the object measurement
 

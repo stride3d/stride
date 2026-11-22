@@ -4,6 +4,7 @@
 using System.Runtime.InteropServices;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering.Shadows
 {

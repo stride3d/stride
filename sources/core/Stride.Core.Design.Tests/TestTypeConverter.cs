@@ -9,7 +9,7 @@ using Xunit;
 
 using Stride.Core.Mathematics;
 using Stride.Core.TypeConverters;
-using Half = Stride.Core.Mathematics.Half;
+using System.Numerics;
 
 namespace Stride.Core.Design.Tests;
 
@@ -44,69 +44,73 @@ public class TestTypeConverter
     [Fact]
     public void TestHalf()
     {
-        TestConversionMultipleCultures(new Half(5.6f));
+        TestConversionMultipleCultures((Half)5.6f);
     }
 
     [Fact]
     public void TestHalf2()
     {
-        TestConversionMultipleCultures(new Half2(new Half(5.12f), new Half(2)));
+        TestConversionMultipleCultures(new Half2((Half)5.12f, (Half)2), x => Listed(x.X, x.Y));
     }
 
     [Fact]
     public void TestHalf3()
     {
-        TestConversionMultipleCultures(new Half3(new Half(5.12f), new Half(2), new Half(-17.54f)));
+        TestConversionMultipleCultures(new Half3((Half)5.12f, (Half)2, (Half)(-17.54f)), x => Listed(x.X, x.Y, x.Z));
     }
 
     [Fact]
     public void TestHalf4()
     {
-        TestConversionMultipleCultures(new Half4(new Half(5.12f), new Half(2), new Half(-17.54f), new Half(-5)));
+        TestConversionMultipleCultures(new Half4((Half)5.12f, (Half)2, (Half)(-17.54f), (Half)(-5)), x => Listed(x.X, x.Y, x.Z, x.W));
     }
 
     [Fact]
     public void TestMatrix()
     {
-        TestConversionMultipleCultures(new Matrix(0.25f, 50.0f, -4.9f, 1, 5.12f, 2, -17.54f, -5, 10.25f, 150.0f, -14.9f, 11, 15.12f, 12, -117.54f, -15));
+        TestConversionMultipleCultures(new Matrix4x4(0.25f, 50.0f, -4.9f, 1, 5.12f, 2, -17.54f, -5, 10.25f, 150.0f, -14.9f, 11, 15.12f, 12, -117.54f, -15), x => string.Join(' ', Enumerable.Range(0, 16).Select(i => $"M{i / 4 + 1}{i % 4 + 1}:{x[i / 4, i % 4]}")));
     }
 
     [Fact]
     public void TestQuaternion()
     {
-        TestConversionMultipleCultures(new Quaternion(5.12f, 2, -17.54f, -5));
+        TestConversionMultipleCultures(new Quaternion(5.12f, 2, -17.54f, -5), x => $"X:{x.X} Y:{x.Y} Z:{x.Z} W:{x.W}");
     }
 
     [Fact]
     public void TestVector2()
     {
-        TestConversionMultipleCultures(new Vector2(5.12f, -17.54f));
+        TestConversionMultipleCultures(new Vector2(5.12f, -17.54f), x => $"X:{x.X} Y:{x.Y}");
     }
 
     [Fact]
     public void TestVector3()
     {
-        TestConversionMultipleCultures(new Vector3(5.12f, 2, -17.54f));
+        TestConversionMultipleCultures(new Vector3(5.12f, 2, -17.54f), x => $"X:{x.X} Y:{x.Y} Z:{x.Z}");
     }
 
     [Fact]
     public void TestVector4()
     {
-        TestConversionMultipleCultures(new Vector4(5.12f, 2, -17.54f, -5));
+        TestConversionMultipleCultures(new Vector4(5.12f, 2, -17.54f, -5), x => $"X:{x.X} Y:{x.Y} Z:{x.Z} W:{x.W}");
     }
 
-    private static void TestConversionMultipleCultures<T>(T testValue)
+    // The values with the separator of lists of the culture between them
+    private static string Listed(params Half[] values) => string.Join(CultureInfo.CurrentCulture.TextInfo.ListSeparator + " ", values);
+
+    private static void TestConversionMultipleCultures<T>(T testValue, Func<T, string>? toString = null)
         where T : struct
     {
         string[] supportedLanguages = ["de-DE", "en-US", "es-ES", "fr-FR", "it-IT", "ja-JP", "ko-KR", "nb-NO", "pl-PL", "ru-RU", "zh-Hans"];
         foreach (var lang in supportedLanguages)
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(lang);
-            TestConversion(testValue);
+            TestConversion(testValue, toString);
         }
     }
 
-    private static void TestConversion<T>(T testValue)
+    // toString: the text the converter writes, when it is not the one of ToString
+    private static void TestConversion<T>(T testValue, Func<T, string>? toString)
         where T : struct
     {
         var converter = TypeDescriptor.GetConverter(typeof(T));
@@ -115,7 +119,7 @@ public class TestTypeConverter
         // Initial conversion
         Assert.True(converter.CanConvertTo(typeof(string)));
         var value = converter.ConvertTo(testValue, typeof(string));
-        Assert.Equal(testValue.ToString(), value);
+        Assert.Equal(toString?.Invoke(testValue) ?? testValue.ToString(), value);
 
         // Reverse conversion
         Assert.True(converter.CanConvertFrom(typeof(string)));

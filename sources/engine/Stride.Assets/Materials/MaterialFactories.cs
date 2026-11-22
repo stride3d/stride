@@ -6,6 +6,7 @@ using Stride.Core.Serialization;
 using Stride.Graphics;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
+using System.Numerics;
 
 namespace Stride.Assets.Materials
 {

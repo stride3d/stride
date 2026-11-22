@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Constraints;
 
@@ -21,11 +22,11 @@ public sealed class AngularAxisMotorConstraintComponent : TwoBodyConstraintCompo
     {
         get
         {
-            return BepuConstraint.LocalAxisA.ToStride();
+            return BepuConstraint.LocalAxisA;
         }
         set
         {
-            BepuConstraint.LocalAxisA = value.ToNumeric();
+            BepuConstraint.LocalAxisA = value;
             TryUpdateDescription();
         }
     }

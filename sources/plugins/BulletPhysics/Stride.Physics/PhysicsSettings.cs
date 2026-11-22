@@ -5,6 +5,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Data;
+using System.Numerics;
 
 namespace Stride.Physics
 {

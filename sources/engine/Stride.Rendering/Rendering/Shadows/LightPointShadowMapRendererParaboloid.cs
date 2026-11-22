@@ -9,6 +9,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Lights;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Shadows
 {
@@ -100,8 +101,8 @@ namespace Stride.Rendering.Shadows
                 if (i == 0)
                     shaderData.View = shadowRenderView.View;
 
-                Matrix virtualProjectionMatrix = shadowRenderView.View;
-                virtualProjectionMatrix *= Matrix.Scaling(1.0f / shadowRenderView.FarClipPlane);
+                Matrix4x4 virtualProjectionMatrix = shadowRenderView.View;
+                virtualProjectionMatrix *= Matrix4x4.CreateScale(1.0f / shadowRenderView.FarClipPlane);
 
                 shadowRenderView.ViewProjection = virtualProjectionMatrix;
 
@@ -118,8 +119,8 @@ namespace Stride.Rendering.Shadows
         private void CalculateViewDirection(LightShadowMapTexture shadowMapTexture)
         {
             var pointShadowMapTexture = (ShadowMapTexture)shadowMapTexture;
-            Matrix.Orthonormalize(ref shadowMapTexture.RenderLight.WorldMatrix, out pointShadowMapTexture.ForwardMatrix);
-            pointShadowMapTexture.ForwardMatrix.Invert();
+            pointShadowMapTexture.ForwardMatrix = Matrix4x4.Orthonormalize(shadowMapTexture.RenderLight.WorldMatrix);
+            Matrix4x4.InvertSafe(pointShadowMapTexture.ForwardMatrix, out pointShadowMapTexture.ForwardMatrix);
         }
 
         /// <summary>
@@ -145,20 +146,20 @@ namespace Stride.Rendering.Shadows
             return GetLightClippingPlanes((LightPoint)shadowMapTexture.Light).Y;
         }
 
-        private void GetViewParameters(LightShadowMapTexture shadowMapTexture, int index, out Matrix view, bool forCasting)
+        private void GetViewParameters(LightShadowMapTexture shadowMapTexture, int index, out Matrix4x4 view, bool forCasting)
         {
             var pointShadowMapTexture = (ShadowMapTexture)shadowMapTexture;
-            Matrix flippingMatrix = Matrix.Identity;
+            Matrix4x4 flippingMatrix = Matrix4x4.Identity;
 
             // Flip Y for rendering shadow maps
             if (forCasting)
             {
                 // Render upside down, so reading doesn't need any modification
-                flippingMatrix.Up = -flippingMatrix.Up;
+                flippingMatrix.SetUp(-flippingMatrix.Up);
             }
 
             // Apply light position
-            view = Matrix.Translation(-shadowMapTexture.RenderLight.Position);
+            view = Matrix4x4.CreateTranslation(-shadowMapTexture.RenderLight.Position);
 
             // Apply mapping plane rotation
             view *= pointShadowMapTexture.ForwardMatrix;
@@ -171,14 +172,14 @@ namespace Stride.Rendering.Shadows
             else
             {
                 // Camera (Back)
-                flippingMatrix.Forward = -flippingMatrix.Forward;
+                flippingMatrix.SetForward(-flippingMatrix.Forward);
             }
             view *= flippingMatrix;
         }
 
         protected class ShadowMapTexture : LightShadowMapTexture
         {
-            public Matrix ForwardMatrix;
+            public Matrix4x4 ForwardMatrix;
         }
 
         private class ShaderData : ILightShadowMapShaderData
@@ -203,7 +204,7 @@ namespace Stride.Rendering.Shadows
             /// <summary>
             /// Matrix that converts from world space to the front face space of the light's shadow map
             /// </summary>
-            public Matrix View;
+            public Matrix4x4 View;
 
             /// <summary>
             /// Radius of the point light, used to determine the range of the depth buffer
@@ -221,7 +222,7 @@ namespace Stride.Rendering.Shadows
             private Vector2 shadowMapTextureSize;
             private Vector2 shadowMapTextureTexelSize;
 
-            private Matrix[] viewMatrices;
+            private Matrix4x4[] viewMatrices;
             private Vector2[] offsets;
             private Vector2[] backfaceOffsets;
             private Vector2[] faceSizes;
@@ -229,7 +230,7 @@ namespace Stride.Rendering.Shadows
             private float[] depthBiases;
 
             private ValueParameterKey<float> depthBiasesKey;
-            private ValueParameterKey<Matrix> viewKey;
+            private ValueParameterKey<Matrix4x4> viewKey;
             private ValueParameterKey<Vector2> offsetsKey;
             private ValueParameterKey<Vector2> backfaceOffsetsKey;
             private ValueParameterKey<Vector2> faceSizesKey;

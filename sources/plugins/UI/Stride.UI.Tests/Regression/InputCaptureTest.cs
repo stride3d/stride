@@ -11,6 +11,7 @@ using Stride.Rendering.Compositing;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {

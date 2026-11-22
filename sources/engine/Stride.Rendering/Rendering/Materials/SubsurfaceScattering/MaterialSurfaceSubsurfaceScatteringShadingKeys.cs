@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering.Materials
 {

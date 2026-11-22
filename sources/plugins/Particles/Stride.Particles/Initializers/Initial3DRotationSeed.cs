@@ -4,6 +4,7 @@
 using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Particles.Initializers
 {
@@ -37,9 +38,9 @@ namespace Stride.Particles.Initializers
                 var randomRotation = Quaternion.Slerp(RotationQuaternionMin, RotationQuaternionMax, randSeed.GetFloat(RandomOffset.Offset1A + SeedOffset));
                 
                 // Results in errors ("small" quaternion) when interpolation -90 to +90 degree rotations, so we have to normalize it
-                randomRotation.Normalize();
+                randomRotation = Quaternion.NormalizeSafe(randomRotation);
             
-                (*((Quaternion*)particle[rotField])) = randomRotation * WorldRotation;
+                (*((Quaternion*)particle[rotField])) = Quaternion.Concatenate(randomRotation, WorldRotation);
 
                 i = (i + 1) % maxCapacity;
             }

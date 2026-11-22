@@ -13,6 +13,7 @@ using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Systems;
 
@@ -22,7 +23,7 @@ public sealed class CollidableGizmo : IEntityGizmo
     private bool _selected, _enabled;
     private CollidableComponent _component;
     private object? _cache;
-    private List<(ModelComponent model, Matrix baseMatrix)>? _models;
+    private List<(ModelComponent model, Matrix4x4 baseMatrix)>? _models;
     private Material? _material, _materialOnSelect;
     private IServiceRegistry _services = null!;
     [SuppressMessage("Usage", "CA2213:Disposable fields should be disposed")]
@@ -183,7 +184,7 @@ public sealed class CollidableGizmo : IEntityGizmo
             };
 
             var entity = new Entity($"{nameof(CollidableGizmo)} for {_component.Entity.Name}"){ model };
-            Matrix.Transformation(ref transforms[i].Scale, ref transforms[i].RotationLocal, ref transforms[i].PositionLocal, out var matrix);
+            Matrix4x4.CreateTransformation(transforms[i].Scale, transforms[i].RotationLocal, transforms[i].PositionLocal, out var matrix);
             entity.Transform.UseTRS = false;
             entity.Scene = _editorScene;
 
@@ -226,11 +227,11 @@ public sealed class CollidableGizmo : IEntityGizmo
         if (_models is null)
             return;
 
-        Matrix matrix;
+        Matrix4x4 matrix;
         _component.Entity.Transform.WorldMatrix.Decompose(out _, out matrix, out var translation);
-        matrix.TranslationVector = translation;
+        matrix.Translation = translation;
 
-        foreach ((ModelComponent comp, Matrix baseMatrix) in _models)
+        foreach ((ModelComponent comp, Matrix4x4 baseMatrix) in _models)
         {
             comp.Entity.Transform.LocalMatrix = baseMatrix * matrix;
         }

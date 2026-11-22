@@ -22,6 +22,7 @@ using Stride.Editor.EditorGame.ViewModels;
 using Stride.Editor.Engine;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using static Stride.GameStudio.Avalonia.Tests.SceneViewContextMenuTests;
+using System.Numerics;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

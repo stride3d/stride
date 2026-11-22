@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 
 using Stride.Core.Mathematics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -14,7 +15,7 @@ namespace Stride.Graphics
     /// </summary>
     public class Sprite3DBatch : BatchBase<Sprite3DBatch.Sprite3DDrawInfo>
     {
-        private Matrix transformationMatrix;
+        private Matrix4x4 transformationMatrix;
         private Vector4 vector4UnitX = Vector4.UnitX;
         private Vector4 vector4UnitY = -Vector4.UnitY;
 
@@ -43,7 +44,7 @@ namespace Stride.Graphics
         /// <param name="rasterizerState">The rasterizer state to use for the batch session</param>
         /// <param name="stencilValue">The value of the stencil buffer to take as reference for the batch session</param>
         /// <param name="viewProjection">The view-projection matrix to use for the batch session</param>
-        public void Begin(GraphicsContext graphicsContext, Matrix viewProjection, SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendStateDescription? blendState = null, SamplerState samplerState = null, DepthStencilStateDescription? depthStencilState = null, RasterizerStateDescription? rasterizerState = null, EffectInstance effect = null, int stencilValue = 0)
+        public void Begin(GraphicsContext graphicsContext, Matrix4x4 viewProjection, SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendStateDescription? blendState = null, SamplerState samplerState = null, DepthStencilStateDescription? depthStencilState = null, RasterizerStateDescription? rasterizerState = null, EffectInstance effect = null, int stencilValue = 0)
         {
             CheckEndHasBeenCalled("begin");
 
@@ -63,7 +64,7 @@ namespace Stride.Graphics
         /// <param name="imageOrientation">The rotation to apply on the image uv</param>
         /// <param name="swizzle">Swizzle mode indicating the swizzle use when sampling the texture in the shader</param>
         /// <param name="depth">The depth of the element. If null, it is calculated using world and view-projection matrix.</param>
-        public void Draw(Texture texture, ref Matrix worldMatrix, ref RectangleF sourceRectangle, ref Vector2 elementSize, ref Color4 color,
+        public void Draw(Texture texture, ref Matrix4x4 worldMatrix, ref RectangleF sourceRectangle, ref Vector2 elementSize, ref Color4 color,
                          ImageOrientation imageOrientation = ImageOrientation.AsIs, SwizzleMode swizzle = SwizzleMode.None, float? depth = null)
         {
             // Check that texture is not null
@@ -97,8 +98,8 @@ namespace Stride.Graphics
             matrix.M22 *= elementSize.Y;
             matrix.M23 *= elementSize.Y;
 
-            Vector4.Transform(ref vector4UnitX, ref matrix, out drawInfo.UnitXWorld);
-            Vector4.Transform(ref vector4UnitY, ref matrix, out drawInfo.UnitYWorld);
+            drawInfo.UnitXWorld = Vector4.Transform(vector4UnitX, matrix);
+            drawInfo.UnitYWorld = Vector4.Transform(vector4UnitY, matrix);
 
             // rotate origin and unit axis if need.
             var leftTopCorner = new Vector4(-0.5f, 0.5f, 0, 1);
@@ -109,7 +110,7 @@ namespace Stride.Graphics
                 drawInfo.UnitYWorld = unitX;
                 leftTopCorner = new Vector4(-0.5f, -0.5f, 0, 1);
             }
-            Vector4.Transform(ref leftTopCorner, ref matrix, out drawInfo.LeftTopCornerWorld);
+            drawInfo.LeftTopCornerWorld = Vector4.Transform(leftTopCorner, matrix);
 
             float depthSprite;
             if (depth.HasValue)
@@ -119,8 +120,8 @@ namespace Stride.Graphics
             else
             {
                 Vector4 projectedPosition;
-                var worldPosition = new Vector4(worldMatrix.TranslationVector, 1.0f);
-                Vector4.Transform(ref worldPosition, ref transformationMatrix, out projectedPosition);
+                var worldPosition = new Vector4(worldMatrix.Translation, 1.0f);
+                projectedPosition = Vector4.Transform(worldPosition, transformationMatrix);
                 depthSprite = projectedPosition.Z / projectedPosition.W;
             }
 

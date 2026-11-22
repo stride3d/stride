@@ -6,6 +6,7 @@ using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Engine.Design;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions
 {

@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Rendering;
 using Stride.Games;
 using Stride.Graphics.GeometricPrimitives;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {
@@ -17,7 +18,7 @@ namespace Stride.Graphics.Tests
         private Texture offlineTarget1;
         private Texture offlineTarget2;
         private Texture depthBuffer;
-        private Matrix worldViewProjection;
+        private Matrix4x4 worldViewProjection;
         private GeometricPrimitive geometry;
         private EffectInstance simpleEffect;
         private bool firstSave;
@@ -40,9 +41,9 @@ namespace Stride.Graphics.Tests
         {
             await base.LoadContent();
 
-            var view = Matrix.LookAtRH(new Vector3(2,2,2), new Vector3(0, 0, 0), Vector3.UnitY);
-            var projection = Matrix.PerspectiveFovRH(MathF.PI / 4.0f, (float)GraphicsDevice.Presenter.BackBuffer.ViewWidth / GraphicsDevice.Presenter.BackBuffer.ViewHeight, 0.1f, 100.0f);
-            worldViewProjection = Matrix.Multiply(view, projection);
+            var view = Matrix4x4.CreateLookAt(new Vector3(2,2,2), new Vector3(0, 0, 0), Vector3.UnitY);
+            var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 4.0f, (float)GraphicsDevice.Presenter.BackBuffer.ViewWidth / GraphicsDevice.Presenter.BackBuffer.ViewHeight, 0.1f, 100.0f);
+            worldViewProjection = Matrix4x4.Multiply(view, projection);
 
             geometry = GeometricPrimitive.Cube.New(GraphicsDevice);
             simpleEffect = new EffectInstance(new Effect(GraphicsDevice, SpriteEffect.Bytecode));

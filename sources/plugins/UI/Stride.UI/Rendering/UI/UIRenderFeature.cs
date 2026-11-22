@@ -12,6 +12,7 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.UI;
 using Stride.UI.Renderers;
+using System.Numerics;
 
 namespace Stride.Rendering.UI
 {
@@ -190,16 +191,11 @@ namespace Stride.Rendering.UI
                 renderingContext.ShouldSnapText = renderObject.SnapText && renderObject.IsBillboard && (renderObject.IsFixedSize || renderObject.IsFullScreen);
 
                 // calculate an estimate of the UI real size by projecting the element virtual resolution on the screen
-                var virtualOrigin = uiElementState.WorldViewProjectionMatrix.Row4;
+                var virtualOrigin = uiElementState.WorldViewProjectionMatrix.W;
                 var virtualWidth = new Vector4(virtualResolution.X / 2, 0, 0, 1);
                 var virtualHeight = new Vector4(0, virtualResolution.Y / 2, 0, 1);
-                var transformedVirtualWidth = Vector4.Zero;
-                var transformedVirtualHeight = Vector4.Zero;
-                for (var i = 0; i < 4; i++)
-                {
-                    transformedVirtualWidth[i] = virtualWidth[0] * uiElementState.WorldViewProjectionMatrix[0 + i] + uiElementState.WorldViewProjectionMatrix[12 + i];
-                    transformedVirtualHeight[i] = virtualHeight[1] * uiElementState.WorldViewProjectionMatrix[4 + i] + uiElementState.WorldViewProjectionMatrix[12 + i];
-                }
+                var transformedVirtualWidth = Vector4.Transform(virtualWidth, uiElementState.WorldViewProjectionMatrix);
+                var transformedVirtualHeight = Vector4.Transform(virtualHeight, uiElementState.WorldViewProjectionMatrix);
 
                 var viewportSize = context.CommandList.Viewport.Size;
                 var projectedOrigin = virtualOrigin.XY() / virtualOrigin.W;
@@ -222,7 +218,7 @@ namespace Stride.Rendering.UI
                 rootElement.Arrange(virtualResolution, false);
 
                 // update the UI element hierarchical properties
-                var rootMatrix = Matrix.Translation(-virtualResolution / 2); // UI world is translated by a half resolution compared to its quad, which is centered around the origin
+                var rootMatrix = Matrix4x4.CreateTranslation(-virtualResolution / 2); // UI world is translated by a half resolution compared to its quad, which is centered around the origin
                 updatableRootElement.UpdateWorldMatrix(ref rootMatrix, rootMatrix != uiElementState.RenderObject.LastRootMatrix);
                 updatableRootElement.UpdateElementState(0);
                 uiElementState.RenderObject.LastRootMatrix = rootMatrix;
@@ -269,7 +265,7 @@ namespace Stride.Rendering.UI
             }
         }
 
-        private void RecursiveDrawWithClipping(RenderDrawContext context, UIElement element, ref Matrix worldViewProj, SamplerState samplerState)
+        private void RecursiveDrawWithClipping(RenderDrawContext context, UIElement element, ref Matrix4x4 worldViewProj, SamplerState samplerState)
         {
             // if the element is not visible, we also remove all its children
             if (!element.IsVisible)
@@ -338,13 +334,13 @@ namespace Stride.Rendering.UI
         private class UIElementState
         {
             public readonly RenderUIElement RenderObject;
-            public Matrix WorldViewProjectionMatrix;
+            public Matrix4x4 WorldViewProjectionMatrix;
             public Vector3 VirtualResolution;
 
             public UIElementState(RenderUIElement renderObject)
             {
                 RenderObject = renderObject;
-                WorldViewProjectionMatrix = Matrix.Identity;
+                WorldViewProjectionMatrix = Matrix4x4.Identity;
                 VirtualResolution = renderObject.Resolution;
             }
 
@@ -357,66 +353,66 @@ namespace Stride.Rendering.UI
                 // rotate the UI element perpendicular to the camera view vector, if billboard is activated
                 if (renderObject.IsFullScreen)
                 {
-                    worldMatrix = Matrix.Identity;
+                    worldMatrix = Matrix4x4.Identity;
                 }
                 else
                 {
-                    Matrix viewInverse;
-                    Matrix.Invert(ref camera.ViewMatrix, out viewInverse);
+                    Matrix4x4.InvertSafe(camera.ViewMatrix, out Matrix4x4 viewInverse);
                     var forwardVector = viewInverse.Forward;
 
                     if (renderObject.IsBillboard)
                     {
-                        var viewInverseRow1 = viewInverse.Row1;
-                        var viewInverseRow2 = viewInverse.Row2;
+                        var viewInverseRow1 = viewInverse.X;
+                        var viewInverseRow2 = viewInverse.Y;
 
                         // remove scale of the camera
                         viewInverseRow1 /= viewInverseRow1.XYZ().Length();
                         viewInverseRow2 /= viewInverseRow2.XYZ().Length();
 
                         // set the scale of the object
-                        viewInverseRow1 *= worldMatrix.Row1.XYZ().Length();
-                        viewInverseRow2 *= worldMatrix.Row2.XYZ().Length();
+                        viewInverseRow1 *= worldMatrix.X.XYZ().Length();
+                        viewInverseRow2 *= worldMatrix.Y.XYZ().Length();
 
                         // set the adjusted world matrix
-                        worldMatrix.Row1 = viewInverseRow1;
-                        worldMatrix.Row2 = viewInverseRow2;
-                        worldMatrix.Row3 = viewInverse.Row3;
+                        worldMatrix.X = viewInverseRow1;
+                        worldMatrix.Y = viewInverseRow2;
+                        worldMatrix.Z = viewInverse.Z;
                     }
 
                     if (renderObject.IsFixedSize)
                     {
-                        forwardVector.Normalize();
-                        var distVec = (worldMatrix.TranslationVector - viewInverse.TranslationVector);
-                        float distScalar;
-                        Vector3.Dot(ref forwardVector, ref distVec, out distScalar);
+                        forwardVector = Vector3.NormalizeSafe(forwardVector);
+                        var distVec = (worldMatrix.Translation - viewInverse.Translation);
+                        float distScalar = Vector3.Dot(forwardVector, distVec);
                         distScalar = Math.Abs(distScalar);
 
                         var worldScale = frustumHeight * distScalar * UIComponent.FixedSizeVerticalUnit; // FrustumHeight already is 2*Tan(FOV/2)
 
-                        worldMatrix.Row1 *= worldScale;
-                        worldMatrix.Row2 *= worldScale;
-                        worldMatrix.Row3 *= worldScale;
+                        worldMatrix.X *= worldScale;
+                        worldMatrix.Y *= worldScale;
+                        worldMatrix.Z *= worldScale;
                     }
 
                     // If the UI component is not drawn fullscreen it should be drawn as a quad with world sizes corresponding to its actual size
-                    worldMatrix = Matrix.Scaling(renderObject.Size / renderObject.Resolution) * worldMatrix;
+                    worldMatrix = Matrix4x4.CreateScale(renderObject.Size / renderObject.Resolution) * worldMatrix;
                 }
 
                 // Rotation of Pi along 0x to go from UI space to world space
-                worldMatrix.Row2 = -worldMatrix.Row2;
-                worldMatrix.Row3 = -worldMatrix.Row3;
+                worldMatrix.Y = -worldMatrix.Y;
+                worldMatrix.Z = -worldMatrix.Z;
 
-                Matrix worldViewMatrix;
-                Matrix.Multiply(ref worldMatrix, ref camera.ViewMatrix, out worldViewMatrix);
-                Matrix.Multiply(ref worldViewMatrix, ref camera.ProjectionMatrix, out WorldViewProjectionMatrix);
+                Matrix4x4 worldViewMatrix = worldMatrix * camera.ViewMatrix;
+                WorldViewProjectionMatrix = worldViewMatrix * camera.ProjectionMatrix;
             }
 
             public void Update(RenderUIElement renderObject, Vector3 virtualResolution)
             {
-                var nearPlane = virtualResolution.Z / 2;
-                var farPlane = nearPlane + virtualResolution.Z;
-                var zOffset = nearPlane + virtualResolution.Z / 2;
+                // A resolution without depth has no planes, and CreatePerspective throws for them: the nearest depth that has some is taken
+                var depth = MathF.Max(virtualResolution.Z, MathUtil.ZeroTolerance);
+
+                var nearPlane = depth / 2;
+                var farPlane = nearPlane + depth;
+                var zOffset = nearPlane + depth / 2;
                 var aspectRatio = virtualResolution.X / virtualResolution.Y;
                 var verticalFov = MathF.Atan2(virtualResolution.Y / 2, zOffset) * 2;
 
@@ -425,8 +421,9 @@ namespace Stride.Rendering.UI
                     UseCustomAspectRatio = true,
                     AspectRatio = aspectRatio,
                     VerticalFieldOfView = MathUtil.RadiansToDegrees(verticalFov),
-                    ViewMatrix = Matrix.LookAtRH(new Vector3(0, 0, zOffset), Vector3.Zero, Vector3.UnitY),
-                    ProjectionMatrix = Matrix.PerspectiveFovRH(verticalFov, aspectRatio, nearPlane, farPlane),
+                    ViewMatrix = Matrix4x4.CreateLookAt(new Vector3(0, 0, zOffset), Vector3.Zero, Vector3.UnitY),
+                    // The camera sees the whole resolution at the distance zOffset: half of it at the near plane, which is half as far
+                    ProjectionMatrix = Matrix4x4.CreatePerspective(virtualResolution.X / 2, virtualResolution.Y / 2, nearPlane, farPlane),
                 };
 
                 Update(renderObject, cameraComponent);

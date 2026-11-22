@@ -13,6 +13,7 @@ using Stride.Assets.Sprite;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Thumbnails
 {

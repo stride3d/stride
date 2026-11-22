@@ -15,6 +15,7 @@ using Stride.Graphics;
 using Stride.Core.Presentation.Core;
 using Stride.Editor.EditorGame.Game;
 using Scene =  Stride.Engine.Scene;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Preview
 {

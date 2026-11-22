@@ -1,9 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics;
 
@@ -168,18 +170,6 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     }
 
     /// <summary>
-    /// Casts from System.Numerics to Stride.Maths vectors
-    /// </summary>
-    /// <param name="v">Value to cast</param>
-    public static implicit operator Double3(System.Numerics.Vector3 v) => new(v.X, v.Y, v.Z);
-
-    /// <summary>
-    /// Casts from Stride.Maths to System.Numerics vectors
-    /// </summary>
-    /// <param name="v">Value to cast</param>
-    public static explicit operator System.Numerics.Vector3(Double3 v) => new((float)v.X, (float)v.Y, (float)v.Z);
-
-    /// <summary>
     /// Calculates the length of the vector.
     /// </summary>
     /// <returns>The length of the vector.</returns>
@@ -208,33 +198,6 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     }
 
     /// <summary>
-    /// Converts the vector into a unit vector.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Normalize()
-    {
-        double length = Length();
-        if (length > MathUtil.ZeroTolerance)
-        {
-            double inv = 1.0 / length;
-            X *= inv;
-            Y *= inv;
-            Z *= inv;
-        }
-    }
-
-    /// <summary>
-    /// Raises the exponent for each components.
-    /// </summary>
-    /// <param name="exponent">The exponent.</param>
-    public void Pow(double exponent)
-    {
-        X = Math.Pow(X, exponent);
-        Y = Math.Pow(Y, exponent);
-        Z = Math.Pow(Z, exponent);
-    }
-
-    /// <summary>
     /// Creates an array containing the elements of the vector.
     /// </summary>
     /// <returns>A three-element array containing the components of the vector.</returns>
@@ -243,16 +206,40 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
         return [X, Y, Z];
     }
 
-    /// <summary>
-    /// Adds two vectors.
-    /// </summary>
-    /// <param name="left">The first vector to add.</param>
-    /// <param name="right">The second vector to add.</param>
-    /// <param name="result">When the method completes, contains the sum of the two vectors.</param>
+    /// <summary>Scales a vector to a length of one. A vector of length zero gives NaN, as the vectors of System.Numerics do.</summary>
+    /// <param name="value">The vector to scale.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Add(ref readonly Double3 left, ref readonly Double3 right, out Double3 result)
+    public static Double3 Normalize(Double3 value)
     {
-        result = new Double3(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
+        return value / value.Length();
+    }
+
+    /// <summary>Scales a vector to a length of one; a vector too short to have a direction is returned as it is.</summary>
+    /// <param name="value">The vector to scale.</param>
+    /// <param name="tolerance">The length up to which a vector is too short.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double3 NormalizeSafe(Double3 value, double tolerance = MathUtil.ZeroTolerance)
+    {
+        double length = value.Length();
+        return length > tolerance ? value * (1.0 / length) : value;
+    }
+
+    /// <summary>Raises each component of a vector to a power.</summary>
+    /// <param name="value">The vector.</param>
+    /// <param name="exponent">The exponent.</param>
+    public static Double3 Pow(Double3 value, double exponent)
+    {
+        return new Double3(Math.Pow(value.X, exponent), Math.Pow(value.Y, exponent), Math.Pow(value.Z, exponent));
+    }
+
+    /// <summary>Determines whether every component of a vector differs from the same component of this one by less than the tolerance of that component.</summary>
+    /// <param name="other">The vector to compare with this instance.</param>
+    /// <param name="tolerance">For each component, the difference from which the two are not near.</param>
+    public readonly bool NearEquals(Double3 other, Double3 tolerance)
+    {
+        return Math.Abs(other.X - X) < tolerance.X &&
+            Math.Abs(other.Y - Y) < tolerance.Y &&
+            Math.Abs(other.Z - Z) < tolerance.Z;
     }
 
     /// <summary>
@@ -272,35 +259,11 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// </summary>
     /// <param name="left">The first vector to subtract.</param>
     /// <param name="right">The second vector to subtract.</param>
-    /// <param name="result">When the method completes, contains the difference of the two vectors.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Subtract(ref readonly Double3 left, ref readonly Double3 right, out Double3 result)
-    {
-        result = new Double3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
-    }
-
-    /// <summary>
-    /// Subtracts two vectors.
-    /// </summary>
-    /// <param name="left">The first vector to subtract.</param>
-    /// <param name="right">The second vector to subtract.</param>
     /// <returns>The difference of the two vectors.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Double3 Subtract(Double3 left, Double3 right)
     {
         return new Double3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name="value">The vector to scale.</param>
-    /// <param name="scale">The amount by which to scale the vector.</param>
-    /// <param name="result">When the method completes, contains the scaled vector.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Multiply(ref readonly Double3 value, double scale, out Double3 result)
-    {
-        result = new Double3(value.X * scale, value.Y * scale, value.Z * scale);
     }
 
     /// <summary>
@@ -320,35 +283,11 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// </summary>
     /// <param name="left">The first vector to modulate.</param>
     /// <param name="right">The second vector to modulate.</param>
-    /// <param name="result">When the method completes, contains the modulated vector.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Modulate(ref readonly Double3 left, ref readonly Double3 right, out Double3 result)
-    {
-        result = new Double3(left.X * right.X, left.Y * right.Y, left.Z * right.Z);
-    }
-
-    /// <summary>
-    /// Modulates a vector with another by performing component-wise multiplication.
-    /// </summary>
-    /// <param name="left">The first vector to modulate.</param>
-    /// <param name="right">The second vector to modulate.</param>
     /// <returns>The modulated vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Double3 Modulate(Double3 left, Double3 right)
+    public static Double3 Multiply(Double3 left, Double3 right)
     {
         return new Double3(left.X * right.X, left.Y * right.Y, left.Z * right.Z);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name="value">The vector to scale.</param>
-    /// <param name="scale">The amount by which to scale the vector.</param>
-    /// <param name="result">When the method completes, contains the scaled vector.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Divide(ref readonly Double3 value, double scale, out Double3 result)
-    {
-        result = new Double3(value.X / scale, value.Y / scale, value.Z / scale);
     }
 
     /// <summary>
@@ -368,34 +307,11 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// </summary>
     /// <param name="left">The first vector to demodulate.</param>
     /// <param name="right">The second vector to demodulate.</param>
-    /// <param name="result">When the method completes, contains the demodulated vector.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Demodulate(ref readonly Double3 left, ref readonly Double3 right, out Double3 result)
-    {
-        result = new Double3(left.X / right.X, left.Y / right.Y, left.Z / right.Z);
-    }
-
-    /// <summary>
-    /// Demodulates a vector with another by performing component-wise division.
-    /// </summary>
-    /// <param name="left">The first vector to demodulate.</param>
-    /// <param name="right">The second vector to demodulate.</param>
     /// <returns>The demodulated vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Double3 Demodulate(Double3 left, Double3 right)
+    public static Double3 Divide(Double3 left, Double3 right)
     {
         return new Double3(left.X / right.X, left.Y / right.Y, left.Z / right.Z);
-    }
-
-    /// <summary>
-    /// Reverses the direction of a given vector.
-    /// </summary>
-    /// <param name="value">The vector to negate.</param>
-    /// <param name="result">When the method completes, contains a vector facing in the opposite direction.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Negate(ref readonly Double3 value, out Double3 result)
-    {
-        result = new Double3(-value.X, -value.Y, -value.Z);
     }
 
     /// <summary>
@@ -410,22 +326,6 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     }
 
     /// <summary>
-    /// Returns a <see cref="Stride.Core.Mathematics.Double3"/> containing the 3D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 3D triangle.
-    /// </summary>
-    /// <param name="value1">A <see cref="Stride.Core.Mathematics.Double3"/> containing the 3D Cartesian coordinates of vertex 1 of the triangle.</param>
-    /// <param name="value2">A <see cref="Stride.Core.Mathematics.Double3"/> containing the 3D Cartesian coordinates of vertex 2 of the triangle.</param>
-    /// <param name="value3">A <see cref="Stride.Core.Mathematics.Double3"/> containing the 3D Cartesian coordinates of vertex 3 of the triangle.</param>
-    /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
-    /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
-    /// <param name="result">When the method completes, contains the 3D Cartesian coordinates of the specified point.</param>
-    public static void Barycentric(ref readonly Double3 value1, ref readonly Double3 value2, ref readonly Double3 value3, double amount1, double amount2, out Double3 result)
-    {
-        result = new Double3(value1.X + (amount1 * (value2.X - value1.X)) + (amount2 * (value3.X - value1.X)),
-            value1.Y + (amount1 * (value2.Y - value1.Y)) + (amount2 * (value3.Y - value1.Y)),
-            value1.Z + (amount1 * (value2.Z - value1.Z)) + (amount2 * (value3.Z - value1.Z)));
-    }
-
-    /// <summary>
     /// Returns a <see cref="Double3"/> containing the 3D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 3D triangle.
     /// </summary>
     /// <param name="value1">A <see cref="Double3"/> containing the 3D Cartesian coordinates of vertex 1 of the triangle.</param>
@@ -434,10 +334,12 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
     /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
     /// <returns>A new <see cref="Double3"/> containing the 3D Cartesian coordinates of the specified point.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Double3 Barycentric(Double3 value1, Double3 value2, Double3 value3, double amount1, double amount2)
     {
-        Barycentric(ref value1, ref value2, ref value3, amount1, amount2, out var result);
-        return result;
+        return new Double3(value1.X + (amount1 * (value2.X - value1.X)) + (amount2 * (value3.X - value1.X)),
+            value1.Y + (amount1 * (value2.Y - value1.Y)) + (amount2 * (value3.Y - value1.Y)),
+            value1.Z + (amount1 * (value2.Z - value1.Z)) + (amount2 * (value3.Z - value1.Z)));
     }
 
     /// <summary>
@@ -446,8 +348,9 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <param name="value">The value to clamp.</param>
     /// <param name="min">The minimum value.</param>
     /// <param name="max">The maximum value.</param>
-    /// <param name="result">When the method completes, contains the clamped value.</param>
-    public static void Clamp(ref readonly Double3 value, ref readonly Double3 min, ref readonly Double3 max, out Double3 result)
+    /// <returns>The clamped value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double3 Clamp(Double3 value, Double3 min, Double3 max)
     {
         double x = value.X;
         x = (x > max.X) ? max.X : x;
@@ -461,34 +364,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
         z = (z > max.Z) ? max.Z : z;
         z = (z < min.Z) ? min.Z : z;
 
-        result = new Double3(x, y, z);
-    }
-
-    /// <summary>
-    /// Restricts a value to be within a specified range.
-    /// </summary>
-    /// <param name="value">The value to clamp.</param>
-    /// <param name="min">The minimum value.</param>
-    /// <param name="max">The maximum value.</param>
-    /// <returns>The clamped value.</returns>
-    public static Double3 Clamp(Double3 value, Double3 min, Double3 max)
-    {
-        Clamp(ref value, ref min, ref max, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Calculates the cross product of two vectors.
-    /// </summary>
-    /// <param name="left">First source vector.</param>
-    /// <param name="right">Second source vector.</param>
-    /// <param name="result">When the method completes, contains he cross product of the two vectors.</param>
-    public static void Cross(ref readonly Double3 left, ref readonly Double3 right, out Double3 result)
-    {
-        result = new Double3(
-            (left.Y * right.Z) - (left.Z * right.Y),
-            (left.Z * right.X) - (left.X * right.Z),
-            (left.X * right.Y) - (left.Y * right.X));
+        return new Double3(x, y, z);
     }
 
     /// <summary>
@@ -497,29 +373,13 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <param name="left">First source vector.</param>
     /// <param name="right">Second source vector.</param>
     /// <returns>The cross product of the two vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Double3 Cross(Double3 left, Double3 right)
     {
-        Cross(ref left, ref right, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Calculates the distance between two vectors.
-    /// </summary>
-    /// <param name="value1">The first vector.</param>
-    /// <param name="value2">The second vector.</param>
-    /// <param name="result">When the method completes, contains the distance between the two vectors.</param>
-    /// <remarks>
-    /// <see cref="DistanceSquared(ref readonly Double3, ref readonly Double3, out double)"/> may be preferred when only the relative distance is needed
-    /// and speed is of the essence.
-    /// </remarks>
-    public static void Distance(ref readonly Double3 value1, ref readonly Double3 value2, out double result)
-    {
-        double x = value1.X - value2.X;
-        double y = value1.Y - value2.Y;
-        double z = value1.Z - value2.Z;
-
-        result = (double)Math.Sqrt((x * x) + (y * y) + (z * z));
+        return new Double3(
+            (left.Y * right.Z) - (left.Z * right.Y),
+            (left.Z * right.X) - (left.X * right.Z),
+            (left.X * right.Y) - (left.Y * right.X));
     }
 
     /// <summary>
@@ -539,28 +399,6 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
         double z = value1.Z - value2.Z;
 
         return (double)Math.Sqrt((x * x) + (y * y) + (z * z));
-    }
-
-    /// <summary>
-    /// Calculates the squared distance between two vectors.
-    /// </summary>
-    /// <param name="value1">The first vector.</param>
-    /// <param name="value2">The second vector.</param>
-    /// <param name="result">When the method completes, contains the squared distance between the two vectors.</param>
-    /// <remarks>Distance squared is the value before taking the square root.
-    /// Distance squared can often be used in place of distance if relative comparisons are being made.
-    /// For example, consider three points A, B, and C. To determine whether B or C is further from A,
-    /// compare the distance between A and B to the distance between A and C. Calculating the two distances
-    /// involves two square roots, which are computationally expensive. However, using distance squared
-    /// provides the same information and avoids calculating two square roots.
-    /// </remarks>
-    public static void DistanceSquared(ref readonly Double3 value1, ref readonly Double3 value2, out double result)
-    {
-        double x = value1.X - value2.X;
-        double y = value1.Y - value2.Y;
-        double z = value1.Z - value2.Z;
-
-        result = (x * x) + (y * y) + (z * z);
     }
 
     /// <summary>
@@ -590,66 +428,11 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// </summary>
     /// <param name="left">First source vector.</param>
     /// <param name="right">Second source vector.</param>
-    /// <param name="result">When the method completes, contains the dot product of the two vectors.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Dot(ref readonly Double3 left, ref readonly Double3 right, out double result)
-    {
-        result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z);
-    }
-
-    /// <summary>
-    /// Calculates the dot product of two vectors.
-    /// </summary>
-    /// <param name="left">First source vector.</param>
-    /// <param name="right">Second source vector.</param>
     /// <returns>The dot product of the two vectors.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Dot(Double3 left, Double3 right)
     {
         return (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z);
-    }
-
-    /// <summary>
-    /// Converts the vector into a unit vector.
-    /// </summary>
-    /// <param name="value">The vector to normalize.</param>
-    /// <param name="result">When the method completes, contains the normalized vector.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Normalize(ref readonly Double3 value, out Double3 result)
-    {
-        result = value;
-        result.Normalize();
-    }
-
-    /// <summary>
-    /// Converts the vector into a unit vector.
-    /// </summary>
-    /// <param name="value">The vector to normalize.</param>
-    /// <returns>The normalized vector.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Double3 Normalize(Double3 value)
-    {
-        value.Normalize();
-        return value;
-    }
-
-    /// <summary>
-    /// Performs a linear interpolation between two vectors.
-    /// </summary>
-    /// <param name="start">Start vector.</param>
-    /// <param name="end">End vector.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <param name="result">When the method completes, contains the linear interpolation of the two vectors.</param>
-    /// <remarks>
-    /// This method performs the linear interpolation based on the following formula.
-    /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
-    /// </remarks>
-    public static void Lerp(ref readonly Double3 start, ref readonly Double3 end, double amount, out Double3 result)
-    {
-        result.X = start.X + ((end.X - start.X) * amount);
-        result.Y = start.Y + ((end.Y - start.Y) * amount);
-        result.Z = start.Z + ((end.Z - start.Z) * amount);
     }
 
     /// <summary>
@@ -664,27 +447,14 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <c>start + (end - start) * amount</c>
     /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
     /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Double3 Lerp(Double3 start, Double3 end, double amount)
     {
-        Lerp(ref start, ref end, amount, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Performs a cubic interpolation between two vectors.
-    /// </summary>
-    /// <param name="start">Start vector.</param>
-    /// <param name="end">End vector.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <param name="result">When the method completes, contains the cubic interpolation of the two vectors.</param>
-    public static void SmoothStep(ref readonly Double3 start, ref readonly Double3 end, double amount, out Double3 result)
-    {
-        amount = (amount > 1.0) ? 1.0 : ((amount < 0.0) ? 0.0 : amount);
-        amount = amount * amount * (3.0f - (2.0f * amount));
-
+        Double3 result;
         result.X = start.X + ((end.X - start.X) * amount);
         result.Y = start.Y + ((end.Y - start.Y) * amount);
         result.Z = start.Z + ((end.Z - start.Z) * amount);
+        return result;
     }
 
     /// <summary>
@@ -694,33 +464,17 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <param name="end">End vector.</param>
     /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
     /// <returns>The cubic interpolation of the two vectors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Double3 SmoothStep(Double3 start, Double3 end, double amount)
     {
-        SmoothStep(ref start, ref end, amount, out var result);
+        Double3 result;
+        amount = (amount > 1.0) ? 1.0 : ((amount < 0.0) ? 0.0 : amount);
+        amount = amount * amount * (3.0f - (2.0f * amount));
+
+        result.X = start.X + ((end.X - start.X) * amount);
+        result.Y = start.Y + ((end.Y - start.Y) * amount);
+        result.Z = start.Z + ((end.Z - start.Z) * amount);
         return result;
-    }
-
-    /// <summary>
-    /// Performs a Hermite spline interpolation.
-    /// </summary>
-    /// <param name="value1">First source position vector.</param>
-    /// <param name="tangent1">First source tangent vector.</param>
-    /// <param name="value2">Second source position vector.</param>
-    /// <param name="tangent2">Second source tangent vector.</param>
-    /// <param name="amount">Weighting factor.</param>
-    /// <param name="result">When the method completes, contains the result of the Hermite spline interpolation.</param>
-    public static void Hermite(ref readonly Double3 value1, ref readonly Double3 tangent1, ref readonly Double3 value2, ref readonly Double3 tangent2, double amount, out Double3 result)
-    {
-        double squared = amount * amount;
-        double cubed = amount * squared;
-        double part1 = (2.0f * cubed) - (3.0f * squared) + 1.0;
-        double part2 = (-2.0f * cubed) + (3.0f * squared);
-        double part3 = cubed - (2.0f * squared) + amount;
-        double part4 = cubed - squared;
-
-        result.X = (value1.X * part1) + (value2.X * part2) + (tangent1.X * part3) + (tangent2.X * part4);
-        result.Y = (value1.Y * part1) + (value2.Y * part2) + (tangent1.Y * part3) + (tangent2.Y * part4);
-        result.Z = (value1.Z * part1) + (value2.Z * part2) + (tangent1.Z * part3) + (tangent2.Z * part4);
     }
 
     /// <summary>
@@ -732,9 +486,20 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <param name="tangent2">Second source tangent vector.</param>
     /// <param name="amount">Weighting factor.</param>
     /// <returns>The result of the Hermite spline interpolation.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Double3 Hermite(Double3 value1, Double3 tangent1, Double3 value2, Double3 tangent2, double amount)
     {
-        Hermite(ref value1, ref tangent1, ref value2, ref tangent2, amount, out var result);
+        Double3 result;
+        double squared = amount * amount;
+        double cubed = amount * squared;
+        double part1 = (2.0f * cubed) - (3.0f * squared) + 1.0;
+        double part2 = (-2.0f * cubed) + (3.0f * squared);
+        double part3 = cubed - (2.0f * squared) + amount;
+        double part4 = cubed - squared;
+
+        result.X = (value1.X * part1) + (value2.X * part2) + (tangent1.X * part3) + (tangent2.X * part4);
+        result.Y = (value1.Y * part1) + (value2.Y * part2) + (tangent1.Y * part3) + (tangent2.Y * part4);
+        result.Z = (value1.Z * part1) + (value2.Z * part2) + (tangent1.Z * part3) + (tangent2.Z * part4);
         return result;
     }
 
@@ -746,9 +511,11 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <param name="value3">The third position in the interpolation.</param>
     /// <param name="value4">The fourth position in the interpolation.</param>
     /// <param name="amount">Weighting factor.</param>
-    /// <param name="result">When the method completes, contains the result of the Catmull-Rom interpolation.</param>
-    public static void CatmullRom(ref readonly Double3 value1, ref readonly Double3 value2, ref readonly Double3 value3, ref readonly Double3 value4, double amount, out Double3 result)
+    /// <returns>A vector that is the result of the Catmull-Rom interpolation.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double3 CatmullRom(Double3 value1, Double3 value2, Double3 value3, Double3 value4, double amount)
     {
+        Double3 result;
         double squared = amount * amount;
         double cubed = amount * squared;
 
@@ -763,35 +530,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
         result.Z = 0.5f * ((2.0f * value2.Z) + ((-value1.Z + value3.Z) * amount) +
             (((2.0f * value1.Z) - (5.0f * value2.Z) + (4.0f * value3.Z) - value4.Z) * squared) +
             ((-value1.Z + (3.0f * value2.Z) - (3.0f * value3.Z) + value4.Z) * cubed));
-    }
-
-    /// <summary>
-    /// Performs a Catmull-Rom interpolation using the specified positions.
-    /// </summary>
-    /// <param name="value1">The first position in the interpolation.</param>
-    /// <param name="value2">The second position in the interpolation.</param>
-    /// <param name="value3">The third position in the interpolation.</param>
-    /// <param name="value4">The fourth position in the interpolation.</param>
-    /// <param name="amount">Weighting factor.</param>
-    /// <returns>A vector that is the result of the Catmull-Rom interpolation.</returns>
-    public static Double3 CatmullRom(Double3 value1, Double3 value2, Double3 value3, Double3 value4, double amount)
-    {
-        CatmullRom(ref value1, ref value2, ref value3, ref value4, amount, out var result);
         return result;
-    }
-
-    /// <summary>
-    /// Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name="left">The first source vector.</param>
-    /// <param name="right">The second source vector.</param>
-    /// <param name="result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Max(ref readonly Double3 left, ref readonly Double3 right, out Double3 result)
-    {
-        result.X = (left.X > right.X) ? left.X : right.X;
-        result.Y = (left.Y > right.Y) ? left.Y : right.Y;
-        result.Z = (left.Z > right.Z) ? left.Z : right.Z;
     }
 
     /// <summary>
@@ -803,22 +542,11 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Double3 Max(Double3 left, Double3 right)
     {
-        Max(ref left, ref right, out var result);
+        Double3 result;
+        result.X = (left.X > right.X) ? left.X : right.X;
+        result.Y = (left.Y > right.Y) ? left.Y : right.Y;
+        result.Z = (left.Z > right.Z) ? left.Z : right.Z;
         return result;
-    }
-
-    /// <summary>
-    /// Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name="left">The first source vector.</param>
-    /// <param name="right">The second source vector.</param>
-    /// <param name="result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Min(ref readonly Double3 left, ref readonly Double3 right, out Double3 result)
-    {
-        result.X = (left.X < right.X) ? left.X : right.X;
-        result.Y = (left.Y < right.Y) ? left.Y : right.Y;
-        result.Z = (left.Z < right.Z) ? left.Z : right.Z;
     }
 
     /// <summary>
@@ -830,27 +558,11 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Double3 Min(Double3 left, Double3 right)
     {
-        Min(ref left, ref right, out var result);
+        Double3 result;
+        result.X = (left.X < right.X) ? left.X : right.X;
+        result.Y = (left.Y < right.Y) ? left.Y : right.Y;
+        result.Z = (left.Z < right.Z) ? left.Z : right.Z;
         return result;
-    }
-
-    /// <summary>
-    /// Projects a 3D vector from object space into screen space.
-    /// </summary>
-    /// <param name="vector">The vector to project.</param>
-    /// <param name="x">The X position of the viewport.</param>
-    /// <param name="y">The Y position of the viewport.</param>
-    /// <param name="width">The width of the viewport.</param>
-    /// <param name="height">The height of the viewport.</param>
-    /// <param name="minZ">The minimum depth of the viewport.</param>
-    /// <param name="maxZ">The maximum depth of the viewport.</param>
-    /// <param name="worldViewProjection">The combined world-view-projection matrix.</param>
-    /// <param name="result">When the method completes, contains the vector in screen space.</param>
-    public static void Project(ref readonly Double3 vector, double x, double y, double width, double height, double minZ, double maxZ, ref readonly Matrix worldViewProjection, out Double3 result)
-    {
-        TransformCoordinate(in vector, in worldViewProjection, out var v);
-
-        result = new Double3(((1.0 + v.X) * 0.5f * width) + x, ((1.0 - v.Y) * 0.5f * height) + y, (v.Z * (maxZ - minZ)) + minZ);
     }
 
     /// <summary>
@@ -865,34 +577,12 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <param name="maxZ">The maximum depth of the viewport.</param>
     /// <param name="worldViewProjection">The combined world-view-projection matrix.</param>
     /// <returns>The vector in screen space.</returns>
-    public static Double3 Project(Double3 vector, double x, double y, double width, double height, double minZ, double maxZ, Matrix worldViewProjection)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double3 Project(Double3 vector, double x, double y, double width, double height, double minZ, double maxZ, in Matrix4x4 worldViewProjection)
     {
-        Project(ref vector, x, y, width, height, minZ, maxZ, ref worldViewProjection, out var result);
-        return result;
-    }
+        var v = TransformCoordinate(vector, worldViewProjection);
 
-    /// <summary>
-    /// Projects a 3D vector from screen space into object space.
-    /// </summary>
-    /// <param name="vector">The vector to project.</param>
-    /// <param name="x">The X position of the viewport.</param>
-    /// <param name="y">The Y position of the viewport.</param>
-    /// <param name="width">The width of the viewport.</param>
-    /// <param name="height">The height of the viewport.</param>
-    /// <param name="minZ">The minimum depth of the viewport.</param>
-    /// <param name="maxZ">The maximum depth of the viewport.</param>
-    /// <param name="worldViewProjection">The combined world-view-projection matrix.</param>
-    /// <param name="result">When the method completes, contains the vector in object space.</param>
-    public static void Unproject(ref readonly Double3 vector, double x, double y, double width, double height, double minZ, double maxZ, ref readonly Matrix worldViewProjection, out Double3 result)
-    {
-        Double3 v = new Double3();
-        Matrix.Invert(in worldViewProjection, out var matrix);
-
-        v.X = ((vector.X - x) / width * 2.0f) - 1.0;
-        v.Y = -(((vector.Y - y) / height * 2.0f) - 1.0);
-        v.Z = (vector.Z - minZ) / (maxZ - minZ);
-
-        TransformCoordinate(ref v, ref matrix, out result);
+        return new Double3(((1.0 + v.X) * 0.5f * width) + x, ((1.0 - v.Y) * 0.5f * height) + y, (v.Z * (maxZ - minZ)) + minZ);
     }
 
     /// <summary>
@@ -907,27 +597,17 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <param name="maxZ">The maximum depth of the viewport.</param>
     /// <param name="worldViewProjection">The combined world-view-projection matrix.</param>
     /// <returns>The vector in object space.</returns>
-    public static Double3 Unproject(Double3 vector, double x, double y, double width, double height, double minZ, double maxZ, Matrix worldViewProjection)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double3 Unproject(Double3 vector, double x, double y, double width, double height, double minZ, double maxZ, in Matrix4x4 worldViewProjection)
     {
-        Unproject(ref vector, x, y, width, height, minZ, maxZ, ref worldViewProjection, out var result);
-        return result;
-    }
+        Double3 v = new Double3();
+        Matrix4x4.InvertSafe(worldViewProjection, out var matrix);
 
-    /// <summary>
-    /// Returns the reflection of a vector off a surface that has the specified normal.
-    /// </summary>
-    /// <param name="vector">The source vector.</param>
-    /// <param name="normal">Normal of the surface.</param>
-    /// <param name="result">When the method completes, contains the reflected vector.</param>
-    /// <remarks>Reflect only gives the direction of a reflection off a surface, it does not determine
-    /// whether the original vector was close enough to the surface to hit it.</remarks>
-    public static void Reflect(ref readonly Double3 vector, ref readonly Double3 normal, out Double3 result)
-    {
-        double dot = (vector.X * normal.X) + (vector.Y * normal.Y) + (vector.Z * normal.Z);
+        v.X = ((vector.X - x) / width * 2.0f) - 1.0;
+        v.Y = -(((vector.Y - y) / height * 2.0f) - 1.0);
+        v.Z = (vector.Z - minZ) / (maxZ - minZ);
 
-        result.X = vector.X - (2.0f * dot * normal.X);
-        result.Y = vector.Y - (2.0f * dot * normal.Y);
-        result.Z = vector.Z - (2.0f * dot * normal.Z);
+        return TransformCoordinate(v, matrix);
     }
 
     /// <summary>
@@ -938,9 +618,15 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <returns>The reflected vector.</returns>
     /// <remarks>Reflect only gives the direction of a reflection off a surface, it does not determine
     /// whether the original vector was close enough to the surface to hit it.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Double3 Reflect(Double3 vector, Double3 normal)
     {
-        Reflect(ref vector, ref normal, out var result);
+        Double3 result;
+        double dot = (vector.X * normal.X) + (vector.Y * normal.Y) + (vector.Z * normal.Z);
+
+        result.X = vector.X - (2.0f * dot * normal.X);
+        result.Y = vector.Y - (2.0f * dot * normal.Y);
+        result.Z = vector.Z - (2.0f * dot * normal.Z);
         return result;
     }
 
@@ -1028,7 +714,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
                 newvector -= Dot(destination[r], newvector) * destination[r];
             }
 
-            newvector.Normalize();
+            newvector = Double3.NormalizeSafe(newvector);
             destination[i] = newvector;
         }
     }
@@ -1038,8 +724,8 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// </summary>
     /// <param name="vector">The vector to rotate.</param>
     /// <param name="rotation">The <see cref="Quaternion"/> rotation to apply.</param>
-    /// <param name="result">When the method completes, contains the transformed <see cref="Double4"/>.</param>
-    public static void Transform(ref readonly Double3 vector, ref readonly Quaternion rotation, out Double3 result)
+    /// <returns>The transformed <see cref="Double4"/>.</returns>
+    public static Double3 Transform(Double3 vector, Quaternion rotation)
     {
         double x = rotation.X + rotation.X;
         double y = rotation.Y + rotation.Y;
@@ -1054,34 +740,22 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
         double yz = rotation.Y * z;
         double zz = rotation.Z * z;
 
-        result = new Double3(
+        return new Double3(
             (vector.X * (1.0 - yy - zz)) + (vector.Y * (xy - wz)) + (vector.Z * (xz + wy)),
             (vector.X * (xy + wz)) + (vector.Y * (1.0 - xx - zz)) + (vector.Z * (yz - wx)),
             (vector.X * (xz - wy)) + (vector.Y * (yz + wx)) + (vector.Z * (1.0 - xx - yy)));
     }
 
     /// <summary>
-    /// Transforms a 3D vector by the given <see cref="Quaternion"/> rotation.
-    /// </summary>
-    /// <param name="vector">The vector to rotate.</param>
-    /// <param name="rotation">The <see cref="Quaternion"/> rotation to apply.</param>
-    /// <returns>The transformed <see cref="Double4"/>.</returns>
-    public static Double3 Transform(Double3 vector, Quaternion rotation)
-    {
-        Transform(ref vector, ref rotation, out var result);
-        return result;
-    }
-
-    /// <summary>
     /// Transforms an array of vectors by the given <see cref="Quaternion"/> rotation.
     /// </summary>
     /// <param name="source">The array of vectors to transform.</param>
-    /// <param name="rotation">The <see cref="Stride.Core.Mathematics.Quaternion"/> rotation to apply.</param>
+    /// <param name="rotation">The <see cref="System.Numerics.Quaternion"/> rotation to apply.</param>
     /// <param name="destination">The array for which the transformed vectors are stored.
     /// This array may be the same array as <paramref name="source"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-    public static void Transform(Double3[] source, ref readonly Quaternion rotation, Double3[] destination)
+    public static void Transform(Double3[] source, Quaternion rotation, Double3[] destination)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
@@ -1121,27 +795,12 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     }
 
     /// <summary>
-    /// Transforms a 3D vector by the given <see cref="Matrix"/>.
+    /// Transforms a 3D vector by the given <see cref="Matrix4x4"/>.
     /// </summary>
     /// <param name="vector">The source vector.</param>
-    /// <param name="transform">The transformation <see cref="Matrix"/>.</param>
-    /// <param name="result">When the method completes, contains the transformed <see cref="Double4"/>.</param>
-    public static void Transform(ref readonly Double3 vector, ref readonly Matrix transform, out Double4 result)
-    {
-        result = new Double4(
-            (vector.X * transform.M11) + (vector.Y * transform.M21) + (vector.Z * transform.M31) + transform.M41,
-            (vector.X * transform.M12) + (vector.Y * transform.M22) + (vector.Z * transform.M32) + transform.M42,
-            (vector.X * transform.M13) + (vector.Y * transform.M23) + (vector.Z * transform.M33) + transform.M43,
-            (vector.X * transform.M14) + (vector.Y * transform.M24) + (vector.Z * transform.M34) + transform.M44);
-    }
-
-    /// <summary>
-    /// Transforms a 3D vector by the given <see cref="Matrix"/>.
-    /// </summary>
-    /// <param name="vector">The source vector.</param>
-    /// <param name="transform">The transformation <see cref="Matrix"/>.</param>
+    /// <param name="transform">The transformation <see cref="Matrix4x4"/>.</param>
     /// <param name="result">When the method completes, contains the transformed <see cref="Double3"/>.</param>
-    public static void Transform(ref readonly Double3 vector, ref readonly Matrix transform, out Double3 result)
+    public static void Transform(in Double3 vector, in Matrix4x4 transform, out Double3 result)
     {
         result = new Double3(
             (vector.X * transform.M11) + (vector.Y * transform.M21) + (vector.Z * transform.M31) + transform.M41,
@@ -1150,26 +809,30 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     }
 
     /// <summary>
-    /// Transforms a 3D vector by the given <see cref="Matrix"/>.
+    /// Transforms a 3D vector by the given <see cref="Matrix4x4"/>.
     /// </summary>
     /// <param name="vector">The source vector.</param>
-    /// <param name="transform">The transformation <see cref="Stride.Core.Mathematics.Matrix"/>.</param>
+    /// <param name="transform">The transformation <see cref="System.Numerics.Matrix4x4"/>.</param>
     /// <returns>The transformed <see cref="Stride.Core.Mathematics.Double4"/>.</returns>
-    public static Double4 Transform(Double3 vector, Matrix transform)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double4 Transform(Double3 vector, in Matrix4x4 transform)
     {
-        Transform(ref vector, ref transform, out Double4 result);
-        return result;
+        return new Double4(
+            (vector.X * transform.M11) + (vector.Y * transform.M21) + (vector.Z * transform.M31) + transform.M41,
+            (vector.X * transform.M12) + (vector.Y * transform.M22) + (vector.Z * transform.M32) + transform.M42,
+            (vector.X * transform.M13) + (vector.Y * transform.M23) + (vector.Z * transform.M33) + transform.M43,
+            (vector.X * transform.M14) + (vector.Y * transform.M24) + (vector.Z * transform.M34) + transform.M44);
     }
 
     /// <summary>
-    /// Transforms an array of 3D vectors by the given <see cref="Matrix"/>.
+    /// Transforms an array of 3D vectors by the given <see cref="Matrix4x4"/>.
     /// </summary>
     /// <param name="source">The array of vectors to transform.</param>
-    /// <param name="transform">The transformation <see cref="Matrix"/>.</param>
+    /// <param name="transform">The transformation <see cref="Matrix4x4"/>.</param>
     /// <param name="destination">The array for which the transformed vectors are stored.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-    public static void Transform(Double3[] source, ref readonly Matrix transform, Double4[] destination)
+    public static void Transform(Double3[] source, in Matrix4x4 transform, Double4[] destination)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
@@ -1178,37 +841,15 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
 
         for (int i = 0; i < source.Length; ++i)
         {
-            Transform(ref source[i], in transform, out destination[i]);
+            destination[i] = Transform(source[i], transform);
         }
     }
 
     /// <summary>
-    /// Performs a coordinate transformation using the given <see cref="Matrix"/>.
+    /// Performs a coordinate transformation using the given <see cref="Matrix4x4"/>.
     /// </summary>
     /// <param name="coordinate">The coordinate vector to transform.</param>
-    /// <param name="transform">The transformation <see cref="Matrix"/>.</param>
-    /// <param name="result">When the method completes, contains the transformed coordinates.</param>
-    /// <remarks>
-    /// A coordinate transform performs the transformation with the assumption that the w component
-    /// is one. The four dimensional vector obtained from the transformation operation has each
-    /// component in the vector divided by the w component. This forces the wcomponent to be one and
-    /// therefore makes the vector homogeneous. The homogeneous vector is often prefered when working
-    /// with coordinates as the w component can safely be ignored.
-    /// </remarks>
-    public static void TransformCoordinate(ref readonly Double3 coordinate, ref readonly Matrix transform, out Double3 result)
-    {
-        var invW = 1f / ((coordinate.X * transform.M14) + (coordinate.Y * transform.M24) + (coordinate.Z * transform.M34) + transform.M44);
-        result = new Double3(
-            ((coordinate.X * transform.M11) + (coordinate.Y * transform.M21) + (coordinate.Z * transform.M31) + transform.M41) * invW,
-            ((coordinate.X * transform.M12) + (coordinate.Y * transform.M22) + (coordinate.Z * transform.M32) + transform.M42) * invW,
-            ((coordinate.X * transform.M13) + (coordinate.Y * transform.M23) + (coordinate.Z * transform.M33) + transform.M43) * invW);
-    }
-
-    /// <summary>
-    /// Performs a coordinate transformation using the given <see cref="Matrix"/>.
-    /// </summary>
-    /// <param name="coordinate">The coordinate vector to transform.</param>
-    /// <param name="transform">The transformation <see cref="Matrix"/>.</param>
+    /// <param name="transform">The transformation <see cref="Matrix4x4"/>.</param>
     /// <returns>The transformed coordinates.</returns>
     /// <remarks>
     /// A coordinate transform performs the transformation with the assumption that the w component
@@ -1217,17 +858,21 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// therefore makes the vector homogeneous. The homogeneous vector is often prefered when working
     /// with coordinates as the w component can safely be ignored.
     /// </remarks>
-    public static Double3 TransformCoordinate(Double3 coordinate, Matrix transform)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double3 TransformCoordinate(Double3 coordinate, in Matrix4x4 transform)
     {
-        TransformCoordinate(ref coordinate, ref transform, out var result);
-        return result;
+        var invW = 1f / ((coordinate.X * transform.M14) + (coordinate.Y * transform.M24) + (coordinate.Z * transform.M34) + transform.M44);
+        return new Double3(
+            ((coordinate.X * transform.M11) + (coordinate.Y * transform.M21) + (coordinate.Z * transform.M31) + transform.M41) * invW,
+            ((coordinate.X * transform.M12) + (coordinate.Y * transform.M22) + (coordinate.Z * transform.M32) + transform.M42) * invW,
+            ((coordinate.X * transform.M13) + (coordinate.Y * transform.M23) + (coordinate.Z * transform.M33) + transform.M43) * invW);
     }
 
     /// <summary>
-    /// Performs a coordinate transformation on an array of vectors using the given <see cref="Matrix"/>.
+    /// Performs a coordinate transformation on an array of vectors using the given <see cref="Matrix4x4"/>.
     /// </summary>
     /// <param name="source">The array of coordinate vectors to trasnform.</param>
-    /// <param name="transform">The transformation <see cref="Matrix"/>.</param>
+    /// <param name="transform">The transformation <see cref="Matrix4x4"/>.</param>
     /// <param name="destination">The array for which the transformed vectors are stored.
     /// This array may be the same array as <paramref name="source"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
@@ -1239,7 +884,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// therefore makes the vector homogeneous. The homogeneous vector is often prefered when working
     /// with coordinates as the w component can safely be ignored.
     /// </remarks>
-    public static void TransformCoordinate(Double3[] source, ref readonly Matrix transform, Double3[] destination)
+    public static void TransformCoordinate(Double3[] source, in Matrix4x4 transform, Double3[] destination)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
@@ -1248,36 +893,15 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
 
         for (int i = 0; i < source.Length; ++i)
         {
-            TransformCoordinate(ref source[i], in transform, out destination[i]);
+            destination[i] = TransformCoordinate(source[i], transform);
         }
     }
 
     /// <summary>
-    /// Performs a normal transformation using the given <see cref="Matrix"/>.
+    /// Performs a normal transformation using the given <see cref="Matrix4x4"/>.
     /// </summary>
     /// <param name="normal">The normal vector to transform.</param>
-    /// <param name="transform">The transformation <see cref="Matrix"/>.</param>
-    /// <param name="result">When the method completes, contains the transformed normal.</param>
-    /// <remarks>
-    /// A normal transform performs the transformation with the assumption that the w component
-    /// is zero. This causes the fourth row and fourth collumn of the matrix to be unused. The
-    /// end result is a vector that is not translated, but all other transformation properties
-    /// apply. This is often prefered for normal vectors as normals purely represent direction
-    /// rather than location because normal vectors should not be translated.
-    /// </remarks>
-    public static void TransformNormal(ref readonly Double3 normal, ref readonly Matrix transform, out Double3 result)
-    {
-        result = new Double3(
-            (normal.X * transform.M11) + (normal.Y * transform.M21) + (normal.Z * transform.M31),
-            (normal.X * transform.M12) + (normal.Y * transform.M22) + (normal.Z * transform.M32),
-            (normal.X * transform.M13) + (normal.Y * transform.M23) + (normal.Z * transform.M33));
-    }
-
-    /// <summary>
-    /// Performs a normal transformation using the given <see cref="Matrix"/>.
-    /// </summary>
-    /// <param name="normal">The normal vector to transform.</param>
-    /// <param name="transform">The transformation <see cref="Matrix"/>.</param>
+    /// <param name="transform">The transformation <see cref="Matrix4x4"/>.</param>
     /// <returns>The transformed normal.</returns>
     /// <remarks>
     /// A normal transform performs the transformation with the assumption that the w component
@@ -1286,17 +910,20 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// apply. This is often prefered for normal vectors as normals purely represent direction
     /// rather than location because normal vectors should not be translated.
     /// </remarks>
-    public static Double3 TransformNormal(Double3 normal, Matrix transform)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Double3 TransformNormal(Double3 normal, in Matrix4x4 transform)
     {
-        TransformNormal(ref normal, ref transform, out var result);
-        return result;
+        return new Double3(
+            (normal.X * transform.M11) + (normal.Y * transform.M21) + (normal.Z * transform.M31),
+            (normal.X * transform.M12) + (normal.Y * transform.M22) + (normal.Z * transform.M32),
+            (normal.X * transform.M13) + (normal.Y * transform.M23) + (normal.Z * transform.M33));
     }
 
     /// <summary>
-    /// Performs a normal transformation on an array of vectors using the given <see cref="Matrix"/>.
+    /// Performs a normal transformation on an array of vectors using the given <see cref="Matrix4x4"/>.
     /// </summary>
     /// <param name="source">The array of normal vectors to transform.</param>
-    /// <param name="transform">The transformation <see cref="Matrix"/>.</param>
+    /// <param name="transform">The transformation <see cref="Matrix4x4"/>.</param>
     /// <param name="destination">The array for which the transformed vectors are stored.
     /// This array may be the same array as <paramref name="source"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
@@ -1308,7 +935,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// apply. This is often prefered for normal vectors as normals purely represent direction
     /// rather than location because normal vectors should not be translated.
     /// </remarks>
-    public static void TransformNormal(Double3[] source, ref readonly Matrix transform, Double3[] destination)
+    public static void TransformNormal(Double3[] source, in Matrix4x4 transform, Double3[] destination)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
@@ -1317,7 +944,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
 
         for (int i = 0; i < source.Length; ++i)
         {
-            TransformNormal(ref source[i], in transform, out destination[i]);
+            destination[i] = TransformNormal(source[i], transform);
         }
     }
 
@@ -1329,20 +956,8 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     public static Double3 RotationYawPitchRoll(Quaternion quaternion)
     {
         Vector3 yawPitchRoll;
-        Quaternion.RotationYawPitchRoll(ref quaternion, out yawPitchRoll.X, out yawPitchRoll.Y, out yawPitchRoll.Z);
+        (yawPitchRoll.X, yawPitchRoll.Y, yawPitchRoll.Z) = quaternion.GetYawPitchRoll();
         return yawPitchRoll;
-    }
-
-    /// <summary>
-    /// Calculate the yaw/pitch/roll rotation equivalent to the provided quaterion.
-    /// </summary>
-    /// <param name="quaternion">The input rotation as quaternion</param>
-    /// <param name="yawPitchRoll">The equivation yaw/pitch/roll rotation</param>
-    public static void RotationYawPitchRoll(ref readonly Quaternion quaternion, out Double3 yawPitchRoll)
-    {
-        Vector3 yawPitchRollV;
-        Quaternion.RotationYawPitchRoll(in quaternion, out yawPitchRollV.X, out yawPitchRollV.Y, out yawPitchRollV.Z);
-        yawPitchRoll = yawPitchRollV;
     }
 
     /// <summary>
@@ -1510,7 +1125,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     }
 
     /// <summary>
-    /// Performs an explicit conversion from <see cref="Stride.Core.Mathematics.Double3"/> to <see cref="Stride.Core.Mathematics.Vector3"/>.
+    /// Performs an explicit conversion from <see cref="Stride.Core.Mathematics.Double3"/> to <see cref="System.Numerics.Vector3"/>.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>The result of the conversion.</returns>
@@ -1520,7 +1135,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     }
 
     /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector3"/> to <see cref="Stride.Core.Mathematics.Double3"/>.
+    /// Performs an implicit conversion from <see cref="System.Numerics.Vector3"/> to <see cref="Stride.Core.Mathematics.Double3"/>.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>The result of the conversion.</returns>
@@ -1546,7 +1161,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <returns>The result of the conversion.</returns>
     public static explicit operator Double3(Half3 value)
     {
-        return new Double3(value.X, value.Y, value.Z);
+        return new Double3((float)value.X, (float)value.Y, (float)value.Z);
     }
 
     /// <summary>
@@ -1568,32 +1183,6 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     {
         return new Double4(value, 0.0);
     }
-
-    /// <summary>
-    /// Tests whether one 3D vector is near another 3D vector.
-    /// </summary>
-    /// <param name="left">The left vector.</param>
-    /// <param name="right">The right vector.</param>
-    /// <param name="epsilon">The epsilon.</param>
-    /// <returns><c>true</c> if left and right are near another 3D, <c>false</c> otherwise</returns>
-    public static bool NearEqual(Double3 left, Double3 right, Double3 epsilon)
-    {
-        return NearEqual(ref left, ref right, ref epsilon);
-    }
-
-    /// <summary>
-    /// Tests whether one 3D vector is near another 3D vector.
-    /// </summary>
-    /// <param name="left">The left vector.</param>
-    /// <param name="right">The right vector.</param>
-    /// <param name="epsilon">The epsilon.</param>
-    /// <returns><c>true</c> if left and right are near another 3D, <c>false</c> otherwise</returns>
-    public static bool NearEqual(ref readonly Double3 left, ref readonly Double3 right, ref readonly Double3 epsilon)
-    {
-        return MathUtil.WithinEpsilon((float)left.X, (float)right.X, (float)epsilon.X) &&
-                MathUtil.WithinEpsilon((float)left.Y, (float)right.Y, (float)epsilon.Y) &&
-                MathUtil.WithinEpsilon((float)left.Z, (float)right.Z, (float)epsilon.Z);
-    }
     
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
@@ -1613,26 +1202,34 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// </returns>
     public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        var handler = new DefaultInterpolatedStringHandler(8, 3, formatProvider);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
+        var handler = new DefaultInterpolatedStringHandler(6, 3, formatProvider);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format);
-        handler.AppendLiteral(" Z:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format);
+        handler.AppendLiteral(">");
         return handler.ToStringAndClear();
     }
 
     bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         var format1 = format.Length > 0 ? format.ToString() : null;
-        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(8, 3, destination, provider, out _);
-        handler.AppendLiteral("X:");
+        var separator = NumberFormatInfo.GetInstance(provider).NumberGroupSeparator;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(6, 3, destination, provider, out _);
+        handler.AppendLiteral("<");
         handler.AppendFormatted(X, format1);
-        handler.AppendLiteral(" Y:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Y, format1);
-        handler.AppendLiteral(" Z:");
+        handler.AppendLiteral(separator);
+        handler.AppendLiteral(" ");
         handler.AppendFormatted(Z, format1);
+        handler.AppendLiteral(">");
         return destination.TryWrite(ref handler, out charsWritten);
     }
 
@@ -1656,9 +1253,17 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// </returns>
     public readonly bool Equals(Double3 other)
     {
-        return (double)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-            (double)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
-            (double)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance;
+        return X == other.X && Y == other.Y && Z == other.Z;
+    }
+
+    /// <summary>Determines whether every component of a vector differs from the same component of this one by less than a tolerance.</summary>
+    /// <param name="other">The vector to compare with this instance.</param>
+    /// <param name="tolerance">The difference of a component from which the two are not near.</param>
+    public readonly bool NearEquals(Double3 other, double tolerance = MathUtil.ZeroTolerance)
+    {
+        return Math.Abs(other.X - X) < tolerance &&
+            Math.Abs(other.Y - Y) < tolerance &&
+            Math.Abs(other.Z - Z) < tolerance;
     }
 
     /// <summary>

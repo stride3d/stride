@@ -6,6 +6,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering.Sprites;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {
@@ -75,7 +76,7 @@ namespace Stride.Engine.Tests
             }
 
             CameraComponent.UseCustomProjectionMatrix = true;
-            CameraComponent.ProjectionMatrix = Matrix.OrthoOffCenterRH(0, ScreenWidth, 0, ScreenHeight, -10, 10);
+            CameraComponent.ProjectionMatrix = Matrix4x4.CreateOrthographicOffCenter(0, ScreenWidth, 0, ScreenHeight, -10, 10);
         }
 
         protected override void RegisterTests()

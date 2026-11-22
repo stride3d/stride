@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 

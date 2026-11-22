@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Games.AutoTesting;
+using System.Numerics;
 
 namespace AnimatedModel.Tests;
 

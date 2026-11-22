@@ -5,6 +5,7 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Regression;
+using System.Numerics;
 
 namespace Stride.Engine.Tests
 {

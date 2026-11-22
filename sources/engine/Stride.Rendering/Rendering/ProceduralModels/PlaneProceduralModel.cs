@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
+using System.Numerics;
 
 namespace Stride.Rendering.ProceduralModels
 {

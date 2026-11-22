@@ -44,6 +44,7 @@ using Stride.Core.Quantum;
 using Stride.Animations;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Assets.Editor.ViewModels.CurveEditor.Axes;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels.CurveEditor
 {

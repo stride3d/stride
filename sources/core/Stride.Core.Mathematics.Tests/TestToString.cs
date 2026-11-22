@@ -3,11 +3,14 @@
 
 using System.Globalization;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
 public class TestToString
 {
+    private static readonly string FrenchSeparator = CultureInfo.GetCultureInfo("fr-FR").NumberFormat.NumberGroupSeparator;
+
     public TestToString()
     {
         CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
@@ -29,19 +32,19 @@ public class TestToString
         DoTestToString(
             BoundingBox.Empty,
             (
-                "Minimum:X:3.4028235E+38 Y:3.4028235E+38 Z:3.4028235E+38 Maximum:X:-3.4028235E+38 Y:-3.4028235E+38 Z:-3.4028235E+38",
-                "Minimum:X:3.4028235E+38 Y:3.4028235E+38 Z:3.4028235E+38 Maximum:X:-3.4028235E+38 Y:-3.4028235E+38 Z:-3.4028235E+38",
-                "Minimum:X:3.403E+38 Y:3.403E+38 Z:3.403E+38 Maximum:X:-3.403E+38 Y:-3.403E+38 Z:-3.403E+38",
-                "Minimum:X:3.403E+38 Y:3.403E+38 Z:3.403E+38 Maximum:X:-3.403E+38 Y:-3.403E+38 Z:-3.403E+38"
+                "Minimum:<3.4028235E+38, 3.4028235E+38, 3.4028235E+38> Maximum:<-3.4028235E+38, -3.4028235E+38, -3.4028235E+38>",
+                "Minimum:<3.4028235E+38, 3.4028235E+38, 3.4028235E+38> Maximum:<-3.4028235E+38, -3.4028235E+38, -3.4028235E+38>",
+                "Minimum:<3.403E+38, 3.403E+38, 3.403E+38> Maximum:<-3.403E+38, -3.403E+38, -3.403E+38>",
+                "Minimum:<3.403E+38, 3.403E+38, 3.403E+38> Maximum:<-3.403E+38, -3.403E+38, -3.403E+38>"
             ), format: "G4"
         );
         DoTestToString(
             new BoundingBox(Vector3.UnitX, Vector3.UnitY),
             (
-                "Minimum:X:1 Y:0 Z:0 Maximum:X:0 Y:1 Z:0",
-                "Minimum:X:1 Y:0 Z:0 Maximum:X:0 Y:1 Z:0",
-                "Minimum:X:1.00 Y:0.00 Z:0.00 Maximum:X:0.00 Y:1.00 Z:0.00",
-                "Minimum:X:1.00 Y:0.00 Z:0.00 Maximum:X:0.00 Y:1.00 Z:0.00"
+                "Minimum:<1, 0, 0> Maximum:<0, 1, 0>",
+                "Minimum:<1, 0, 0> Maximum:<0, 1, 0>",
+                "Minimum:<1.00, 0.00, 0.00> Maximum:<0.00, 1.00, 0.00>",
+                "Minimum:<1.00, 0.00, 0.00> Maximum:<0.00, 1.00, 0.00>"
             ), format: "F2"
         );
     }
@@ -52,19 +55,19 @@ public class TestToString
         DoTestToString(
             BoundingBoxExt.Empty,
             (
-                "Center:X:0 Y:0 Z:0 Extent:X:-∞ Y:-∞ Z:-∞",
-                "Center:X:0 Y:0 Z:0 Extent:X:-Infinity Y:-Infinity Z:-Infinity",
-                "Center:X:0.00 Y:0.00 Z:0.00 Extent:X:-∞ Y:-∞ Z:-∞",
-                "Center:X:0.00 Y:0.00 Z:0.00 Extent:X:-Infinity Y:-Infinity Z:-Infinity"
+                "Center:<0, 0, 0> Extent:<-∞, -∞, -∞>",
+                "Center:<0, 0, 0> Extent:<-Infinity, -Infinity, -Infinity>",
+                "Center:<0.00, 0.00, 0.00> Extent:<-∞, -∞, -∞>",
+                "Center:<0.00, 0.00, 0.00> Extent:<-Infinity, -Infinity, -Infinity>"
             ), format: "F2"
         );
         DoTestToString(
             new BoundingBoxExt(Vector3.UnitX, Vector3.UnitY),
             (
-                "Center:X:0.5 Y:0.5 Z:0 Extent:X:-0.5 Y:0.5 Z:0",
-                "Center:X:0.5 Y:0.5 Z:0 Extent:X:-0.5 Y:0.5 Z:0",
-                "Center:X:0.500 Y:0.500 Z:0.000 Extent:X:-0.500 Y:0.500 Z:0.000",
-                "Center:X:0.500 Y:0.500 Z:0.000 Extent:X:-0.500 Y:0.500 Z:0.000"
+                "Center:<0.5, 0.5, 0> Extent:<-0.5, 0.5, 0>",
+                "Center:<0.5, 0.5, 0> Extent:<-0.5, 0.5, 0>",
+                "Center:<0.500, 0.500, 0.000> Extent:<-0.500, 0.500, 0.000>",
+                "Center:<0.500, 0.500, 0.000> Extent:<-0.500, 0.500, 0.000>"
             ), format: "F3"
         );
     }
@@ -75,19 +78,19 @@ public class TestToString
         DoTestToString(
             BoundingSphere.Empty,
             (
-                "Center:X:0 Y:0 Z:0 Radius:0",
-                "Center:X:0 Y:0 Z:0 Radius:0",
-                "Center:X:0.00 Y:0.00 Z:0.00 Radius:0.00",
-                "Center:X:0.00 Y:0.00 Z:0.00 Radius:0.00"
+                "Center:<0, 0, 0> Radius:0",
+                "Center:<0, 0, 0> Radius:0",
+                "Center:<0.00, 0.00, 0.00> Radius:0.00",
+                "Center:<0.00, 0.00, 0.00> Radius:0.00"
             ), format: "F2"
         );
         DoTestToString(
             new BoundingSphere(Vector3.UnitX, 1.23456f),
             (
-                "Center:X:1 Y:0 Z:0 Radius:1.23456",
-                "Center:X:1 Y:0 Z:0 Radius:1.23456",
-                "Center:X:1.000 Y:0.000 Z:0.000 Radius:1.235",
-                "Center:X:1.000 Y:0.000 Z:0.000 Radius:1.235"
+                "Center:<1, 0, 0> Radius:1.23456",
+                "Center:<1, 0, 0> Radius:1.23456",
+                "Center:<1.000, 0.000, 0.000> Radius:1.235",
+                "Center:<1.000, 0.000, 0.000> Radius:1.235"
             ), format: "F3"
         );
     }
@@ -179,25 +182,25 @@ public class TestToString
     [Fact]
     public void TestDouble2()
     {
-        DoTestToString(Double2.UnitX, ("X:1 Y:0", "X:1 Y:0", "X:1 Y:0", "X:1 Y:0"));
-        DoTestToString(Double2.UnitY, ("X:0 Y:1", "X:0 Y:1", "X:0 Y:1", "X:0 Y:1"));
+        DoTestToString(Double2.UnitX, ("<1, 0>", "<1, 0>", "<1, 0>", "<1, 0>"));
+        DoTestToString(Double2.UnitY, ("<0, 1>", "<0, 1>", "<0, 1>", "<0, 1>"));
     }
 
     [Fact]
     public void TestDouble3()
     {
-        DoTestToString(Double3.UnitX, ("X:1 Y:0 Z:0", "X:1 Y:0 Z:0", "X:1 Y:0 Z:0", "X:1 Y:0 Z:0"));
-        DoTestToString(Double3.UnitY, ("X:0 Y:1 Z:0", "X:0 Y:1 Z:0", "X:0 Y:1 Z:0", "X:0 Y:1 Z:0"));
-        DoTestToString(Double3.UnitZ, ("X:0 Y:0 Z:1", "X:0 Y:0 Z:1", "X:0 Y:0 Z:1", "X:0 Y:0 Z:1"));
+        DoTestToString(Double3.UnitX, ("<1, 0, 0>", "<1, 0, 0>", "<1, 0, 0>", "<1, 0, 0>"));
+        DoTestToString(Double3.UnitY, ("<0, 1, 0>", "<0, 1, 0>", "<0, 1, 0>", "<0, 1, 0>"));
+        DoTestToString(Double3.UnitZ, ("<0, 0, 1>", "<0, 0, 1>", "<0, 0, 1>", "<0, 0, 1>"));
     }
 
     [Fact]
     public void TestDouble4()
     {
-        DoTestToString(Double4.UnitX, ("X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0"));
-        DoTestToString(Double4.UnitY, ("X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0"));
-        DoTestToString(Double4.UnitZ, ("X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0"));
-        DoTestToString(Double4.UnitW, ("X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1"));
+        DoTestToString(Double4.UnitX, ("<1, 0, 0, 0>", "<1, 0, 0, 0>", "<1, 0, 0, 0>", "<1, 0, 0, 0>"));
+        DoTestToString(Double4.UnitY, ("<0, 1, 0, 0>", "<0, 1, 0, 0>", "<0, 1, 0, 0>", "<0, 1, 0, 0>"));
+        DoTestToString(Double4.UnitZ, ("<0, 0, 1, 0>", "<0, 0, 1, 0>", "<0, 0, 1, 0>", "<0, 0, 1, 0>"));
+        DoTestToString(Double4.UnitW, ("<0, 0, 0, 1>", "<0, 0, 0, 1>", "<0, 0, 0, 1>", "<0, 0, 0, 1>"));
     }
 
     [Fact]
@@ -210,26 +213,26 @@ public class TestToString
     [Fact]
     public void TestHalf2()
     {
-        DoTestToString(Half2.Zero, ("0, 0", "0, 0", "0, 0", "0, 0"));
-        DoTestToString(Half2.One, ("1, 1", "1, 1", "1, 1", "1, 1"));
-        DoTestToString(Half2.UnitX, ("1, 0", "1, 0", "1, 0", "1, 0"));
-        DoTestToString(Half2.UnitY, ("0, 1", "0, 1", "0, 1", "0, 1"));
+        DoTestToString(Half2.Zero, ("<0, 0>", "<0, 0>", "<0, 0>", "<0, 0>"));
+        DoTestToString(Half2.One, ("<1, 1>", "<1, 1>", "<1, 1>", "<1, 1>"));
+        DoTestToString(Half2.UnitX, ("<1, 0>", "<1, 0>", "<1, 0>", "<1, 0>"));
+        DoTestToString(Half2.UnitY, ("<0, 1>", "<0, 1>", "<0, 1>", "<0, 1>"));
         DoTestToString(
             new Half2(-0.1f, 0.3f),
             (
-                "-0.099975586, 0.2998047",
-                "-0.099975586, 0.2998047",
-                "-0.1, 0.3",
-                "-0.1, 0.3"
+                "<-0.1, 0.3>",
+                "<-0.1, 0.3>",
+                "<-0.1, 0.3>",
+                "<-0.1, 0.3>"
             )
         );
         DoTestToString(
             new Half2(-0.1f, 0.3f),
             (
-                "-0.099975586, 0.2998047",
-                "-0,099975586; 0,2998047",
-                "-0.1, 0.3",
-                "-0,1; 0,3"
+                "<-0.1, 0.3>",
+                $"<-0,1{FrenchSeparator} 0,3>",
+                "<-0.1, 0.3>",
+                $"<-0,1{FrenchSeparator} 0,3>"
             ), culture: CultureInfo.GetCultureInfo("fr-FR")
         );
     }
@@ -237,27 +240,27 @@ public class TestToString
     [Fact]
     public void TestHalf3()
     {
-        DoTestToString(Half3.Zero, ("0, 0, 0", "0, 0, 0", "0, 0, 0", "0, 0, 0"));
-        DoTestToString(Half3.One, ("1, 1, 1", "1, 1, 1", "1, 1, 1", "1, 1, 1"));
-        DoTestToString(Half3.UnitX, ("1, 0, 0", "1, 0, 0", "1, 0, 0", "1, 0, 0"));
-        DoTestToString(Half3.UnitY, ("0, 1, 0", "0, 1, 0", "0, 1, 0", "0, 1, 0"));
-        DoTestToString(Half3.UnitZ, ("0, 0, 1", "0, 0, 1", "0, 0, 1", "0, 0, 1"));
+        DoTestToString(Half3.Zero, ("<0, 0, 0>", "<0, 0, 0>", "<0, 0, 0>", "<0, 0, 0>"));
+        DoTestToString(Half3.One, ("<1, 1, 1>", "<1, 1, 1>", "<1, 1, 1>", "<1, 1, 1>"));
+        DoTestToString(Half3.UnitX, ("<1, 0, 0>", "<1, 0, 0>", "<1, 0, 0>", "<1, 0, 0>"));
+        DoTestToString(Half3.UnitY, ("<0, 1, 0>", "<0, 1, 0>", "<0, 1, 0>", "<0, 1, 0>"));
+        DoTestToString(Half3.UnitZ, ("<0, 0, 1>", "<0, 0, 1>", "<0, 0, 1>", "<0, 0, 1>"));
         DoTestToString(
             new Half3(-0.1f, 0.3f, -0.2f),
             (
-                "-0.099975586, 0.2998047, -0.19995117",
-                "-0.099975586, 0.2998047, -0.19995117",
-                "-0.1, 0.3, -0.2",
-                "-0.1, 0.3, -0.2"
+                "<-0.1, 0.3, -0.2>",
+                "<-0.1, 0.3, -0.2>",
+                "<-0.1, 0.3, -0.2>",
+                "<-0.1, 0.3, -0.2>"
             )
         );
         DoTestToString(
             new Half3(-0.1f, 0.3f, -0.2f),
             (
-                "-0.099975586, 0.2998047, -0.19995117",
-                "-0,099975586; 0,2998047; -0,19995117",
-                "-0.1, 0.3, -0.2",
-                "-0,1; 0,3; -0,2"
+                "<-0.1, 0.3, -0.2>",
+                $"<-0,1{FrenchSeparator} 0,3{FrenchSeparator} -0,2>",
+                "<-0.1, 0.3, -0.2>",
+                $"<-0,1{FrenchSeparator} 0,3{FrenchSeparator} -0,2>"
             ), culture: CultureInfo.GetCultureInfo("fr-FR")
         );
     }
@@ -265,28 +268,28 @@ public class TestToString
     [Fact]
     public void TestHalf4()
     {
-        DoTestToString(Half4.Zero, ("0, 0, 0, 0", "0, 0, 0, 0", "0, 0, 0, 0", "0, 0, 0, 0"));
-        DoTestToString(Half4.One, ("1, 1, 1, 1", "1, 1, 1, 1", "1, 1, 1, 1", "1, 1, 1, 1"));
-        DoTestToString(Half4.UnitX, ("1, 0, 0, 0", "1, 0, 0, 0", "1, 0, 0, 0", "1, 0, 0, 0"));
-        DoTestToString(Half4.UnitY, ("0, 1, 0, 0", "0, 1, 0, 0", "0, 1, 0, 0", "0, 1, 0, 0"));
-        DoTestToString(Half4.UnitZ, ("0, 0, 1, 0", "0, 0, 1, 0", "0, 0, 1, 0", "0, 0, 1, 0"));
-        DoTestToString(Half4.UnitW, ("0, 0, 0, 1", "0, 0, 0, 1", "0, 0, 0, 1", "0, 0, 0, 1"));
+        DoTestToString(Half4.Zero, ("<0, 0, 0, 0>", "<0, 0, 0, 0>", "<0, 0, 0, 0>", "<0, 0, 0, 0>"));
+        DoTestToString(Half4.One, ("<1, 1, 1, 1>", "<1, 1, 1, 1>", "<1, 1, 1, 1>", "<1, 1, 1, 1>"));
+        DoTestToString(Half4.UnitX, ("<1, 0, 0, 0>", "<1, 0, 0, 0>", "<1, 0, 0, 0>", "<1, 0, 0, 0>"));
+        DoTestToString(Half4.UnitY, ("<0, 1, 0, 0>", "<0, 1, 0, 0>", "<0, 1, 0, 0>", "<0, 1, 0, 0>"));
+        DoTestToString(Half4.UnitZ, ("<0, 0, 1, 0>", "<0, 0, 1, 0>", "<0, 0, 1, 0>", "<0, 0, 1, 0>"));
+        DoTestToString(Half4.UnitW, ("<0, 0, 0, 1>", "<0, 0, 0, 1>", "<0, 0, 0, 1>", "<0, 0, 0, 1>"));
         DoTestToString(
             new Half4(-0.1f, 0.3f, -0.2f, -0.4f),
             (
-                "-0.099975586, 0.2998047, -0.19995117, -0.39990234",
-                "-0.099975586, 0.2998047, -0.19995117, -0.39990234",
-                "-0.1, 0.3, -0.2, -0.4",
-                "-0.1, 0.3, -0.2, -0.4"
+                "<-0.1, 0.3, -0.2, -0.4>",
+                "<-0.1, 0.3, -0.2, -0.4>",
+                "<-0.1, 0.3, -0.2, -0.4>",
+                "<-0.1, 0.3, -0.2, -0.4>"
             )
         );
         DoTestToString(
             new Half4(-0.1f, 0.3f, -0.2f, -0.4f),
             (
-                "-0.099975586, 0.2998047, -0.19995117, -0.39990234",
-                "-0,099975586; 0,2998047; -0,19995117; -0,39990234",
-                "-0.1, 0.3, -0.2, -0.4",
-                "-0,1; 0,3; -0,2; -0,4"
+                "<-0.1, 0.3, -0.2, -0.4>",
+                $"<-0,1{FrenchSeparator} 0,3{FrenchSeparator} -0,2{FrenchSeparator} -0,4>",
+                "<-0.1, 0.3, -0.2, -0.4>",
+                $"<-0,1{FrenchSeparator} 0,3{FrenchSeparator} -0,2{FrenchSeparator} -0,4>"
             ), culture: CultureInfo.GetCultureInfo("fr-FR")
         );
     }
@@ -294,63 +297,31 @@ public class TestToString
     [Fact]
     public void TestInt2()
     {
-        DoTestToString(Int2.Zero, ("X:0 Y:0", "X:0 Y:0", "X:0 Y:0", "X:0 Y:0"));
-        DoTestToString(Int2.One, ("X:1 Y:1", "X:1 Y:1", "X:1 Y:1", "X:1 Y:1"));
-        DoTestToString(Int2.UnitX, ("X:1 Y:0", "X:1 Y:0", "X:1 Y:0", "X:1 Y:0"));
-        DoTestToString(Int2.UnitY, ("X:0 Y:1", "X:0 Y:1", "X:0 Y:1", "X:0 Y:1"));
+        DoTestToString(Int2.Zero, ("<0, 0>", "<0, 0>", "<0, 0>", "<0, 0>"));
+        DoTestToString(Int2.One, ("<1, 1>", "<1, 1>", "<1, 1>", "<1, 1>"));
+        DoTestToString(Int2.UnitX, ("<1, 0>", "<1, 0>", "<1, 0>", "<1, 0>"));
+        DoTestToString(Int2.UnitY, ("<0, 1>", "<0, 1>", "<0, 1>", "<0, 1>"));
     }
 
     [Fact]
     public void TestInt3()
     {
-        DoTestToString(Int3.Zero, ("X:0 Y:0 Z:0", "X:0 Y:0 Z:0", "X:0 Y:0 Z:0", "X:0 Y:0 Z:0"));
-        DoTestToString(Int3.One, ("X:1 Y:1 Z:1", "X:1 Y:1 Z:1", "X:1 Y:1 Z:1", "X:1 Y:1 Z:1"));
-        DoTestToString(Int3.UnitX, ("X:1 Y:0 Z:0", "X:1 Y:0 Z:0", "X:1 Y:0 Z:0", "X:1 Y:0 Z:0"));
-        DoTestToString(Int3.UnitY, ("X:0 Y:1 Z:0", "X:0 Y:1 Z:0", "X:0 Y:1 Z:0", "X:0 Y:1 Z:0"));
-        DoTestToString(Int3.UnitZ, ("X:0 Y:0 Z:1", "X:0 Y:0 Z:1", "X:0 Y:0 Z:1", "X:0 Y:0 Z:1"));
+        DoTestToString(Int3.Zero, ("<0, 0, 0>", "<0, 0, 0>", "<0, 0, 0>", "<0, 0, 0>"));
+        DoTestToString(Int3.One, ("<1, 1, 1>", "<1, 1, 1>", "<1, 1, 1>", "<1, 1, 1>"));
+        DoTestToString(Int3.UnitX, ("<1, 0, 0>", "<1, 0, 0>", "<1, 0, 0>", "<1, 0, 0>"));
+        DoTestToString(Int3.UnitY, ("<0, 1, 0>", "<0, 1, 0>", "<0, 1, 0>", "<0, 1, 0>"));
+        DoTestToString(Int3.UnitZ, ("<0, 0, 1>", "<0, 0, 1>", "<0, 0, 1>", "<0, 0, 1>"));
     }
 
     [Fact]
     public void TestInt4()
     {
-        DoTestToString(Int4.Zero, ("X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0"));
-        DoTestToString(Int4.One, ("X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1"));
-        DoTestToString(Int4.UnitX, ("X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0"));
-        DoTestToString(Int4.UnitY, ("X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0"));
-        DoTestToString(Int4.UnitZ, ("X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0"));
-        DoTestToString(Int4.UnitW, ("X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1"));
-    }
-
-    [Fact]
-    public void TestMatrix()
-    {
-        DoTestToString(
-            Matrix.Zero,
-            (
-                "[M11:0 M12:0 M13:0 M14:0] [M21:0 M22:0 M23:0 M24:0] [M31:0 M32:0 M33:0 M34:0] [M41:0 M42:0 M43:0 M44:0]",
-                "[M11:0 M12:0 M13:0 M14:0] [M21:0 M22:0 M23:0 M24:0] [M31:0 M32:0 M33:0 M34:0] [M41:0 M42:0 M43:0 M44:0]",
-                "[M11:0 M12:0 M13:0 M14:0] [M21:0 M22:0 M23:0 M24:0] [M31:0 M32:0 M33:0 M34:0] [M41:0 M42:0 M43:0 M44:0]",
-                "[M11:0 M12:0 M13:0 M14:0] [M21:0 M22:0 M23:0 M24:0] [M31:0 M32:0 M33:0 M34:0] [M41:0 M42:0 M43:0 M44:0]"
-            )
-        );
-        DoTestToString(
-            Matrix.Identity,
-            (
-                "[M11:1 M12:0 M13:0 M14:0] [M21:0 M22:1 M23:0 M24:0] [M31:0 M32:0 M33:1 M34:0] [M41:0 M42:0 M43:0 M44:1]",
-                "[M11:1 M12:0 M13:0 M14:0] [M21:0 M22:1 M23:0 M24:0] [M31:0 M32:0 M33:1 M34:0] [M41:0 M42:0 M43:0 M44:1]",
-                "[M11:1 M12:0 M13:0 M14:0] [M21:0 M22:1 M23:0 M24:0] [M31:0 M32:0 M33:1 M34:0] [M41:0 M42:0 M43:0 M44:1]",
-                "[M11:1 M12:0 M13:0 M14:0] [M21:0 M22:1 M23:0 M24:0] [M31:0 M32:0 M33:1 M34:0] [M41:0 M42:0 M43:0 M44:1]"
-            )
-        );
-    }
-
-    [Fact]
-    public void TestPlane()
-    {
-        DoTestToString(new Plane(0.0f), ("A:0 B:0 C:0 D:0", "A:0 B:0 C:0 D:0", "A:0 B:0 C:0 D:0", "A:0 B:0 C:0 D:0"));
-        DoTestToString(new Plane(1.0f), ("A:1 B:1 C:1 D:1", "A:1 B:1 C:1 D:1", "A:1 B:1 C:1 D:1", "A:1 B:1 C:1 D:1"));
-        DoTestToString(new Plane(Vector3.Zero, Vector3.UnitY), ("A:0 B:1 C:0 D:0", "A:0 B:1 C:0 D:0", "A:0 B:1 C:0 D:0", "A:0 B:1 C:0 D:0"));
-        DoTestToString(new Plane(Vector3.One, Vector3.UnitY + Vector3.UnitZ), ("A:0 B:1 C:1 D:2", "A:0 B:1 C:1 D:2", "A:0 B:1 C:1 D:2", "A:0 B:1 C:1 D:2"));
+        DoTestToString(Int4.Zero, ("<0, 0, 0, 0>", "<0, 0, 0, 0>", "<0, 0, 0, 0>", "<0, 0, 0, 0>"));
+        DoTestToString(Int4.One, ("<1, 1, 1, 1>", "<1, 1, 1, 1>", "<1, 1, 1, 1>", "<1, 1, 1, 1>"));
+        DoTestToString(Int4.UnitX, ("<1, 0, 0, 0>", "<1, 0, 0, 0>", "<1, 0, 0, 0>", "<1, 0, 0, 0>"));
+        DoTestToString(Int4.UnitY, ("<0, 1, 0, 0>", "<0, 1, 0, 0>", "<0, 1, 0, 0>", "<0, 1, 0, 0>"));
+        DoTestToString(Int4.UnitZ, ("<0, 0, 1, 0>", "<0, 0, 1, 0>", "<0, 0, 1, 0>", "<0, 0, 1, 0>"));
+        DoTestToString(Int4.UnitW, ("<0, 0, 0, 1>", "<0, 0, 0, 1>", "<0, 0, 0, 1>", "<0, 0, 0, 1>"));
     }
 
     [Fact]
@@ -378,23 +349,15 @@ public class TestToString
     }
 
     [Fact]
-    public void TestQuaternion()
-    {
-        DoTestToString(Quaternion.Zero, ("X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0"));
-        DoTestToString(Quaternion.Identity, ("X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1"));
-        DoTestToString(Quaternion.One, ("X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1"));
-    }
-
-    [Fact]
     public void TestRay()
     {
         DoTestToString(
             new Ray(Vector3.Zero, Vector3.UnitZ),
             (
-                "Position:X:0 Y:0 Z:0 Direction:X:0 Y:0 Z:1",
-                "Position:X:0 Y:0 Z:0 Direction:X:0 Y:0 Z:1",
-                "Position:X:0 Y:0 Z:0 Direction:X:0 Y:0 Z:1",
-                "Position:X:0 Y:0 Z:0 Direction:X:0 Y:0 Z:1"
+                "Position:<0, 0, 0> Direction:<0, 0, 1>",
+                "Position:<0, 0, 0> Direction:<0, 0, 1>",
+                "Position:<0, 0, 0> Direction:<0, 0, 1>",
+                "Position:<0, 0, 0> Direction:<0, 0, 1>"
             )
         );
     }
@@ -472,42 +435,12 @@ public class TestToString
     [Fact]
     public void TestUInt4()
     {
-        DoTestToString(UInt4.Zero, ("X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0"));
-        DoTestToString(UInt4.One, ("X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1"));
-        DoTestToString(UInt4.UnitX, ("X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0"));
-        DoTestToString(UInt4.UnitY, ("X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0"));
-        DoTestToString(UInt4.UnitZ, ("X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0"));
-        DoTestToString(UInt4.UnitW, ("X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1"));
-    }
-
-    [Fact]
-    public void TestVector2()
-    {
-        DoTestToString(Vector2.Zero, ("X:0 Y:0", "X:0 Y:0", "X:0 Y:0", "X:0 Y:0"));
-        DoTestToString(Vector2.One, ("X:1 Y:1", "X:1 Y:1", "X:1 Y:1", "X:1 Y:1"));
-        DoTestToString(Vector2.UnitX, ("X:1 Y:0", "X:1 Y:0", "X:1 Y:0", "X:1 Y:0"));
-        DoTestToString(Vector2.UnitY, ("X:0 Y:1", "X:0 Y:1", "X:0 Y:1", "X:0 Y:1"));
-    }
-
-    [Fact]
-    public void TestVector3()
-    {
-        DoTestToString(Vector3.Zero, ("X:0 Y:0 Z:0", "X:0 Y:0 Z:0", "X:0 Y:0 Z:0", "X:0 Y:0 Z:0"));
-        DoTestToString(Vector3.One, ("X:1 Y:1 Z:1", "X:1 Y:1 Z:1", "X:1 Y:1 Z:1", "X:1 Y:1 Z:1"));
-        DoTestToString(Vector3.UnitX, ("X:1 Y:0 Z:0", "X:1 Y:0 Z:0", "X:1 Y:0 Z:0", "X:1 Y:0 Z:0"));
-        DoTestToString(Vector3.UnitY, ("X:0 Y:1 Z:0", "X:0 Y:1 Z:0", "X:0 Y:1 Z:0", "X:0 Y:1 Z:0"));
-        DoTestToString(Vector3.UnitZ, ("X:0 Y:0 Z:1", "X:0 Y:0 Z:1", "X:0 Y:0 Z:1", "X:0 Y:0 Z:1"));
-    }
-
-    [Fact]
-    public void TestVector4()
-    {
-        DoTestToString(Vector4.Zero, ("X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0"));
-        DoTestToString(Vector4.One, ("X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1", "X:1 Y:1 Z:1 W:1"));
-        DoTestToString(Vector4.UnitX, ("X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0", "X:1 Y:0 Z:0 W:0"));
-        DoTestToString(Vector4.UnitY, ("X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0", "X:0 Y:1 Z:0 W:0"));
-        DoTestToString(Vector4.UnitZ, ("X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0", "X:0 Y:0 Z:1 W:0"));
-        DoTestToString(Vector4.UnitW, ("X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1", "X:0 Y:0 Z:0 W:1"));
+        DoTestToString(UInt4.Zero, ("<0, 0, 0, 0>", "<0, 0, 0, 0>", "<0, 0, 0, 0>", "<0, 0, 0, 0>"));
+        DoTestToString(UInt4.One, ("<1, 1, 1, 1>", "<1, 1, 1, 1>", "<1, 1, 1, 1>", "<1, 1, 1, 1>"));
+        DoTestToString(UInt4.UnitX, ("<1, 0, 0, 0>", "<1, 0, 0, 0>", "<1, 0, 0, 0>", "<1, 0, 0, 0>"));
+        DoTestToString(UInt4.UnitY, ("<0, 1, 0, 0>", "<0, 1, 0, 0>", "<0, 1, 0, 0>", "<0, 1, 0, 0>"));
+        DoTestToString(UInt4.UnitZ, ("<0, 0, 1, 0>", "<0, 0, 1, 0>", "<0, 0, 1, 0>", "<0, 0, 1, 0>"));
+        DoTestToString(UInt4.UnitW, ("<0, 0, 0, 1>", "<0, 0, 0, 1>", "<0, 0, 0, 1>", "<0, 0, 0, 1>"));
     }
 
     private static void DoTestToString<T>(T value, (string none, string culture, string format, string formatAndCulture) args, CultureInfo? culture = null, string? format = null)

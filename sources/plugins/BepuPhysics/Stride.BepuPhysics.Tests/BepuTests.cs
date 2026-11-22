@@ -23,6 +23,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.ProceduralModels;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Tests
 {
@@ -280,7 +281,7 @@ namespace Stride.BepuPhysics.Tests
                 killTrigger.StoppedTouching += (_, _) => passedGoal++;
 
                 sphere.Transform.Position.Y = 3;
-                slope.Transform.Rotation = Quaternion.RotationZ(10);
+                slope.Transform.Rotation = Quaternion.CreateRotationZ(10);
                 goal.Transform.Position.Y = -10;
 
                 game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { sphere, slope, goal });
@@ -700,8 +701,8 @@ namespace Stride.BepuPhysics.Tests
                 simulation.PoseGravity = Vector3.Zero;
                 simulation.PoseAngularDamping = 0f;
 
-                var start = Quaternion.RotationYawPitchRoll(0.3f, 0.2f, 0.1f);
-                var target = start * Quaternion.RotationAxis(Vector3.Normalize(new Vector3(axisX, axisY, axisZ)), angle);
+                var start = Quaternion.CreateFromYawPitchRoll(0.3f, 0.2f, 0.1f);
+                var target = Quaternion.Concatenate(start, Quaternion.CreateFromAxisAngle(Vector3.Normalize(new Vector3(axisX, axisY, axisZ)), angle));
                 body.Teleport(Vector3.Zero, start);
 
                 body.SetTargetPose(target);

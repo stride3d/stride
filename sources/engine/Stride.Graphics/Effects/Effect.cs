@@ -11,6 +11,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
 using Stride.Rendering;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -318,7 +319,7 @@ namespace Stride.Graphics
                     break;
                 case EffectParameterClass.MatrixRows:
                 case EffectParameterClass.MatrixColumns:
-                    binding.KeyInfo.Key = FindOrCreateValueKey<Matrix>(ref binding);
+                    binding.KeyInfo.Key = FindOrCreateValueKey<Matrix4x4>(ref binding);
                     break;
                 case EffectParameterClass.Struct:
                     binding.KeyInfo.Key = ParameterKeys.FindByName(binding.KeyInfo.KeyName);

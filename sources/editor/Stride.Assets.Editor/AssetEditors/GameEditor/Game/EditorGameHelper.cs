@@ -8,12 +8,13 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Processors;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
 {
     internal static class EditorGameHelper
     {
-        public static Ray CalculateRayFromMousePosition([NotNull] CameraComponent camera, Vector2 mousePosition, Matrix worldView)
+        public static Ray CalculateRayFromMousePosition([NotNull] CameraComponent camera, Vector2 mousePosition, Matrix4x4 worldView)
         {
             // determine the mouse position normalized, centered and correctly oriented
             var screenPosition = new Vector2(2f * (mousePosition.X - 0.5f), -2f * (mousePosition.Y - 0.5f));
@@ -25,14 +26,14 @@ namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
                 var rayDirectionView = Vector3.Normalize(new Vector3(camera.AspectRatio * screenPosition.X, screenPosition.Y, -1 / MathF.Tan(verticalFov / 2f)));
 
                 // calculate the direction of the ray in the gizmo space
-                var rayDirectionGizmo = Vector3.Normalize(Vector3.TransformNormal(rayDirectionView, worldView));
+                var rayDirectionGizmo = Vector3.NormalizeSafe(Vector3.TransformNormal(rayDirectionView, worldView));
 
-                return new Ray(worldView.TranslationVector, rayDirectionGizmo);
+                return new Ray(worldView.Translation, rayDirectionGizmo);
             }
             else
             {
                 // calculate the direction of the ray in the gizmo space
-                var rayDirectionGizmo = Vector3.Normalize(Vector3.TransformNormal(-Vector3.UnitZ, worldView));
+                var rayDirectionGizmo = Vector3.NormalizeSafe(Vector3.TransformNormal(-Vector3.UnitZ, worldView));
 
                 // calculate the position of the ray in the gizmo space
                 var halfSize = camera.OrthographicSize / 2f;
@@ -53,11 +54,11 @@ namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
             var comparisonSign = Math.Sign(Vector3.Dot(ray.Position, projectionPlane.Normal) + projectionPlane.D);
             if (comparisonSign * (MathF.Acos(dotProductValue) - MathUtil.PiOverTwo) < limitAngle)
             {
-                var rotationAxis = Vector3.Normalize(Vector3.Cross(projectionPlane.Normal, ray.Direction));
-                var initialDirection = Vector3.Normalize(Vector3.Cross(rotationAxis, projectionPlane.Normal));
-                ray.Direction = Vector3.Transform(initialDirection, Quaternion.RotationAxis(rotationAxis, comparisonSign * limitAngle));
+                var rotationAxis = Vector3.NormalizeSafe(Vector3.Cross(projectionPlane.Normal, ray.Direction));
+                var initialDirection = Vector3.NormalizeSafe(Vector3.Cross(rotationAxis, projectionPlane.Normal));
+                ray.Direction = Vector3.Transform(initialDirection, Quaternion.CreateFromAxisAngle(rotationAxis, comparisonSign * limitAngle));
             }
-            projectionPlane.Intersects(ref ray, out endPointGizmo);
+            projectionPlane.Intersects(ray, out endPointGizmo);
 
             return endPointGizmo;
         }

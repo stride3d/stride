@@ -5,6 +5,7 @@ using Stride.Input;
 using System;
 using System.Threading.Tasks;
 using Stride.Core;
+using System.Numerics;
 
 namespace Stride.Scripts;
 
@@ -206,7 +207,7 @@ public class FreeCamera : AsyncScript
         }
 
         // Compute base vectors for camera movement
-        var rotation = Matrix.RotationYawPitchRoll(Yaw, Pitch, 0);
+        var rotation = Matrix4x4.CreateFromYawPitchRoll(Yaw, Pitch, 0);
         var forward = Vector3.TransformNormal(ForwardVector, rotation);
         var up = Vector3.TransformNormal(UpVector, rotation);
         var right = Vector3.Cross(forward, up);
@@ -227,15 +228,15 @@ public class FreeCamera : AsyncScript
         if (Input.HasDownMouseButtons() && Input.IsKeyDown(Keys.E))
             movePosition += Component.Projection == CameraProjectionMode.Perspective ? up : forward;
 
-        position += (Vector3.Normalize(movePosition) * translationSpeed);
+        position += (Vector3.NormalizeSafe(movePosition) * translationSpeed);
 
         if (doubleTapped)
         {
             desiredPitch = Pitch = oldPitch;
             desiredYaw = Yaw;
 
-            forward = -Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-            var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // Camera forward vector project on the XZ plane
+            forward = -Vector3.Transform(ForwardVector, Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0));
+            var projectedForward = Vector3.NormalizeSafe(new Vector3(forward.X, 0, forward.Z)); // Camera forward vector project on the XZ plane
             position -= projectedForward * translationSpeed * MouseMoveSpeedFactor;
         }
 
@@ -254,8 +255,8 @@ public class FreeCamera : AsyncScript
             desiredPitch = Pitch = oldPitch;
             desiredYaw = Yaw;
 
-            forward = Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-            var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // Camera forward vector project on the XZ plane
+            forward = Vector3.Transform(ForwardVector, Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0));
+            var projectedForward = Vector3.NormalizeSafe(new Vector3(forward.X, 0, forward.Z)); // Camera forward vector project on the XZ plane
             position -= projectedForward * translationSpeed * MouseWheelZoomSpeedFactor * -Input.MouseWheelDelta;
         }
         // Dolly
@@ -266,8 +267,8 @@ public class FreeCamera : AsyncScript
                 desiredPitch = Pitch = oldPitch;
                 desiredYaw = Yaw;
 
-                forward = Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-                var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // Camera forward vector project on the XZ plane
+                forward = Vector3.Transform(ForwardVector, Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0));
+                var projectedForward = Vector3.NormalizeSafe(new Vector3(forward.X, 0, forward.Z)); // Camera forward vector project on the XZ plane
                 position -= projectedForward * translationSpeed * MouseMoveSpeedFactor * rotationDelta.Y;
             }
             else if (Input.IsMouseButtonDown(MouseButton.Left) && Input.IsMouseButtonDown(MouseButton.Right))
@@ -281,11 +282,12 @@ public class FreeCamera : AsyncScript
         }
         else
         {
-            var inverseOldRotation = Matrix.Invert(Matrix.RotationYawPitchRoll(oldYaw, oldPitch, 0));
+            // The inverse of a rotation matrix is its transpose
+            var inverseOldRotation = Matrix4x4.Transpose(Matrix4x4.CreateFromYawPitchRoll(oldYaw, oldPitch, 0));
             var deltaRotation = inverseOldRotation * rotation;
 
             var adaptationTargetOffset = position;
-            Vector3.TransformNormal(ref adaptationTargetOffset, ref deltaRotation, out adaptationTargetOffset);
+            adaptationTargetOffset = Vector3.TransformNormal(adaptationTargetOffset, deltaRotation);
             position = adaptationTargetOffset;
         }
 
@@ -298,8 +300,8 @@ public class FreeCamera : AsyncScript
         var camera = Component;
         if (camera == null) return;
 
-        var rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-        var viewMatrix = Matrix.Translation(-position) * Matrix.RotationQuaternion(rotation);
+        var rotation = Quaternion.Inverse(Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0));
+        var viewMatrix = Matrix4x4.CreateTranslation(-position) * Matrix4x4.CreateFromQuaternion(rotation);
         camera.ViewMatrix = viewMatrix;
     }
 }

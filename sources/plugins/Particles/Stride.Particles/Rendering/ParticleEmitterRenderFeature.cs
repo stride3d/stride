@@ -11,6 +11,7 @@ using Stride.Particles.Materials;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Particles.Rendering
 {
@@ -19,9 +20,9 @@ namespace Stride.Particles.Rendering
     /// </summary>
     internal struct ParticleUtilitiesPerView
     {
-        public Matrix ViewMatrix;
-        public Matrix ProjectionMatrix;
-        public Matrix ViewProjectionMatrix;
+        public Matrix4x4 ViewMatrix;
+        public Matrix4x4 ProjectionMatrix;
+        public Matrix4x4 ViewProjectionMatrix;
 
         // .x - Width, .y - Height, .z - Near, .w - Far
         public Vector4 ViewFrustum;
@@ -274,7 +275,7 @@ namespace Stride.Particles.Rendering
                 renderParticleNodeData[renderNodeReference] = nodeData;
 
                 // TODO Build this per view, not per node!!!
-                Matrix.Invert(ref renderNode.RenderView.View, out var viewInverse);
+                Matrix4x4.InvertSafe(renderNode.RenderView.View, out var viewInverse);
                 renderParticleEmitter.ParticleEmitter.BuildVertexBuffer(sharedBufferPtr + nodeData.VertexBufferOffset, ref viewInverse, ref renderNode.RenderView.ViewProjection);
             }
 
@@ -310,7 +311,7 @@ namespace Stride.Particles.Rendering
                 var view = renderView;
                 var viewFeature = view.Features[Index];
 
-                Matrix.Multiply(ref view.View, ref view.Projection, out view.ViewProjection);
+                view.ViewProjection = view.View * view.Projection;
 
                 // Copy ViewProjection to PerFrame cbuffer
                 foreach (var viewLayout in viewFeature.Layouts)

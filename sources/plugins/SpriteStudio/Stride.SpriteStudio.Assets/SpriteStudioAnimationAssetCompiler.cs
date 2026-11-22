@@ -16,6 +16,7 @@ using Stride.Core.Assets;
 using Stride.Core.Serialization.Contents;
 using Stride.Assets;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.SpriteStudio.Assets
 {

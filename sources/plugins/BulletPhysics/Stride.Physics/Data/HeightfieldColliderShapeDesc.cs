@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
+using System.Numerics;
 
 namespace Stride.Physics
 {

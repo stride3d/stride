@@ -74,9 +74,9 @@ namespace Stride.Graphics.Tests
             // load geometry
             geometry = GeometricPrimitive.Plane.New(GraphicsDevice);
             
-            var view = Matrix.LookAtLH(new Vector3(0, 0, -5), new Vector3(0, 0, 0), Vector3.UnitY);
-            var projection = Matrix.PerspectiveFovLH((float)Math.PI / 4.0f, (float)GraphicsDevice.BackBuffer.Width / GraphicsDevice.BackBuffer.Height, 0.1f, 100.0f);
-            MultiTexturesEffect.SharedParameters.Set(TransformationKeys.WorldViewProjection, Matrix.Multiply(view, projection));
+            var view = Matrix4x4.CreateLookAtLeftHanded(new Vector3(0, 0, -5), new Vector3(0, 0, 0), Vector3.UnitY);
+            var projection = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded((float)Math.PI / 4.0f, (float)GraphicsDevice.BackBuffer.Width / GraphicsDevice.BackBuffer.Height, 0.1f, 100.0f);
+            MultiTexturesEffect.SharedParameters.Set(TransformationKeys.WorldViewProjection, Matrix4x4.Multiply(view, projection));
         }
 
         protected override void Draw(GameTime gameTime)

@@ -6,6 +6,7 @@ using System.Reflection;
 using Stride.Core;
 using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 
@@ -19,7 +20,7 @@ internal sealed class MathematicsNodeUpdater : AssetNodePresenterUpdaterBase
         typeof(Int2),
         typeof(Int3),
         typeof(Int4),
-        typeof(Matrix),
+        typeof(Matrix4x4),
         typeof(Rectangle),
         typeof(RectangleF),
     };

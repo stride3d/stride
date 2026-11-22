@@ -526,11 +526,58 @@ public static partial class CodeUpgrades
     private static MemberAccessExpressionSyntax Access(ExpressionSyntax receiver, SimpleNameSyntax member)
         => SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, receiver, member);
 
+    /// <summary>
+    /// Adds <c>using namespace;</c> where every configuration of the file gets it: after the last using that is in no
+    /// <c>#if</c> block, else after the block of the usings, or in it when it also holds the code; in a file without usings,
+    /// between its header and its code.
+    /// </summary>
     private static CompilationUnitSyntax AddUsing(CompilationUnitSyntax unit, string @namespace)
     {
         if (unit.Usings.Any(x => x.Name?.ToString() == @namespace))
             return unit;
-        var directive = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(@namespace)).NormalizeWhitespace().WithTrailingTrivia(SyntaxFactory.EndOfLine(Environment.NewLine));
+        var endOfLine = SyntaxFactory.EndOfLine(Environment.NewLine);
+        var directive = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(@namespace)).NormalizeWhitespace().WithTrailingTrivia(endOfLine);
+
+        // The last using outside any #if block
+        var last = -1;
+        var depth = 0;
+        for (int i = 0; i < unit.Usings.Count; i++)
+        {
+            foreach (var trivia in unit.Usings[i].GetLeadingTrivia())
+                depth += trivia.IsKind(SyntaxKind.IfDirectiveTrivia) ? 1 : trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia) ? -1 : 0;
+            if (depth == 0)
+                last = i;
+        }
+        if (last >= 0)
+            return unit.WithUsings(unit.Usings.Insert(last + 1, directive));
+        if (unit.Externs.Count > 0)
+            return unit.AddUsings(directive);
+
+        // What comes before the code belongs to the token that follows: the #endif of the usings, or the header of the file
+        var next = unit.Usings.Count > 0 ? unit.Usings[^1].GetLastToken().GetNextToken(includeZeroWidth: true) : unit.GetFirstToken(includeZeroWidth: true);
+        var leading = next.LeadingTrivia;
+        var split = 0;
+        if (unit.Usings.Count > 0)
+        {
+            // Up to the #endif that closes the block
+            for (int i = 0; i < leading.Count && depth > 0; i++)
+            {
+                depth += leading[i].IsKind(SyntaxKind.IfDirectiveTrivia) ? 1 : leading[i].IsKind(SyntaxKind.EndIfDirectiveTrivia) ? -1 : 0;
+                split = i + 1;
+            }
+            // The block closes after the code: the using goes in it, after the others
+            if (depth > 0)
+                split = 0;
+        }
+        else
+        {
+            // The header: the comments that are not the documentation of the first declaration
+            while (split < leading.Count && !leading[split].IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) && !leading[split].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                split++;
+        }
+        directive = directive.WithLeadingTrivia(leading.Take(split));
+        var rest = leading.Skip(split);
+        unit = unit.ReplaceToken(next, next.WithLeadingTrivia(unit.Usings.Count > 0 ? rest : rest.Prepend(endOfLine)));
         return unit.AddUsings(directive);
     }
 

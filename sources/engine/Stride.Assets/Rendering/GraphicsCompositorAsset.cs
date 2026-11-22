@@ -16,6 +16,7 @@ using Stride.Core.Yaml;
 using Stride.Core.Yaml.Serialization;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using System.Numerics;
 
 namespace Stride.Assets.Rendering
 {

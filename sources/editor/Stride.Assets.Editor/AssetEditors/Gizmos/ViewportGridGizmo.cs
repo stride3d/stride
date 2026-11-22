@@ -13,6 +13,7 @@ using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.EditorGame;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -112,7 +113,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
             axisEntity.TransformValue.Scale = new Vector3(GridSize, 1f / GridBase, 1f / GridBase);
             if (axis != 0)
-                axisEntity.TransformValue.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo) * Quaternion.RotationAxis(new Vector3 { [1 + (axis % 2)] = 1f }, MathUtil.PiOverTwo);
+                axisEntity.TransformValue.Rotation = Quaternion.Concatenate(Quaternion.CreateRotationX(MathUtil.PiOverTwo), Quaternion.CreateFromAxisAngle(new Vector3 { [1 + (axis % 2)] = 1f }, MathUtil.PiOverTwo));
             var axisEntityRoot = new Entity("Scene grid origin axis root");
             axisEntityRoot.AddChild(axisEntity);
 
@@ -173,11 +174,11 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         private AxisToHide UpdateGrids(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit, EditorGameViewCamera view)
         {
             var gridAxisIndexForDeterminingHiddenAxes = gridAxisIndex;
-            var viewInvert = Matrix.Invert(view.ViewMatrix);
+            Matrix4x4.InvertSafe(view.ViewMatrix, out var viewInvert);
             // Check if the inverted View Matrix is valid (since it will be use for mouse picking, check the translation vector only)
-            if (float.IsNaN(viewInvert.TranslationVector.X)
-                || float.IsNaN(viewInvert.TranslationVector.Y)
-                || float.IsNaN(viewInvert.TranslationVector.Z))
+            if (float.IsNaN(viewInvert.Translation.X)
+                || float.IsNaN(viewInvert.Translation.Y)
+                || float.IsNaN(viewInvert.Translation.Z))
                 return AxisToHide.All;
 
             // Iterate over X, Y, Z axes.
@@ -221,13 +222,13 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
                 // Determine the intersection point of the center of the vieport with the grid plane
                 var ray = EditorGameHelper.CalculateRayFromMousePosition(view.Component, new Vector2(0.5f), viewInvert);
-                var plane = new Plane(Vector3.Zero, upVector);
+                var plane = new Plane(upVector, 0);
                 var intersection = EditorGameHelper.ProjectOnPlaneWithLimitAngle(ray, plane, MaximumViewAngle);
 
                 // Detemine the scale of the grid depending of the distance of the camera to the grid plane
                 // For orthographic projections, use a distance close to the one, at which the perspective projection would map to the viewport area.
                 var gridScale = sceneUnit;
-                var distanceToGrid = view.IsOrthographic ? view.OrthographicSize * 1.5f : (viewInvert.TranslationVector - intersection).Length();
+                var distanceToGrid = view.IsOrthographic ? view.OrthographicSize * 1.5f : (viewInvert.Translation - intersection).Length();
                 if (distanceToGrid < 1.5f * sceneUnit)
                     gridScale = 0.1f * sceneUnit;
                 if (distanceToGrid > 40f * sceneUnit)
@@ -341,7 +342,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             var axisModelUp = new Vector3 { [modelUpAxis] = 1f };
             var axisRotationVector = Vector3.Cross(axisModelUp, upVector);
             var axisRotationAngle = MathF.Acos(Vector3.Dot(axisModelUp, upVector));
-            entity.Transform.Rotation = Quaternion.RotationAxis(axisRotationVector, axisRotationAngle);
+            entity.Transform.Rotation = Quaternion.CreateFromAxisAngle(Vector3.NormalizeSafe(axisRotationVector), axisRotationAngle);
         }
 
         private static Image GenerateGridImage()

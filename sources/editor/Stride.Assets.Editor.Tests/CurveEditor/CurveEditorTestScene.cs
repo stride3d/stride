@@ -19,6 +19,7 @@ using Stride.Particles;
 using Stride.Particles.Components;
 using Stride.Particles.ShapeBuilders;
 using Stride.Particles.Updaters;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests.CurveEditor;
 
@@ -76,7 +77,7 @@ internal sealed class CurveEditorTestScene : IAsyncDisposable
         color.KeyFrames.Add(new AnimationKeyFrame<Color4> { Key = 1, Value = new Color4(1, 0, 0, 0) });
         var rotation = new ComputeAnimationCurveQuaternion();
         rotation.KeyFrames.Add(new AnimationKeyFrame<Quaternion> { Key = 0, Value = Quaternion.Identity });
-        rotation.KeyFrames.Add(new AnimationKeyFrame<Quaternion> { Key = 1, Value = Quaternion.RotationZ(MathUtil.PiOverTwo) });
+        rotation.KeyFrames.Add(new AnimationKeyFrame<Quaternion> { Key = 1, Value = Quaternion.CreateRotationZ(MathUtil.PiOverTwo) });
 
         var emitter = new ParticleEmitter { ShapeBuilder = new ShapeBuilderQuad { SamplerRotation = new ComputeCurveSamplerQuaternion { Curve = rotation } } };
         emitter.Updaters.Add(new UpdaterSizeOverTime { SamplerMain = new ComputeCurveSamplerFloat { Curve = size } });

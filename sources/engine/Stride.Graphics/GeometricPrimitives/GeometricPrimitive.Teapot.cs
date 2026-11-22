@@ -77,6 +77,7 @@ using System;
 using System.Collections.Generic;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics.GeometricPrimitives
 {
@@ -395,9 +396,9 @@ namespace Stride.Graphics.GeometricPrimitives
                         // Cross the two tangent vectors to compute the normal.
                         var normal = Vector3.Cross(tangent1, tangent2);
 
-                        if (!Vector3.NearEqual(normal, Vector3.Zero, new Vector3(1e-7f)))
+                        if (!normal.NearEquals(Vector3.Zero, new Vector3(1e-7f)))
                         {
-                            normal.Normalize();
+                            normal = Vector3.Normalize(normal);
 
                             // If this patch is mirrored, we must invert the normal.
                             if (isMirrored)

@@ -4,6 +4,7 @@ using System;
 using System.Windows;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Core.Presentation.Controls
 {
@@ -53,10 +54,10 @@ namespace Stride.Core.Presentation.Controls
             {
                 // This allows iterating on the euler angles when resulting rotation are equivalent (see PDX-1779).
                 var current = Recompose(ref decomposedRotation);
-                if (current == value.Value && X.HasValue && Y.HasValue && Z.HasValue)
+                if (current.NearEquals(value.Value) && X.HasValue && Y.HasValue && Z.HasValue)
                     return;
 
-                var rotationMatrix = Matrix.RotationQuaternion(value.Value);
+                var rotationMatrix = Matrix4x4.CreateFromQuaternion(value.Value);
                 rotationMatrix.Decompose(out decomposedRotation.Y, out decomposedRotation.X, out decomposedRotation.Z);
                 SetCurrentValue(XProperty, GetDisplayValue(decomposedRotation.X));
                 SetCurrentValue(YProperty, GetDisplayValue(decomposedRotation.Y));
@@ -95,7 +96,7 @@ namespace Stride.Core.Presentation.Controls
 
         private static Quaternion Recompose(ref Vector3 vector)
         {
-            return Quaternion.RotationYawPitchRoll(vector.Y, vector.X, vector.Z);
+            return Quaternion.CreateFromYawPitchRoll(vector.Y, vector.X, vector.Z);
         }
 
         private static float GetDisplayValue(float angleRadians)
@@ -103,7 +104,7 @@ namespace Stride.Core.Presentation.Controls
             var degrees = MathUtil.RadiansToDegrees(angleRadians);
             if (degrees == 0 && float.IsNegative(degrees))
             {
-                // Matrix.DecomposeXYZ can give -0 when MathF.Asin(-0) == -0,
+                // Matrix4x4.DecomposeXYZ can give -0 when MathF.Asin(-0) == -0,
                 // whereas previously Math.Asin(-0) == +0 (ie. did not respect the sign value at zero).
                 // This shows up in the editor but we don't want to see this.
                 degrees = 0;

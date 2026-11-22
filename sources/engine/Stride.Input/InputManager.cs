@@ -10,6 +10,7 @@ using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.Input
 {

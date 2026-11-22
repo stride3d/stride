@@ -40,6 +40,8 @@ using Stride.Core.UnsafeExtensions;
 using Point = Stride.Core.Mathematics.Point;
 using Rectangle = Stride.Core.Mathematics.Rectangle;
 
+using System.Numerics;
+
 namespace Stride.Graphics;
 
 public sealed unsafe partial class GraphicsOutput

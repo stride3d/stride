@@ -6,6 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -64,8 +65,8 @@ namespace Stride.Physics
         public virtual void UpdateLocalTransformations()
         {
             //cache matrices used to translate the position from and to physics engine / gfx engine
-            PositiveCenterMatrix = Matrix.RotationQuaternion(LocalRotation) * (Parent == null ? Matrix.Translation(LocalOffset * cachedScaling) : Matrix.Translation(LocalOffset));
-            Matrix.Invert(ref PositiveCenterMatrix, out NegativeCenterMatrix);
+            PositiveCenterMatrix = Matrix4x4.CreateFromQuaternion(LocalRotation) * (Parent == null ? Matrix4x4.CreateTranslation(LocalOffset * cachedScaling) : Matrix4x4.CreateTranslation(LocalOffset));
+            Matrix4x4.InvertSafe(PositiveCenterMatrix, out NegativeCenterMatrix);
         }
 
         /// <summary>
@@ -74,7 +75,7 @@ namespace Stride.Physics
         /// <value>
         /// The positive center matrix.
         /// </value>
-        public Matrix PositiveCenterMatrix;
+        public Matrix4x4 PositiveCenterMatrix;
 
         /// <summary>
         /// Gets the negative center matrix.
@@ -82,7 +83,7 @@ namespace Stride.Physics
         /// <value>
         /// The negative center matrix.
         /// </value>
-        public Matrix NegativeCenterMatrix;
+        public Matrix4x4 NegativeCenterMatrix;
 
         protected Vector3 cachedScaling = Vector3.One;
 
@@ -118,10 +119,10 @@ namespace Stride.Physics
                 //If we have a debug entity apply correct scaling to it as well
                 if (DebugEntity == null) return;
 
-                var invertedScale = Matrix.Scaling(oldScale);
-                invertedScale.Invert();
+                var invertedScale = Matrix4x4.CreateScale(oldScale);
+                Matrix4x4.InvertSafe(invertedScale, out invertedScale);
                 var unscaledMatrix = DebugEntity.Transform.LocalMatrix * invertedScale;
-                var newScale = Matrix.Scaling(cachedScaling);
+                var newScale = Matrix4x4.CreateScale(cachedScaling);
                 DebugEntity.Transform.LocalMatrix = unscaledMatrix * newScale;
             }
         }
@@ -160,7 +161,7 @@ namespace Stride.Physics
             set { InternalShape.Margin = value; }
         }
 
-        public Matrix DebugPrimitiveMatrix;
+        public Matrix4x4 DebugPrimitiveMatrix;
 
         internal bool NeedsCustomCollisionCallback;
 

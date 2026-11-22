@@ -8,6 +8,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering.Images;
+using System.Numerics;
 
 namespace Stride.Rendering.Compositing
 {

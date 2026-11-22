@@ -13,6 +13,7 @@ using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using System.Numerics;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 
@@ -155,8 +156,8 @@ public sealed class DisplayedValueTests
         Size = new Vector2(1.23456f, -2.34567f),
         Offset = new Vector3(1.23456f, -2.34567f, 3.45678f),
         Weights = new Vector4(0.12345f, 0.23456f, 0.34567f, 0.45678f),
-        Rotation = Quaternion.RotationYawPitchRoll(0.1234f, 0.2345f, 0.3456f),
-        Transform = Matrix.Scaling(1.23456f) * Matrix.RotationY(0.3456f) * Matrix.Translation(1.23456f, 2.34567f, 3.45678f),
+        Rotation = Quaternion.CreateFromYawPitchRoll(0.1234f, 0.2345f, 0.3456f),
+        Transform = Matrix4x4.CreateScale(1.23456f) * Matrix4x4.CreateRotationY(0.3456f) * Matrix4x4.CreateTranslation(1.23456f, 2.34567f, 3.45678f),
         Region = new RectangleF(1.23456f, 2.34567f, 3.45678f, 4.56789f),
         Angle = new AngleSingle(0.123456f, AngleType.Radian),
         Duration = TimeSpan.FromTicks(12_345_678_901),
@@ -174,8 +175,8 @@ public sealed class DisplayedValueTests
         Size = new Vector2(9.87654f, 8.76543f),
         Offset = new Vector3(9.87654f, 8.76543f, 7.65432f),
         Weights = new Vector4(0.98765f, 0.87654f, 0.76543f, 0.65432f),
-        Rotation = Quaternion.RotationYawPitchRoll(0.9876f, 0.8765f, 0.7654f),
-        Transform = Matrix.Translation(9.87654f, 8.76543f, 7.65432f),
+        Rotation = Quaternion.CreateFromYawPitchRoll(0.9876f, 0.8765f, 0.7654f),
+        Transform = Matrix4x4.CreateTranslation(9.87654f, 8.76543f, 7.65432f),
         Region = new RectangleF(9.87654f, 8.76543f, 7.65432f, 6.54321f),
         Angle = new AngleSingle(0.987654f, AngleType.Radian),
         Duration = TimeSpan.FromTicks(98_765_432_109),

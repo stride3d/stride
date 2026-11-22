@@ -15,6 +15,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Lights;
+using System.Numerics;
 
 namespace Stride.Editor.Thumbnails
 {
@@ -109,9 +110,9 @@ namespace Stride.Editor.Thumbnails
             cameraEntity.Transform.Position = new Vector3(0, 0, cameraDistanceFromCenter);
 
             // rotate a bit the camera to have a nice viewing angle.
-            var rotationQuaternion = Quaternion.RotationX(-MathUtil.Pi / 6) * Quaternion.RotationY(-MathUtil.Pi / 4);
-            rotationQuaternion.Rotate(ref cameraEntity.Transform.Position);
-            cameraEntity.Transform.Rotation = Quaternion.RotationX(-MathUtil.Pi / 6) * Quaternion.RotationY(-MathUtil.Pi / 4);
+            var rotationQuaternion = Quaternion.Concatenate(Quaternion.CreateRotationX(-MathUtil.Pi / 6), Quaternion.CreateRotationY(-MathUtil.Pi / 4));
+            cameraEntity.Transform.Position = Vector3.Transform(cameraEntity.Transform.Position, rotationQuaternion);
+            cameraEntity.Transform.Rotation = Quaternion.Concatenate(Quaternion.CreateRotationX(-MathUtil.Pi / 6), Quaternion.CreateRotationY(-MathUtil.Pi / 4));
 
             cameraComponent.NearClipPlane = cameraDistanceFromCenter / 50f;
             cameraComponent.FarClipPlane = cameraDistanceFromCenter * 50f;
@@ -130,7 +131,7 @@ namespace Stride.Editor.Thumbnails
             var ambientLight = new Entity("Thumbnail Ambient Light1") { new LightComponent { Type = new LightAmbient(), Intensity = 0.02f } };
             var frontDirectionalLight = new Entity("Thumbnail Directional Front") { new LightComponent { Intensity = 0.07f * factor } };
             var topDirectionalLight = new Entity("Thumbnail Directional Top") { new LightComponent { Intensity = 0.8f * factor } };
-            topDirectionalLight.Transform.Rotation = Quaternion.RotationX(MathUtil.DegreesToRadians(-80));
+            topDirectionalLight.Transform.Rotation = Quaternion.CreateRotationX(MathUtil.DegreesToRadians(-80));
             scene.Entities.Add(ambientLight);
             scene.Entities.Add(frontDirectionalLight);
             scene.Entities.Add(topDirectionalLight);

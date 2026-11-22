@@ -11,6 +11,7 @@ using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -155,7 +156,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             UpdateDrawOrder();
         }
 
-        protected override void UpdateShape(Matrix viewMatrix)
+        protected override void UpdateShape(Matrix4x4 viewMatrix)
         {
             base.UpdateShape(viewMatrix);
 
@@ -172,8 +173,8 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
                 if (isCameraBackfacing)
                 {
-                    scalePlaneRoots[(axis + 1) % 3].TransformValue.Rotation *= Quaternion.RotationY(MathUtil.Pi);
-                    scalePlaneRoots[(axis + 2) % 3].TransformValue.Rotation *= Quaternion.RotationZ(MathUtil.Pi);
+                    scalePlaneRoots[(axis + 1) % 3].TransformValue.Rotation = Quaternion.Concatenate(scalePlaneRoots[(axis + 1) % 3].TransformValue.Rotation, Quaternion.CreateRotationY(MathUtil.Pi));
+                    scalePlaneRoots[(axis + 2) % 3].TransformValue.Rotation = Quaternion.Concatenate(scalePlaneRoots[(axis + 2) % 3].TransformValue.Rotation, Quaternion.CreateRotationZ(MathUtil.Pi));
                 }
             }
         }
@@ -185,12 +186,12 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
             // calculate the ray in the gizmo space
             var gizmoMatrix = WorldMatrix;
-            var gizmoViewInverse = Matrix.Invert(gizmoMatrix * cameraService.ViewMatrix);
+            Matrix4x4.InvertSafe(gizmoMatrix * cameraService.ViewMatrix, out var gizmoViewInverse);
 
             // Check if the inverted View Matrix is valid (since it will be use for mouse picking, check the translation vector only)
-            if (float.IsNaN(gizmoViewInverse.TranslationVector.X)
-                || float.IsNaN(gizmoViewInverse.TranslationVector.Y)
-                || float.IsNaN(gizmoViewInverse.TranslationVector.Z))
+            if (float.IsNaN(gizmoViewInverse.Translation.X)
+                || float.IsNaN(gizmoViewInverse.Translation.Y)
+                || float.IsNaN(gizmoViewInverse.Translation.Z))
             {
                 return;
             }

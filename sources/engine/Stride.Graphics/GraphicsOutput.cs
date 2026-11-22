@@ -5,6 +5,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics
 {

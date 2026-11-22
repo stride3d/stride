@@ -14,6 +14,7 @@ using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Graphics.Semantics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -51,7 +52,7 @@ namespace Stride.Physics
             Is2D = false;
 
             InternalShape = new BulletSharp.BvhTriangleMeshShape(sharedDataParam.BulletMesh, true);
-            DebugPrimitiveMatrix = Matrix.Scaling(Vector3.One * DebugScaling);
+            DebugPrimitiveMatrix = Matrix4x4.CreateScale(Vector3.One * DebugScaling);
         }
 
         protected override void Dispose(bool disposing)
@@ -123,24 +124,24 @@ namespace Stride.Physics
                 }
             }
             
-            Matrix[] nodeTransforms = null;
+            Matrix4x4[] nodeTransforms = null;
             if (model.Skeleton != null)
             {
                 var nodesLength = model.Skeleton.Nodes.Length;
-                nodeTransforms = new Matrix[nodesLength];
-                nodeTransforms[0] = Matrix.Identity;
+                nodeTransforms = new Matrix4x4[nodesLength];
+                nodeTransforms[0] = Matrix4x4.Identity;
                 for (var i = 0; i < nodesLength; i++)
                 {
                     var node = model.Skeleton.Nodes[i];
-                    Matrix.Transformation(ref node.Transform.Scale, ref node.Transform.Rotation, ref node.Transform.Position, out var localMatrix);
+                    Matrix4x4.CreateTransformation(node.Transform.Scale, node.Transform.Rotation, node.Transform.Position, out var localMatrix);
 
-                    Matrix worldMatrix;
+                    Matrix4x4 worldMatrix;
                     if (node.ParentIndex != -1)
                     {
                         if (node.ParentIndex >= i)
                             throw new InvalidOperationException("Skeleton nodes are not sorted");
                         var nodeTransform = nodeTransforms[node.ParentIndex];
-                        Matrix.Multiply(ref localMatrix, ref nodeTransform, out worldMatrix);
+                        worldMatrix = localMatrix * nodeTransform;
                     }
                     else
                     {
@@ -179,9 +180,9 @@ namespace Stride.Physics
                 {
                     for (int i = 0; i < vertSlice.Length; i++)
                     {
-                        Matrix posMatrix = Matrix.Translation(vertSlice[i]);
-                        Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out var finalMatrix);
-                        vertSlice[i] = finalMatrix.TranslationVector;
+                        Matrix4x4 posMatrix = Matrix4x4.CreateTranslation(vertSlice[i]);
+                        var finalMatrix = posMatrix * nodeTransforms[meshData.NodeIndex];
+                        vertSlice[i] = finalMatrix.Translation;
                     }
                 }
 

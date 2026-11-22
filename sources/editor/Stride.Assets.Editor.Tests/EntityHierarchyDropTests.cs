@@ -6,6 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Assets.Presentation.ViewModels;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
 using static Stride.Assets.Editor.Tests.EntityHierarchyLoadingTests;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests;
 

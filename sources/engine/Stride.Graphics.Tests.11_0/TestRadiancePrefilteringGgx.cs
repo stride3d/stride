@@ -13,6 +13,7 @@ using Stride.Rendering;
 using Stride.Rendering.ComputeEffect.GGXPrefiltering;
 using Stride.Games;
 using Stride.Input;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {

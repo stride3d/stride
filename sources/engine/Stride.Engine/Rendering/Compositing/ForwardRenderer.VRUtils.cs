@@ -4,12 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Rendering.Compositing
 {
     public partial class ForwardRenderer
     {
-        private static unsafe void ComputeCommonViewMatrices(RenderContext context, Matrix* viewMatrices, Matrix* projectionMatrices)
+        private static unsafe void ComputeCommonViewMatrices(RenderContext context, Matrix4x4* viewMatrices, Matrix4x4* projectionMatrices)
         {
             // there are some limitations to this technique:
             //  both eyes view matrices must be facing the same direction
@@ -27,7 +28,7 @@ namespace Stride.Rendering.Compositing
             var projectionLeftOfLeftEye = nearLeft * (projectionMatrices[0].M31 - 1.0f) / projectionMatrices[0].M11;
             var projectionRightOfRightEye = nearRight * (projectionMatrices[1].M31 + 1.0f) / projectionMatrices[1].M11;
             // IPD
-            float interPupillaryDistance = (viewMatrices[0].TranslationVector - viewMatrices[1].TranslationVector).Length();
+            float interPupillaryDistance = (viewMatrices[0].Translation - viewMatrices[1].Translation).Length();
             // find the center eye position according to the scheme described here:
             // http://computergraphics.stackexchange.com/questions/1736/vr-and-frustum-culling
             // tangent of theta, where theta is FOV/2
@@ -37,7 +38,7 @@ namespace Stride.Rendering.Compositing
             // left offset (`A` on the diagram of above link):
             var leftOffset = tangentThetaLeftEye * recession;
             // place the view position in between left and right:
-            commonView.View.TranslationVector = Vector3.Lerp(viewMatrices[0].TranslationVector, viewMatrices[1].TranslationVector, leftOffset / interPupillaryDistance);
+            commonView.View.Translation = Vector3.Lerp(viewMatrices[0].Translation, viewMatrices[1].Translation, leftOffset / interPupillaryDistance);
             // and move backward:
             commonView.View.M43 -= recession;
 
@@ -52,10 +53,10 @@ namespace Stride.Rendering.Compositing
             // adjust proportionally the parameters (l, r, u, b are defined at near, so we use nears ratio):
             var nearsRatio = commonView.NearClipPlane / oldNear;
             // recreation from scratch:
-            Matrix.PerspectiveOffCenterRH(projectionLeftOfLeftEye * nearsRatio, projectionRightOfRightEye * nearsRatio, bottom * nearsRatio, top * nearsRatio, commonView.NearClipPlane, commonView.FarClipPlane, out commonView.Projection);
+            commonView.Projection = Matrix4x4.CreatePerspectiveOffCenter(projectionLeftOfLeftEye * nearsRatio, projectionRightOfRightEye * nearsRatio, bottom * nearsRatio, top * nearsRatio, commonView.NearClipPlane, commonView.FarClipPlane);
 
             // update the view projection:
-            Matrix.Multiply(ref commonView.View, ref commonView.Projection, out commonView.ViewProjection);
+            commonView.ViewProjection = commonView.View * commonView.Projection;
         }
     }
 }

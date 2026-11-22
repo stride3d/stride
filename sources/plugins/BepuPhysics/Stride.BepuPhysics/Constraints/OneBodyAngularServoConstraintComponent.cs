@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Constraints;
 
@@ -39,11 +40,11 @@ public sealed class OneBodyAngularServoConstraintComponent : OneBodyConstraintCo
     {
         get
         {
-            return BepuConstraint.TargetOrientation.ToStride();
+            return BepuConstraint.TargetOrientation;
         }
         set
         {
-            BepuConstraint.TargetOrientation = value.ToNumeric();
+            BepuConstraint.TargetOrientation = value;
             TryUpdateDescription();
         }
     }

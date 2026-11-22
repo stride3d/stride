@@ -13,6 +13,7 @@ using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Systems;
 
@@ -185,8 +186,8 @@ public class ConstraintGizmo : IEntityGizmo
         float radius2 = radius ?? GetDefaultArrowRadius();
         float length2 = length ?? SizeFactor;
 
-        dir = Vector3.Normalize(dir);
-        var rotation = Quaternion.BetweenDirections(Vector3.UnitY, dir);
+        dir = Vector3.NormalizeSafe(dir);
+        var rotation = Quaternion.CreateFromDirections(Vector3.UnitY, dir);
         var cylinderSize = new Vector3(radius2 * 0.75f, length2 - radius2, radius2 * 0.5f);
         Draw(Shapes.Cylinder, pivot + dir * cylinderSize.Y * 0.5f, rotation, cylinderSize);
         Draw(Shapes.Cone, pivot + dir * (cylinderSize.Y + radius2 * 0.5f), rotation, new(radius2));
@@ -249,9 +250,9 @@ public class ConstraintGizmo : IEntityGizmo
             case CenterDistanceLimitConstraintComponent cdl:
                 ExtractWorld(cdl.A!, out aPos, out aRot);
                 ExtractWorld(cdl.B!, out bPos, out bRot);
-                var dir = Vector3.Normalize(bPos - aPos);
+                var dir = Vector3.NormalizeSafe(bPos - aPos);
                 DrawArrow(aPos, dir, cdl.MinimumDistance);
-                Draw(Shapes.Cone, aPos + dir * cdl.MaximumDistance, Quaternion.BetweenDirections(Vector3.UnitY, -dir), new(GetDefaultArrowRadius()));
+                Draw(Shapes.Cone, aPos + dir * cdl.MaximumDistance, Quaternion.CreateFromDirections(Vector3.UnitY, -dir), new(GetDefaultArrowRadius()));
                 break;
             case DistanceLimitConstraintComponent dl:
                 ExtractWorld(dl.A!, out aPos, out aRot);
@@ -260,9 +261,9 @@ public class ConstraintGizmo : IEntityGizmo
                 DrawArrow(bPos, bRot * dl.LocalOffsetB, dl.LocalOffsetB.Length());
                 var endA = aPos + aRot * dl.LocalOffsetA;
                 var endB = bPos + bRot * dl.LocalOffsetB;
-                dir = Vector3.Normalize(endB - endA);
+                dir = Vector3.NormalizeSafe(endB - endA);
                 DrawArrow(endA, dir, dl.MinimumDistance);
-                Draw(Shapes.Cone, endA + dir * dl.MaximumDistance, Quaternion.BetweenDirections(Vector3.UnitY, -dir), new(GetDefaultArrowRadius()));
+                Draw(Shapes.Cone, endA + dir * dl.MaximumDistance, Quaternion.CreateFromDirections(Vector3.UnitY, -dir), new(GetDefaultArrowRadius()));
                 break;
             case DistanceServoConstraintComponent ds:
                 ExtractWorld(ds.A!, out aPos, out aRot);
@@ -278,8 +279,8 @@ public class ConstraintGizmo : IEntityGizmo
                 ExtractWorld(h.B!, out bPos, out bRot);
                 DrawArrow(aPos, aRot * h.LocalOffsetA, h.LocalOffsetA.Length());
                 DrawArrow(bPos, bRot * h.LocalOffsetB, h.LocalOffsetB.Length());
-                Draw(Shapes.Disc, aPos + aRot * h.LocalOffsetA, Quaternion.BetweenDirections(Vector3.UnitY, aRot * h.LocalHingeAxisA));
-                Draw(Shapes.Disc, bPos + bRot * h.LocalOffsetB, Quaternion.BetweenDirections(Vector3.UnitY, bRot * h.LocalHingeAxisB));
+                Draw(Shapes.Disc, aPos + aRot * h.LocalOffsetA, Quaternion.CreateFromDirections(Vector3.UnitY, aRot * h.LocalHingeAxisA));
+                Draw(Shapes.Disc, bPos + bRot * h.LocalOffsetB, Quaternion.CreateFromDirections(Vector3.UnitY, bRot * h.LocalHingeAxisB));
                 break;
             case LinearAxisServoConstraintComponent las:
                 ExtractWorld(las.A!, out aPos, out aRot);
@@ -349,8 +350,8 @@ public class ConstraintGizmo : IEntityGizmo
                 var hingeAxis = bRot * sh.LocalHingeAxisB;
                 var jointAnchorA = aPos + offsetA;
                 var jointAnchorB = bPos + offsetB;
-                Draw(Shapes.Disc, jointAnchorA, Quaternion.BetweenDirections(Vector3.UnitY, swivelAxis));
-                Draw(Shapes.Disc, jointAnchorB, Quaternion.BetweenDirections(Vector3.UnitY, hingeAxis));
+                Draw(Shapes.Disc, jointAnchorA, Quaternion.CreateFromDirections(Vector3.UnitY, swivelAxis));
+                Draw(Shapes.Disc, jointAnchorB, Quaternion.CreateFromDirections(Vector3.UnitY, hingeAxis));
 
                 DrawArrow(aPos, offsetA);
                 DrawArrow(bPos, offsetB);
@@ -369,13 +370,13 @@ public class ConstraintGizmo : IEntityGizmo
                 if (_component.Bodies.Length != 2)
                     break;
 
-                var a = _component.Bodies[0]!.Entity.Transform.WorldMatrix.TranslationVector;
-                var b = _component.Bodies[1]!.Entity.Transform.WorldMatrix.TranslationVector;
+                var a = _component.Bodies[0]!.Entity.Transform.WorldMatrix.Translation;
+                var b = _component.Bodies[1]!.Entity.Transform.WorldMatrix.Translation;
                 var mid = (a + b) * 0.5f;
                 delta = b - a;
                 var length = delta.Length();
-                dir = Vector3.Normalize(delta);
-                var rot = Quaternion.BetweenDirections(Vector3.UnitZ, dir);
+                dir = Vector3.NormalizeSafe(delta);
+                var rot = Quaternion.CreateFromDirections(Vector3.UnitZ, dir);
                 Draw(Shapes.Box, mid, rot, new(0.1f * SizeFactor, 0.1f * SizeFactor, length));
                 break;
         }

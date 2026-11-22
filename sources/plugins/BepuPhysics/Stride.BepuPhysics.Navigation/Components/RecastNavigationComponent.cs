@@ -3,6 +3,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Navigation.Components;
 [DataContract(nameof(RecastNavigationComponent))]
@@ -116,10 +117,10 @@ public class RecastNavigationComponent : StartupScript
             return;
         }
 
-        var worldPosition = Entity.Transform.WorldMatrix.TranslationVector;
+        var worldPosition = Entity.Transform.WorldMatrix.Translation;
 
         var nextWaypointPosition = Path[0];
-        var rotation = Quaternion.LookRotation(Vector3.Normalize(Path[0] - worldPosition), Vector3.UnitY);
+        var rotation = Quaternion.CreateLookRotation(Vector3.Normalize(Path[0] - worldPosition), Vector3.UnitY);
         var targetPosition = Vector3.MoveTo(worldPosition, nextWaypointPosition, Speed * deltaTime);
         var scale = Entity.Transform.Scale;
 

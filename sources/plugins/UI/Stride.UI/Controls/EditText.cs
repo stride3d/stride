@@ -13,6 +13,7 @@ using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
 using Stride.UI.Events;
+using System.Numerics;
 
 namespace Stride.UI.Controls
 {

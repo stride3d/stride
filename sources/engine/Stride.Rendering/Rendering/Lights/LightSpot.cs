@@ -9,6 +9,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Rendering.Lights
 {
@@ -196,8 +197,7 @@ namespace Stride.Rendering.Lights
             // We compute the sphere at target point where the size of light is the largest
             // TODO: Check if we can improve this calculation with a better model
             var targetPosition = new Vector4(position + direction * Range, 1.0f);
-            Vector4 projectedTarget;
-            Vector4.Transform(ref targetPosition, ref renderView.ViewProjection, out projectedTarget);
+            Vector4 projectedTarget = Vector4.Transform(targetPosition, renderView.ViewProjection);
 
             var d = MathF.Abs(projectedTarget.W) + 0.00001f;
             var r = Range * Math.Sin(MathUtil.DegreesToRadians(AngleOuter / 2.0f));

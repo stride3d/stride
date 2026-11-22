@@ -8,6 +8,7 @@ using Stride.Particles.DebugDraw;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.DebugShapes;
+using System.Numerics;
 
 namespace Stride.Particles.Editor
 {

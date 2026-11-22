@@ -20,6 +20,7 @@ using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels;
 

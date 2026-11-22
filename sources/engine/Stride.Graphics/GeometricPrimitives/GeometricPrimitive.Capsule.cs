@@ -76,6 +76,7 @@
 using System;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Graphics.GeometricPrimitives
 {

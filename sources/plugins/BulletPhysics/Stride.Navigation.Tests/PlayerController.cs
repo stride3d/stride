@@ -9,6 +9,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Navigation;
 using Stride.Physics;
+using System.Numerics;
 
 namespace Stride.Navigation.Tests
 {
@@ -87,7 +88,7 @@ namespace Stride.Navigation.Tests
         {
             if (!ReachedDestination)
             {
-                var direction = CurrentWaypoint - Entity.Transform.WorldMatrix.TranslationVector;
+                var direction = CurrentWaypoint - Entity.Transform.WorldMatrix.Translation;
                 direction.Y = 0.0f;
 
                 // Get distance towards next point and normalize the direction at the same time
@@ -101,8 +102,8 @@ namespace Stride.Navigation.Tests
                 if (pathToDestination.Count > 0 && waypointIndex > 0 && waypointIndex != pathToDestination.Count - 1)
                 {
                     Vector3 pointNormal = CurrentWaypoint - pathToDestination[waypointIndex - 1];
-                    pointNormal.Normalize();
-                    float current = Vector3.Dot(Entity.Transform.WorldMatrix.TranslationVector, pointNormal);
+                    pointNormal = Vector3.NormalizeSafe(pointNormal);
+                    float current = Vector3.Dot(Entity.Transform.WorldMatrix.Translation, pointNormal);
                     float target = Vector3.Dot(CurrentWaypoint, pointNormal);
                     if (current > target)
                     {
@@ -124,7 +125,7 @@ namespace Stride.Navigation.Tests
                         HaltMovement();
 
                         pendingResult.EndTime = Game.UpdateTime.Total;
-                        pendingResult.End = Entity.Transform.WorldMatrix.TranslationVector;
+                        pendingResult.End = Entity.Transform.WorldMatrix.Translation;
                         pendingResult.Success = true;
                         taskCompletionSource.SetResult(pendingResult);
                         taskCompletionSource = null;
@@ -153,7 +154,7 @@ namespace Stride.Navigation.Tests
         public void UpdateSpawnPosition()
         {
             Entity.Transform.UpdateWorldMatrix();
-            SpawnPosition = Entity.Transform.WorldMatrix.TranslationVector;
+            SpawnPosition = Entity.Transform.WorldMatrix.Translation;
         }
 
         public Task<MoveResult> TryMove(Vector3 destination)
@@ -162,7 +163,7 @@ namespace Stride.Navigation.Tests
                 throw new InvalidOperationException("Overlapping update commands");
 
             pendingResult = new MoveResult();
-            pendingResult.Start = Entity.Transform.WorldMatrix.TranslationVector;
+            pendingResult.Start = Entity.Transform.WorldMatrix.Translation;
             pendingResult.StartTime = Game.UpdateTime.Total;
             pendingResult.Success = false;
 
@@ -172,7 +173,7 @@ namespace Stride.Navigation.Tests
             {
                 // Skip the points that are too close to the player
                 waypointIndex = 0;
-                while (!ReachedDestination && (CurrentWaypoint - Entity.Transform.WorldMatrix.TranslationVector).Length() < 0.25f)
+                while (!ReachedDestination && (CurrentWaypoint - Entity.Transform.WorldMatrix.Translation).Length() < 0.25f)
                 {
                     waypointIndex++;
                 }
@@ -202,7 +203,7 @@ namespace Stride.Navigation.Tests
         {
             moveDirection = Vector3.Zero;
             Character.SetVelocity(Vector3.Zero);
-            moveDestination = Entity.Transform.WorldMatrix.TranslationVector;
+            moveDestination = Entity.Transform.WorldMatrix.Translation;
         }
 
         public class MoveResult

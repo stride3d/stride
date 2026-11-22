@@ -14,6 +14,7 @@ using Stride.Core.Threading;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.TextureConverter;
+using System.Numerics;
 
 namespace Stride.Assets.Textures;
 

@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Constraints;
 
@@ -31,11 +32,11 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>, 
     {
         get
         {
-            return BepuConstraint.LocalOffset.ToStride();
+            return BepuConstraint.LocalOffset;
         }
         set
         {
-            BepuConstraint.LocalOffset = value.ToNumeric();
+            BepuConstraint.LocalOffset = value;
             TryUpdateDescription();
         }
     }
@@ -50,11 +51,11 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>, 
     {
         get
         {
-            return BepuConstraint.LocalOrientation.ToStride();
+            return BepuConstraint.LocalOrientation;
         }
         set
         {
-            BepuConstraint.LocalOrientation = value.ToNumeric();
+            BepuConstraint.LocalOrientation = value;
             TryUpdateDescription();
         }
     }

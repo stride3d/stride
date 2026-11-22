@@ -20,6 +20,7 @@ using Stride.Particles.Sorters;
 using Stride.Particles.Spawners;
 using Stride.Particles.VertexLayouts;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Particles
 {
@@ -967,7 +968,7 @@ namespace Stride.Particles
         /// </summary>
         /// <param name="sharedBufferPtr">The shared vertex buffer position where the particle data should be output</param>
         /// <param name="invViewMatrix">The current camera's inverse view matrix</param>
-        public void BuildVertexBuffer(IntPtr sharedBufferPtr, ref Matrix invViewMatrix, ref Matrix viewProj)
+        public void BuildVertexBuffer(IntPtr sharedBufferPtr, ref Matrix4x4 invViewMatrix, ref Matrix4x4 viewProj)
         {
             // Get camera-space X and Y axes for billboard expansion and sort the particles if needed
             var unitX = new Vector3(invViewMatrix.M11, invViewMatrix.M12, invViewMatrix.M13);
@@ -979,7 +980,7 @@ namespace Stride.Particles
             {
                 var inverseRotation = drawTransform.WorldRotation;
                 inverseRotation.W *= -1;
-                inverseRotation.Rotate(ref depthVector);
+                depthVector = Vector3.Transform(depthVector, inverseRotation);
             }
             var sortedList = ParticleSorter.GetSortedList(depthVector);
 
@@ -1034,7 +1035,7 @@ namespace Stride.Particles
                 var negativeTranslation = -drawTransform.WorldPosition;
                 var negativeScale = (drawTransform.WorldScale.X > 0) ? 1f/ drawTransform.WorldScale.X : 1f;
                 var negativeRotation = drawTransform.WorldRotation;
-                negativeRotation.Conjugate();
+                negativeRotation = Quaternion.Conjugate(negativeRotation);
 
                 if (pool.FieldExists(ParticleFields.Position))
                 {
@@ -1047,7 +1048,7 @@ namespace Stride.Particles
                         position = position + negativeTranslation;
                         position = position * negativeScale;
 
-                        negativeRotation.Rotate(ref position);
+                        position = Vector3.Transform(position, negativeRotation);
 
                         particle.Set(posField, position);
                     }
@@ -1064,7 +1065,7 @@ namespace Stride.Particles
                         position = position + negativeTranslation;
                         position = position * negativeScale;
 
-                        negativeRotation.Rotate(ref position);
+                        position = Vector3.Transform(position, negativeRotation);
 
                         particle.Set(posField, position);
                     }
@@ -1080,7 +1081,7 @@ namespace Stride.Particles
 
                         velocity = velocity * negativeScale;
 
-                        negativeRotation.Rotate(ref velocity);
+                        velocity = Vector3.Transform(velocity, negativeRotation);
 
                         particle.Set(velField, velocity);
                     }
@@ -1115,7 +1116,7 @@ namespace Stride.Particles
                     {
                         var position = particle.Get(posField);
 
-                        drawTransform.WorldRotation.Rotate( ref position );
+                        position = Vector3.Transform(position, drawTransform.WorldRotation);
 
                         position = position * drawTransform.WorldScale.X + drawTransform.WorldPosition;
 
@@ -1131,7 +1132,7 @@ namespace Stride.Particles
                     {
                         var position = particle.Get(posField);
 
-                        drawTransform.WorldRotation.Rotate(ref position);
+                        position = Vector3.Transform(position, drawTransform.WorldRotation);
 
                         position = position * drawTransform.WorldScale.X + drawTransform.WorldPosition;
 
@@ -1147,7 +1148,7 @@ namespace Stride.Particles
                     {
                         var velocity = particle.Get(velField);
 
-                        drawTransform.WorldRotation.Rotate(ref velocity);
+                        velocity = Vector3.Transform(velocity, drawTransform.WorldRotation);
 
                         velocity = velocity * drawTransform.WorldScale.X;
 

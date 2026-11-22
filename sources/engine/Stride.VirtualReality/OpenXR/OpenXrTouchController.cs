@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Silk.NET.OpenXR;
 using Stride.Core.Mathematics;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.VirtualReality
 {
@@ -159,7 +160,7 @@ namespace Stride.VirtualReality
             {
                 Quaternion orig = new Quaternion(handLocation.Pose.Orientation.X, handLocation.Pose.Orientation.Y,
                                                  handLocation.Pose.Orientation.Z, handLocation.Pose.Orientation.W);
-                currentRot = holdOffset.Value * orig;
+                currentRot = Quaternion.Concatenate(holdOffset.Value, orig);
             }
             else
             {

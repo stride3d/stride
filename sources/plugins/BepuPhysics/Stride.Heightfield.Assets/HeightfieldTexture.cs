@@ -14,7 +14,6 @@ using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.TextureConverter;
-using Half = System.Half;
 
 namespace Stride.Heightfield.Assets;
 

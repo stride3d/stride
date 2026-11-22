@@ -4,13 +4,14 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Rendering.Lights
 {
     public class RenderLight
     {
         public ILight Type;
-        public Matrix WorldMatrix;
+        public Matrix4x4 WorldMatrix;
         public float Intensity;
 
         /// <summary>

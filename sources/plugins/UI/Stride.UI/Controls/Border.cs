@@ -3,6 +3,7 @@
 
 using Stride.Core;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.UI.Controls
 {
@@ -68,7 +69,7 @@ namespace Stride.UI.Controls
                 var childOffsets = new Vector3(padding.Left + borderThickness.Left, padding.Top + borderThickness.Top, padding.Front + borderThickness.Front) - finalSizeWithoutMargins / 2;
 
                 // set the arrange matrix of the child.
-                VisualContent.DependencyProperties.Set(ContentArrangeMatrixPropertyKey, Matrix.Translation(childOffsets));
+                VisualContent.DependencyProperties.Set(ContentArrangeMatrixPropertyKey, Matrix4x4.CreateTranslation(childOffsets));
             }
 
             return finalSizeWithoutMargins;

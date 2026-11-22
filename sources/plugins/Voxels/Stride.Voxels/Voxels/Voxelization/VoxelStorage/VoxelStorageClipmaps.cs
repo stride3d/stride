@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Graphics;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels
 {
@@ -220,18 +221,18 @@ namespace Stride.Rendering.Voxels
 
         public void CollectVoxelizationPasses(ProcessedVoxelVolume data, VoxelStorageContext storageContext)
         {
-            Matrix BaseVoxelMatrix = storageContext.Matrix;
-            BaseVoxelMatrix.Invert();
-            BaseVoxelMatrix = BaseVoxelMatrix * Matrix.Scaling(2f, 2f, 2f);
+            Matrix4x4 BaseVoxelMatrix = storageContext.Matrix;
+            Matrix4x4.InvertSafe(BaseVoxelMatrix, out BaseVoxelMatrix);
+            BaseVoxelMatrix = BaseVoxelMatrix * Matrix4x4.CreateScale(2f, 2f, 2f);
             if (UpdatesPerFrame != UpdateMethods.AllClipmapsMultipleRenders)
             {
                 /*
                  * Having trouble with shadow culling when this is enabled - currently performed in vertex shader instead
                 if (UpdateMethod == UpdateMethods.OneClipPerFrame)
                 {
-                    BaseVoxelMatrix = Matrix.Scaling(PerMapOffsetScale[ClipMapCurrent].W) * Matrix.Translation(PerMapOffsetScale[ClipMapCurrent].XYZ());
-                    BaseVoxelMatrix = BaseVoxelMatrix * Matrix.Translation(-0.5f,-0.5f,-0.5f);
-                    BaseVoxelMatrix = BaseVoxelMatrix * Matrix.Scaling(2f, 2f, 2f);
+                    BaseVoxelMatrix = Matrix4x4.CreateScale(PerMapOffsetScale[ClipMapCurrent].W) * Matrix4x4.CreateTranslation(PerMapOffsetScale[ClipMapCurrent].XYZ());
+                    BaseVoxelMatrix = BaseVoxelMatrix * Matrix4x4.CreateTranslation(-0.5f,-0.5f,-0.5f);
+                    BaseVoxelMatrix = BaseVoxelMatrix * Matrix4x4.CreateScale(2f, 2f, 2f);
                 }
                 */
                 VoxelStorerClipmap Storer = new VoxelStorerClipmap

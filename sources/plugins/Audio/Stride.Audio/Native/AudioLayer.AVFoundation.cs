@@ -8,6 +8,8 @@ using AVFoundation;
 using Foundation;
 using Stride.Core.Mathematics;
 
+using System.Numerics;
+
 namespace Stride.Audio
 {
     /// <summary>
@@ -180,7 +182,7 @@ namespace Stride.Audio
             if (l != null) l.Enabled = false;
         }
 
-        public static void ListenerPush3D(Listener listener, ref Vector3 pos, ref Vector3 forward, ref Vector3 up, ref Vector3 vel, ref Matrix worldTransform)
+        public static void ListenerPush3D(Listener listener, ref Vector3 pos, ref Vector3 forward, ref Vector3 up, ref Vector3 vel, ref Matrix4x4 worldTransform)
         {
             var l = ResolveHandle<ManagedListener>(listener.Ptr);
             if (l?.Device?.Env == null) return;
@@ -435,7 +437,7 @@ namespace Stride.Audio
             // and mixer would handle this. Skipped until a real consumer needs it.
         }
 
-        public static void SourcePush3D(Source source, ref Vector3 pos, ref Vector3 forward, ref Vector3 up, ref Vector3 vel, ref Matrix worldTransform)
+        public static void SourcePush3D(Source source, ref Vector3 pos, ref Vector3 forward, ref Vector3 up, ref Vector3 vel, ref Matrix4x4 worldTransform)
         {
             var src = ResolveHandle<ManagedSource>(source.Ptr);
             if (src?.Player == null) return;

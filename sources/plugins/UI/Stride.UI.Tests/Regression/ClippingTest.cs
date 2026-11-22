@@ -11,6 +11,7 @@ using Stride.Input;
 using Stride.Rendering.Sprites;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {
@@ -40,7 +41,7 @@ namespace Stride.UI.Tests.Regression
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
                 Width = 200, Height = 100,
-                LocalMatrix = Matrix.Translation(-50, -50, 0),
+                LocalMatrix = Matrix4x4.CreateTranslation(-50, -50, 0),
                 BackgroundImage = SpriteFromSheet.Create(uiGroup, "uvNotRotated")
             };
 
@@ -51,7 +52,7 @@ namespace Stride.UI.Tests.Regression
                 VerticalAlignment = VerticalAlignment.Top,
                 Width = 300, Height = 150,
                 Content = element4,
-                LocalMatrix = Matrix.Translation(-200, -100, 0),
+                LocalMatrix = Matrix4x4.CreateTranslation(-200, -100, 0),
                 BackgroundImage = SpriteFromSheet.Create(uiGroup, "uvRotated90")
             };
             
@@ -97,14 +98,14 @@ namespace Stride.UI.Tests.Regression
                 element4.ClipToBounds = !element4.ClipToBounds;
 
             if (Input.IsKeyDown(Keys.Left))
-                element3.LocalMatrix = Matrix.Translation(element3.LocalMatrix.TranslationVector - Vector3.UnitX);
+                element3.LocalMatrix = Matrix4x4.CreateTranslation(element3.LocalMatrix.Translation - Vector3.UnitX);
             if (Input.IsKeyDown(Keys.Right))
-                element3.LocalMatrix = Matrix.Translation(element3.LocalMatrix.TranslationVector + Vector3.UnitX);
+                element3.LocalMatrix = Matrix4x4.CreateTranslation(element3.LocalMatrix.Translation + Vector3.UnitX);
 
             if (Input.IsKeyDown(Keys.Up))
-                element3.LocalMatrix = Matrix.Translation(element3.LocalMatrix.TranslationVector - Vector3.UnitY);
+                element3.LocalMatrix = Matrix4x4.CreateTranslation(element3.LocalMatrix.Translation - Vector3.UnitY);
             if (Input.IsKeyDown(Keys.Down))
-                element3.LocalMatrix = Matrix.Translation(element3.LocalMatrix.TranslationVector + Vector3.UnitY);
+                element3.LocalMatrix = Matrix4x4.CreateTranslation(element3.LocalMatrix.Translation + Vector3.UnitY);
 
             if (Input.IsKeyDown(Keys.NumPad7))
                 MoveElementToLeftTopCorner();
@@ -118,22 +119,22 @@ namespace Stride.UI.Tests.Regression
 
         private void MoveElementToLeftTopCorner()
         {
-            element3.LocalMatrix = Matrix.Translation(new Vector3(-333,-141,0));
+            element3.LocalMatrix = Matrix4x4.CreateTranslation(new Vector3(-333,-141,0));
         }
 
         private void MoveElementToRightTopCorner()
         {
-            element3.LocalMatrix = Matrix.Translation(new Vector3(275, -150, 0));
+            element3.LocalMatrix = Matrix4x4.CreateTranslation(new Vector3(275, -150, 0));
         }
 
         private void MoveElementToRightBottomCorner()
         {
-            element3.LocalMatrix = Matrix.Translation(new Vector3(175, 110, 0));
+            element3.LocalMatrix = Matrix4x4.CreateTranslation(new Vector3(175, 110, 0));
         }
 
         private void MoveElementToIntersection()
         {
-            element3.LocalMatrix = Matrix.Translation(new Vector3(-60, 70, 0));
+            element3.LocalMatrix = Matrix4x4.CreateTranslation(new Vector3(-60, 70, 0));
         }
 
         protected override void RegisterTests()

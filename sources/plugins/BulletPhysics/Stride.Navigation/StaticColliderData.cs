@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Physics;
+using System.Numerics;
 
 namespace Stride.Navigation
 {

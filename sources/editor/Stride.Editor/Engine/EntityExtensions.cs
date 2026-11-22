@@ -8,6 +8,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Editor.Engine
 {
@@ -75,7 +76,7 @@ namespace Stride.Editor.Engine
             if (hasModel)
             {
                 var hierarchy = modelComponent.Skeleton;
-                var nodeTransforms = new Matrix[hierarchy.Nodes.Length];
+                var nodeTransforms = new Matrix4x4[hierarchy.Nodes.Length];
 
                 // Calculate node transforms here, since there might not be a ModelProcessor running
                 for (int i = 0; i < nodeTransforms.Length; i++)
@@ -86,14 +87,14 @@ namespace Stride.Editor.Engine
                     }
                     else
                     {
-                        Matrix localMatrix;
+                        Matrix4x4 localMatrix;
 
-                        Matrix.Transformation(
-                            ref hierarchy.Nodes[i].Transform.Scale,
-                            ref hierarchy.Nodes[i].Transform.Rotation,
-                            ref hierarchy.Nodes[i].Transform.Position, out localMatrix);
+                        Matrix4x4.CreateTransformation(
+                            hierarchy.Nodes[i].Transform.Scale,
+                            hierarchy.Nodes[i].Transform.Rotation,
+                            hierarchy.Nodes[i].Transform.Position, out localMatrix);
 
-                        Matrix.Multiply(ref localMatrix, ref nodeTransforms[hierarchy.Nodes[i].ParentIndex], out nodeTransforms[i]);
+                        nodeTransforms[i] = localMatrix * nodeTransforms[hierarchy.Nodes[i].ParentIndex];
                     }
                 }
 
@@ -124,10 +125,10 @@ namespace Stride.Editor.Engine
                         for (var index = 0; index < bones.Length; index++)
                         {
                             var nodeIndex = bones[index].NodeIndex;
-                            Matrix boneMatrix;
+                            Matrix4x4 boneMatrix;
 
                             // Compute bone matrix
-                            Matrix.Multiply(ref bones[index].LinkToMeshMatrix, ref nodeTransforms[nodeIndex], out boneMatrix);
+                            boneMatrix = bones[index].LinkToMeshMatrix * nodeTransforms[nodeIndex];
 
                             // Fast AABB transform: http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
                             // Compute transformed AABB (by world)
@@ -151,8 +152,8 @@ namespace Stride.Editor.Engine
                 var spriteDiagonalSize = MathF.Sqrt(spriteSize.X * spriteSize.X + spriteSize.Y * spriteSize.Y);
 
                 // Note: this is probably wrong, need to unify with SpriteComponentRenderer
-                var center = worldMatrix.TranslationVector;
-                var scales = new Vector3(worldMatrix.Row1.Length(), worldMatrix.Row2.Length(), worldMatrix.Row3.Length());
+                var center = worldMatrix.Translation;
+                var scales = new Vector3(worldMatrix.X.Length(), worldMatrix.Y.Length(), worldMatrix.Z.Length());
                 var maxScale = Math.Max(scales.X, Math.Max(scales.Y, scales.Z));
 
                 boundingSphere = BoundingSphere.Merge(boundingSphere, new BoundingSphere(center, maxScale * spriteDiagonalSize / 2f));
@@ -178,7 +179,7 @@ namespace Stride.Editor.Engine
 
             // If the entity does not contain any components having an impact on the bounding sphere, create an empty bounding sphere centered on the entity position.
             if (boundingSphere == BoundingSphere.Empty)
-                boundingSphere = new BoundingSphere(worldMatrix.TranslationVector, 0);
+                boundingSphere = new BoundingSphere(worldMatrix.Translation, 0);
 
             return boundingSphere;
         }

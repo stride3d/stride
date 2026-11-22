@@ -4,6 +4,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine.Processors;
+using System.Numerics;
 
 namespace Stride.Engine
 {
@@ -31,13 +32,13 @@ namespace Stride.Engine
         /// The instance transformation matrices.
         /// </summary>
         [DataMemberIgnore]
-        public Matrix[] WorldMatrices = Array.Empty<Matrix>();
+        public Matrix4x4[] WorldMatrices = Array.Empty<Matrix4x4>();
 
         /// <summary>
         /// The inverse instance transformation matrices, updated automatically by the <see cref="InstancingProcessor"/>.
         /// </summary>
         [DataMemberIgnore]
-        public Matrix[] WorldInverseMatrices = Array.Empty<Matrix>();
+        public Matrix4x4[] WorldInverseMatrices = Array.Empty<Matrix4x4>();
 
         /// <summary>
         /// A flag indicating whether the inverse matrices and bounding box should be calculated this frame.
@@ -49,7 +50,7 @@ namespace Stride.Engine
         /// </summary>
         /// <param name="matrices">The matrices.</param>
         /// <param name="instanceCount">The instance count. When set to -1 the length if the matrices array is used</param>
-        public void UpdateWorldMatrices(Matrix[] matrices, int instanceCount = -1)
+        public void UpdateWorldMatrices(Matrix4x4[] matrices, int instanceCount = -1)
         {
             WorldMatrices = matrices;
 
@@ -78,15 +79,15 @@ namespace Stride.Engine
                     // Make sure inverse matrices array is big enough
                     if (WorldInverseMatrices.Length < instanceCount)
                     {
-                        WorldInverseMatrices = new Matrix[instanceCount];
+                        WorldInverseMatrices = new Matrix4x4[instanceCount];
                     }
 
                     // Invert matrices and update bounding box
                     var bb = BoundingBox.Empty;
                     for (int i = 0; i < instanceCount; i++)
                     {
-                        Matrix.Invert(ref WorldMatrices[i], out WorldInverseMatrices[i]);
-                        var pos = WorldMatrices[i].TranslationVector;
+                        Matrix4x4.InvertSafe(WorldMatrices[i], out WorldInverseMatrices[i]);
+                        var pos = WorldMatrices[i].Translation;
                         BoundingBox.Merge(ref bb, ref pos, out bb);
                     }
                     BoundingBox = bb;

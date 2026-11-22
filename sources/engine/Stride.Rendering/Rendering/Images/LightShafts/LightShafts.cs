@@ -13,6 +13,7 @@ using Stride.Graphics;
 using Stride.Rendering.Lights;
 using Stride.Rendering.Shadows;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Images
 {
@@ -164,15 +165,14 @@ namespace Stride.Rendering.Images
                 Initialize(context.RenderContext);
 
             var renderView = context.RenderContext.RenderView;
-            var viewInverse = Matrix.Invert(renderView.View);
+            Matrix4x4.InvertSafe(renderView.View, out var viewInverse);
             lightShaftsParameters.Set(TransformationKeys.ViewInverse, ref viewInverse);
-            lightShaftsParameters.Set(TransformationKeys.Eye, new Vector4(viewInverse.TranslationVector, 1));
+            lightShaftsParameters.Set(TransformationKeys.Eye, new Vector4(viewInverse.Translation, 1));
 
             // Setup parameters for Z reconstruction
             lightShaftsParameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane));
 
-            Matrix projectionInverse;
-            Matrix.Invert(ref renderView.Projection, out projectionInverse);
+            Matrix4x4.InvertSafe(renderView.Projection, out Matrix4x4 projectionInverse);
             lightShaftsParameters.Set(TransformationKeys.ProjectionInverse, projectionInverse);
 
             applyLightEffectShader.SetOutput(GetSafeOutput(0));
@@ -375,11 +375,11 @@ namespace Stride.Rendering.Images
         {
             float backSideMaximumDistance = context.RenderContext.RenderView.FarClipPlane;
             float backSideMinimumDistance = -context.RenderContext.RenderView.NearClipPlane;
-            Matrix backSideProjection = context.RenderContext.RenderView.View * Matrix.Scaling(1, 1, -1) * Matrix.OrthoRH(BackSideOrthographicSize, BackSideOrthographicSize, backSideMinimumDistance, backSideMaximumDistance);
+            Matrix4x4 backSideProjection = context.RenderContext.RenderView.View * Matrix4x4.CreateScale(1, 1, -1) * Matrix4x4.CreateOrthographic(BackSideOrthographicSize, BackSideOrthographicSize, backSideMinimumDistance, backSideMaximumDistance);
             DrawBoundingVolumes(context, boundingVolumes, backSideProjection);
         }
 
-        private bool DrawBoundingVolumes(RenderDrawContext context, IReadOnlyList<RenderLightShaftBoundingVolume> boundingVolumes, Matrix viewProjection)
+        private bool DrawBoundingVolumes(RenderDrawContext context, IReadOnlyList<RenderLightShaftBoundingVolume> boundingVolumes, Matrix4x4 viewProjection)
         {
             var commandList = context.CommandList;
 
@@ -416,14 +416,14 @@ namespace Stride.Rendering.Images
                         continue;
 
                     // Update parameters for the minmax shader
-                    Matrix worldViewProjection = Matrix.Multiply(volume.World, viewProjection);
+                    Matrix4x4 worldViewProjection = volume.World * viewProjection;
                     minmaxVolumeEffectShader.Parameters.Set(VolumeMinMaxShaderKeys.WorldViewProjection, ref worldViewProjection);
 
                     foreach (var mesh in volume.Model.Meshes)
                     {
                         // Frustum culling
                         BoundingBox meshBoundingBox;
-                        Matrix world = volume.World;
+                        Matrix4x4 world = volume.World;
                         BoundingBox.Transform(ref mesh.BoundingBox, ref world, out meshBoundingBox);
                         var boundingBoxExt = new BoundingBoxExt(meshBoundingBox);
                         if (boundingBoxExt.Extent != Vector3.Zero

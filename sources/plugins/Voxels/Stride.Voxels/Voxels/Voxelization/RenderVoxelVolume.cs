@@ -8,6 +8,7 @@ using Stride.Games;
 using Stride.Engine;
 using Stride.Shaders;
 using Stride.Rendering.Voxels.Debug;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels
 {

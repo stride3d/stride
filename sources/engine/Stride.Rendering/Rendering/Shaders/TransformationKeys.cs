@@ -15,21 +15,21 @@ namespace Stride.Rendering
         ///// </summary>
         ///// <param name="projection">The projection.</param>
         ///// <param name="projScreenRay">The proj screen ray.</param>
-        //private static void ExtractProjScreenRay(ref Matrix projection, ref Vector2 projScreenRay)
+        //private static void ExtractProjScreenRay(ref Matrix4x4 projection, ref Vector2 projScreenRay)
         //{
         //    projScreenRay = new Vector2(-1.0f / projection.M11, 1.0f / projection.M22);
         //}
         //
-        //private static void InvertMatrix(ref Matrix inMatrix, ref Matrix outMatrix)
+        //private static void InvertMatrix(ref Matrix4x4 inMatrix, ref Matrix4x4 outMatrix)
         //{
-        //    Matrix.Invert(ref inMatrix, out outMatrix);
+        //    Matrix4x4.InvertSafe(inMatrix, out outMatrix);
         //}
         //
-        //private static void ExtractScale(ref Matrix inMatrix, ref Vector3 outVector)
+        //private static void ExtractScale(ref Matrix4x4 inMatrix, ref Vector3 outVector)
         //{
-        //    outVector.X = ((Vector3)inMatrix.Row1).Length();
-        //    outVector.Y = ((Vector3)inMatrix.Row2).Length();
-        //    outVector.Z = ((Vector3)inMatrix.Row3).Length();
+        //    outVector.X = inMatrix.X.AsVector3().Length();
+        //    outVector.Y = inMatrix.Y.AsVector3().Length();
+        //    outVector.Z = inMatrix.Z.AsVector3().Length();
         //}
         //
         ///// <summary>
@@ -37,23 +37,21 @@ namespace Stride.Rendering
         ///// </summary>
         ///// <param name="view">The view matrix.</param>
         ///// <param name="eye">The eye vector.</param>
-        //private static void ViewToEye(ref Matrix view, ref Vector4 eye)
+        //private static void ViewToEye(ref Matrix4x4 view, ref Vector4 eye)
         //{
-        //    Matrix inverseView;
-        //    Matrix.Invert(ref view, out inverseView);
+        //    Matrix4x4.InvertSafe(view, out var inverseView);
         //    eye = new Vector4(inverseView.M41, inverseView.M42, inverseView.M43, 1.0f);
         //}
         //
-        //private static void WorldViewToEyeMS(ref Matrix worldView, ref Vector4 eyeMS)
+        //private static void WorldViewToEyeMS(ref Matrix4x4 worldView, ref Vector4 eyeMS)
         //{
-        //    Matrix inverseWorldView;
-        //    Matrix.Invert(ref worldView, out inverseWorldView);
+        //    Matrix4x4.InvertSafe(worldView, out var inverseWorldView);
         //    eyeMS = new Vector4(inverseWorldView.M41, inverseWorldView.M42, inverseWorldView.M43, 1.0f);
         //}
         //
-        //private static void TransposeMatrix(ref Matrix inMatrix, ref Matrix outMatrix)
+        //private static void TransposeMatrix(ref Matrix4x4 inMatrix, ref Matrix4x4 outMatrix)
         //{
-        //    Matrix.Transpose(ref inMatrix, out outMatrix);
+        //    outMatrix = Matrix4x4.Transpose(inMatrix);
         //}
         //
         ///// <summary>
@@ -61,7 +59,7 @@ namespace Stride.Rendering
         ///// </summary>
         ///// <param name="matrix">The matrix.</param>
         ///// <param name="planes">The planes.</param>
-        //private static void ExtractFrustumPlanes(ref Matrix matrix, ref Plane[] planes)
+        //private static void ExtractFrustumPlanes(ref Matrix4x4 matrix, ref Plane[] planes)
         //{
         //    // Left
         //    planes[0] = Plane.Normalize(new Plane(

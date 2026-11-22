@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -133,7 +134,7 @@ public class TestDouble3
     public void TestDouble3NormalizeInstance()
     {
         var v = new Double3(3.0, 4.0, 0.0);
-        v.Normalize();
+        v = Double3.NormalizeSafe(v);
         Assert.Equal(0.6, v.X, 5);
         Assert.Equal(0.8, v.Y, 5);
         Assert.Equal(0.0, v.Z, 5);
@@ -144,7 +145,7 @@ public class TestDouble3
     public void TestDouble3Pow()
     {
         var v = new Double3(2.0, 3.0, 4.0);
-        v.Pow(2.0);
+        v = Double3.Pow(v, 2.0);
         Assert.Equal(4.0, v.X);
         Assert.Equal(9.0, v.Y);
         Assert.Equal(16.0, v.Z);
@@ -206,7 +207,7 @@ public class TestDouble3
     {
         var v1 = new Double3(2.0, 3.0, 4.0);
         var v2 = new Double3(5.0, 6.0, 7.0);
-        var result = Double3.Modulate(v1, v2);
+        var result = Double3.Multiply(v1, v2);
         Assert.Equal(10.0, result.X);
         Assert.Equal(18.0, result.Y);
         Assert.Equal(28.0, result.Z);
@@ -229,7 +230,7 @@ public class TestDouble3
     {
         var v1 = new Double3(12.0, 20.0, 30.0);
         var v2 = new Double3(3.0, 4.0, 5.0);
-        var result = Double3.Demodulate(v1, v2);
+        var result = Double3.Divide(v1, v2);
         Assert.Equal(4.0, result.X);
         Assert.Equal(5.0, result.Y);
         Assert.Equal(6.0, result.Z);
@@ -278,7 +279,7 @@ public class TestDouble3
         var value = new Double3(5.0, -5.0, 15.0);
         var min = new Double3(0.0, 0.0, 0.0);
         var max = new Double3(10.0, 10.0, 10.0);
-        Double3.Clamp(ref value, ref min, ref max, out var result);
+        var result = Double3.Clamp(value, min, max);
         Assert.Equal(5.0, result.X);
         Assert.Equal(0.0, result.Y);
         Assert.Equal(10.0, result.Z);
@@ -301,7 +302,7 @@ public class TestDouble3
     {
         var v1 = new Double3(1.0, 0.0, 0.0);
         var v2 = new Double3(0.0, 1.0, 0.0);
-        Double3.Cross(ref v1, ref v2, out var result);
+        var result = Double3.Cross(v1, v2);
         Assert.Equal(0.0, result.X, 5);
         Assert.Equal(0.0, result.Y, 5);
         Assert.Equal(1.0, result.Z, 5);
@@ -339,7 +340,7 @@ public class TestDouble3
     public void TestDouble3Normalize()
     {
         var v = new Double3(3.0, 0.0, 4.0);
-        var normalized = Double3.Normalize(v);
+        var normalized = Double3.NormalizeSafe(v);
         Assert.Equal(0.6, normalized.X, 5);
         Assert.Equal(0.0, normalized.Y, 5);
         Assert.Equal(0.8, normalized.Z, 5);
@@ -350,7 +351,7 @@ public class TestDouble3
     public void TestDouble3NormalizeWithOutParameter()
     {
         var v = new Double3(3.0, 4.0, 0.0);
-        Double3.Normalize(ref v, out var result);
+        var result = Double3.NormalizeSafe(v);
         Assert.Equal(0.6, result.X, 5);
         Assert.Equal(0.8, result.Y, 5);
     }
@@ -436,7 +437,7 @@ public class TestDouble3
     public void TestDouble3Project()
     {
         var vector = new Double3(0.5, 0.5, 0.5);
-        var projection = Matrix.Identity;
+        var projection = Matrix4x4.Identity;
         var result = Double3.Project(vector, 0, 0, 800, 600, 0.1, 1000, projection);
         Assert.NotEqual(0, result.X);
         Assert.NotEqual(0, result.Y);
@@ -446,8 +447,8 @@ public class TestDouble3
     public void TestDouble3ProjectWithOutParameter()
     {
         var vector = new Double3(0.5, 0.5, 0.5);
-        var projection = Matrix.Identity;
-        Double3.Project(ref vector, 0, 0, 800, 600, 0.1, 1000, ref projection, out var result);
+        var projection = Matrix4x4.Identity;
+        var result = Double3.Project(vector, 0, 0, 800, 600, 0.1, 1000, projection);
         Assert.NotEqual(0, result.X);
         Assert.NotEqual(0, result.Y);
     }
@@ -457,7 +458,7 @@ public class TestDouble3
     public void TestDouble3Unproject()
     {
         var vector = new Double3(400, 300, 0.5);
-        var projection = Matrix.PerspectiveFovLH(MathUtil.PiOverFour, 800f / 600f, 0.1f, 1000f);
+        var projection = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(MathUtil.PiOverFour, 800f / 600f, 0.1f, 1000f);
         var result = Double3.Unproject(vector, 0, 0, 800, 600, 0.1, 1000, projection);
         // Just check that the method executes without exception
         Assert.True(true);
@@ -467,8 +468,8 @@ public class TestDouble3
     public void TestDouble3UnprojectWithOutParameter()
     {
         var vector = new Double3(400, 300, 0.5);
-        var projection = Matrix.PerspectiveFovLH(MathUtil.PiOverFour, 800f / 600f, 0.1f, 1000f);
-        Double3.Unproject(ref vector, 0, 0, 800, 600, 0.1, 1000, ref projection, out var result);
+        var projection = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(MathUtil.PiOverFour, 800f / 600f, 0.1f, 1000f);
+        var result = Double3.Unproject(vector, 0, 0, 800, 600, 0.1, 1000, projection);
         // Just check that the method executes without exception
         Assert.True(true);
     }
@@ -490,7 +491,7 @@ public class TestDouble3
     {
         var vector = new Double3(1.0, -1.0, 0.0);
         var normal = new Double3(0.0, 1.0, 0.0);
-        Double3.Reflect(ref vector, ref normal, out var result);
+        var result = Double3.Reflect(vector, normal);
         Assert.InRange(result.X, 0.99, 1.01);
         Assert.InRange(result.Y, 0.99, 1.01);
     }
@@ -540,7 +541,7 @@ public class TestDouble3
     public void TestDouble3TransformByQuaternion()
     {
         var vector = new Double3(1.0, 0.0, 0.0);
-        var rotation = Quaternion.RotationZ(MathUtil.PiOverTwo);
+        var rotation = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
         var result = Double3.Transform(vector, rotation);
         Assert.Equal(0.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
@@ -551,8 +552,8 @@ public class TestDouble3
     public void TestDouble3TransformByQuaternionWithOutParameter()
     {
         var vector = new Double3(1.0, 0.0, 0.0);
-        var rotation = Quaternion.RotationZ(MathUtil.PiOverTwo);
-        Double3.Transform(ref vector, ref rotation, out var result);
+        var rotation = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
+        var result = Double3.Transform(vector, rotation);
         Assert.Equal(0.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
         Assert.Equal(0.0, result.Z, 5);
@@ -563,9 +564,9 @@ public class TestDouble3
     {
         var source = new[] { new Double3(1.0, 0.0, 0.0), new Double3(0.0, 1.0, 0.0) };
         var destination = new Double3[2];
-        var rotation = Quaternion.RotationZ(MathUtil.PiOverTwo);
+        var rotation = Quaternion.CreateRotationZ(MathUtil.PiOverTwo);
 
-        Double3.Transform(source, ref rotation, destination);
+        Double3.Transform(source, rotation, destination);
 
         Assert.Equal(0.0, destination[0].X, 5);
         Assert.Equal(1.0, destination[0].Y, 5);
@@ -578,8 +579,8 @@ public class TestDouble3
     public void TestDouble3TransformWithOutDouble4()
     {
         var vector = new Double3(1.0, 0.0, 0.0);
-        var matrix = Matrix.Translation(1.0f, 2.0f, 3.0f);
-        Double3.Transform(ref vector, ref matrix, out Double4 result);
+        var matrix = Matrix4x4.CreateTranslation(1.0f, 2.0f, 3.0f);
+        Double4 result = Double3.Transform(vector, matrix);
         Assert.Equal(2.0, result.X, 5);
         Assert.Equal(2.0, result.Y, 5);
         Assert.Equal(3.0, result.Z, 5);
@@ -591,9 +592,9 @@ public class TestDouble3
     {
         var source = new[] { new Double3(1.0, 0.0, 0.0), new Double3(0.0, 1.0, 0.0) };
         var destination = new Double4[2];
-        var matrix = Matrix.Translation(1.0f, 2.0f, 3.0f);
+        var matrix = Matrix4x4.CreateTranslation(1.0f, 2.0f, 3.0f);
 
-        Double3.Transform(source, ref matrix, destination);
+        Double3.Transform(source, matrix, destination);
 
         Assert.Equal(2.0, destination[0].X, 5);
         Assert.Equal(2.0, destination[0].Y, 5);
@@ -604,7 +605,7 @@ public class TestDouble3
     public void TestDouble3TransformCoordinate()
     {
         var vector = new Double3(1.0, 0.0, 0.0);
-        var matrix = Matrix.Translation(1.0f, 2.0f, 3.0f);
+        var matrix = Matrix4x4.CreateTranslation(1.0f, 2.0f, 3.0f);
         var result = Double3.TransformCoordinate(vector, matrix);
         Assert.Equal(2.0, result.X, 5);
         Assert.Equal(2.0, result.Y, 5);
@@ -615,8 +616,8 @@ public class TestDouble3
     public void TestDouble3TransformCoordinateWithOutParameter()
     {
         var vector = new Double3(1.0, 0.0, 0.0);
-        var matrix = Matrix.Translation(1.0f, 2.0f, 3.0f);
-        Double3.TransformCoordinate(ref vector, ref matrix, out var result);
+        var matrix = Matrix4x4.CreateTranslation(1.0f, 2.0f, 3.0f);
+        var result = Double3.TransformCoordinate(vector, matrix);
         Assert.Equal(2.0, result.X, 5);
         Assert.Equal(2.0, result.Y, 5);
         Assert.Equal(3.0, result.Z, 5);
@@ -627,9 +628,9 @@ public class TestDouble3
     {
         var source = new[] { new Double3(1.0, 0.0, 0.0), new Double3(0.0, 1.0, 0.0) };
         var destination = new Double3[2];
-        var matrix = Matrix.Translation(1.0f, 2.0f, 3.0f);
+        var matrix = Matrix4x4.CreateTranslation(1.0f, 2.0f, 3.0f);
 
-        Double3.TransformCoordinate(source, ref matrix, destination);
+        Double3.TransformCoordinate(source, matrix, destination);
 
         Assert.Equal(2.0, destination[0].X, 5);
         Assert.Equal(2.0, destination[0].Y, 5);
@@ -642,7 +643,7 @@ public class TestDouble3
     public void TestDouble3TransformNormal()
     {
         var normal = new Double3(1.0, 0.0, 0.0);
-        var matrix = Matrix.RotationZ(MathUtil.PiOverTwo);
+        var matrix = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
         var result = Double3.TransformNormal(normal, matrix);
         Assert.Equal(0.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
@@ -653,8 +654,8 @@ public class TestDouble3
     public void TestDouble3TransformNormalWithOutParameter()
     {
         var normal = new Double3(1.0, 0.0, 0.0);
-        var matrix = Matrix.RotationZ(MathUtil.PiOverTwo);
-        Double3.TransformNormal(ref normal, ref matrix, out var result);
+        var matrix = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
+        var result = Double3.TransformNormal(normal, matrix);
         Assert.Equal(0.0, result.X, 5);
         Assert.Equal(1.0, result.Y, 5);
         Assert.Equal(0.0, result.Z, 5);
@@ -665,9 +666,9 @@ public class TestDouble3
     {
         var source = new[] { new Double3(1.0, 0.0, 0.0), new Double3(0.0, 1.0, 0.0) };
         var destination = new Double3[2];
-        var matrix = Matrix.RotationZ(MathUtil.PiOverTwo);
+        var matrix = Matrix4x4.CreateRotationZ(MathUtil.PiOverTwo);
 
-        Double3.TransformNormal(source, ref matrix, destination);
+        Double3.TransformNormal(source, matrix, destination);
 
         Assert.Equal(0.0, destination[0].X, 5);
         Assert.Equal(1.0, destination[0].Y, 5);
@@ -679,7 +680,7 @@ public class TestDouble3
     [Fact]
     public void TestDouble3RotationYawPitchRoll()
     {
-        var quat = Quaternion.RotationYawPitchRoll(MathUtil.PiOverTwo, 0, 0);
+        var quat = Quaternion.CreateFromYawPitchRoll(MathUtil.PiOverTwo, 0, 0);
         var ypr = Double3.RotationYawPitchRoll(quat);
         Assert.InRange(ypr.X, MathUtil.PiOverTwo - 0.01, MathUtil.PiOverTwo + 0.01);
     }
@@ -687,8 +688,8 @@ public class TestDouble3
     [Fact]
     public void TestDouble3RotationYawPitchRollWithOutParameter()
     {
-        var quat = Quaternion.RotationYawPitchRoll(MathUtil.PiOverTwo, 0, 0);
-        Double3.RotationYawPitchRoll(ref quat, out var ypr);
+        var quat = Quaternion.CreateFromYawPitchRoll(MathUtil.PiOverTwo, 0, 0);
+        var ypr = Double3.RotationYawPitchRoll(quat);
         Assert.InRange(ypr.X, MathUtil.PiOverTwo - 0.01, MathUtil.PiOverTwo + 0.01);
     }
 
@@ -700,31 +701,31 @@ public class TestDouble3
         var v2 = new Double3(4.0, 5.0, 6.0);
 
         // Test Add with out parameter
-        Double3.Add(ref v1, ref v2, out var addResult);
+        var addResult = Double3.Add(v1, v2);
         Assert.Equal(5.0, addResult.X);
 
         // Test Subtract with out parameter
-        Double3.Subtract(ref v1, ref v2, out var subResult);
+        var subResult = Double3.Subtract(v1, v2);
         Assert.Equal(-3.0, subResult.X);
 
         // Test Multiply with out parameter
-        Double3.Multiply(ref v1, 2.0, out var mulResult);
+        var mulResult = Double3.Multiply(v1, 2.0);
         Assert.Equal(2.0, mulResult.X);
 
         // Test Divide with out parameter
-        Double3.Divide(ref v1, 2.0, out var divResult);
+        var divResult = Double3.Divide(v1, 2.0);
         Assert.Equal(0.5, divResult.X);
 
         // Test Modulate with out parameter
-        Double3.Modulate(ref v1, ref v2, out var modResult);
+        var modResult = Double3.Multiply(v1, v2);
         Assert.Equal(4.0, modResult.X);
 
         // Test Demodulate with out parameter
-        Double3.Demodulate(ref v2, ref v1, out var demodResult);
+        var demodResult = Double3.Divide(v2, v1);
         Assert.Equal(4.0, demodResult.X);
 
         // Test Negate with out parameter
-        Double3.Negate(ref v1, out var negResult);
+        var negResult = Double3.Negate(v1);
         Assert.Equal(-1.0, negResult.X);
     }
 
@@ -736,17 +737,17 @@ public class TestDouble3
         var v2 = new Double3(4.0, 6.0, 3.0);
 
         // Test Distance with out parameter
-        Double3.Distance(ref v1, ref v2, out var distance);
+        var distance = Double3.Distance(v1, v2);
         Assert.Equal(5.0, distance);
 
         // Test DistanceSquared with out parameter
-        Double3.DistanceSquared(ref v1, ref v2, out var distSq);
+        var distSq = Double3.DistanceSquared(v1, v2);
         Assert.Equal(25.0, distSq);
 
         // Test Dot with out parameter
         var v3 = new Double3(1.0, 2.0, 3.0);
         var v4 = new Double3(4.0, 5.0, 6.0);
-        Double3.Dot(ref v3, ref v4, out var dot);
+        var dot = Double3.Dot(v3, v4);
         Assert.Equal(32.0, dot);
     }
 
@@ -758,18 +759,18 @@ public class TestDouble3
         var end = new Double3(10.0, 10.0, 10.0);
 
         // Test Lerp with out parameter
-        Double3.Lerp(ref start, ref end, 0.5, out var lerpResult);
+        var lerpResult = Double3.Lerp(start, end, 0.5);
         Assert.Equal(5.0, lerpResult.X);
 
         // Test SmoothStep with out parameter
-        Double3.SmoothStep(ref start, ref end, 0.5, out var smoothResult);
+        var smoothResult = Double3.SmoothStep(start, end, 0.5);
         Assert.Equal(5.0, smoothResult.X);
 
         // Test Barycentric with out parameter
         var v1 = new Double3(0.0, 0.0, 0.0);
         var v2 = new Double3(10.0, 0.0, 0.0);
         var v3 = new Double3(0.0, 10.0, 0.0);
-        Double3.Barycentric(ref v1, ref v2, ref v3, 0.5, 0.5, out var baryResult);
+        var baryResult = Double3.Barycentric(v1, v2, v3, 0.5, 0.5);
         Assert.Equal(5.0, baryResult.X);
         Assert.Equal(5.0, baryResult.Y);
     }
@@ -783,7 +784,7 @@ public class TestDouble3
         var t1 = new Double3(1.0, 1.0, 1.0);
         var v2 = new Double3(2.0, 2.0, 2.0);
         var t2 = new Double3(1.0, 1.0, 1.0);
-        Double3.Hermite(ref v1, ref t1, ref v2, ref t2, 0.5, out var hermiteResult);
+        var hermiteResult = Double3.Hermite(v1, t1, v2, t2, 0.5);
         Assert.InRange(hermiteResult.X, 0.9, 1.1);
 
         // Test CatmullRom with out parameter
@@ -791,7 +792,7 @@ public class TestDouble3
         var c2 = new Double3(1.0, 1.0, 1.0);
         var c3 = new Double3(2.0, 2.0, 2.0);
         var c4 = new Double3(3.0, 3.0, 3.0);
-        Double3.CatmullRom(ref c1, ref c2, ref c3, ref c4, 0.5, out var catmullResult);
+        var catmullResult = Double3.CatmullRom(c1, c2, c3, c4, 0.5);
         Assert.InRange(catmullResult.X, 1.4, 1.6);
     }
 
@@ -803,13 +804,13 @@ public class TestDouble3
         var v2 = new Double3(3.0, 2.0, 4.0);
 
         // Test Min with out parameter
-        Double3.Min(ref v1, ref v2, out var minResult);
+        var minResult = Double3.Min(v1, v2);
         Assert.Equal(1.0, minResult.X);
         Assert.Equal(2.0, minResult.Y);
         Assert.Equal(3.0, minResult.Z);
 
         // Test Max with out parameter
-        Double3.Max(ref v1, ref v2, out var maxResult);
+        var maxResult = Double3.Max(v1, v2);
         Assert.Equal(3.0, maxResult.X);
         Assert.Equal(5.0, maxResult.Y);
         Assert.Equal(4.0, maxResult.Z);

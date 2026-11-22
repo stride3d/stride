@@ -19,6 +19,7 @@ using Stride.Rendering.ComputeEffect.LambertianPrefiltering;
 using Stride.Rendering.Images.SphericalHarmonics;
 using Stride.Rendering.LightProbes;
 using Stride.Rendering.Skyboxes;
+using System.Numerics;
 
 namespace Stride.Rendering.LightProbes
 {
@@ -54,7 +55,7 @@ namespace Stride.Rendering.LightProbes
                         if (lightProbe == null)
                             continue;
 
-                        var lightProbePosition = lightProbe.Entity.Transform.WorldMatrix.TranslationVector;
+                        var lightProbePosition = lightProbe.Entity.Transform.WorldMatrix.Translation;
                         context.GraphicsContext.ResourceGroupAllocator.Reset(context.GraphicsContext.CommandList);
 
                         context.GraphicsContext.CommandList.BeginProfile(Color.Red, $"LightProbes {lightProbeIndex}");
@@ -131,7 +132,7 @@ namespace Stride.Rendering.LightProbes
                 var lightProbe = lightProbes[lightProbeIndex];
 
                 // Copy light position
-                lightProbePositions.Add(lightProbe.Entity.Transform.WorldMatrix.TranslationVector);
+                lightProbePositions.Add(lightProbe.Entity.Transform.WorldMatrix.Translation);
 
                 // Copy coefficients
                 if (lightProbe.Coefficients != null)
@@ -161,17 +162,17 @@ namespace Stride.Rendering.LightProbes
             for (int i = 0; i < tetraResult.Tetrahedra.Count; ++i)
             {
                 var tetrahedron = tetraResult.Tetrahedra[i];
-                var tetrahedronMatrix = Matrix.Identity;
+                var tetrahedronMatrix = Matrix4x4.Identity;
 
                 // Compute the tetrahedron matrix
                 // https://en.wikipedia.org/wiki/Barycentric_coordinate_system#Barycentric_coordinates_on_tetrahedra
                 var vertex3 = tetraResult.Vertices[tetrahedron.Vertices[3]];
-                *((Vector3*)&tetrahedronMatrix.M11) = tetraResult.Vertices[tetrahedron.Vertices[0]] - vertex3;
-                *((Vector3*)&tetrahedronMatrix.M12) = tetraResult.Vertices[tetrahedron.Vertices[1]] - vertex3;
-                *((Vector3*)&tetrahedronMatrix.M13) = tetraResult.Vertices[tetrahedron.Vertices[2]] - vertex3;
-                tetrahedronMatrix.Invert(); // TODO: Optimize 3x3 invert
+                tetrahedronMatrix.SetColumn1(new Vector4(tetraResult.Vertices[tetrahedron.Vertices[0]] - vertex3, 0));
+                tetrahedronMatrix.SetColumn2(new Vector4(tetraResult.Vertices[tetrahedron.Vertices[1]] - vertex3, 0));
+                tetrahedronMatrix.SetColumn3(new Vector4(tetraResult.Vertices[tetrahedron.Vertices[2]] - vertex3, 0));
+                Matrix4x4.InvertSafe(tetrahedronMatrix, out tetrahedronMatrix); // TODO: Optimize 3x3 invert
 
-                tetrahedronMatrix.Transpose();
+                tetrahedronMatrix = Matrix4x4.Transpose(tetrahedronMatrix);
 
                 // Store position of last vertex in last row
                 tetrahedronMatrix.M41 = vertex3.X;

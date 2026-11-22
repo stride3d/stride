@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Constraints;
 
@@ -21,11 +22,11 @@ public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintCom
     {
         get
         {
-            return BepuConstraint.LocalSwivelAxisA.ToStride();
+            return BepuConstraint.LocalSwivelAxisA;
         }
         set
         {
-            BepuConstraint.LocalSwivelAxisA = value.ToNumeric();
+            BepuConstraint.LocalSwivelAxisA = value;
             TryUpdateDescription();
         }
     }
@@ -34,11 +35,11 @@ public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintCom
     {
         get
         {
-            return BepuConstraint.LocalHingeAxisB.ToStride();
+            return BepuConstraint.LocalHingeAxisB;
         }
         set
         {
-            BepuConstraint.LocalHingeAxisB = value.ToNumeric();
+            BepuConstraint.LocalHingeAxisB = value;
             TryUpdateDescription();
         }
     }

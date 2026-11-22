@@ -4,6 +4,7 @@
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Heightfield;
 
@@ -193,7 +194,7 @@ public static partial class RunevisionTerrainErosion
 
     private static Vector2 Frac(Vector2 value)
     {
-        return value - Vector2.Floor(value);
+        return value - Vector2.Round(value, MidpointRounding.ToNegativeInfinity);
     }
 
     private static float SmoothStep(float edge0, float edge1, float x)
@@ -223,7 +224,7 @@ public static partial class RunevisionTerrainErosion
     // From https://www.shadertoy.com/view/XdXBRH
     public static Vector3 noised(in Vector2 p)
     {
-        Vector2 i = Vector2.Floor(p);
+        Vector2 i = Vector2.Round(p, MidpointRounding.ToNegativeInfinity);
         Vector2 f = p - i;
 
         Vector2 u = f * f * f * (f * (f * new Vector2(6.0f) - new Vector2(15.0f)) + new Vector2(10.0f));

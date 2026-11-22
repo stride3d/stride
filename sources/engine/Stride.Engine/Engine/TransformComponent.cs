@@ -10,6 +10,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
+using System.Numerics;
 
 namespace Stride.Engine
 {
@@ -47,7 +48,7 @@ namespace Stride.Engine
         /// </summary>
         /// <remarks>The setter should not be used and is accessible only for performance purposes.</remarks>
         [DataMemberIgnore]
-        public Matrix WorldMatrix = Matrix.Identity;
+        public Matrix4x4 WorldMatrix = Matrix4x4.Identity;
 
         /// <summary>
         /// The local matrix.
@@ -56,7 +57,7 @@ namespace Stride.Engine
         /// </summary>
         /// <remarks>The setter should not be used and is accessible only for performance purposes.</remarks>
         [DataMemberIgnore]
-        public Matrix LocalMatrix = Matrix.Identity;
+        public Matrix4x4 LocalMatrix = Matrix4x4.Identity;
 
         /// <summary>
         /// The translation relative to the parent transformation.
@@ -122,16 +123,14 @@ namespace Stride.Engine
         [DataMemberIgnore]
         public Vector3 RotationEulerXYZ
         {
-            // Unfortunately it is not possible to factorize the following code with Quaternion.RotationYawPitchRoll because Z axis direction is inversed
+            // Unfortunately it is not possible to factorize the following code with Quaternion.GetYawPitchRoll because Z axis direction is inversed
             get
             {
                 var rotation = Rotation;
                 Vector3 rotationEuler;
 
                 // Equivalent to:
-                //  Matrix rotationMatrix;
-                //  Matrix.Rotation(ref cachedRotation, out rotationMatrix);
-                //  rotationMatrix.DecomposeXYZ(out rotationEuler);
+                //  Matrix4x4.CreateFromQuaternion(rotation).DecomposeXYZ(out rotationEuler);
 
                 float xx = rotation.X * rotation.X;
                 float yy = rotation.Y * rotation.Y;
@@ -153,7 +152,7 @@ namespace Stride.Engine
                 float M32 = 2.0f * (yz - xw);
                 float M33 = 1.0f - (2.0f * (yy + xx));
 
-                /*** Refer to Matrix.DecomposeXYZ(out Vector3 rotation) for code and license ***/
+                /*** Refer to Matrix4x4.DecomposeXYZ(out Vector3 rotation) for code and license ***/
                 if (MathUtil.IsOne(Math.Abs(M13)))
                 {
                     if (M13 >= 0)
@@ -183,13 +182,11 @@ namespace Stride.Engine
             set
             {
                 // Equivalent to:
-                //  Quaternion quatX, quatY, quatZ;
+                //  var quatX = Quaternion.CreateRotationX(value.X);
+                //  var quatY = Quaternion.CreateRotationY(value.Y);
+                //  var quatZ = Quaternion.CreateRotationZ(value.Z);
                 //
-                //  Quaternion.RotationX(value.X, out quatX);
-                //  Quaternion.RotationY(value.Y, out quatY);
-                //  Quaternion.RotationZ(value.Z, out quatZ);
-                //
-                //  rotation = quatX * quatY * quatZ;
+                //  rotation = Quaternion.Concatenate(Quaternion.Concatenate(quatX, quatY), quatZ);
 
                 var halfAngles = value * 0.5f;
 
@@ -261,7 +258,7 @@ namespace Stride.Engine
         {
             if (UseTRS)
             {
-                Matrix.Transformation(ref Scale, ref Rotation, ref Position, out LocalMatrix);
+                Matrix4x4.CreateTransformation(Scale, Rotation, Position, out LocalMatrix);
             }
         }
 
@@ -275,8 +272,8 @@ namespace Stride.Engine
                 var scene = Entity?.Scene;
                 if (scene != null)
                 {
-                    Matrix.Invert(ref scene.WorldMatrix, out var inverseSceneTransform);
-                    Matrix.Multiply(ref WorldMatrix, ref inverseSceneTransform, out LocalMatrix);
+                    Matrix4x4.InvertSafe(scene.WorldMatrix, out var inverseSceneTransform);
+                    LocalMatrix = WorldMatrix * inverseSceneTransform;
                 }
                 else
                 {
@@ -286,8 +283,8 @@ namespace Stride.Engine
             else
             {
                 //We are not root so we need to derive the local matrix as well
-                Matrix.Invert(ref Parent.WorldMatrix, out var inverseParent);
-                Matrix.Multiply(ref WorldMatrix, ref inverseParent, out LocalMatrix);
+                Matrix4x4.InvertSafe(Parent.WorldMatrix, out var inverseParent);
+                LocalMatrix = WorldMatrix * inverseParent;
             }
         }
 
@@ -306,15 +303,15 @@ namespace Stride.Engine
         {
             if (TransformLink != null)
             {
-                Matrix linkMatrix;
+                Matrix4x4 linkMatrix;
                 TransformLink.ComputeMatrix(recursive, out linkMatrix);
-                Matrix.Multiply(ref LocalMatrix, ref linkMatrix, out WorldMatrix);
+                WorldMatrix = LocalMatrix * linkMatrix;
             }
             else if (Parent != null)
             {
                 if (recursive)
                     Parent.UpdateWorldMatrix();
-                Matrix.Multiply(ref LocalMatrix, ref Parent.WorldMatrix, out WorldMatrix);
+                WorldMatrix = LocalMatrix * Parent.WorldMatrix;
             }
             else
             {
@@ -326,7 +323,7 @@ namespace Stride.Engine
                         scene.UpdateWorldMatrix();
                     }
 
-                    Matrix.Multiply(ref LocalMatrix, ref scene.WorldMatrix, out WorldMatrix);
+                    WorldMatrix = LocalMatrix * scene.WorldMatrix;
                 }
                 else
                 {

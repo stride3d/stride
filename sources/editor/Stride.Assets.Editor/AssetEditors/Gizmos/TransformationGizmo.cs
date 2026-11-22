@@ -15,6 +15,7 @@ using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.EditorGame;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -37,7 +38,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             public Vector3 Translation;
             public Vector3 Scale;
             public Quaternion Rotation;
-            public Matrix InverseParentMatrix;
+            public Matrix4x4 InverseParentMatrix;
 
             public bool IsIdentity()
             {
@@ -96,7 +97,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         /// <summary>
         /// The value of the gizmo world matrix at the beginning of the transformation.
         /// </summary>
-        protected Matrix StartWorldMatrix = Matrix.Identity;
+        protected Matrix4x4 StartWorldMatrix = Matrix4x4.Identity;
         
         /// <summary>
         /// The projection plane of the transformation.
@@ -178,7 +179,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         /// <summary>
         /// Gets the world matrix of the gizmo
         /// </summary>
-        protected Matrix WorldMatrix => GizmoRootEntity.Transform.WorldMatrix;
+        protected Matrix4x4 WorldMatrix => GizmoRootEntity.Transform.WorldMatrix;
 
         protected static void UpdateSelectionOnCloserIntersection(BoundingBox box, Ray clickRay, GizmoTransformationAxes axes, ref float minHitDistance, ref GizmoTransformationAxes newSelection)
         {
@@ -190,17 +191,17 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             }
         }
 
-        private Matrix GetWorldMatrix(Matrix viewMatrix)
+        private Matrix4x4 GetWorldMatrix(Matrix4x4 viewMatrix)
         {
-            Matrix worldMatrix = Matrix.Identity;
+            Matrix4x4 worldMatrix = Matrix4x4.Identity;
 
             switch (Space)
             {
                 case TransformationSpace.WorldSpace:
-                    worldMatrix.TranslationVector = AnchorEntity.Transform.WorldMatrix.TranslationVector;
+                    worldMatrix.Translation = AnchorEntity.Transform.WorldMatrix.Translation;
                     break;
                 case TransformationSpace.ObjectSpace:
-                    Matrix parentMatrix;
+                    Matrix4x4 parentMatrix;
                     if (AnchorEntity.GetParent() != null)
                     {
                         parentMatrix = AnchorEntity.TransformValue.Parent.WorldMatrix;
@@ -210,18 +211,18 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                         // Root entity in subscene — use Scene.Offset as parent matrix
                         var scene = AnchorEntity.Scene;
                         parentMatrix = (scene != null && scene.Offset != Vector3.Zero)
-                            ? Matrix.Translation(scene.Offset)
-                            : Matrix.Identity;
+                            ? Matrix4x4.CreateTranslation(scene.Offset)
+                            : Matrix4x4.Identity;
                     }
                     
                     // We don't use the entity's "WorldMatrix" because its scale could be zero, which would break the gizmo.
-                    worldMatrix = Matrix.RotationQuaternion(AnchorEntity.Transform.Rotation) *
-                                  Matrix.Translation(AnchorEntity.Transform.Position) *
+                    worldMatrix = Matrix4x4.CreateFromQuaternion(AnchorEntity.Transform.Rotation) *
+                                  Matrix4x4.CreateTranslation(AnchorEntity.Transform.Position) *
                                   parentMatrix;
                     break;
                 case TransformationSpace.ViewSpace:
-                    worldMatrix = Matrix.Invert(viewMatrix);
-                    worldMatrix.TranslationVector = AnchorEntity.Transform.WorldMatrix.TranslationVector;
+                    Matrix4x4.InvertSafe(viewMatrix, out worldMatrix);
+                    worldMatrix.Translation = AnchorEntity.Transform.WorldMatrix.Translation;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -232,7 +233,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
         private float GetTargetedScale(EditorGameViewCamera view)
         {
-            return GetScreenFittedScale(SizeFactor, AnchorEntity.Transform.WorldMatrix.TranslationVector, view);
+            return GetScreenFittedScale(SizeFactor, AnchorEntity.Transform.WorldMatrix.Translation, view);
         }
 
         /// <summary>
@@ -281,21 +282,21 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
         private void ApplyViewTransformation(EditorGameViewCamera view)
         {
-            Matrix worldMatrix = GetWorldMatrix(view.ViewMatrix);
+            Matrix4x4 worldMatrix = GetWorldMatrix(view.ViewMatrix);
             float targetedScale = GetTargetedScale(view);
 
             // Now scale the matrix so the gizmo always has the same on-screen size:
-            var worldMatrixRow1 = worldMatrix.Row1;
-            var worldMatrixRow2 = worldMatrix.Row2;
-            var worldMatrixRow3 = worldMatrix.Row3;
+            var worldMatrixRow1 = worldMatrix.X;
+            var worldMatrixRow2 = worldMatrix.Y;
+            var worldMatrixRow3 = worldMatrix.Z;
 
             worldMatrixRow1 *= targetedScale / worldMatrixRow1.Length();    // Normalize the axes and scale them by "targetedScale".
             worldMatrixRow2 *= targetedScale / worldMatrixRow2.Length();
             worldMatrixRow3 *= targetedScale / worldMatrixRow3.Length();
 
-            worldMatrix.Row1 = worldMatrixRow1;
-            worldMatrix.Row2 = worldMatrixRow2;
-            worldMatrix.Row3 = worldMatrixRow3;
+            worldMatrix.X = worldMatrixRow1;
+            worldMatrix.Y = worldMatrixRow2;
+            worldMatrix.Z = worldMatrixRow3;
 
             GizmoRootEntity.Transform.UseTRS = false;
             GizmoRootEntity.Transform.LocalMatrix = worldMatrix;
@@ -338,14 +339,14 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             // calculate the un-projection plane for 2D transformations
             var planeNormal = Vector3.Zero;
             StartWorldMatrix = WorldMatrix;
-            var gizmoViewInverse = Matrix.Invert(StartWorldMatrix * cameraService.ViewMatrix);
+            Matrix4x4.InvertSafe(StartWorldMatrix * cameraService.ViewMatrix, out var gizmoViewInverse);
             if (PlaneToIndex.ContainsKey(TransformationAxes))
             {
                 planeNormal[PlaneToIndex[TransformationAxes]] = 1f;
             }
             else if (TransformationAxes == GizmoTransformationAxes.XYZ)
             {
-                planeNormal = Vector3.Normalize(Vector3.TransformNormal(Vector3.UnitZ, gizmoViewInverse));
+                planeNormal = Vector3.NormalizeSafe(Vector3.TransformNormal(Vector3.UnitZ, gizmoViewInverse));
             }
             else
             {
@@ -355,21 +356,21 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                     if (((int)TransformationAxes & (1 << i)) != 0)
                         axisVector[i] = 1;
                 }
-                var cameraVector = (Vector3)gizmoViewInverse.Row3;
-                var planeVector = Vector3.Normalize(Vector3.Cross(axisVector, cameraVector));
+                var cameraVector = gizmoViewInverse.Z.AsVector3();
+                var planeVector = Vector3.NormalizeSafe(Vector3.Cross(axisVector, cameraVector));
                 planeNormal = Vector3.Cross(planeVector, axisVector);
 
                 //This is a temporary fix for weird rotation behavior, it's not working for translation tho
-                if (MathUtil.NearEqual(MathF.Abs(Vector3.Dot(axisVector, Vector3.Normalize(cameraVector))), 1.0f))
+                if (MathUtil.NearEqual(MathF.Abs(Vector3.Dot(axisVector, Vector3.NormalizeSafe(cameraVector))), 1.0f))
                 {
                     planeNormal = axisVector;
                 }
             }
-            ProjectionPlane = new Plane(Vector3.Zero, planeNormal);
+            ProjectionPlane = new Plane(planeNormal, 0);
 
             // determine the position of the start click in the world space
             var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, StartMousePosition, gizmoViewInverse);
-            transformationInitialized = ProjectionPlane.Intersects(ref ray, out StartClickPoint);
+            transformationInitialized = ProjectionPlane.Intersects(ray, out StartClickPoint);
         }
 
         protected virtual void OnTransformationStarted(Vector2 mouseDragPixel)
@@ -383,17 +384,17 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 // Ensure world matrix is computed
                 entity.Transform.UpdateWorldMatrix();
 
-                Matrix inverseParent;
+                Matrix4x4 inverseParent;
                 if (entity.Transform.Parent != null)
                 {
-                    inverseParent = Matrix.Invert(entity.Transform.Parent.WorldMatrix);
+                    Matrix4x4.InvertSafe(entity.Transform.Parent.WorldMatrix, out inverseParent);
                 }
                 else
                 {
                     var scene = entity.Scene;
                     inverseParent = (scene != null && scene.Offset != Vector3.Zero)
-                        ? Matrix.Invert(Matrix.Translation(scene.Offset))
-                        : Matrix.Identity;
+                        ? Matrix4x4.CreateTranslation(-scene.Offset)
+                        : Matrix4x4.Identity;
                 }
 
                 InitialTransformations[entity] = new InitialTransformation
@@ -488,10 +489,10 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 var initialTransfo = InitialTransformations[entity];
                 var entityTransfo = entity.Transform;
                 
-                if (initialTransfo.InverseParentMatrix == Matrix.Zero)
+                if (initialTransfo.InverseParentMatrix == default)
                 {
                     // This usually occurs when at least one axis is scaled to zero (because the matrix inversion
-                    // function returns Matrix.Zero if the determinant is too small).
+                    // function returns the zero matrix if the determinant is too small).
 
                     // TODO: I added this fix because I didn't know how else to make this case work.
                     // It might break in some cases, which I haven't come across yet.
@@ -501,12 +502,11 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                     // To completely fix the problem of 0-scaled objects, gizmo motion projections should be calculated in the object space.
                     // But this required a deeper modification of the current source code (transformation projection per object, etc.)
                     // - Pierre
-                    initialTransfo.InverseParentMatrix = Matrix.Identity;
+                    initialTransfo.InverseParentMatrix = Matrix4x4.Identity;
                 }
 
                 // calculate the gizmo to parent space matrix
-                Matrix gizmoToParentMatrix;
-                Matrix.Multiply(ref StartWorldMatrix, ref initialTransfo.InverseParentMatrix, out gizmoToParentMatrix);
+                Matrix4x4 gizmoToParentMatrix = StartWorldMatrix * initialTransfo.InverseParentMatrix;
                 
                 // the scale
                 entityTransfo.Scale = initialTransfo.Scale * transformation.Scale;
@@ -517,13 +517,13 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 // the rotation
                 if (transformation.Rotation != Quaternion.Identity)
                 {
-                    var entityToGizmoMatrix = Matrix.Invert(gizmoToParentMatrix * Matrix.Translation(-initialTransfo.Translation));
-                    var entityToRotatedGizmoMatrix = entityToGizmoMatrix * Matrix.RotationQuaternion(transformation.Rotation);
-                    var elementTranslationGizmo = entityToRotatedGizmoMatrix.TranslationVector - entityToGizmoMatrix.TranslationVector;
+                    Matrix4x4.InvertSafe(gizmoToParentMatrix * Matrix4x4.CreateTranslation(-initialTransfo.Translation), out var entityToGizmoMatrix);
+                    var entityToRotatedGizmoMatrix = entityToGizmoMatrix * Matrix4x4.CreateFromQuaternion(transformation.Rotation);
+                    var elementTranslationGizmo = entityToRotatedGizmoMatrix.Translation - entityToGizmoMatrix.Translation;
                     entityTransfo.Position = initialTransfo.Translation + Vector3.TransformNormal(elementTranslationGizmo, gizmoToParentMatrix);
 
-                    var rotationAxisParent = Vector3.Normalize(Vector3.TransformNormal(transformation.Rotation.Axis, gizmoToParentMatrix));
-                    entityTransfo.Rotation = initialTransfo.Rotation * Quaternion.RotationAxis(rotationAxisParent, transformation.Rotation.Angle);
+                    var rotationAxisParent = Vector3.NormalizeSafe(Vector3.TransformNormal(transformation.Rotation.GetAxis(), gizmoToParentMatrix));
+                    entityTransfo.Rotation = Quaternion.Concatenate(initialTransfo.Rotation, Quaternion.CreateFromAxisAngle(rotationAxisParent, transformation.Rotation.GetAngle()));
                 }
             }
         }
@@ -550,7 +550,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         /// Update the shape of the gizmo depending on the angle of view.
         /// </summary>
         /// <param name="viewMatrix">The view matrix of the camera the gizmo is drawn for.</param>
-        protected virtual void UpdateShape(Matrix viewMatrix)
+        protected virtual void UpdateShape(Matrix4x4 viewMatrix)
         {
         }
 

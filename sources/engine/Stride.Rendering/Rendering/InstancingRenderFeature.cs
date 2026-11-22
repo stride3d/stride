@@ -10,6 +10,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -19,8 +20,8 @@ namespace Stride.Rendering
         public int ModelTransformUsage;
 
         // Data
-        public Matrix[] WorldMatrices;
-        public Matrix[] WorldInverseMatrices;
+        public Matrix4x4[] WorldMatrices;
+        public Matrix4x4[] WorldInverseMatrices;
 
         // GPU buffers
         public bool BuffersManagedByUser;

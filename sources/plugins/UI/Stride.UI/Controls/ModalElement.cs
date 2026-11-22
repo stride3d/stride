@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.UI.Events;
+using System.Numerics;
 
 namespace Stride.UI.Controls
 {
@@ -96,7 +97,7 @@ namespace Stride.UI.Controls
             }
 
             var virtualResolution = LayoutingContext.VirtualResolution;
-            var worldmatrix = Matrix.Identity;
+            var worldmatrix = Matrix4x4.Identity;
 
             return CollisionHelper.RayIntersectsRectangle(ref ray, ref worldmatrix, ref virtualResolution, 2, out intersectionPoint);
         }

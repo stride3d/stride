@@ -4,6 +4,7 @@ using Xunit;
 
 using Stride.Core.Mathematics;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Layering
 {
@@ -41,8 +42,8 @@ namespace Stride.UI.Tests.Layering
             var children = new Button();
             Content = children;
 
-            var worldMatrix = Matrix.Zero;
-            var localMatrix = Matrix.Identity;
+            var worldMatrix = default(Matrix4x4);
+            var localMatrix = Matrix4x4.Identity;
 
             Measure(Vector3.Zero);
             Arrange(Vector3.Zero, false);

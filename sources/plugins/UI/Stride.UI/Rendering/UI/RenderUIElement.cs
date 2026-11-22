@@ -4,6 +4,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.UI;
+using System.Numerics;
 
 namespace Stride.Rendering.UI
 {
@@ -25,7 +26,7 @@ namespace Stride.Rendering.UI
         {
         }
 
-        public Matrix WorldMatrix;
+        public Matrix4x4 WorldMatrix;
 
         // UIComponent values
         public UIPage Page;
@@ -58,6 +59,6 @@ namespace Stride.Rendering.UI
 
         public Vector3 LastIntersectionPoint;
 
-        public Matrix LastRootMatrix;
+        public Matrix4x4 LastRootMatrix;
     }
 }

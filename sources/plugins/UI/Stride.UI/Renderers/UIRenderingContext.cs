@@ -5,6 +5,7 @@ using System;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.UI.Renderers
 {
@@ -57,6 +58,6 @@ namespace Stride.UI.Renderers
         /// <summary>
         /// Gets the view projection matrix of the UI.
         /// </summary>
-        public Matrix ViewProjectionMatrix;
+        public Matrix4x4 ViewProjectionMatrix;
     }
 }

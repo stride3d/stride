@@ -10,6 +10,7 @@ using Stride.Core.Annotations;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Assets.Models
 {

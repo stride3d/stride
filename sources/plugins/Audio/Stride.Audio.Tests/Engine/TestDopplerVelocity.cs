@@ -7,6 +7,7 @@ using Stride.Engine;
 using Stride.Games;
 using Stride.Rendering;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Audio.Tests.Engine
 {

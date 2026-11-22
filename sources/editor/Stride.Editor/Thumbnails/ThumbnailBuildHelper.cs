@@ -8,6 +8,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Editor.Resources;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Editor.Thumbnails
 {

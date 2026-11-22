@@ -20,6 +20,7 @@ using Stride.Assets.Editor.AssetEditors.GameEditor;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
 using Stride.Assets.Editor.SceneEditor;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.EditorGame.Tools;
 
@@ -394,6 +395,7 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
 
         var camera = Context.Camera;
         var mousePosition = input.MousePosition;
+        Matrix4x4.InvertSafe(camera.ViewMatrix, out var viewInverse);
         var click = new EditorViewClick
         {
             Button = toolClick.Button,
@@ -403,7 +405,7 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
             IsAltDown = input.IsKeyDown(Keys.LeftAlt) || input.IsKeyDown(Keys.RightAlt),
             Entity = entity,
             Picking = picking,
-            Ray = EditorGameHelper.CalculateRayFromMousePosition(camera.Component, mousePosition, Matrix.Invert(camera.ViewMatrix)),
+            Ray = EditorGameHelper.CalculateRayFromMousePosition(camera.Component, mousePosition, viewInverse),
         };
         if (toolClick.ToTool)
             ToolSet.Click(click);

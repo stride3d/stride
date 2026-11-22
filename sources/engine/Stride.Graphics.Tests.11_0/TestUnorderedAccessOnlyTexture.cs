@@ -9,6 +9,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
 using Stride.Rendering.ComputeEffect;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests;
 

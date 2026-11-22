@@ -17,6 +17,7 @@ using Stride.Graphics.Data;
 using Stride.Graphics.Semantics;
 using Stride.Importer.Common;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Assets.Models
 {
@@ -131,7 +132,7 @@ namespace Stride.Assets.Models
                 // Apply scale import on meshes
                 if (!MathUtil.NearEqual(ScaleImport, 1.0f))
                 {
-                    var transformationMatrix = Matrix.Scaling(ScaleImport);
+                    var transformationMatrix = Matrix4x4.CreateScale(ScaleImport);
                     TransformMorphTargets(mesh, transformationMatrix);
                     for (int vbIdx = 0; vbIdx < mesh.Draw.VertexBuffers.Length; vbIdx++)
                     {
@@ -157,7 +158,7 @@ namespace Stride.Assets.Models
                         // Adjust scale import
                         if (!MathUtil.NearEqual(ScaleImport, 1.0f))
                         {
-                            skinning.Bones[i].LinkToMeshMatrix.TranslationVector = skinning.Bones[i].LinkToMeshMatrix.TranslationVector * ScaleImport;
+                            skinning.Bones[i].LinkToMeshMatrix.Translation = skinning.Bones[i].LinkToMeshMatrix.Translation * ScaleImport;
                         }
 
                         // If it was remapped, we also need to update matrix
@@ -165,15 +166,15 @@ namespace Stride.Assets.Models
                         {
                             // Update mesh part
                             var transformMatrix = CombineMatricesFromNodeIndices(hierarchyUpdater.NodeTransformations, newNodeIndex, nodeIndex);
-                            transformMatrix.Invert();
-                            skinning.Bones[i].LinkToMeshMatrix = Matrix.Multiply(transformMatrix, skinning.Bones[i].LinkToMeshMatrix);
+                            Matrix4x4.InvertSafe(transformMatrix, out transformMatrix);
+                            skinning.Bones[i].LinkToMeshMatrix = transformMatrix * skinning.Bones[i].LinkToMeshMatrix;
                         }
 
                         if (newLinkNodeIndex != linkNodeIndex)
                         {
                             // Update link part
                             var transformLinkMatrix = CombineMatricesFromNodeIndices(hierarchyUpdater.NodeTransformations, newLinkNodeIndex, linkNodeIndex);
-                            skinning.Bones[i].LinkToMeshMatrix = Matrix.Multiply(skinning.Bones[i].LinkToMeshMatrix, transformLinkMatrix);
+                            skinning.Bones[i].LinkToMeshMatrix *= transformLinkMatrix;
                         }
                     }
                 }
@@ -194,7 +195,7 @@ namespace Stride.Assets.Models
                     if (mesh.Draw.IndexBuffer == null)
                         throw new InvalidOperationException();
 
-                    Matrix rotation;
+                    Matrix4x4 rotation;
                     Vector3 scale, translation;
                     if (transformationMatrix.Decompose(out scale, out rotation, out translation)
                         && scale.X * scale.Y * scale.Z < 0)
@@ -286,7 +287,7 @@ namespace Stride.Assets.Models
                 for (int vbIdx = 0; vbIdx < vertexBuffers.Length; vbIdx++)
                 {
                     // Compute local mesh bounding box (no node transformation)
-                    Matrix matrix = Matrix.Identity;
+                    Matrix4x4 matrix = Matrix4x4.Identity;
                     mesh.BoundingBox = vertexBuffers[vbIdx].ComputeBounds(ref matrix, out mesh.BoundingSphere);
 
                     // Compute model bounding box (includes node transformation)
@@ -378,7 +379,7 @@ namespace Stride.Assets.Models
             return model;
         }
 
-        private static void TransformMorphTargets(Mesh mesh, Matrix matrix)
+        private static void TransformMorphTargets(Mesh mesh, Matrix4x4 matrix)
         {
             if (mesh.MorphTargets == null) return;
             int count = mesh.MorphTargets.VertexCount;

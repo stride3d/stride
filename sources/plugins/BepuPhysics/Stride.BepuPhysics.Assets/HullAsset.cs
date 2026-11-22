@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Yaml;
 using Stride.Core.Yaml.Serialization;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Assets
 {

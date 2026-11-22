@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -78,7 +79,7 @@ public class TestBoundingVolumes
         // Plane with non-normalized normal (0,2,0) and d=-10
         // After normalization: normal becomes (0,1,0) and d becomes -5
         var plane = new Plane(new Vector3(0, 2, 0), -10);
-        plane.Normalize();
+        plane = Plane.Normalize(plane);
 
         Assert.Equal(0f, plane.Normal.X);
         Assert.Equal(1f, plane.Normal.Y, 5);

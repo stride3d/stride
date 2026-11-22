@@ -5,6 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Input
 {
@@ -53,7 +54,7 @@ namespace Stride.Input
         /// <returns>true if the current object is equal to the <paramref name="other" /> parameter; otherwise, false.</returns>
         public bool Equals(GamePadState other)
         {
-            return Buttons.Equals(other.Buttons) && LeftThumb.Equals(other.LeftThumb) && RightThumb.Equals(other.RightThumb) && LeftTrigger.Equals(other.LeftTrigger) && RightTrigger.Equals(other.RightTrigger);
+            return Buttons.Equals(other.Buttons) && LeftThumb == other.LeftThumb && RightThumb == other.RightThumb && LeftTrigger.Equals(other.LeftTrigger) && RightTrigger.Equals(other.RightTrigger);
         }
 
         public override bool Equals(object obj)

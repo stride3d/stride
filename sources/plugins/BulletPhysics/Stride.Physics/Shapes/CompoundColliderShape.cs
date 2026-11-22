@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -73,7 +74,7 @@ namespace Stride.Physics
         {
             colliderShapes.Add(shape);
 
-            var compoundMatrix = Matrix.RotationQuaternion(shape.LocalRotation) * Matrix.Translation(shape.LocalOffset);
+            var compoundMatrix = Matrix4x4.CreateFromQuaternion(shape.LocalRotation) * Matrix4x4.CreateTranslation(shape.LocalOffset);
 
             InternalCompoundShape.AddChildShape(compoundMatrix, shape.InternalShape);
 

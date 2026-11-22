@@ -16,6 +16,7 @@ using Stride.Editor.Preview;
 using Stride.Rendering;
 using Stride.Graphics;
 using StrideEffects;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Preview;
 

@@ -10,6 +10,7 @@ using Stride.Rendering.Compositing;
 using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {
@@ -29,7 +30,7 @@ namespace Stride.Graphics.Tests
             base.Draw(gameTime);
 
             //var time = (float)gameTime.Total.TotalSeconds;
-            //cubeEntity.Transform.Rotation = Quaternion.RotationY(time) * Quaternion.RotationX(time * 0.5f);
+            //cubeEntity.Transform.Rotation = Quaternion.Concatenate(Quaternion.CreateRotationY(time), Quaternion.CreateRotationX(time * 0.5f));
         }
 
         protected  Entity GetUIEntity(SpriteFont font, bool fixedSize, Vector3 position)

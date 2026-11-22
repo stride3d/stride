@@ -16,6 +16,7 @@ using Stride.Graphics.Regression;
 using Stride.Input;
 using Stride.Rendering.Sprites;
 using Stride.UI.Controls;
+using System.Numerics;
 
 namespace Stride.UI.Tests.Regression
 {

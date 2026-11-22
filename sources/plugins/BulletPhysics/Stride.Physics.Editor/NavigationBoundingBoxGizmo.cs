@@ -11,6 +11,7 @@ using Stride.Rendering;
 using Stride.Rendering.Lights;
 using Buffer = Stride.Graphics.Buffer;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
+using System.Numerics;
 
 namespace Stride.Physics.Editor
 {

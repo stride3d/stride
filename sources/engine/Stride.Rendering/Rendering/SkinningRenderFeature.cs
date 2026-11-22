@@ -6,6 +6,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Rendering.Materials;
+using System.Numerics;
 
 namespace Stride.Rendering
 {
@@ -16,7 +17,7 @@ namespace Stride.Rendering
     {
         private StaticObjectPropertyKey<RenderEffect> renderEffectKey;
         private StaticObjectPropertyKey<SkinningInfo> skinningInfoKey;
-        private ObjectPropertyKey<Matrix[]> renderModelObjectInfoKey;
+        private ObjectPropertyKey<Matrix4x4[]> renderModelObjectInfoKey;
 
         private ConstantBufferOffsetReference blendMatrices;
         private LogicalGroupReference morphGroup;
@@ -40,7 +41,7 @@ namespace Stride.Rendering
         /// <inheritdoc/>
         protected override void InitializeCore()
         {
-            renderModelObjectInfoKey = RootRenderFeature.RenderData.CreateObjectKey<Matrix[]>();
+            renderModelObjectInfoKey = RootRenderFeature.RenderData.CreateObjectKey<Matrix4x4[]>();
             skinningInfoKey = RootRenderFeature.RenderData.CreateStaticObjectKey<SkinningInfo>();
             renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
 
@@ -127,7 +128,7 @@ namespace Stride.Rendering
         private readonly struct ExtractJob : Dispatcher.IBatchJob
         {
             public required RootRenderFeature RootRenderFeature { get; init; }
-            public required ObjectPropertyData<Matrix[]> RenderModelObjectInfo { get; init; }
+            public required ObjectPropertyData<Matrix4x4[]> RenderModelObjectInfo { get; init; }
 
             public void Process(int start, int endExclusive)
             {
@@ -160,7 +161,7 @@ namespace Stride.Rendering
             var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
             Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, renderModelObjectInfoData), &ForBatchedAction);
 
-            static void ForBatchedAction((SkinningRenderFeature, ObjectPropertyData<Matrix[]>) state, int from, int toExclusive)
+            static void ForBatchedAction((SkinningRenderFeature, ObjectPropertyData<Matrix4x4[]>) state, int from, int toExclusive)
             {
                 var (@this, renderModelObjectInfoData) = state;
                 for (int i = from; i < toExclusive; i++)
@@ -194,9 +195,9 @@ namespace Stride.Rendering
 
                     var mappedCB = (byte*)renderNode.Resources.ConstantBuffer.Data + blendMatricesOffset;
 
-                    fixed (Matrix* blendMatricesPtr = renderModelObjectInfo)
+                    fixed (Matrix4x4* blendMatricesPtr = renderModelObjectInfo)
                     {
-                        MemoryUtilities.CopyWithAlignmentFallback(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
+                        MemoryUtilities.CopyWithAlignmentFallback(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix4x4));
                     }
                 }
             }

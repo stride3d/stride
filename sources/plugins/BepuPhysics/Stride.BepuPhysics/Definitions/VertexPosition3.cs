@@ -4,6 +4,7 @@
 using System.Runtime.InteropServices;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Definitions;
 
@@ -42,7 +43,7 @@ internal struct VertexPosition3 : IEquatable<VertexPosition3>, IVertexStructure
 
     public bool Equals(VertexPosition3 other)
     {
-        return Position.Equals(other.Position);
+        return Position == other.Position;
     }
 
     public override bool Equals(object? obj)

@@ -7,6 +7,7 @@ using System.ComponentModel;
 using Stride.Core;
 using System.Diagnostics;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.UI.Controls
 {
@@ -18,7 +19,7 @@ namespace Stride.UI.Controls
     [Obsolete("This class has no effect and shouldn't be used. Consider one of the classes that inherit from ContentControl.")]
     public class ContentPresenter : UIElement
     {
-        private Matrix contentWorldMatrix;
+        private Matrix4x4 contentWorldMatrix;
         private UIElement content;
 
         public ContentPresenter()
@@ -81,7 +82,7 @@ namespace Stride.UI.Controls
             return finalSizeWithoutMargins;
         }
 
-        protected override void UpdateWorldMatrix(ref Matrix parentWorldMatrix, bool parentWorldChanged)
+        protected override void UpdateWorldMatrix(ref Matrix4x4 parentWorldMatrix, bool parentWorldChanged)
         {
             var contentWorldMatrixChanged = parentWorldChanged || ArrangeChanged || LocalMatrixChanged;
 
@@ -92,8 +93,8 @@ namespace Stride.UI.Controls
                 if (contentWorldMatrixChanged)
                 {
                     contentWorldMatrix = WorldMatrixInternal;
-                    var contentMatrix = Matrix.Translation(-RenderSize / 2);
-                    Matrix.Multiply(ref contentMatrix, ref WorldMatrixInternal, out contentWorldMatrix);
+                    var contentMatrix = Matrix4x4.CreateTranslation(-RenderSize / 2);
+                    contentWorldMatrix = contentMatrix * WorldMatrixInternal;
                 }
 
                 ((IUIElementUpdate)Content).UpdateWorldMatrix(ref contentWorldMatrix, contentWorldMatrixChanged);

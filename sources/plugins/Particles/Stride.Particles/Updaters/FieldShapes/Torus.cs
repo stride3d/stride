@@ -5,6 +5,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Particles.DebugDraw;
+using System.Numerics;
 
 namespace Stride.Particles.Updaters.FieldShapes
 {
@@ -77,7 +78,7 @@ namespace Stride.Particles.Updaters.FieldShapes
             alongAxis = new Vector3(0, 1, 0);
 
             particlePosition -= fieldPosition;            
-            inverseRotation.Rotate(ref particlePosition);
+            particlePosition = Vector3.Transform(particlePosition, inverseRotation);
             particlePosition /= fieldSize;
 
             // Start by positioning the particle on the torus' plane
@@ -89,16 +90,16 @@ namespace Stride.Particles.Updaters.FieldShapes
 
             // Fix the field's axis back to world space
             var forceAxis = Vector3.Cross(alongAxis, projectedPosition);
-            fieldRotation.Rotate(ref forceAxis);
-            forceAxis.Normalize();
+            forceAxis = Vector3.Transform(forceAxis, fieldRotation);
+            forceAxis = Vector3.NormalizeSafe(forceAxis);
             alongAxis = forceAxis;
 
             projectedPosition = (distanceFromOrigin > 0) ? (projectedPosition/distanceFromOrigin) : projectedPosition;
             projectedPosition -= particlePosition;
             projectedPosition *= fieldSize;
-            fieldRotation.Rotate(ref projectedPosition);
+            projectedPosition = Vector3.Transform(projectedPosition, fieldRotation);
             awayAxis = -projectedPosition;
-            awayAxis.Normalize();
+            awayAxis = Vector3.NormalizeSafe(awayAxis);
 
             aroundAxis = Vector3.Cross(alongAxis, awayAxis);
 
@@ -108,7 +109,7 @@ namespace Stride.Particles.Updaters.FieldShapes
         public override bool IsPointInside(Vector3 particlePosition, out Vector3 surfacePoint, out Vector3 surfaceNormal)
         {
             particlePosition -= fieldPosition;
-            inverseRotation.Rotate(ref particlePosition);
+            particlePosition = Vector3.Transform(particlePosition, inverseRotation);
             particlePosition /= fieldSize;
 
             var projectedPosition = new Vector3(particlePosition.X, 0, particlePosition.Z);
@@ -129,11 +130,11 @@ namespace Stride.Particles.Updaters.FieldShapes
 
             // Fix the surface point and normal to world space
             surfaceNormal /= fieldSize;
-            fieldRotation.Rotate(ref surfaceNormal);
-            surfaceNormal.Normalize();
+            surfaceNormal = Vector3.Transform(surfaceNormal, fieldRotation);
+            surfaceNormal = Vector3.NormalizeSafe(surfaceNormal);
 
             surfacePoint *= fieldSize;
-            fieldRotation.Rotate(ref surfacePoint);
+            surfacePoint = Vector3.Transform(surfacePoint, fieldRotation);
             surfacePoint += fieldPosition;
 
             return isInside;

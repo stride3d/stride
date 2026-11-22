@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Physics;
+using System.Numerics;
 
 namespace Stride.Navigation
 {
@@ -86,7 +87,7 @@ namespace Stride.Navigation
             tangent = Math.Abs(normal.Y) < 0.01f
                 ? new Vector3(normal.Z, normal.Y, -normal.X)
                 : new Vector3(-normal.Y, normal.X, normal.Z);
-            tangent.Normalize();
+            tangent = Vector3.NormalizeSafe(tangent);
             binormal = Vector3.Cross(normal, tangent);
             tangent = Vector3.Cross(binormal, normal);
         }

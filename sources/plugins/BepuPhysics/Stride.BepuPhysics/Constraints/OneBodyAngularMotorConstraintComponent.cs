@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Constraints;
 
@@ -24,11 +25,11 @@ public sealed class OneBodyAngularMotorConstraintComponent : OneBodyConstraintCo
     {
         get
         {
-            return BepuConstraint.TargetVelocity.ToStride();
+            return BepuConstraint.TargetVelocity;
         }
         set
         {
-            BepuConstraint.TargetVelocity = value.ToNumeric();
+            BepuConstraint.TargetVelocity = value;
             TryUpdateDescription();
         }
     }

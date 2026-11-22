@@ -8,6 +8,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Physics
 {

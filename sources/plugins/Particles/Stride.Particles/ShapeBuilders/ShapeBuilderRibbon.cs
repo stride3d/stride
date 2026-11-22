@@ -9,6 +9,7 @@ using Stride.Particles.Sorters;
 using Stride.Particles.VertexLayouts;
 using Stride.Particles.ShapeBuilders.Tools;
 using System.Runtime.CompilerServices;
+using System.Numerics;
 
 namespace Stride.Particles.ShapeBuilders
 {
@@ -109,7 +110,7 @@ namespace Stride.Particles.ShapeBuilders
 
         /// <inheritdoc />
         public override unsafe int BuildVertexBuffer(ref ParticleBufferState bufferState, Vector3 invViewX, Vector3 invViewY,
-            ref Vector3 spaceTranslation, ref Quaternion spaceRotation, float spaceScale, ref ParticleList sorter, ref Matrix viewProj)
+            ref Vector3 spaceTranslation, ref Quaternion spaceRotation, float spaceScale, ref ParticleList sorter, ref Matrix4x4 viewProj)
         {
             // Get all the required particle fields
             var positionField = sorter.GetField(ParticleFields.Position);
@@ -122,8 +123,8 @@ namespace Stride.Particles.ShapeBuilders
             // Check if the draw space is identity - in this case we don't need to transform the position, scale and rotation vectors
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             var trsIdentity = (spaceScale == 1f);
-            trsIdentity = trsIdentity && (spaceTranslation.Equals(Vector3.Zero));
-            trsIdentity = trsIdentity && (spaceRotation.Equals(Quaternion.Identity));
+            trsIdentity = trsIdentity && (spaceTranslation == Vector3.Zero);
+            trsIdentity = trsIdentity && (spaceRotation == Quaternion.Identity);
 
             var ribbonizer = new Ribbonizer(this, currentTotalParticles, currentQuadsPerParticle);
 
@@ -153,7 +154,7 @@ namespace Stride.Particles.ShapeBuilders
 
                 if (!trsIdentity)
                 {
-                    spaceRotation.Rotate(ref centralPos);
+                    centralPos = Vector3.Transform(centralPos, spaceRotation);
                     centralPos = centralPos * spaceScale + spaceTranslation;
                     particleSize *= spaceScale;
                 }
@@ -261,9 +262,9 @@ namespace Stride.Particles.ShapeBuilders
                 // Camera-oriented
                 var unitX = axis0 + axis1;
                 unitX -= Vector3.Dot(invViewZ, unitX) * invViewZ;
-                var rotationQuaternion = Quaternion.RotationAxis(invViewZ, -MathUtil.PiOverTwo);
-                rotationQuaternion.Rotate(ref unitX);
-                unitX.Normalize();
+                var rotationQuaternion = Quaternion.CreateFromAxisAngle(invViewZ, -MathUtil.PiOverTwo);
+                unitX = Vector3.Transform(unitX, rotationQuaternion);
+                unitX = Vector3.NormalizeSafe(unitX);
 
                 return unitX * (particleSize * 0.5f);
             }
@@ -311,9 +312,9 @@ namespace Stride.Particles.ShapeBuilders
 
                             // Circular motion
                             var dist1 = positions[index + j] - O1;
-                            dist1.Normalize();
+                            dist1 = Vector3.NormalizeSafe(dist1);
                             var dist2 = positions[index + j] - O2;
-                            dist2.Normalize();
+                            dist2 = Vector3.NormalizeSafe(dist2);
 
                             positions[index + j] = Vector3.Lerp(O1 + dist1*R1, O2 + dist2*R2, j*lerpStep);
 
@@ -371,7 +372,7 @@ namespace Stride.Particles.ShapeBuilders
             /// <param name="invViewX">Unit vector X in clip space as calculated from the inverse view matrix</param>
             /// <param name="invViewY">Unit vector Y in clip space as calculated from the inverse view matrix</param>
             /// <param name="quadsPerParticle">The required number of quads per each particle</param>
-            public unsafe void Ribbonize(ref ParticleBufferState bufferState, Vector3 invViewX, Vector3 invViewY, int quadsPerParticle, ref Matrix viewProj)
+            public unsafe void Ribbonize(ref ParticleBufferState bufferState, Vector3 invViewX, Vector3 invViewY, int quadsPerParticle, ref Matrix4x4 viewProj)
             {
                 if (lastParticle <= 0)
                     return;
@@ -415,17 +416,16 @@ namespace Stride.Particles.ShapeBuilders
 
                 // Step 1 - Determine the origin of the ribbon
                 var invViewZ = Vector3.Cross(invViewX, invViewY);
-                invViewZ.Normalize();
+                invViewZ = Vector3.NormalizeSafe(invViewZ);
 
-                Vector4 projectedPosition;
-                Vector3.Transform(ref positions[0], ref viewProj, out projectedPosition);
+                Vector4 projectedPosition = Vector4.Transform(positions[0], viewProj);
                 var projPt0 = new Vector3(projectedPosition.X / projectedPosition.W, projectedPosition.Y / projectedPosition.W, 0);
 
-                Vector3.Transform(ref positions[1], ref viewProj, out projectedPosition);
+                projectedPosition = Vector4.Transform(positions[1], viewProj);
                 var projPt1 = new Vector3(projectedPosition.X / projectedPosition.W, projectedPosition.Y / projectedPosition.W, 0);
 
                 var axis0 = projPt0 - projPt1;
-                axis0.Normalize();
+                axis0 = Vector3.NormalizeSafe(axis0);
 
                 var oldPoint = positions[0];
                 var oldUnitX = axis0 * (sizes[0] * 0.5f);
@@ -445,28 +445,28 @@ namespace Stride.Particles.ShapeBuilders
                     var axis1 = Vector3.Zero;
                     if (i + 1 < lastParticle)
                     {
-                        Vector3.Transform(ref positions[i], ref viewProj, out projectedPosition);
+                        projectedPosition = Vector4.Transform(positions[i], viewProj);
                         projPt0 = new Vector3(projectedPosition.X / projectedPosition.W, projectedPosition.Y / projectedPosition.W, 0);
 
-                        Vector3.Transform(ref positions[i+1], ref viewProj, out projectedPosition);
+                        projectedPosition = Vector4.Transform(positions[i+1], viewProj);
                         projPt1 = new Vector3(projectedPosition.X / projectedPosition.W, projectedPosition.Y / projectedPosition.W, 0);
 
                         axis1 = projPt0 - projPt1;
                     }
                     else
                     {
-                        Vector3.Transform(ref positions[lastParticle - 2], ref viewProj, out projectedPosition);
+                        projectedPosition = Vector4.Transform(positions[lastParticle - 2], viewProj);
                         projPt0 = new Vector3(projectedPosition.X / projectedPosition.W, projectedPosition.Y / projectedPosition.W, 0);
 
-                        Vector3.Transform(ref positions[lastParticle - 1], ref viewProj, out projectedPosition);
+                        projectedPosition = Vector4.Transform(positions[lastParticle - 1], viewProj);
                         projPt1 = new Vector3(projectedPosition.X / projectedPosition.W, projectedPosition.Y / projectedPosition.W, 0);
 
                         axis1 = projPt0 - projPt1;
                     }
-                    axis1.Normalize();
+                    axis1 = Vector3.NormalizeSafe(axis1);
 
                     var axisAvg = axis0 + axis1;
-                    axisAvg.Normalize();
+                    axisAvg = Vector3.NormalizeSafe(axisAvg);
                     var unitX = axisAvg * (particleSize * 0.5f);
                     unitX = unitX.Y * invViewX - unitX.X * invViewY;
 

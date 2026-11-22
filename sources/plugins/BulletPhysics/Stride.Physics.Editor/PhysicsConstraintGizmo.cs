@@ -12,6 +12,7 @@ using Stride.Physics;
 using Stride.Physics.Constraints;
 using Stride.Rendering;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
+using System.Numerics;
 
 namespace Stride.Physics.Editor
 {
@@ -124,7 +125,7 @@ namespace Stride.Physics.Editor
             // the constraint pivot is local to the center of rigidbody body mass
             var shapePosition = rigidbody.ColliderShape?.LocalOffset ?? Vector3.Zero;
             var shapeRotation = rigidbody.ColliderShape?.LocalRotation ?? Quaternion.Identity;
-            var shapeLocalMatrix = Matrix.RotationQuaternion(shapeRotation) * Matrix.Translation(shapePosition);
+            var shapeLocalMatrix = Matrix4x4.CreateFromQuaternion(shapeRotation) * Matrix4x4.CreateTranslation(shapePosition);
             var shapeWorldMatrix = shapeLocalMatrix * rigidbody.Entity.Transform.WorldMatrix;
             // we don't want to scale the pivot model, or the pivot translation
             ResetScale(ref shapeWorldMatrix);
@@ -132,7 +133,7 @@ namespace Stride.Physics.Editor
             // we want the pivot marker to receive scaling from the gizmo system
             var targetScale = GizmoScalingEntity.Transform.Scale;
 
-            var pivotPosition = Matrix.Scaling(targetScale) * Matrix.Translation(pivot) * shapeWorldMatrix;
+            var pivotPosition = Matrix4x4.CreateScale(targetScale) * Matrix4x4.CreateTranslation(pivot) * shapeWorldMatrix;
 
             pivotMarker.Entity.Transform.UseTRS = false;
             pivotMarker.Entity.Transform.LocalMatrix = pivotPosition;
@@ -217,19 +218,19 @@ namespace Stride.Physics.Editor
         /// <summary>
         /// This method normalizes rows within top left 3x3 sub matrix, which causes the scale to become (1,1,1).
         /// </summary>
-        private static void ResetScale(ref Matrix matrix)
+        private static void ResetScale(ref Matrix4x4 matrix)
         {
             var row1 = matrix.Right;
-            row1.Normalize();
-            matrix.Right = row1;
+            row1 = Vector3.NormalizeSafe(row1);
+            matrix.SetRight(row1);
 
             var row2 = matrix.Up;
-            row2.Normalize();
-            matrix.Up = row2;
+            row2 = Vector3.NormalizeSafe(row2);
+            matrix.SetUp(row2);
 
             var row3 = matrix.Backward;
-            row3.Normalize();
-            matrix.Backward = row3;
+            row3 = Vector3.NormalizeSafe(row3);
+            matrix.SetBackward(row3);
         }
 
         private struct PivotMarker
@@ -349,15 +350,15 @@ namespace Stride.Physics.Editor
 
                 AddModelEntity("Center", sphere, material);
 
-                var xRotation = Quaternion.RotationZ(-MathUtil.PiOverTwo); // Yup rotated towards X
+                var xRotation = Quaternion.CreateRotationZ(-MathUtil.PiOverTwo); // Yup rotated towards X
                 AddModelEntity("X", pipe, material, xRotation);
                 AddModelEntity("Xend", tip, material, position: CylinderLength / 2f * Vector3.UnitX, rotation: xRotation);
 
-                var zRotation = Quaternion.RotationX(MathUtil.PiOverTwo); // Yup rotated towards Z
+                var zRotation = Quaternion.CreateRotationX(MathUtil.PiOverTwo); // Yup rotated towards Z
                 AddModelEntity("Zend", tip, material2, position: CylinderRadius * 4f * Vector3.UnitZ, rotation: zRotation);
 
-                lowerLimit = AddModelEntity("LowerLimit", limitLower, limitMaterial, Quaternion.RotationZ(-MathUtil.PiOverTwo) * Quaternion.RotationX(-MathUtil.PiOverTwo)).Get<ModelComponent>();
-                upperLimit = AddModelEntity("UpperLimit", limitUpper, limitMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo)).Get<ModelComponent>();
+                lowerLimit = AddModelEntity("LowerLimit", limitLower, limitMaterial, Quaternion.Concatenate(Quaternion.CreateRotationZ(-MathUtil.PiOverTwo), Quaternion.CreateRotationX(-MathUtil.PiOverTwo))).Get<ModelComponent>();
+                upperLimit = AddModelEntity("UpperLimit", limitUpper, limitMaterial, Quaternion.Concatenate(Quaternion.CreateRotationZ(MathUtil.PiOverTwo), Quaternion.CreateRotationX(MathUtil.PiOverTwo))).Get<ModelComponent>();
 
                 Update(desc);
             }
@@ -416,16 +417,16 @@ namespace Stride.Physics.Editor
 
                 AddModelEntity("Center", sphere, material);
 
-                var xRotation = Quaternion.RotationAxis(Vector3.UnitZ, -MathUtil.PiOverTwo); // Yup rotated towards X
+                var xRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, -MathUtil.PiOverTwo); // Yup rotated towards X
                 AddModelEntity("X", pipe, material, xRotation);
                 AddModelEntity("Xend", tip, material, position: CylinderLength / 2f * Vector3.UnitX, rotation: xRotation);
 
-                var zRotation = Quaternion.RotationAxis(Vector3.UnitX, MathUtil.PiOverTwo); // Yup rotated towards Z
+                var zRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathUtil.PiOverTwo); // Yup rotated towards Z
                 AddModelEntity("Zend", tip, material2, position: CylinderRadius * 4f * Vector3.UnitZ, rotation: zRotation);
 
-                this.limitZ = AddModelEntity("LimitZ", limitZ, limitMaterial, Quaternion.RotationY(MathF.PI + (lastLimitZ / 2f)), position: new Vector3(CylinderLength / 2, 0, 0)).Get<ModelComponent>();
-                this.limitY = AddModelEntity("LimitY", limitY, limitMaterial, Quaternion.RotationY(MathF.PI + (lastLimitY / 2f)) * Quaternion.RotationX(-MathUtil.PiOverTwo), position: new Vector3(CylinderLength / 2, 0, 0)).Get<ModelComponent>();
-                this.limitT = AddModelEntity("LimitT", limitT, limitMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo - lastLimitT / 2f)).Get<ModelComponent>();
+                this.limitZ = AddModelEntity("LimitZ", limitZ, limitMaterial, Quaternion.CreateRotationY(MathF.PI + (lastLimitZ / 2f)), position: new Vector3(CylinderLength / 2, 0, 0)).Get<ModelComponent>();
+                this.limitY = AddModelEntity("LimitY", limitY, limitMaterial, Quaternion.Concatenate(Quaternion.CreateRotationY(MathF.PI + (lastLimitY / 2f)), Quaternion.CreateRotationX(-MathUtil.PiOverTwo)), position: new Vector3(CylinderLength / 2, 0, 0)).Get<ModelComponent>();
+                this.limitT = AddModelEntity("LimitT", limitT, limitMaterial, Quaternion.Concatenate(Quaternion.CreateRotationZ(MathUtil.PiOverTwo), Quaternion.CreateRotationX(MathUtil.PiOverTwo - lastLimitT / 2f))).Get<ModelComponent>();
 
                 Update(desc);
             }
@@ -445,7 +446,7 @@ namespace Stride.Physics.Editor
                 {
                     var limitMesh = GetLimitDisc(GraphicsDevice, newLimitZ).ToMeshDraw();
                     limitZ.Model = new Model { limitMaterial, new Mesh { Draw = limitMesh } };
-                    limitZ.Entity.Transform.Rotation = Quaternion.RotationY(MathF.PI + (newLimitZ / 2f));
+                    limitZ.Entity.Transform.Rotation = Quaternion.CreateRotationY(MathF.PI + (newLimitZ / 2f));
                     lastLimitZ = newLimitZ;
                 }
 
@@ -453,7 +454,7 @@ namespace Stride.Physics.Editor
                 {
                     var limitMesh = GetLimitDisc(GraphicsDevice, newLimitY).ToMeshDraw();
                     limitY.Model = new Model { limitMaterial, new Mesh { Draw = limitMesh } };
-                    limitY.Entity.Transform.Rotation = Quaternion.RotationY(MathF.PI + (newLimitY / 2f)) * Quaternion.RotationX(-MathUtil.PiOverTwo);
+                    limitY.Entity.Transform.Rotation = Quaternion.Concatenate(Quaternion.CreateRotationY(MathF.PI + (newLimitY / 2f)), Quaternion.CreateRotationX(-MathUtil.PiOverTwo));
                     lastLimitY = newLimitY;
                 }
 
@@ -461,7 +462,7 @@ namespace Stride.Physics.Editor
                 {
                     var limitMesh = GetLimitDisc(GraphicsDevice, newLimitT).ToMeshDraw();
                     limitT.Model = new Model { limitMaterial, new Mesh { Draw = limitMesh } };
-                    limitT.Entity.Transform.Rotation = Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo - newLimitT / 2f);
+                    limitT.Entity.Transform.Rotation = Quaternion.Concatenate(Quaternion.CreateRotationZ(MathUtil.PiOverTwo), Quaternion.CreateRotationX(MathUtil.PiOverTwo - newLimitT / 2f));
                     lastLimitT = newLimitT;
                 }
             }
@@ -478,11 +479,11 @@ namespace Stride.Physics.Editor
                 var material = GetMaterial(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
                 var discMaterial = GetMaterial(graphicsDevice, LimitColor);
 
-                var xRotation = Quaternion.RotationZ(-MathUtil.PiOverTwo); // Yup rotated towards X
+                var xRotation = Quaternion.CreateRotationZ(-MathUtil.PiOverTwo); // Yup rotated towards X
                 AddModelEntity("X", pipe, material, xRotation);
                 AddModelEntity("Xend", tip, material, position: CylinderLength / 2f * Vector3.UnitX, rotation: xRotation);
 
-                AddModelEntity("Disc", disc, discMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo)).Get<ModelComponent>();
+                AddModelEntity("Disc", disc, discMaterial, Quaternion.CreateRotationZ(MathUtil.PiOverTwo)).Get<ModelComponent>();
 
                 Update(desc);
             }
@@ -522,15 +523,15 @@ namespace Stride.Physics.Editor
 
                 AddModelEntity("Center", sphere, material);
 
-                var xRotation = Quaternion.RotationZ(-MathUtil.PiOverTwo); // Yup rotated towards X
+                var xRotation = Quaternion.CreateRotationZ(-MathUtil.PiOverTwo); // Yup rotated towards X
                 AddModelEntity("X", pipe, material, xRotation);
                 AddModelEntity("Xend", tip, material, position: CylinderLength / 2f * Vector3.UnitX, rotation: xRotation);
 
-                var zRotation = Quaternion.RotationX(MathUtil.PiOverTwo); // Yup rotated towards Z
+                var zRotation = Quaternion.CreateRotationX(MathUtil.PiOverTwo); // Yup rotated towards Z
                 AddModelEntity("Zend", tip, material2, position: CylinderRadius * 4f * Vector3.UnitZ, rotation: zRotation);
 
-                lowerAngulerLimit = AddModelEntity("LowerAngularLimit", limitLower, limitMaterial, Quaternion.RotationZ(-MathUtil.PiOverTwo) * Quaternion.RotationX(-MathUtil.PiOverTwo)).Get<ModelComponent>();
-                upperAngularLimit = AddModelEntity("UpperAngularLimit", limitUpper, limitMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo)).Get<ModelComponent>();
+                lowerAngulerLimit = AddModelEntity("LowerAngularLimit", limitLower, limitMaterial, Quaternion.Concatenate(Quaternion.CreateRotationZ(-MathUtil.PiOverTwo), Quaternion.CreateRotationX(-MathUtil.PiOverTwo))).Get<ModelComponent>();
+                upperAngularLimit = AddModelEntity("UpperAngularLimit", limitUpper, limitMaterial, Quaternion.Concatenate(Quaternion.CreateRotationZ(MathUtil.PiOverTwo), Quaternion.CreateRotationX(MathUtil.PiOverTwo))).Get<ModelComponent>();
 
                 lowerLinearLimit = AddModelEntity("LowerLinearLimit", sphere, limitMaterial);
                 upperLinearLimit = AddModelEntity("UpperLinearLimit", sphere, limitMaterial);

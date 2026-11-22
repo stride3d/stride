@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Stride.Core.Mathematics;
 using Stride.UI.Editor.Game;
 using Stride.UI;
+using System.Numerics;
 
 namespace Stride.UI.Editor.Adorners
 {

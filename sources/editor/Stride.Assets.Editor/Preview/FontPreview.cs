@@ -6,6 +6,7 @@ using Stride.Core.Assets;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Preview;
 

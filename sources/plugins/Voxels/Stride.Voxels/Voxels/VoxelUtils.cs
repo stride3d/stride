@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Rendering.Voxels
 {

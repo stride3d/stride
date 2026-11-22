@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -90,7 +91,7 @@ namespace Stride.Physics
         /// </summary>
         /// <param name="frameA">The frame a.</param>
         /// <param name="frameB">The frame b.</param>
-        public void SetFrames(Matrix frameA, Matrix frameB)
+        public void SetFrames(Matrix4x4 frameA, Matrix4x4 frameB)
         {
             InternalConeTwistConstraint.SetFrames(frameA, frameB);
         }

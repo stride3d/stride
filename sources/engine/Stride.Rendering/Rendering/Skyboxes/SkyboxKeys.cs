@@ -5,6 +5,7 @@ using System;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Shaders;
+using System.Numerics;
 
 namespace Stride.Rendering.Skyboxes
 {
@@ -13,7 +14,7 @@ namespace Stride.Rendering.Skyboxes
     {
         public static readonly ValueParameterKey<float> Intensity = ParameterKeys.NewValue(1.0f);
 
-        public static readonly ValueParameterKey<Matrix> SkyMatrix = ParameterKeys.NewValue(Matrix.Identity);
+        public static readonly ValueParameterKey<Matrix4x4> SkyMatrix = ParameterKeys.NewValue(Matrix4x4.Identity);
 
         public static readonly PermutationParameterKey<ShaderSource> Shader = ParameterKeys.NewPermutation<ShaderSource>();
 

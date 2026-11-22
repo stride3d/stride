@@ -3,6 +3,7 @@
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.SpriteStudio.Runtime
 {
@@ -33,7 +34,7 @@ namespace Stride.SpriteStudio.Runtime
         public TransformTRS Transform;
 
         /// <inheritdoc/>
-        public override void ComputeMatrix(bool recursive, out Matrix matrix)
+        public override void ComputeMatrix(bool recursive, out Matrix4x4 matrix)
         {
             // Updated? (rare slow path)
             if (sheet != parentModelComponent.Sheet)
@@ -58,7 +59,7 @@ namespace Stride.SpriteStudio.Runtime
             }
 
             // Compute using ModelTransform
-            Matrix.Multiply(ref nodes[nodeIndex].ModelTransform, ref parentModelComponent.Entity.Transform.WorldMatrix, out matrix);
+            matrix = nodes[nodeIndex].ModelTransform * parentModelComponent.Entity.Transform.WorldMatrix;
         }
 
         public bool NeedsRecreate(Entity parentEntity, string targetNodeName)

@@ -5,6 +5,7 @@ using Stride.Assets.Editor.EditorGame;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -70,6 +71,6 @@ public sealed class SceneCameraFramingTests
     private static void AssertNearEqual(Vector3 expected, Vector3 actual)
     {
         var epsilon = new Vector3(1e-4f);
-        Assert.True(Vector3.NearEqual(in expected, in actual, in epsilon), $"Expected {expected}, got {actual}.");
+        Assert.True(expected.NearEquals(actual, epsilon), $"Expected {expected}, got {actual}.");
     }
 }

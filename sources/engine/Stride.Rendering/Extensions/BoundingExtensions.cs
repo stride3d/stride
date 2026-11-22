@@ -7,12 +7,13 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Graphics.Semantics;
+using System.Numerics;
 
 namespace Stride.Extensions
 {
     public static class BoundingExtensions
     {
-        public static BoundingBox ComputeBounds(this VertexBufferBinding vertexBufferBinding, ref Matrix matrix, out BoundingSphere boundingSphere)
+        public static BoundingBox ComputeBounds(this VertexBufferBinding vertexBufferBinding, ref Matrix4x4 matrix, out BoundingSphere boundingSphere)
         {
             var helper = new VertexBufferHelper(vertexBufferBinding, vertexBufferBinding.Buffer.GetSerializationData().Content, out _);
 
@@ -32,7 +33,7 @@ namespace Stride.Extensions
         {
             public required ref BoundingBox Box;
             public required ref BoundingSphere Sphere;
-            public required Matrix Matrix;
+            public required Matrix4x4 Matrix;
 
             public unsafe void Read<TConverter, TSource>(byte* startPointer, int elementCount, int stride, Span<Vector3> destination) where TConverter : IConverter<TSource, Vector3> where TSource : unmanaged
             {
@@ -42,10 +43,10 @@ namespace Stride.Extensions
                     TConverter.Convert(*(TSource*)sourcePtr, out var position);
                     Vector3 transformedPosition;
 
-                    Vector3.TransformCoordinate(ref position, ref Matrix, out transformedPosition);
+                    transformedPosition = Vector3.TransformCoordinate(position, Matrix);
 
                     // Prepass calculate the center of the sphere
-                    Vector3.Add(ref transformedPosition, ref Sphere.Center, out Sphere.Center);
+                    Sphere.Center = transformedPosition + Sphere.Center;
                     
                     BoundingBox.Merge(ref Box, ref transformedPosition, out Box);
                 }
@@ -59,12 +60,11 @@ namespace Stride.Extensions
                     TConverter.Convert(*(TSource*)sourcePtr, out var position);
                     Vector3 transformedPosition;
 
-                    Vector3.TransformCoordinate(ref position, ref Matrix, out transformedPosition);
+                    transformedPosition = Vector3.TransformCoordinate(position, Matrix);
 
                     //We are doing a relative distance comparison to find the maximum distance
                     //from the center of our sphere.
-                    float distance;
-                    Vector3.DistanceSquared(ref Sphere.Center, ref transformedPosition, out distance);
+                    float distance = Vector3.DistanceSquared(Sphere.Center, transformedPosition);
 
                     if (distance > Sphere.Radius)
                         Sphere.Radius = distance;

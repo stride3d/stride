@@ -5,6 +5,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Physics.Constraints
 {
@@ -59,8 +60,8 @@ namespace Stride.Physics.Constraints
         /// <inheritdoc/>
         public Constraint Build(RigidbodyComponent bodyA, RigidbodyComponent bodyB)
         {
-            var frameA = Matrix.RotationQuaternion(AxisInA) * Matrix.Translation(PivotInA);
-            var frameB = Matrix.RotationQuaternion(AxisInB) * Matrix.Translation(PivotInB);
+            var frameA = Matrix4x4.CreateFromQuaternion(AxisInA) * Matrix4x4.CreateTranslation(PivotInA);
+            var frameB = Matrix4x4.CreateFromQuaternion(AxisInB) * Matrix4x4.CreateTranslation(PivotInB);
 
             var coneTwist = (bodyB == null
                 ? Simulation.CreateConstraint(ConstraintTypes.ConeTwist, bodyA, frameA)

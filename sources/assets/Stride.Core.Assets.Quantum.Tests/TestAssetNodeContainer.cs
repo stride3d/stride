@@ -5,6 +5,7 @@ using Stride.Core.Assets.Quantum.Tests.Helpers;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Assets.Quantum.Tests;
 
@@ -47,7 +48,7 @@ public class TestAssetNodeContainer
     [InlineData(typeof(Quaternion))]
     [InlineData(typeof(RectangleF))]
     [InlineData(typeof(Rectangle))]
-    [InlineData(typeof(Matrix))]
+    [InlineData(typeof(Matrix4x4))]
     [InlineData(typeof(AngleSingle))]
     // Types matched by assignability to an abstract/base primitive type.
     [InlineData(typeof(UPath))]

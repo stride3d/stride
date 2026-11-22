@@ -1,6 +1,7 @@
 {
   "os": "iOS 26.5.0",
   "cpu": "Arm64",
+  "cpuFeatures": "",
   "gpu": "Apple iOS simulator GPU",
   "gpuVendorId": "0x106B",
   "gpuDeviceId": "0x1A040002",

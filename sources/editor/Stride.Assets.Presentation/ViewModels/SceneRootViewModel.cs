@@ -18,6 +18,7 @@ using Stride.Core.Serialization;
 using Stride.Core.Threading;
 using Stride.Engine;
 using Stride.Core.Assets.Presentation.ViewModels;
+using System.Numerics;
 
 namespace Stride.Assets.Presentation.ViewModels;
 

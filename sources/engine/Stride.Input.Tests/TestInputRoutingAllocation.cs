@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Input.Tests;
 

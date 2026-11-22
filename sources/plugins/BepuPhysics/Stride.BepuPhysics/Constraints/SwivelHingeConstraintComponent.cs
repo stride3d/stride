@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using System.Numerics;
 
 namespace Stride.BepuPhysics.Constraints;
 
@@ -22,11 +23,11 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
     {
         get
         {
-            return BepuConstraint.LocalOffsetA.ToStride();
+            return BepuConstraint.LocalOffsetA;
         }
         set
         {
-            BepuConstraint.LocalOffsetA = value.ToNumeric();
+            BepuConstraint.LocalOffsetA = value;
             TryUpdateDescription();
         }
     }
@@ -35,11 +36,11 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
     {
         get
         {
-            return BepuConstraint.LocalSwivelAxisA.ToStride();
+            return BepuConstraint.LocalSwivelAxisA;
         }
         set
         {
-            BepuConstraint.LocalSwivelAxisA = value.ToNumeric();
+            BepuConstraint.LocalSwivelAxisA = value;
             TryUpdateDescription();
         }
     }
@@ -49,11 +50,11 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
     {
         get
         {
-            return BepuConstraint.LocalOffsetB.ToStride();
+            return BepuConstraint.LocalOffsetB;
         }
         set
         {
-            BepuConstraint.LocalOffsetB = value.ToNumeric();
+            BepuConstraint.LocalOffsetB = value;
             TryUpdateDescription();
         }
     }
@@ -62,11 +63,11 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
     {
         get
         {
-            return BepuConstraint.LocalHingeAxisB.ToStride();
+            return BepuConstraint.LocalHingeAxisB;
         }
         set
         {
-            BepuConstraint.LocalHingeAxisB = value.ToNumeric();
+            BepuConstraint.LocalHingeAxisB = value;
             TryUpdateDescription();
         }
     }

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+using System.Numerics;
 
 namespace Stride.Core.Mathematics.Tests;
 
@@ -80,7 +81,7 @@ public class TestInt4
         Assert.Equal(8, result.Z);
         Assert.Equal(10, result.W);
 
-        Int4.Add(ref v1, ref v2, out var result2);
+        var result2 = Int4.Add(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -95,7 +96,7 @@ public class TestInt4
         Assert.Equal(6, result.Z);
         Assert.Equal(7, result.W);
 
-        Int4.Subtract(ref v1, ref v2, out var result2);
+        var result2 = Int4.Subtract(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -112,7 +113,7 @@ public class TestInt4
         var result2 = 2 * v;
         Assert.Equal(result, result2);
 
-        Int4.Multiply(ref v, 2, out var result3);
+        var result3 = Int4.Multiply(v, 2);
         Assert.Equal(result, result3);
     }
 
@@ -126,7 +127,7 @@ public class TestInt4
         Assert.Equal(15, result.Z);
         Assert.Equal(20, result.W);
 
-        Int4.Divide(ref v, 2, out var result2);
+        var result2 = Int4.Divide(v, 2);
         Assert.Equal(result, result2);
     }
 
@@ -140,7 +141,7 @@ public class TestInt4
         Assert.Equal(-7, result.Z);
         Assert.Equal(9, result.W);
 
-        Int4.Negate(ref v, out var result2);
+        var result2 = Int4.Negate(v);
         Assert.Equal(result, result2);
     }
 
@@ -157,7 +158,7 @@ public class TestInt4
         Assert.Equal(10, result.Z);
         Assert.Equal(10, result.W);
 
-        Int4.Clamp(ref value, ref min, ref max, out var result2);
+        var result2 = Int4.Clamp(value, min, max);
         Assert.Equal(result, result2);
     }
 
@@ -172,7 +173,7 @@ public class TestInt4
         Assert.Equal(3, result.Z);
         Assert.Equal(7, result.W);
 
-        Int4.Min(ref v1, ref v2, out var result2);
+        var result2 = Int4.Min(v1, v2);
         Assert.Equal(result, result2);
     }
 
@@ -187,7 +188,7 @@ public class TestInt4
         Assert.Equal(4, result.Z);
         Assert.Equal(8, result.W);
 
-        Int4.Max(ref v1, ref v2, out var result2);
+        var result2 = Int4.Max(v1, v2);
         Assert.Equal(result, result2);
     }
 

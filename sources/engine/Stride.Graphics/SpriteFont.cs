@@ -17,6 +17,7 @@ using Stride.Graphics.Font;
 
 using Color = Stride.Core.Mathematics.Color;
 using RectangleF = Stride.Core.Mathematics.RectangleF;
+using System.Numerics;
 
 namespace Stride.Graphics
 {
@@ -226,8 +227,8 @@ namespace Stride.Graphics
             var spriteEffects = parameters.SpriteEffects;
 
             var offset = new Vector2(glyphPosition.X, glyphPosition.Y + GetBaseOffsetY(fontSize.Y) + glyphPosition.Glyph.Offset.Y);
-            Vector2.Modulate(ref offset, ref AxisDirectionTable[(int)spriteEffects & 3], out offset);
-            Vector2.Add(ref offset, ref parameters.Origin, out offset);
+            offset *= AxisDirectionTable[(int)spriteEffects & 3];
+            offset += parameters.Origin;
             offset.X = MathF.Round(offset.X);
             offset.Y = MathF.Round(offset.Y);
 
@@ -235,7 +236,7 @@ namespace Stride.Graphics
             {
                 // For mirrored characters, specify bottom and/or right instead of top left.
                 var glyphRect = new Vector2(glyphPosition.Glyph.Subrect.Right - glyphPosition.Glyph.Subrect.Left, glyphPosition.Glyph.Subrect.Top - glyphPosition.Glyph.Subrect.Bottom);
-                Vector2.Modulate(ref glyphRect, ref AxisIsMirroredTable[(int)spriteEffects & 3], out offset);
+                offset = glyphRect * AxisIsMirroredTable[(int)spriteEffects & 3];
             }
             var destination = new RectangleF(parameters.Position.X, parameters.Position.Y, parameters.Scale.X, parameters.Scale.Y);
             RectangleF? sourceRectangle = glyphPosition.Glyph.Subrect;
@@ -760,7 +761,7 @@ namespace Stride.Graphics
 
             public UIBatch Batch;
 
-            public Matrix Matrix;
+            public Matrix4x4 Matrix;
 
             /// <summary>
             /// The size of the rectangle containing the text

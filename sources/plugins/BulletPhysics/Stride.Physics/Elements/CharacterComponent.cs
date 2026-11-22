@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.Physics
 {
@@ -219,7 +220,7 @@ namespace Stride.Physics
 
             //we assume that the user wants to teleport in world/entity space
             var entityPos = Entity.Transform.Position;
-            var physPos = PhysicsWorldTransform.TranslationVector;
+            var physPos = PhysicsWorldTransform.Translation;
             var diff = physPos - entityPos;
             BulletSharp.Math.Vector3 bV3 = targetPosition + diff;
             KinematicCharacter.Warp(ref bV3);

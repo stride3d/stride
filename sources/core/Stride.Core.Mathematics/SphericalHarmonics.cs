@@ -8,6 +8,8 @@
 #pragma warning disable SA1119 // Statement must not use unnecessary parenthesis
 #pragma warning disable SA1402 // File may only contain a single class
 
+using System.Numerics;
+
 namespace Stride.Core.Mathematics;
 
 /// <summary>

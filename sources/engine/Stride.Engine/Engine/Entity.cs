@@ -13,6 +13,7 @@ using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using System.Numerics;
 
 namespace Stride.Engine
 {

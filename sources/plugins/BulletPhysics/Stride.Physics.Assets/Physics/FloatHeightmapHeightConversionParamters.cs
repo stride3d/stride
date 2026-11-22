@@ -4,6 +4,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Physics;
 using Stride.Assets;
+using System.Numerics;
 
 namespace Stride.Physics.Assets
 {

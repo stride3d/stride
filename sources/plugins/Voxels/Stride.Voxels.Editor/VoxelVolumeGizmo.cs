@@ -11,6 +11,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Voxels;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
 using Buffer = Stride.Graphics.Buffer;
+using System.Numerics;
 
 namespace Stride.Voxels.Editor
 {

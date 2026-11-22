@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using System.Numerics;
 
 namespace Stride.Navigation
 {
@@ -35,13 +36,13 @@ namespace Stride.Navigation
                 Indices.Add(index + vbase);
         }
 
-        public void AppendArrays(Vector3[] vertices, int[] indices, Matrix objectTransform)
+        public void AppendArrays(Vector3[] vertices, int[] indices, Matrix4x4 objectTransform)
         {
             // Copy vertices
             int vbase = Points.Count;
             for (int i = 0; i < vertices.Length; i++)
             {
-                var vertex = Vector3.Transform(vertices[i], objectTransform).XYZ();
+                var vertex = Vector4.Transform(vertices[i], objectTransform).XYZ();
                 Points.Add(vertex);
                 BoundingBox.Merge(ref BoundingBox, ref vertex, out BoundingBox);
             }
@@ -75,14 +76,14 @@ namespace Stride.Navigation
         /// </summary>
         /// <param name="meshData"></param>
         /// <param name="objectTransform"></param>
-        public void AppendMeshData(GeometricMeshData<VertexPositionNormalTexture> meshData, Matrix objectTransform)
+        public void AppendMeshData(GeometricMeshData<VertexPositionNormalTexture> meshData, Matrix4x4 objectTransform)
         {
             // Transform box points
             int vbase = Points.Count;
             for (int i = 0; i < meshData.Vertices.Length; i++)
             {
                 VertexPositionNormalTexture point = meshData.Vertices[i];
-                point.Position = Vector3.Transform(point.Position, objectTransform).XYZ();
+                point.Position = Vector4.Transform(point.Position, objectTransform).XYZ();
                 Points.Add(point.Position);
                 BoundingBox.Merge(ref BoundingBox, ref point.Position, out BoundingBox);
             }

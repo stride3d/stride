@@ -14,6 +14,7 @@ using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Avalonia.Views;
 

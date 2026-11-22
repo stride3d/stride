@@ -7,7 +7,7 @@ using Stride.Core.Yaml.Serialization;
 namespace Stride.Core.Reflection;
 
 /// <summary>
-/// Describes a descriptor for a primitive (bool, char, sbyte, byte, int, uint, long, ulong, float, double, decimal, string, DateTime).
+/// Describes a descriptor for a primitive (bool, char, sbyte, byte, int, uint, long, ulong, Half, float, double, decimal, string, DateTime, TimeSpan).
 /// </summary>
 public class PrimitiveDescriptor : ObjectDescriptor
 {
@@ -66,7 +66,7 @@ public class PrimitiveDescriptor : ObjectDescriptor
     {
         return Type.GetTypeCode(type) switch
         {
-            TypeCode.Object or TypeCode.Empty => type == typeof(object) || type == typeof(string) || type == typeof(TimeSpan) || type == typeof(DateTime),
+            TypeCode.Object or TypeCode.Empty => type == typeof(object) || type == typeof(string) || type == typeof(TimeSpan) || type == typeof(DateTime) || type == typeof(Half),
             _ => true,
         };
     }

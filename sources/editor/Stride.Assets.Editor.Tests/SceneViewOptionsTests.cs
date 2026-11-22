@@ -15,6 +15,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Processors;
 using Stride.Rendering.LightProbes;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.Tests;
 

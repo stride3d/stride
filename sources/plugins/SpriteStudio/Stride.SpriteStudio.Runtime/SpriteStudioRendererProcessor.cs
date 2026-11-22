@@ -54,7 +54,7 @@ namespace Stride.SpriteStudio.Runtime
                 renderSpriteStudio.SortedNodes.AddRange(spriteStudioComponent.Nodes);
                 renderSpriteStudio.SortedNodes.Sort(PriorityNodeComparer.Default);
 
-                renderSpriteStudio.BoundingBox = new BoundingBoxExt { Center = renderSpriteStudio.WorldMatrix.TranslationVector };
+                renderSpriteStudio.BoundingBox = new BoundingBoxExt { Center = renderSpriteStudio.WorldMatrix.Translation };
                 renderSpriteStudio.RenderGroup = spriteStudioComponent.RenderGroup;
             }
         }

@@ -11,7 +11,7 @@ public class TestHalfVectors
     [Fact]
     public void TestHalfConstruction()
     {
-        var h1 = new Half(1.5f);
+        var h1 = (Half)1.5f;
         var h2 = (Half)2.5f;
 
         // Convert back to float for comparison
@@ -45,8 +45,8 @@ public class TestHalfVectors
     public void TestHalfArrayConversion()
     {
         float[] floats = [1.0f, 2.0f, 3.0f, 4.0f];
-        Half[] halves = Half.ConvertToHalf(floats);
-        float[] backToFloats = Half.ConvertToFloat(halves);
+        Half[] halves = Array.ConvertAll(floats, x => (Half)x);
+        float[] backToFloats = Array.ConvertAll(halves, x => (float)x);
 
         Assert.Equal(floats.Length, halves.Length);
         Assert.Equal(floats.Length, backToFloats.Length);
@@ -60,17 +60,17 @@ public class TestHalfVectors
     [Fact]
     public void TestHalfRawValue()
     {
-        var h = new Half(1.0f);
-        ushort raw = h.RawValue;
+        var h = (Half)1.0f;
+        ushort raw = BitConverter.HalfToUInt16Bits(h);
 
-        var h2 = new Half { RawValue = raw };
+        var h2 = BitConverter.UInt16BitsToHalf(raw);
         Assert.Equal((float)h, (float)h2, 2);
     }
 
     [Fact]
     public void TestHalfToString()
     {
-        var h = new Half(1.5f);
+        var h = (Half)1.5f;
         string str = h.ToString();
         Assert.NotNull(str);
         Assert.NotEmpty(str);
@@ -99,7 +99,7 @@ public class TestHalfVectors
         Assert.Equal(4.0f, (float)h4.X, 2);
         Assert.Equal(4.0f, (float)h4.Y, 2);
 
-        var h5 = new Half2([new Half(5.0f), new Half(6.0f)]);
+        var h5 = new Half2([(Half)5.0f, (Half)6.0f]);
         Assert.Equal(5.0f, (float)h5.X, 2);
         Assert.Equal(6.0f, (float)h5.Y, 2);
     }
@@ -178,7 +178,7 @@ public class TestHalfVectors
         Assert.Equal(5.0f, (float)h4.Y, 2);
         Assert.Equal(5.0f, (float)h4.Z, 2);
 
-        var h5 = new Half3([new Half(6.0f), new Half(7.0f), new Half(8.0f)]);
+        var h5 = new Half3([(Half)6.0f, (Half)7.0f, (Half)8.0f]);
         Assert.Equal(6.0f, (float)h5.X, 2);
         Assert.Equal(7.0f, (float)h5.Y, 2);
         Assert.Equal(8.0f, (float)h5.Z, 2);
@@ -270,7 +270,7 @@ public class TestHalfVectors
         Assert.Equal(6.0f, (float)h4.Z, 2);
         Assert.Equal(6.0f, (float)h4.W, 2);
 
-        var h5 = new Half4([new Half(7.0f), new Half(8.0f), new Half(9.0f), new Half(10.0f)]);
+        var h5 = new Half4([(Half)7.0f, (Half)8.0f, (Half)9.0f, (Half)10.0f]);
         Assert.Equal(7.0f, (float)h5.X, 2);
         Assert.Equal(8.0f, (float)h5.Y, 2);
         Assert.Equal(9.0f, (float)h5.Z, 2);

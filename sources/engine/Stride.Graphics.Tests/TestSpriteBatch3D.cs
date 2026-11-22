@@ -7,6 +7,7 @@ using Xunit;
 
 using Stride.Core.Mathematics;
 using Stride.Games;
+using System.Numerics;
 
 namespace Stride.Graphics.Tests
 {
@@ -71,7 +72,7 @@ namespace Stride.Graphics.Tests
         private void Draw(Sprite sprite, Vector3 position, Vector3? rotationParam = null, Vector2? sizeParam = null, Color4? colorParam = null)
         {
             var rotation = rotationParam ?? Vector3.Zero;
-            var worldMatrix = Matrix.RotationYawPitchRoll(rotation.X, rotation.Y, rotation.Z) * Matrix.Translation(position);
+            var worldMatrix = Matrix4x4.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z) * Matrix4x4.CreateTranslation(position);
             var color = colorParam ?? Color4.White;
             var size = sizeParam ?? sprite.Size;
 
@@ -82,8 +83,8 @@ namespace Stride.Graphics.Tests
         {
             var cameraSize = 320f;
             var cameraNear = 50;
-            var projectionMatrix = Matrix.PerspectiveRH(cameraSize, cameraSize, cameraNear, 10000);
-            var viewMatrix = Matrix.LookAtRH(cameraNear * 2.0f * Vector3.UnitZ, Vector3.Zero, Vector3.UnitY);
+            var projectionMatrix = Matrix4x4.CreatePerspective(cameraSize, cameraSize, cameraNear, 10000);
+            var viewMatrix = Matrix4x4.CreateLookAt(cameraNear * 2.0f * Vector3.UnitZ, Vector3.Zero, Vector3.UnitY);
 
             GraphicsContext.CommandList.Clear(GraphicsDevice.Presenter.BackBuffer, Color.Black);
             GraphicsContext.CommandList.Clear(GraphicsDevice.Presenter.DepthStencilBuffer, DepthStencilClearOptions.DepthBuffer);
@@ -144,7 +145,7 @@ namespace Stride.Graphics.Tests
             var time = timeInSeconds;
             var rotation = (float)(time * Math.PI * 2.0);
             var sourceRectangle = GetSphereAnimation(time);
-            var world = Matrix.RotationYawPitchRoll(0, 0, rotation) * Matrix.Translation(pos);
+            var world = Matrix4x4.CreateFromYawPitchRoll(0, 0, rotation) * Matrix4x4.CreateTranslation(pos);
             var size = new Vector2(SphereWidth, SphereHeight);
             var color = Color4.White;
             batch.Draw(sphere, ref world, ref sourceRectangle, ref size, ref color);

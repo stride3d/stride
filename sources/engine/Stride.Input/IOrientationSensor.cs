@@ -3,6 +3,7 @@
 
 using System;
 using Stride.Core.Mathematics;
+using System.Numerics;
 
 namespace Stride.Input
 {
@@ -34,6 +35,6 @@ namespace Stride.Input
         /// <summary>
         /// Gets the rotation matrix specifying the current rotation of the device.
         /// </summary>
-        Matrix RotationMatrix { get;  }
+        Matrix4x4 RotationMatrix { get;  }
     }
 }

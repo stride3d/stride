@@ -4,6 +4,7 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using System.Numerics;
 
 namespace Stride.Rendering.Lights
 {
@@ -88,10 +89,10 @@ namespace Stride.Rendering.Lights
                 // Compute light direction and position
                 Vector3 lightDirection;
                 var lightDir = DefaultDirection;
-                Vector3.TransformNormal(ref lightDir, ref renderLight.WorldMatrix, out lightDirection);
-                lightDirection.Normalize();
+                lightDirection = Vector3.TransformNormal(lightDir, renderLight.WorldMatrix);
+                lightDirection = Vector3.NormalizeSafe(lightDirection);
 
-                renderLight.Position = renderLight.WorldMatrix.TranslationVector;
+                renderLight.Position = renderLight.WorldMatrix.Translation;
                 renderLight.Direction = lightDirection;
 
                 // Color

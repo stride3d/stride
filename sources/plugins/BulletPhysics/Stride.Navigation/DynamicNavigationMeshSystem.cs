@@ -15,6 +15,7 @@ using Stride.Engine.Processors;
 using Stride.Games;
 using Stride.Navigation.Processors;
 using Stride.Physics;
+using System.Numerics;
 
 namespace Stride.Navigation
 {

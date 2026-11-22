@@ -10,6 +10,7 @@ using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.TextureConverter;
+using System.Numerics;
 
 namespace Stride.Assets.Editor.ViewModels.SpriteEditor;
 
