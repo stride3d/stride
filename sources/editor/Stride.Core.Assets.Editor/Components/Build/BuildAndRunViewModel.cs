@@ -3,12 +3,16 @@
 
 using System.ComponentModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Components.Status;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
+using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
@@ -23,7 +27,10 @@ namespace Stride.Core.Assets.Editor.Components.Build;
 /// project, Start project and Cancel build commands, the log of the build in the Output pane and the build job in the status bar.
 /// </summary>
 /// <remarks>
-/// The build goes through the <see cref="IGameProjectBuilder"/> service. A game of the editor's own platform starts through the
+/// The build goes through the <see cref="IGameProjectBuilder"/> service; it is skipped when nothing it reads changed since the last
+/// successful build of the same project, platform and configuration (<see cref="GameBuildFastPath"/>), unless the setting
+/// <see cref="EditorSettings.SkipUnchangedBuilds"/> is off or the build is forced (<see cref="ForceBuildProjectCommand"/>). A game of
+/// the editor's own platform starts through the
 /// <see cref="IGameLauncher"/> service; the games of the platforms with a deploy step (<see cref="RegisterDeployer"/>) are deployed by
 /// it. Live scripting is not part of it; the reload of the game assemblies is <see cref="GameCodeReloadViewModel"/>, which builds the
 /// changed code with <see cref="BuildCodeAsync"/>.
@@ -40,6 +47,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     // The console output of the games started from the editor: it stays in the Output pane until they exit, across builds
     private readonly List<Logger> gameOutputs = [];
     private readonly Dictionary<PlatformType, IGameDeployer> deployers = [];
+    private readonly GameBuildFastPath fastPath = new();
     private SessionViewModel? session;
     private IGameProjectBuild? currentBuild;
     // Canceled by Cancel build: before the build starts (while the session saves), it does not start at all
@@ -48,6 +56,8 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     private int buildHolds;
     private bool isOutputVisible;
     private string outputTitle;
+    // When the last build that was skipped had been built; null when the current build ran
+    private DateTime? skippedBuildTime;
 
     /// <param name="serviceProvider">The services of the editor: the builder, the game launcher and the dialogs.</param>
     /// <param name="status">The status bar that shows the build; <c>null</c> for none.</param>
@@ -63,6 +73,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         };
         BuildLog.Messages.CollectionChanged += BuildLogChanged;
         BuildProjectCommand = new AnonymousTaskCommand(serviceProvider, () => BuildAsync(false));
+        ForceBuildProjectCommand = new AnonymousTaskCommand(serviceProvider, () => BuildAsync(false, forceBuild: true));
         StartProjectCommand = new AnonymousTaskCommand(serviceProvider, () => BuildAsync(true));
         CancelBuildCommand = new AnonymousCommand(serviceProvider, CancelBuild);
         UpdateCommands();
@@ -154,6 +165,11 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     public ICommandBase BuildProjectCommand { get; }
 
     /// <summary>
+    /// Saves the session and builds its current project, even when nothing changed since its last build.
+    /// </summary>
+    public ICommandBase ForceBuildProjectCommand { get; }
+
+    /// <summary>
     /// Saves the session, builds its current project and starts its game (WPF's Start project, F5).
     /// </summary>
     public ICommandBase StartProjectCommand { get; }
@@ -168,7 +184,17 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// </summary>
     public IReadOnlyDictionary<PlatformType, IGameDeployer> Deployers => deployers;
 
+    /// <summary>
+    /// The clock that dates the builds, in the messages that say a build was skipped.
+    /// </summary>
+    internal TimeProvider Clock { get; init; } = TimeProvider.System;
+
     private IDialogService Dialogs => ServiceProvider.Get<IDialogService>();
+
+    /// <summary>
+    /// Whether Build project and Start project skip the build when nothing changed (<see cref="EditorSettings.SkipUnchangedBuilds"/>).
+    /// </summary>
+    internal Func<bool> SkipUnchangedBuilds { get; init; } = static () => EditorSettings.SkipUnchangedBuilds.GetValue();
 
     /// <summary>
     /// Registers the deploy step of the games of a platform: it prepares their builds, and deploys and starts them instead of the
@@ -202,8 +228,9 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// Saves the session, then builds its current project and, when asked, starts its game.
     /// </summary>
     /// <param name="startProject">Whether to start the game once it is built.</param>
+    /// <param name="forceBuild">Whether to build even when nothing changed since the last build.</param>
     /// <returns>How the build went; <see cref="GameBuildOutcome.NotBuilt"/> when it did not start.</returns>
-    internal async Task<GameBuildOutcome> BuildAsync(bool startProject) => (await RunAsync(startProject)).Outcome;
+    internal async Task<GameBuildOutcome> BuildAsync(bool startProject, bool forceBuild = false) => (await RunAsync(startProject, forceBuild: forceBuild)).Outcome;
 
     /// <summary>
     /// Saves the session, then builds its current project and, when asked, starts its game.
@@ -211,8 +238,9 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// <param name="startProject">Whether to start the game once it is built.</param>
     /// <param name="start">Starts the game instead of the deploy step of its platform (for example in a debugging mode): it gets the
     /// project, the log of the build and the token of Cancel build, and tells whether the game started; <c>null</c> for the deploy step.</param>
+    /// <param name="forceBuild">Whether to build even when nothing changed since the last build.</param>
     /// <returns>How the build went, and the game started on this machine if any.</returns>
-    internal async Task<GameRunResult> RunAsync(bool startProject, Func<ProjectViewModel, ILogger, CancellationToken, Task<bool>>? start = null)
+    internal async Task<GameRunResult> RunAsync(bool startProject, Func<ProjectViewModel, ILogger, CancellationToken, Task<bool>>? start = null, bool forceBuild = false)
     {
         if (BuildInProgress || BuildsHeld || session is not { } buildSession)
             return new GameRunResult(GameBuildOutcome.NotBuilt, null);
@@ -220,7 +248,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         IGameProcess? game = null;
         var outcome = await RunBuildAsync(() => PrepareBuildAsync(buildSession), async () =>
         {
-            var (buildOutcome, startedGame) = await BuildCoreAsync(buildSession, startProject, start);
+            var (buildOutcome, startedGame) = await BuildCoreAsync(buildSession, startProject, start, forceBuild);
             game = startedGame;
             return buildOutcome;
         });
@@ -288,6 +316,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     {
         cancellation.Dispose();
         cancellation = new CancellationTokenSource();
+        skippedBuildTime = null;
         BuildInProgress = true;
         try
         {
@@ -306,6 +335,8 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
                     status!.NotifyBackgroundJobFinished(token);
                 status?.PushDiscardableStatus(outcome switch
                 {
+                    GameBuildOutcome.Succeeded when skippedBuildTime is { } builtAt => string.Format(Tr._p("Status", "Build skipped: no change since the last build at {0}"), FormatBuildTime(builtAt)),
+                    GameBuildOutcome.StartFailed when skippedBuildTime is not null => Tr._p("Status", "Build skipped, but the game did not start"),
                     GameBuildOutcome.Succeeded => Tr._p("Status", "Build successful"),
                     // The build succeeded: the Output pane says why the deployment or the start failed
                     GameBuildOutcome.StartFailed => Tr._p("Status", "Build successful, but the game did not start"),
@@ -403,7 +434,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         IsOutputVisible = true;
     }
 
-    private async Task<(GameBuildOutcome Outcome, IGameProcess? Game)> BuildCoreAsync(SessionViewModel buildSession, bool startProject, Func<ProjectViewModel, ILogger, CancellationToken, Task<bool>>? start)
+    private async Task<(GameBuildOutcome Outcome, IGameProcess? Game)> BuildCoreAsync(SessionViewModel buildSession, bool startProject, Func<ProjectViewModel, ILogger, CancellationToken, Task<bool>>? start, bool forceBuild)
     {
         var logger = new LoggerResult();
         BuildLog.AddLogger(logger);
@@ -435,7 +466,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
             request = prepared;
         }
 
-        var (outcome, build) = await BuildProjectAsync(project.Name, request, logger);
+        var (outcome, build) = await BuildOrSkipAsync(buildSession, project.Name, request, logger, forceBuild);
         if (outcome != GameBuildOutcome.Succeeded || !startProject)
             return (outcome, null);
         if (cancellationToken.IsCancellationRequested)
@@ -462,6 +493,156 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
 
         var game = StartGame(project, build!.AssemblyPath, logger);
         return (game is not null ? GameBuildOutcome.Succeeded : GameBuildOutcome.StartFailed, game);
+    }
+
+    /// <summary>
+    /// Builds a project, or skips its build when nothing it reads changed since its last successful build with the same properties
+    /// and its output is still there (<see cref="GameBuildFastPath"/>).
+    /// </summary>
+    /// <param name="buildSession">The session whose files the build reads.</param>
+    /// <param name="name">The name of the project in the log.</param>
+    /// <param name="request">The build.</param>
+    /// <param name="logger">The log of the build, in the Output pane.</param>
+    /// <param name="forceBuild">Whether to build even when nothing changed.</param>
+    /// <returns>How the build went, and the build itself (or the last one, when skipped) when it succeeded.</returns>
+    private async Task<(GameBuildOutcome Outcome, IGameProjectBuild? Build)> BuildOrSkipAsync(SessionViewModel buildSession, string name, GameProjectBuildRequest request, LoggerResult logger, bool forceBuild)
+    {
+        // Without the setting, every build runs and none is remembered
+        if (!SkipUnchangedBuilds())
+        {
+            fastPath.Clear();
+            return await BuildProjectAsync(name, request, logger);
+        }
+
+        var key = GameBuildFastPath.GetKey(request);
+        var scope = CreateInputScope(buildSession, request.ProjectPath);
+        var lastBuild = fastPath.GetLastBuild(key);
+        GameBuildInputs? inputs = null;
+        GameBuildCheck? check = null;
+        try
+        {
+            var watch = Stopwatch.StartNew();
+            (inputs, check) = await Task.Run(() =>
+            {
+                var currentInputs = GameBuildInputs.Capture(scope);
+                return (currentInputs, GameBuildFastPath.Check(lastBuild, currentInputs));
+            });
+            logger.Debug(string.Format(Tr._p("Message", "Checked {0} files for changes since the last build in {1} ms."), check.CheckedFileCount, watch.ElapsedMilliseconds));
+        }
+        catch (Exception e)
+        {
+            // The files could not be read: the build runs, and is not remembered
+            logger.Debug(Tr._p("Message", "Unable to check the files of the build for changes."), e);
+        }
+
+        if (!forceBuild && check is { CanSkip: true, LastBuild: { } upToDate })
+        {
+            if (cancellation.IsCancellationRequested)
+                return (Canceled(name, logger), null);
+            skippedBuildTime = upToDate.Time;
+            logger.Info(string.Format(Tr._p("Message", "No change since the last build of {0} at {1}: build skipped."), name, FormatBuildTime(upToDate.Time)));
+            return (GameBuildOutcome.Succeeded, upToDate.ToBuild());
+        }
+
+        if (check?.LastBuild is { } changedBuild)
+            LogBuildReason(check, changedBuild, buildSession, logger);
+
+        fastPath.Forget(key);
+        var (outcome, build) = await BuildProjectAsync(name, request, logger);
+        if (outcome == GameBuildOutcome.Succeeded && inputs is not null && build is not null)
+        {
+            try
+            {
+                var outputs = await Task.Run(() => GameBuildOutputs.Capture(build.AssemblyPath, build.TargetOutputs, inputs.ProjectFolders));
+                // An output that isn't there cannot be checked later: the next build runs
+                if (outputs.HasAssembly)
+                    fastPath.Record(key, new GameBuildRecord(inputs, outputs, Clock.GetLocalNow().DateTime, build.AssemblyPath, build.TargetOutputs));
+            }
+            catch (Exception e)
+            {
+                logger.Debug(Tr._p("Message", "Unable to read the output of the build: the next build will run."), e);
+            }
+        }
+        return (outcome, build);
+    }
+
+    /// <summary>
+    /// Gathers the folders and files of the session that a build reads.
+    /// </summary>
+    private static GameBuildInputScope CreateInputScope(SessionViewModel buildSession, string projectPath)
+    {
+        var folders = new List<string>();
+        var files = new List<string>();
+        if (buildSession.SolutionPath is { } solutionPath && !string.IsNullOrEmpty(solutionPath.FullPath))
+        {
+            var solution = solutionPath.ToOSPath();
+            files.Add(solution);
+            folders.Add(Path.GetDirectoryName(Path.GetFullPath(solution))!);
+        }
+
+        foreach (var package in buildSession.LocalPackages)
+        {
+            if (package.Package.RootDirectory is { } root)
+            {
+                folders.Add(root.ToOSPath());
+                foreach (var resourceFolder in package.Package.ResourceFolders)
+                    folders.Add((resourceFolder.IsAbsolute ? resourceFolder : UPath.Combine(root, resourceFolder)).ToOSPath());
+            }
+            foreach (var assetFolder in package.Package.GetDistinctAssetFolderPaths())
+                folders.Add(assetFolder.ToOSPath());
+            if (package is ProjectViewModel project)
+                folders.Add(Path.GetDirectoryName(project.ProjectPath.ToOSPath())!);
+        }
+
+        // The source files of the assets that the editor watches, wherever they are
+        if (buildSession.SourceTracker is not null)
+            files.AddRange(buildSession.PackageSession.SourceTracker.GetSourceFiles());
+
+        return new GameBuildInputScope(projectPath, folders, files);
+    }
+
+    /// <summary>
+    /// Says in the log why a build runs although an earlier one of the same project and properties succeeded.
+    /// </summary>
+    private void LogBuildReason(GameBuildCheck check, GameBuildRecord lastBuild, SessionViewModel buildSession, ILogger logger)
+    {
+        if (check.ChangedFiles.Count == 0)
+            return;
+
+        var time = FormatBuildTime(lastBuild.Time);
+        var file = DisplayPath(check.ChangedFiles[0], buildSession, lastBuild.Inputs.ProjectFolders[0]);
+        logger.Info(check.Result switch
+        {
+            GameBuildCheckResult.Restored => string.Format(Tr._p("Message", "The packages were restored since the last build at {0} ({1})."), time, file),
+            GameBuildCheckResult.OutputChanged => string.Format(Tr._p("Message", "The output of the last build at {0} changed ({1})."), time, file),
+            _ when check.ChangedFiles.Count == 1 => string.Format(Tr._p("Message", "{0} changed since the last build at {1}."), file, time),
+            _ => string.Format(Tr._p("Message", "{0} and {1} other files changed since the last build at {2}."), file, check.ChangedFiles.Count - 1, time),
+        });
+    }
+
+    /// <summary>
+    /// A path in the log: relative to the folder of the solution, or to the folder above the built project without a solution,
+    /// when it is in it.
+    /// </summary>
+    private static string DisplayPath(string path, SessionViewModel buildSession, string projectFolder)
+    {
+        var folder = buildSession.SolutionPath is { } solutionPath && !string.IsNullOrEmpty(solutionPath.FullPath)
+            ? Path.GetDirectoryName(Path.GetFullPath(solutionPath.ToOSPath()))
+            : Path.GetDirectoryName(projectFolder);
+        if (folder is null)
+            return path;
+        var relative = Path.GetRelativePath(folder, path);
+        return relative.StartsWith("..", StringComparison.Ordinal) || Path.IsPathRooted(relative) ? path : relative;
+    }
+
+    /// <summary>
+    /// The time of a build in the messages: the time of day for a build of today, with its date for an older one.
+    /// </summary>
+    private string FormatBuildTime(DateTime time)
+    {
+        return time.Date == Clock.GetLocalNow().Date
+            ? time.ToString("t", CultureInfo.CurrentCulture)
+            : time.ToString("g", CultureInfo.CurrentCulture);
     }
 
     /// <summary>
@@ -633,6 +814,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     private void UpdateCommands()
     {
         BuildProjectCommand.IsEnabled = session is not null && !BuildInProgress && !BuildsHeld;
+        ForceBuildProjectCommand.IsEnabled = BuildProjectCommand.IsEnabled;
         StartProjectCommand.IsEnabled = session?.CurrentProject is not null && !BuildInProgress && !BuildsHeld;
         CancelBuildCommand.IsEnabled = BuildInProgress;
     }

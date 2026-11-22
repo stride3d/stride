@@ -203,6 +203,10 @@ public sealed class PropertyViewAutoExpandNodesBehavior : StyledElementBehavior<
 
     private void NodeValueChanged(object? sender, NodeViewModelValueChangedArgs e)
     {
+        // A node whose value only changed has the same children: nothing new to show
+        if (e.IsValueOnly)
+            return;
+
         var rule = GetRule(e.Node);
         if (rule == ExpandRule.Never)
             return;

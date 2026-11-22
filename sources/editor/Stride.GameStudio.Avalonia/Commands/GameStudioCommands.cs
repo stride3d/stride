@@ -5,7 +5,9 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Threading;
 using Stride.Core.Assets.Editor.Commands;
+using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Presentation.Avalonia.Commands;
 using Stride.Core.Translation;
 using Stride.GameStudio.Avalonia.Docking;
@@ -16,9 +18,11 @@ using Stride.GameStudio.Avalonia.Views;
 namespace Stride.GameStudio.Avalonia.Commands;
 
 /// <summary>
-/// The commands of the main menu and of the main window's shortcuts that belong to this editor, for the command registry.
+/// The commands of the main menu, of the main window's shortcuts and of the toolbar of the solution explorer that belong to
+/// this editor, for the command registry.
 /// Each one runs the existing command of the main view model, as its menu item and its shortcut do; the Edit commands go to
-/// the control that last had the focus, through the main view's router.
+/// the control that last had the focus, through the main view's router; those of the solution explorer, to its view, as its
+/// buttons do.
 /// </summary>
 /// <remarks>
 /// The commands that act on the session are shared (<see cref="SessionCommands"/>). These have no placement: the main menu
@@ -44,7 +48,11 @@ internal static class GameStudioCommands
     public const string KeyboardShortcutsId = "Stride.Edit.KeyboardShortcuts";
     public const string ResetLayoutId = "Stride.View.ResetLayout";
     public const string CommandPaletteId = "Stride.View.CommandPalette";
+    public const string ExpandAssetFoldersId = "Stride.View.ExpandAssetFolders";
+    public const string ExpandAllFoldersId = "Stride.View.ExpandAllFolders";
+    public const string CollapseAllFoldersId = "Stride.View.CollapseAllFolders";
     public const string BuildProjectId = "Stride.Project.Build";
+    public const string ForceBuildProjectId = "Stride.Project.ForceBuild";
     public const string StartProjectId = "Stride.Project.Start";
     public const string CancelBuildId = "Stride.Project.CancelBuild";
     public const string ReloadGameAssembliesId = "Stride.Project.ReloadGameAssemblies";
@@ -82,8 +90,12 @@ internal static class GameStudioCommands
         // View
         Wrap(ResetLayoutId, CommandCategories.View, () => Tr._p("Menu", "Reset layout"), null, x => x.ViewMenu.ResetLayoutCommand, keywords: ["panels", "docking", "windows"]),
         CommandPalette(),
+        SolutionExplorer(ExpandAssetFoldersId, () => Tr._p("Menu", "Expand all asset folders"), x => x.ExpandAssetFolders()),
+        SolutionExplorer(ExpandAllFoldersId, () => Tr._p("Menu", "Expand all folders"), x => x.ExpandAllFolders()),
+        SolutionExplorer(CollapseAllFoldersId, () => Tr._p("Menu", "Collapse all folders"), x => x.CollapseAllFolders()),
         // Project
         Wrap(BuildProjectId, CommandCategories.Project, () => Tr._p("Menu", "Build project"), new KeyGesture(Key.F6), x => x.Build.BuildProjectCommand, keywords: ["compile"]),
+        Wrap(ForceBuildProjectId, CommandCategories.Project, () => Tr._p("Menu", "Force build project"), null, x => x.Build.ForceBuildProjectCommand, keywords: ["rebuild", "anyway", "unchanged"]),
         Wrap(StartProjectId, CommandCategories.Project, () => Tr._p("Menu", "Start project"), new KeyGesture(Key.F5), x => x.Build.StartProjectCommand, keywords: ["run", "play", "launch", "game"]),
         Wrap(CancelBuildId, CommandCategories.Project, () => Tr._p("Menu", "Cancel build"), Primary(Key.F6), x => x.Build.CancelBuildCommand, keywords: ["stop"]),
         Wrap(ReloadGameAssembliesId, CommandCategories.Project, () => Tr._p("Menu", "Reload game assemblies"), null, x => x.CodeReload.ReloadCommand, keywords: ["code", "scripts"]),
@@ -139,6 +151,7 @@ internal static class GameStudioCommands
         CommandPaletteId => main.CommandPaletteCommand,
         ResetLayoutId => main.ViewMenu.ResetLayoutCommand,
         BuildProjectId => main.Build.BuildProjectCommand,
+        ForceBuildProjectId => main.Build.ForceBuildProjectCommand,
         StartProjectId => main.Build.StartProjectCommand,
         CancelBuildId => main.Build.CancelBuildCommand,
         ReloadGameAssembliesId => main.CodeReload.ReloadCommand,
@@ -165,6 +178,33 @@ internal static class GameStudioCommands
             return Task.CompletedTask;
         },
     };
+
+    // A command of the toolbar of the solution explorer, which it shows first
+    private static CommandDescriptor SolutionExplorer(string id, Func<string> title, Action<SolutionExplorerView> action) => new()
+    {
+        Id = id,
+        Category = CommandCategories.View,
+        Title = title,
+        Keywords = ["solution explorer", "tree", "packages", "directories"],
+        CanExecute = context => MainOf(context)?.Session is not null,
+        ExecuteAsync = async context =>
+        {
+            if (MainOf(context) is not { Session: not null } main)
+                return;
+
+            main.Panels.Show(BuiltInPanels.SolutionExplorer);
+            // A panel that was not shown yet gets its view at the next layout pass
+            if (FindSolutionExplorer(main) is null)
+                await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+            if (FindSolutionExplorer(main) is { } view)
+                action(view);
+        },
+    };
+
+    private static SolutionExplorerView? FindSolutionExplorer(MainViewModel main)
+    {
+        return (main.Panels.FindDockable(BuiltInPanels.SolutionExplorer) as IDockableView)?.View as SolutionExplorerView;
+    }
 
     // The commands of the main view model that work without a session (made on each call: the shortcuts depend on the platform)
     private static MainCommand[] WithoutSession =>

@@ -29,6 +29,8 @@ public abstract class PropertiesViewModel : DispatcherViewModel
     private bool canDisplayProperties;
     private string? fallbackMessage;
     private int currentToken;
+    // The selection the editors asked the grid to show while it was locked: it shows it once unlocked
+    private List<IPropertyProviderViewModel>? pendingSelection;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PropertiesViewModel"/> class.
@@ -83,6 +85,48 @@ public abstract class PropertiesViewModel : DispatcherViewModel
 
     public IReadOnlyCollection<IPropertyProviderViewModel>? Selection { get; private set => SetValue(ref field, value); }
 
+    /// <summary>
+    /// Gets or sets whether the grid is locked: it keeps showing its objects when the selection changes, in any editor or in the
+    /// asset view, and shows the latest selection once unlocked. Its edits work and undo as usual; a refresh shows the same
+    /// objects again. It unlocks by itself when one of its objects can no longer provide properties (it was deleted, or its editor
+    /// closed), checked after each selection change and each undoable change. Only a grid that shows objects can lock.
+    /// </summary>
+    public bool IsLocked
+    {
+        get;
+        set
+        {
+            if (value && Selection is not { Count: > 0 })
+                return;
+            if (!SetValue(ref field, value))
+                return;
+
+            var undoRedoService = ServiceProvider.TryGet<IUndoRedoService>();
+            if (value)
+            {
+                if (undoRedoService != null)
+                {
+                    undoRedoService.Done += UndoRedoChanged;
+                    undoRedoService.Undone += UndoRedoChanged;
+                    undoRedoService.Redone += UndoRedoChanged;
+                }
+                return;
+            }
+
+            if (undoRedoService != null)
+            {
+                undoRedoService.Done -= UndoRedoChanged;
+                undoRedoService.Undone -= UndoRedoChanged;
+                undoRedoService.Redone -= UndoRedoChanged;
+            }
+            var selection = pendingSelection;
+            pendingSelection = null;
+            OnUnlocked(selection != null);
+            if (selection != null)
+                GenerateAsync(selection, refresh: false).Forget();
+        }
+    }
+
     // TODO: provide a more solid API to avoid duplicates and name collision
     public void RegisterNodePresenterCommand(INodePresenterCommand command) => ViewModelService.AvailableCommands.Add(command);
 
@@ -97,7 +141,29 @@ public abstract class PropertiesViewModel : DispatcherViewModel
     public IReadOnlyCollection<INodePresenterUpdater> NodePresenterUpdaters => ViewModelService.AvailableUpdaters;
 
     // TODO: remove processViewModel
-    public async Task<GraphViewModel?> GenerateSelectionPropertiesAsync(IEnumerable<IPropertyProviderViewModel> selectedObjects)
+    /// <summary>
+    /// Shows the properties of the given objects. While the grid is locked (<see cref="IsLocked"/>), it keeps its objects, shows
+    /// these once unlocked, and gives <c>null</c>.
+    /// </summary>
+    public Task<GraphViewModel?> GenerateSelectionPropertiesAsync(IEnumerable<IPropertyProviderViewModel> selectedObjects)
+    {
+        return GenerateAsync(selectedObjects, refresh: false);
+    }
+
+    public Task RefreshSelectedPropertiesAsync()
+    {
+        return Selection != null ? GenerateAsync(Selection, refresh: true) : Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Called when the grid unlocks, before it shows the selection the editors asked for while it was locked.
+    /// </summary>
+    /// <param name="showsPendingSelection">Whether a selection was asked for while the grid was locked: it shows it next.</param>
+    protected virtual void OnUnlocked(bool showsPendingSelection)
+    {
+    }
+
+    private async Task<GraphViewModel?> GenerateAsync(IEnumerable<IPropertyProviderViewModel> selectedObjects, bool refresh)
     {
         // This method must be called from the UI thread to avoid concurrency in the beginning part (before awaiting)
         Dispatcher.EnsureAccess();
@@ -105,6 +171,18 @@ public abstract class PropertiesViewModel : DispatcherViewModel
         // This check must be done before any await
         if (ServiceProvider.TryGet<SelectionService>()?.PropertySelectionSuppressed ?? false)
             return null;
+
+        if (IsLocked)
+        {
+            // A locked object can have gone with this change (an editor that closes asks for an empty selection, then destroys
+            // its objects): checked once the dispatcher is done with it
+            CheckLockLater();
+            if (!refresh)
+            {
+                pendingSelection = selectedObjects.ToList();
+                return null;
+            }
+        }
 
         // Wait for current transactions or undo/redo to complete before continuing.
         var undoRedoService = ServiceProvider.TryGet<IUndoRedoService>();
@@ -159,14 +237,23 @@ public abstract class PropertiesViewModel : DispatcherViewModel
         return ViewModel;
     }
 
-    public Task RefreshSelectedPropertiesAsync()
-    {
-        return Selection != null ? GenerateSelectionPropertiesAsync(Selection) : Task.CompletedTask;
-    }
-
     protected abstract bool CanDisplaySelectedObjects(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, out string? fallbackMessage);
 
     protected abstract void FeedbackException(IReadOnlyCollection<IPropertyProviderViewModel> selectedObjects, Exception exception, out string? fallbackMessage);
+
+    private void UndoRedoChanged(object? sender, EventArgs e) => CheckLockLater();
+
+    private void CheckLockLater()
+    {
+        Dispatcher.InvokeTask(async () =>
+        {
+            // After the work that asked for it: a dispatcher can run a call made from the UI thread inline
+            await Task.Yield();
+            // A deleted object, or one of a closed editor, can no longer provide properties: the grid lets it go
+            if (IsLocked && (Selection?.Any(x => !x.CanProvidePropertiesViewModel) ?? false))
+                IsLocked = false;
+        }).Forget();
+    }
 
     private Task<GraphViewModel?> InitializeViewModel(IReadOnlyCollection<IPropertyProviderViewModel> objects, int localToken)
     {

@@ -20,6 +20,7 @@ public static class EditorSettings
     public static readonly string AlwaysSaveNewScriptsWithoutAsking = Tr._p("Settings", "Always save new scripts without asking");
 
     // Categories
+    public static readonly string Build = Tr._p("Settings", "Build");
     public static readonly string Environment = Tr._p("Settings", "Environment");
     public static readonly string ExternalTools = ExternalToolsSettings.ExternalTools;
     public static readonly string Interface = Tr._p("Settings", "Interface");
@@ -64,6 +65,11 @@ public static class EditorSettings
         ReloadLastSession = new SettingsKey<bool>("Interface/ReloadLastSession", SettingsContainer, false)
         {
             DisplayName = $"{Interface}/{Tr._p("Settings", "Automatically reload last session at startup")}",
+        };
+        SkipUnchangedBuilds = new SettingsKey<bool>("Build/SkipUnchangedBuilds", SettingsContainer, true)
+        {
+            DisplayName = $"{Build}/{Tr._p("Settings", "Skip the build when nothing changed")}",
+            Description = Tr._p("Settings", "Build project and Start project don't build again when no file of the game changed since its last successful build"),
         };
         FallbackBuildCacheDirectory = new UDirectory(Path.Combine(EditorPath.DefaultTempPath, "BuildCache"));
         UseEffectCompilerServer = new SettingsKey<bool>("Tools/UseEffectCompilerServer", SettingsContainer, false)
@@ -132,6 +138,11 @@ public static class EditorSettings
     public static SettingsCommand ResetEditorLayout { get; }
 
     public static SettingsKey<bool> ReloadLastSession { get; }
+
+    /// <summary>
+    /// Whether Build project and Start project skip the build when nothing changed since the last successful build of the same project.
+    /// </summary>
+    public static SettingsKey<bool> SkipUnchangedBuilds { get; }
 
     public static UDirectory FallbackBuildCacheDirectory { get; }
 

@@ -57,6 +57,12 @@ TemplateProviders:
   Stride.Assets.Editor.Avalonia.Views.MorphWeightsTemplateProvider MorphWeights
   Stride.Assets.Editor.Avalonia.Views.MorphWeightTemplateProvider MorphWeight
   Stride.Assets.Editor.Avalonia.Views.ModelNodeNameTemplateProvider ModelNodeName
+  Stride.Assets.Editor.Avalonia.Views.ShaderClassNodeMixinReferenceTemplateProvider ShaderClassNodeMixinReference
+  Stride.Assets.Editor.Avalonia.Views.SpriteFontFontNameTemplateProvider SpriteFontFontName
+  Stride.Assets.Editor.Avalonia.Views.SkeletonNodeListTemplateProvider SkeletonNodeInformationList
+  Stride.Assets.Editor.Avalonia.Views.AnimationFrameTemplateProvider AnimationFrameTemplateProvider
+  Stride.Assets.Editor.Avalonia.Views.AnimationFrameBoxTemplateProvider AnimationFrameBoxTemplateProvider
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider SceneCameraSlotId
   Stride.Assets.Editor.Avalonia.Views.CurveEditor.ComputeCurveTemplateProvider IComputeCurve
 CopyProcessors:
 PasteProcessors:

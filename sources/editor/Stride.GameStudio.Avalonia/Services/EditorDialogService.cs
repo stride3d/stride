@@ -14,6 +14,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.GameStudio.Avalonia.Docking;
 using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.Views;
 using Stride.Core.Assets.Editor.ViewModels.Progress;
@@ -30,6 +31,15 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         : base(serviceProvider.Get<IDispatcherService>())
     {
         this.serviceProvider = serviceProvider;
+    }
+
+    /// <summary>
+    /// Gets whether a dialog is open over the main window (a message box, a progress window, a picker); the floating panels do not count.
+    /// </summary>
+    public static bool IsModalWindowOpen()
+    {
+        static bool HasDialog(Window window) => window.OwnedWindows.Any(x => x.IsVisible && (x is not StrideHostWindow || HasDialog(x)));
+        return MainWindow is { } mainWindow && HasDialog(mainWindow);
     }
 
     /// <summary>

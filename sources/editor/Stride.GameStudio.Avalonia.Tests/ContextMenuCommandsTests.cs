@@ -86,7 +86,7 @@ public sealed class ContextMenuCommandsTests
                 // A property of the property grid
                 var item = await ShowPropertyAsync(fixture, window, asset, nameof(TextPropertiesAsset.Label));
                 await OpenAsync(item.ContextMenu!, item);
-                Assert.Equal([PropertyGridCommands.ResetToBaseId, GameStudioCommands.CopyId, GameStudioCommands.PasteId, PropertyGridCommands.ReplaceId], BoundIds(item.ContextMenu!));
+                Assert.Equal([PropertyGridCommands.ResetToBaseId, PropertyGridCommands.ResetToDefaultId, GameStudioCommands.CopyId, GameStudioCommands.PasteId, PropertyGridCommands.ReplaceId], BoundIds(item.ContextMenu!));
                 AssertBound(item.ContextMenu!, host);
                 var replace = MenuItems(item.ContextMenu!).Single(x => x.Command is CommandReference { Id: PropertyGridCommands.ReplaceId });
                 Assert.Equal(new KeyGesture(Key.V, KeyModifiers.Control | KeyModifiers.Shift), replace.InputGesture);
@@ -283,13 +283,18 @@ public sealed class ContextMenuCommandsTests
         [
             SceneEditorCommands.NewFolderId, SceneEditorCommands.NewEntityId, SceneEditorCommands.SetActiveSceneId,
             SceneEditorCommands.OpenPrefabId, SceneEditorCommands.SelectPrefabId, SceneEditorCommands.BreakLinkToPrefabId, SceneEditorCommands.CreatePrefabFromSelectionId,
-            SceneEditorCommands.DuplicateId, GameStudioCommands.CutId, GameStudioCommands.CopyId, GameStudioCommands.PasteId, GameStudioCommands.DeleteId, GameStudioCommands.RenameId,
+            SceneEditorCommands.GroupUnderNewParentId, SceneEditorCommands.DuplicateId, GameStudioCommands.CutId, GameStudioCommands.CopyId, GameStudioCommands.PasteId, GameStudioCommands.DeleteId, GameStudioCommands.RenameId,
         ], BoundIds(menu));
         AssertBound(menu, host);
         var duplicate = Item(menu.Items.OfType<Control>(), SceneEditorCommands.DuplicateId);
         Assert.Equal("Duplicate", duplicate.Header);
         Assert.Equal(KeyGesture.Parse("Ctrl+D"), duplicate.InputGesture);
         Assert.True(duplicate.IsEffectivelyEnabled);
+        // Ctrl+G groups the selection under a new parent
+        var group = Item(menu.Items.OfType<Control>(), SceneEditorCommands.GroupUnderNewParentId);
+        Assert.Equal("Group under a new parent", group.Header);
+        Assert.Equal(KeyGesture.Parse("Ctrl+G"), group.InputGesture);
+        Assert.True(group.IsEffectivelyEnabled);
         // The Edit commands follow the editor's commands, which the tree binds (no clipboard in this session: Copy is off)
         Assert.True(editor.DeleteCommand.CanExecute(null));
         Assert.True(Item(menu.Items.OfType<Control>(), GameStudioCommands.DeleteId).IsEffectivelyEnabled);
@@ -341,6 +346,7 @@ public sealed class ContextMenuCommandsTests
             Assert.Contains(SpriteSheetEditorCommands.ToggleMagicWandId, ids);
             // Those that act on what their menu opened on
             Assert.DoesNotContain(PropertyGridCommands.ResetToBaseId, ids);
+            Assert.DoesNotContain(PropertyGridCommands.ResetToDefaultId, ids);
             Assert.DoesNotContain(PropertyGridCommands.ReplaceId, ids);
             Assert.DoesNotContain(SceneEditorCommands.PasteInRootId, ids);
             Assert.DoesNotContain(SceneEditorCommands.NewEntityAtCursorId, ids);

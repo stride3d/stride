@@ -37,6 +37,24 @@ internal sealed record EditorViewInputFrame
     public Vector2 MouseDelta { get; init; }
 
     /// <summary>
+    /// Gets the position of the mouse at the end of the frame, in normalized view coordinates ((0, 0) top left, (1, 1)
+    /// bottom right): the corners of a selection rectangle.
+    /// </summary>
+    public Vector2 MousePosition { get; init; }
+
+    /// <summary>
+    /// Gets the position of the mouse when a button was pressed during the frame, in normalized view coordinates, or
+    /// <c>null</c> when no press gave one: where a selection rectangle starts, even when the frame comes after the mouse
+    /// moved on.
+    /// </summary>
+    public Vector2? PressPosition { get; init; }
+
+    /// <summary>
+    /// Gets whether Alt is down: Alt and a left drag orbit the camera, they draw no selection rectangle.
+    /// </summary>
+    public bool IsAltDown { get; init; }
+
+    /// <summary>
     /// Gets whether no other service (the camera during a drag) has the mouse.
     /// </summary>
     public bool IsMouseAvailable { get; init; } = true;

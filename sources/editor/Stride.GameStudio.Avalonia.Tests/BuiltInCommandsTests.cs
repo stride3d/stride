@@ -42,7 +42,7 @@ public sealed class BuiltInCommandsTests
         {
             var host = fixture.Plugins;
             var builtIns = IdsOf(typeof(GameStudioCommands)).Concat(IdsOf(typeof(SessionCommands))).ToList();
-            Assert.Equal(28 + 21, builtIns.Count);
+            Assert.Equal(32 + 21, builtIns.Count);
             Assert.Equal(builtIns.Count, builtIns.Distinct().Count());
             foreach (var id in builtIns)
             {
@@ -51,7 +51,7 @@ public sealed class BuiltInCommandsTests
                 Assert.NotNull(command.Category);
                 // Every one but the palette itself
                 Assert.Equal(id != GameStudioCommands.CommandPaletteId, command.ShowInPalette);
-                // The main menu shows them from its own items
+                // The main menu and the toolbar of the solution explorer show them from their own items
                 Assert.Empty(command.Placements);
             }
 

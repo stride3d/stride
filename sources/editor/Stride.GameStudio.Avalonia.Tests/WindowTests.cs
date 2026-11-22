@@ -8,6 +8,7 @@ using Avalonia.Themes.Fluent;
 using Avalonia.VisualTree;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Settings;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
 
@@ -46,6 +47,23 @@ public sealed class WindowTests
         {
             await window.CloseAsync();
         }
+    }
+
+    [AvaloniaFact]
+    public async Task CancelInTheSettingsWindowKeepsTheChangesMadeBeforeItOpened()
+    {
+        // A "don't ask again" box sets its key for the first time, then the settings window opens and is cancelled
+        var container = new SettingsContainer();
+        var askBefore = new SettingsKey<bool>("Interface/AskBeforeSomething", container, true);
+        var profile = container.CreateSettingsProfile(true);
+        askBefore.SetValue(false, profile);
+
+        var viewModel = new SettingsViewModel(App.InitializeServiceProvider(), profile);
+        await WindowTestHelper.WaitUntilAsync(() => viewModel.ViewModel is not null, "the properties of the selected category");
+        viewModel.DiscardChangesCommand.Execute();
+        await WindowTestHelper.WaitUntilAsync(() => viewModel.ViewModel is null, "the properties to be cleared");
+
+        Assert.False(askBefore.GetValue(profile, true));
     }
 
     [AvaloniaFact]

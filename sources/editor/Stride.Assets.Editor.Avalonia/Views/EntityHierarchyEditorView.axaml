@@ -14,6 +14,7 @@
              xmlns:conv="using:Stride.Assets.Editor.Avalonia.Converters"
              xmlns:local="using:Stride.Assets.Editor.Avalonia.Views"
              xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
+             xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.EntityHierarchyEditorView"
              x:DataType="vm:EntityHierarchyEditorViewModel">
@@ -75,6 +76,13 @@
         <MenuItem Command="{cmd:Command Stride.Scene.SelectPrefab}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.BreakLinkToPrefab}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.CreatePrefabFromSelection}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.GroupUnderNewParent}"/>
+        <Separator/>
+        <!-- Placing the selection from the camera of the view, and the camera from the selection -->
+        <MenuItem Command="{cmd:Command Stride.Scene.MoveToView}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.AlignWithView}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.AlignViewToSelection}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.SnapToFloor}"/>
         <Separator/>
         <MenuItem Command="{cmd:Command Stride.Scene.Duplicate}"/>
         <MenuItem Command="{cmd:Command Stride.Edit.Cut}">
@@ -112,6 +120,7 @@
         <MenuItem Command="{cmd:Command Stride.Scene.SelectPrefab}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.BreakLinkToPrefab}"/>
         <MenuItem Command="{cmd:Command Stride.Scene.CreatePrefabFromSelection}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.GroupUnderNewParent}"/>
         <Separator/>
         <MenuItem Command="{cmd:Command Stride.Scene.Duplicate}"/>
         <MenuItem Command="{cmd:Command Stride.Edit.Cut}">
@@ -179,6 +188,8 @@
              assets to the scene; the assets of the asset view drop too (a prefab, a model, a scene onto a scene...) -->
         <Interaction.Behaviors>
           <dd:TreeViewDragDropBehavior CanInsert="True" AllowDropOnEmptyArea="True"/>
+          <!-- An entity selected in the view, the history or a command shows: its parents expand and its row scrolls into view -->
+          <caeb:TreeViewFollowSelectionBehavior/>
         </Interaction.Behaviors>
         <!-- Cut, Copy and Rename only while the tree has the focus -->
         <sd:EditCommands.Bindings>
@@ -694,6 +705,10 @@
                                        Viewport="{Binding GameHost.Controller.Viewport, FallbackValue={x:Null}}"
                                        Layout="{Binding ((vm:EditorViewToolbarViewModel)ViewOptions).Views, FallbackValue={x:Null}}"/>
         </ContentControl>
+        <!-- The selection rectangle of a left drag, over the active view; the pointer goes through it to the game -->
+        <Canvas x:Name="SelectionRectangleLayer" IsHitTestVisible="False" ClipToBounds="True">
+          <Border x:Name="SelectionRectangleBox" IsVisible="False" BorderThickness="1" BorderBrush="#FF3399FF" Background="#333399FF"/>
+        </Canvas>
         <!-- The widgets of the plugins, on the edges of the view over the game; the panels have no background, so the pointer
              reaches the game everywhere but on a widget -->
         <DockPanel x:Name="WidgetLayer" IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNull}}">

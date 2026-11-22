@@ -5,6 +5,7 @@
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
         xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
+        xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
         mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
         x:Class="Stride.Core.Assets.Editor.Avalonia.Views.AssetPickerWindow"
         x:DataType="caevm:AssetPickerViewModel"
@@ -26,6 +27,10 @@
                 Margin="4"
                 ItemsSource="{Binding Packages}"
                 SelectedItem="{Binding SelectedLocation, Mode=TwoWay}">
+        <!-- The location of the initial asset shows: its folders and package expand and its row scrolls into view -->
+        <Interaction.Behaviors>
+          <caeb:TreeViewFollowSelectionBehavior/>
+        </Interaction.Behaviors>
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="capvm:PackageViewModel"
                             ItemsSource="{Binding AssetMountPoint.SubDirectories}">

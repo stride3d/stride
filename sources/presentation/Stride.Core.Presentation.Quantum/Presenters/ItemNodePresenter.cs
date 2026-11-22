@@ -147,6 +147,11 @@ public class ItemNodePresenter : NodePresenterBase
         // to the remaining handlers, nor re-subscribe to a new item.
         if (isDisposed || !IsValidChange(e))
             return;
+        if (IsValueOnlyChange(e))
+        {
+            RaiseValueOnlyChanging(e.NewValue);
+            return;
+        }
         RaiseValueChanging(e.NewValue);
     }
 
@@ -154,6 +159,12 @@ public class ItemNodePresenter : NodePresenterBase
     {
         if (isDisposed || !IsValidChange(e))
         {
+            return;
+        }
+
+        if (IsValueOnlyChange(e))
+        {
+            RaiseValueOnlyChanged(e.OldValue);
             return;
         }
 
@@ -167,6 +178,12 @@ public class ItemNodePresenter : NodePresenterBase
 
         Refresh();
         RaiseValueChanged(e.OldValue);
+    }
+
+    private bool IsValueOnlyChange(ItemChangeEventArgs e)
+    {
+        // The item had no object node of its own, and gets none
+        return parentingNode is null && IsValueOnlyChange(e.OldValue, e.NewValue, HasItemNode(Container, Index), Type);
     }
 
     private bool IsValidChange(ItemChangeEventArgs e)
@@ -214,6 +231,12 @@ public class ItemNodePresenter : NodePresenterBase
     {
         if (isDisposed)
             return;
+        // An item of the nested collection whose value only changed updates its own presenter
+        if (IsValueOnlyItemChange(parentingNode, e))
+        {
+            RaiseValueChanged(Value, true);
+            return;
+        }
         Refresh();
         RaiseValueChanged(Value);
     }

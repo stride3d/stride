@@ -260,6 +260,8 @@
       <!-- Project Menu -->
       <MenuItem Header="{sd:Localize Project, Context=Menu}" IsEnabled="{Binding Session, Converter={sd:ObjectToBool}}">
         <MenuItem Header="{sd:Localize Build project, Context=Menu}" Command="{Binding Debugging.Build.BuildProjectCommand}" Icon="{sd:Image {StaticResource ImageBuildProject}}" InputGestureText="{x:Static strings:KeyGestures.BuildProject}"/>
+        <!-- Builds even when nothing changed since the last build, which Build project and Start project skip -->
+        <MenuItem Header="{sd:Localize Force build project, Context=Menu}" Command="{Binding Debugging.Build.ForceBuildProjectCommand}" Icon="{sd:Image {StaticResource ImageBuildProject}}"/>
         <MenuItem Header="{sd:Localize Start project, Context=Menu}" Command="{Binding Debugging.Build.StartProjectCommand}" Icon="{sd:Image {StaticResource ImageStartProject}}" InputGestureText="{x:Static strings:KeyGestures.StartProject}"/>
         <!-- Disable live-scripting commands until it is working -->
         <MenuItem Header="{sd:Localize Start live-scripting, Context=Menu}" Command="{Binding Debugging.LivePlayProjectCommand}" Icon="{sd:Image {StaticResource ImageLiveScripting}}" Visibility="Collapsed"/>

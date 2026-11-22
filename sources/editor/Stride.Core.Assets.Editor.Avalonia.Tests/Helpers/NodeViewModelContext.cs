@@ -15,10 +15,20 @@ namespace Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 /// </summary>
 public sealed class NodeViewModelContext
 {
-    private readonly NodeContainer nodeContainer = new();
+    private readonly NodeContainer nodeContainer;
 
     public NodeViewModelContext(params INodePresenterUpdater[] updaters)
+        : this(new NodeContainer(), updaters)
     {
+    }
+
+    /// <summary>
+    /// A context whose nodes are built by <paramref name="nodeContainer"/> (an asset node container, for the leaves of the editor
+    /// such as vectors and colors).
+    /// </summary>
+    public NodeViewModelContext(NodeContainer nodeContainer, params INodePresenterUpdater[] updaters)
+    {
+        this.nodeContainer = nodeContainer;
         var graphViewModelService = new GraphViewModelService(nodeContainer);
         graphViewModelService.AvailableUpdaters.AddRange(updaters);
         ServiceProvider = new ViewModelServiceProvider([new NullDispatcherService(), graphViewModelService]);
@@ -30,6 +40,11 @@ public sealed class NodeViewModelContext
     /// The commands attached to the nodes that can take them (<see cref="GraphViewModelService.AvailableCommands"/>).
     /// </summary>
     public List<INodePresenterCommand> Commands => ServiceProvider.Get<GraphViewModelService>().AvailableCommands;
+
+    /// <summary>
+    /// Gets the node of the given object.
+    /// </summary>
+    public IObjectNode NodeOf(object instance) => nodeContainer.GetOrCreateNode(instance);
 
     /// <summary>
     /// Creates the view model of the given object and returns its root node.

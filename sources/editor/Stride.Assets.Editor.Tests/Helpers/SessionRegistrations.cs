@@ -35,7 +35,7 @@ public sealed class SessionRegistrations : ISessionPluginContext
         Session = session;
         graphService = (session.AssetViewProperties as ViewModelBase)?.ServiceProvider.TryGet<GraphViewModelService>();
         Services = new Registry<object>(session.ServiceProvider.RegisterService);
-        NodePresenterCommands = new Registry<INodePresenterCommand>(command => GraphService.AvailableCommands.Add(command));
+        NodePresenterCommands = new Registry<INodePresenterCommand>(AddCommand);
         NodePresenterUpdaters = new Registry<INodePresenterUpdater>(updater => session.AssetViewProperties.RegisterNodePresenterUpdater(updater));
     }
 
@@ -73,11 +73,14 @@ public sealed class SessionRegistrations : ISessionPluginContext
 
     private GraphViewModelService GraphService => graphService ?? throw new InvalidOperationException("The session has no property grid.");
 
+    // The commands of the session's property grid, or of the recording one of a session made by CreateSession
+    private IEnumerable<INodePresenterCommand> Commands => graphService?.AvailableCommands ?? (Session.AssetViewProperties as RecordingProperties)?.Commands ?? [];
+
     // The updaters of the session's property grid, or of the recording one of a session made by CreateSession
     private IEnumerable<INodePresenterUpdater> Updaters => graphService?.AvailableUpdaters ?? (Session.AssetViewProperties as RecordingProperties)?.Updaters ?? [];
 
     /// <summary>
-    /// A session that has only services and a property grid that records its updaters, for the plugins that need no more of
+    /// A session that has only services and a property grid that records its commands and updaters, for the plugins that need no more of
     /// a session to initialize it; any other member throws.
     /// </summary>
     public static ISessionViewModel CreateSession()
@@ -89,6 +92,14 @@ public sealed class SessionRegistrations : ISessionPluginContext
 
     public void OnClose(Action action) => closeActions.Add(action);
 
+    private void AddCommand(INodePresenterCommand command)
+    {
+        if (Session.AssetViewProperties is RecordingProperties recording)
+            recording.Commands.Add(command);
+        else
+            GraphService.AvailableCommands.Add(command);
+    }
+
     /// <summary>
     /// Initializes <paramref name="plugin"/> for <paramref name="session"/>, as the editor does once its views are ready, and
     /// records what it adds to the session.
@@ -96,7 +107,7 @@ public sealed class SessionRegistrations : ISessionPluginContext
     public static SessionRegistrations Of(AssetsPlugin plugin, ISessionViewModel session)
     {
         var registrations = new SessionRegistrations(plugin, session);
-        var commands = registrations.graphService?.AvailableCommands.ToList() ?? [];
+        var commands = registrations.Commands.ToList();
         var updaters = registrations.Updaters.ToList();
         void ServiceRegistered(object? sender, ServiceRegistrationEventArgs e) => registrations.services.Add(e.Service);
         session.ServiceProvider.ServiceRegistered += ServiceRegistered;
@@ -108,7 +119,7 @@ public sealed class SessionRegistrations : ISessionPluginContext
         {
             session.ServiceProvider.ServiceRegistered -= ServiceRegistered;
         }
-        registrations.AddedCommands = registrations.graphService?.AvailableCommands.Except(commands).ToList() ?? [];
+        registrations.AddedCommands = registrations.Commands.Except(commands).ToList();
         registrations.AddedUpdaters = registrations.Updaters.Except(updaters).ToList();
         return registrations;
     }
@@ -136,7 +147,12 @@ public sealed class SessionRegistrations : ISessionPluginContext
         foreach (var updater in AddedUpdaters)
             Session.AssetViewProperties.UnregisterNodePresenterUpdater(updater);
         foreach (var command in AddedCommands)
-            GraphService.AvailableCommands.Remove(command);
+        {
+            if (Session.AssetViewProperties is RecordingProperties recording)
+                recording.Commands.Remove(command);
+            else
+                GraphService.AvailableCommands.Remove(command);
+        }
         foreach (var service in services.AsEnumerable().Reverse())
             Session.ServiceProvider.UnregisterService(service);
     }
@@ -162,6 +178,8 @@ public sealed class SessionRegistrations : ISessionPluginContext
     private sealed class RecordingProperties : ISessionObjectPropertiesViewModel
     {
         public List<INodePresenterUpdater> Updaters { get; } = [];
+
+        public List<INodePresenterCommand> Commands { get; } = [];
 
         public Task<GraphViewModel> GenerateSelectionPropertiesAsync(IEnumerable<IPropertyProviderViewModel> selectedObjects) => throw new NotSupportedException();
 

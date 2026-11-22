@@ -146,7 +146,7 @@ public sealed class SpriteInfoViewModel : DispatcherViewModel, IIsEditableViewMo
     public ICommandBase ExploreCommand { get; }
 
     /// <inheritdoc/>
-    bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => true;
+    bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => !IsDestroyed;
 
     /// <inheritdoc/>
     AssetViewModel IAssetPropertyProviderViewModel.RelatedAsset => Editor.Asset;

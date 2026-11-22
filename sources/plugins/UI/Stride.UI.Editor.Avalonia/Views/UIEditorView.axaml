@@ -6,6 +6,7 @@
              xmlns:vm="using:Stride.UI.Editor.ViewModels"
              xmlns:local="using:Stride.UI.Editor.Avalonia.Views"
              xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
+             xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.UI.Editor.Avalonia.Views.UIEditorView"
              x:DataType="vm:UIEditorBaseViewModel"
@@ -218,6 +219,8 @@
                    the elements of the toolbox drop too -->
               <Interaction.Behaviors>
                 <dd:TreeViewDragDropBehavior CanInsert="True" AllowDropOnEmptyArea="True" EmptyAreaTarget="{Binding RootPart}"/>
+                <!-- An element selected in the design view or by a command shows: its parents expand and its row scrolls into view -->
+                <caeb:TreeViewFollowSelectionBehavior/>
               </Interaction.Behaviors>
               <Control.DataTemplates>
                 <TreeDataTemplate DataType="{x:Type vm:UIElementViewModel}" ItemsSource="{Binding Children}">

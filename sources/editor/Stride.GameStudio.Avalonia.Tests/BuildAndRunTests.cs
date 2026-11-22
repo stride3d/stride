@@ -37,16 +37,19 @@ public sealed class BuildAndRunTests
         try
         {
             var build = MenuItem(window, "BuildProjectMenuItem");
+            var forceBuild = MenuItem(window, "ForceBuildProjectMenuItem");
             var start = MenuItem(window, "StartProjectMenuItem");
             var cancel = MenuItem(window, "CancelBuildMenuItem");
             Assert.Equal(new KeyGesture(Key.F6), build.InputGesture);
             Assert.Equal(new KeyGesture(Key.F5), start.InputGesture);
             Assert.Equal(new KeyGesture(Key.F6, KeyModifiers.Control), cancel.InputGesture);
             Assert.Equal(GameStudioCommands.BuildProjectId, Assert.IsType<CommandReference>(build.Command).Id);
+            Assert.Equal(GameStudioCommands.ForceBuildProjectId, Assert.IsType<CommandReference>(forceBuild.Command).Id);
             Assert.Equal(GameStudioCommands.StartProjectId, Assert.IsType<CommandReference>(start.Command).Id);
             Assert.Equal(GameStudioCommands.CancelBuildId, Assert.IsType<CommandReference>(cancel.Command).Id);
 
             Assert.True(await IsEnabledInOpenMenuAsync(build));
+            Assert.True(await IsEnabledInOpenMenuAsync(forceBuild));
             Assert.True(await IsEnabledInOpenMenuAsync(start));
             Assert.False(await IsEnabledInOpenMenuAsync(cancel));
 

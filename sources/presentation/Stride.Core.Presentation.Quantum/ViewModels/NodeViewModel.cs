@@ -36,9 +36,11 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     private string displayName = null!;
     private bool isHighlighted;
     private bool valueChanging;
+    private bool attachedPropertiesUpdated;
     private bool isRefreshing;
     private bool refreshPending;
     private bool suppressAssociatedDataNotifications;
+    private bool keepPresentersOnDestroy;
     private readonly (Type declarer, int token)? sortingHint;
 
 #if DEBUG
@@ -97,7 +99,9 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             nodePresenter.ValueChanging -= ValueChanging;
             nodePresenter.ValueChanged -= ValueChanged;
             nodePresenter.AttachedProperties.PropertyUpdated -= AttachedPropertyUpdated;
-            nodePresenter.Dispose();
+            // A refresh of the parent rebuilds this node from presenters that may still be in use: it disposes them itself
+            if (!keepPresentersOnDestroy)
+                nodePresenter.Dispose();
         }
         base.Destroy();
     }
@@ -270,14 +274,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             AddCommand(commandWrapper);
         }
 
-        var commonAttachedProperties = nodePresenters.SelectMany(x => x.AttachedProperties).GroupBy(x => x.Key).ToList();
-        foreach (var attachedProperty in commonAttachedProperties)
-        {
-            var combiner = attachedProperty.Key.Metadatas.OfType<PropertyCombinerMetadata>().FirstOrDefault()?.Combiner ?? DefaultCombineAttachedProperty;
-            var values = attachedProperty.Select(x => x.Value).ToList();
-            var value = values.Count == 1 ? values[0] : combiner(values);
-            AddAssociatedData(attachedProperty.Key.Name, value);
-        }
+        AddAttachedProperties();
     }
 
     /// <summary>
@@ -451,10 +448,20 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
                 // (see GitHub issue #3488).
                 var previousAssociatedData = associatedData.ToDictionary(x => x.Key, x => x.Value);
 
+                // The new children are built from the presenters of this node's presenters as they are now. When only an
+                // attached property changed, those are the same presenters as before, so destroying the old children must not
+                // dispose them: a disposed presenter no longer follows its node, and the new child would not see its changes.
+                // The old children's own children are destroyed too, so that none of them still listens to a presenter.
+                var previousPresenters = new List<INodePresenter>();
                 foreach (var child in Children.ToList())
                 {
                     RemoveChild(child);
-                    child.Destroy();
+                    foreach (var node in child.Children.SelectDeep(x => x.Children).Prepend(child).ToList())
+                    {
+                        previousPresenters.AddRange(node.nodePresenters);
+                        node.keepPresentersOnDestroy = true;
+                        node.Destroy();
+                    }
                 }
                 foreach (var command in Commands.ToList())
                 {
@@ -471,6 +478,12 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
                     owner.GraphViewModelService.NodeViewModelFactory.GenerateChildren(owner, this, nodePresenters);
                     FinishInitialization();
+                    // The presenters that left the tree are disposed (the parent presenter that rebuilt its children did it already)
+                    foreach (var presenter in previousPresenters)
+                    {
+                        if (!IsInPresenterTree(presenter))
+                            presenter.Dispose();
+                    }
                 }
                 finally
                 {
@@ -487,6 +500,52 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             // Ends the indexer change even when the refresh throws, so the bindings that saw it start don't wait for it
             OnPropertyChanged(IndexerPropertyName);
         }
+    }
+
+    // Whether a presenter is still a child of its parent, and so on up to its root
+    private static bool IsInPresenterTree(INodePresenter presenter)
+    {
+        for (var current = presenter; current.Parent is { } parent; current = parent)
+        {
+            if (!parent.Children.Contains(current))
+                return false;
+        }
+        return true;
+    }
+
+    private void AddAttachedProperties()
+    {
+        var commonAttachedProperties = nodePresenters.SelectMany(x => x.AttachedProperties).GroupBy(x => x.Key).ToList();
+        foreach (var attachedProperty in commonAttachedProperties)
+        {
+            var combiner = attachedProperty.Key.Metadatas.OfType<PropertyCombinerMetadata>().FirstOrDefault()?.Combiner ?? DefaultCombineAttachedProperty;
+            var values = attachedProperty.Select(x => x.Value).ToList();
+            var value = values.Count == 1 ? values[0] : combiner(values);
+            AddAssociatedData(attachedProperty.Key.Name, value);
+        }
+    }
+
+    // Updates the associated data from the attached properties of the presenters, without rebuilding the children
+    private void UpdateAssociatedData()
+    {
+        var previousAssociatedData = associatedData.ToDictionary(x => x.Key, x => x.Value);
+        suppressAssociatedDataNotifications = true;
+        try
+        {
+            associatedData.Clear();
+            AddAttachedProperties();
+        }
+        finally
+        {
+            suppressAssociatedDataNotifications = false;
+        }
+
+        if (previousAssociatedData.Count == associatedData.Count && previousAssociatedData.All(x => associatedData.TryGetValue(x.Key, out var value) && Equals(x.Value, value)))
+            return;
+
+        OnPropertyChanging(IndexerPropertyName);
+        NotifyAssociatedDataChanges(previousAssociatedData);
+        OnPropertyChanged(IndexerPropertyName);
     }
 
     private void NotifyAssociatedDataChanges(IReadOnlyDictionary<string, object> previousData)
@@ -653,7 +712,10 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     private void ValueChanged(object? sender, ValueChangedEventArgs valueChangedEventArgs)
     {
-        OnValueChanged();
+        if (valueChangedEventArgs.IsValueOnly)
+            OnValueOnlyChanged();
+        else
+            OnValueChanged();
     }
 
     private void AttachedPropertyUpdated(ref PropertyContainer propertycontainer, PropertyKey propertykey, object newvalue, object? oldvalue)
@@ -664,6 +726,11 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         {
             OnValueChanging();
             OnValueChanged();
+        }
+        else
+        {
+            // An updater that follows the changes of the value only (they don't run the updaters again) changed it: see OnValueOnlyChanged
+            attachedPropertiesUpdated = true;
         }
     }
 
@@ -692,6 +759,21 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         owner.NotifyNodeChanged(this);
 
         valueChanging = false;
+        attachedPropertiesUpdated = false;
+    }
+
+    private void OnValueOnlyChanged()
+    {
+        // The presenter kept its children and its attached properties: this view model keeps its own, and only updates the
+        // associated data of the attached properties that changed with the value
+        if (attachedPropertiesUpdated && !IsDestroyed)
+            UpdateAssociatedData();
+        Parent?.NotifyPropertyChanged(Name);
+        OnPropertyChanged(nameof(NodeValue));
+        owner.NotifyNodeChanged(this, true);
+
+        valueChanging = false;
+        attachedPropertiesUpdated = false;
     }
 
     private object? ConvertValue(object? value)

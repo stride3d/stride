@@ -8,6 +8,7 @@
              xmlns:vm="using:Stride.Core.Assets.Presentation.ViewModels"
              xmlns:vm2="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
+             xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.SolutionExplorerView"
              x:DataType="vm2:SessionViewModel">
@@ -16,10 +17,32 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
         <ResourceInclude Source="avares://Stride.GameStudio.Avalonia/Views/PackageMenuResources.axaml"/>
+        <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SceneEditorImages.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
   <DockPanel>
+    <!-- Expands or collapses the folders of the tree; the command palette has the same commands -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="4,4,4,0" Spacing="2">
+      <StackPanel.Styles>
+        <Style Selector="Button">
+          <Setter Property="Padding" Value="4"/>
+          <Setter Property="Background" Value="Transparent"/>
+        </Style>
+      </StackPanel.Styles>
+      <Button x:Name="ExpandAssetFoldersButton" Click="OnExpandAssetFoldersClick"
+              ToolTip.Tip="{sd:LocalizeString Expand all asset folders, Context=ToolTip}">
+        <Image Source="{StaticResource ImageExpandAssetFolders}" Width="16" Height="16"/>
+      </Button>
+      <Button x:Name="ExpandAllFoldersButton" Click="OnExpandAllFoldersClick"
+              ToolTip.Tip="{sd:LocalizeString Expand all, Context=ToolTip}">
+        <Image Source="{StaticResource ImageExpandAllFolders}" Width="16" Height="16"/>
+      </Button>
+      <Button x:Name="CollapseAllFoldersButton" Click="OnCollapseAllFoldersClick"
+              ToolTip.Tip="{sd:LocalizeString Collapse all, Context=ToolTip}">
+        <Image Source="{StaticResource ImageCollapseAllFolders}" Width="16" Height="16"/>
+      </Button>
+    </StackPanel>
     <!-- A "*" follows the name of an item with unsaved changes -->
     <TreeView x:Name="SolutionTree"
               Focusable="True"
@@ -35,6 +58,11 @@
         <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectedSolutionItemsCommand}"/>
         <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameDirectoryOrPackageCommand}" CommandParameter="{Binding AssetCollection.SelectedLocations}"/>
       </sd:EditCommands.Bindings>
+      <!-- A location selected from outside the tree (the folders of the asset view, the session that opens) shows: its
+           folders, package and category expand and its row scrolls into view -->
+      <Interaction.Behaviors>
+        <caeb:TreeViewFollowSelectionBehavior/>
+      </Interaction.Behaviors>
       <!-- The context menu of the solution explorer, in groups shown when one of
            their commands applies to the selection; its items bind the commands of the registry by their identifier, which
            act on the selection the menu opened on -->
@@ -158,9 +186,9 @@
         <TreeDataTemplate DataType="{x:Type vm:AssetMountPointViewModel}"
                           ItemsSource="{Binding SubDirectories}">
           <StackPanel Orientation="Horizontal" Background="Transparent">
-            <!-- An asset dragged from the asset view moves here -->
+            <!-- An asset dragged from the asset view moves here; files dropped from the file manager are imported here -->
             <Interaction.Behaviors>
-              <dd:AddChildDropBehavior/>
+              <dd:AddChildDropBehavior ImportFiles="True"/>
             </Interaction.Behaviors>
             <TextBlock Text="{Binding Name}" />
             <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
@@ -177,9 +205,10 @@
         <TreeDataTemplate DataType="{x:Type vm:DirectoryViewModel}"
                           ItemsSource="{Binding SubDirectories}">
           <StackPanel Orientation="Horizontal" Background="Transparent">
-            <!-- An asset dragged from the asset view moves to this folder -->
+            <!-- An asset dragged from the asset view moves to this folder; files dropped from the file manager are imported
+                 into it -->
             <Interaction.Behaviors>
-              <dd:AddChildDropBehavior/>
+              <dd:AddChildDropBehavior ImportFiles="True"/>
             </Interaction.Behaviors>
             <TextBlock Text="Directory: " />
             <TextBlock Text="{Binding Name}" IsVisible="{Binding !IsEditing}" />

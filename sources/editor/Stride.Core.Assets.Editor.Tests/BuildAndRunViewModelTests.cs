@@ -1,8 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Globalization;
 using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Components.Status;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Diagnostics;
 using Stride.Core.Assets.Presentation.ViewModels;
@@ -643,6 +645,288 @@ public sealed class BuildAndRunViewModelTests
 
         buildAndRun.IsOutputVisible = true;
         Assert.Equal("Output", buildAndRun.OutputTitle);
+    }
+
+    [Fact]
+    public async Task ABuildWithNoChangeSinceTheLastOneIsSkipped()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type, ("Textures/Wood", "wood"));
+        var (builder, _) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var status = new StatusViewModel(fixture.ServiceProvider);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider, status) { Session = fixture.Session, Clock = BuildClock };
+
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Single(builder.Requests);
+        Assert.Equal("Build successful", status.CurrentStatus);
+
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        Assert.Single(builder.Requests);
+        var messages = Messages(buildAndRun);
+        Assert.Contains($"No change since the last build of {ProjectName} at {BuildTime}: build skipped.", messages);
+        Assert.DoesNotContain($"Building {ProjectName}...", messages);
+        Assert.Equal($"Build skipped: no change since the last build at {BuildTime}", status.CurrentStatus);
+        Assert.True(buildAndRun.IsOutputVisible);
+        Assert.False(buildAndRun.BuildInProgress);
+    }
+
+    [Fact]
+    public async Task StartProjectWithNoChangeStartsTheLastBuildAtOnce()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, launcher) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session, Clock = BuildClock };
+
+        // Build project, then Start project: the same build
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(true));
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(true));
+
+        Assert.Single(builder.Requests);
+        Assert.Equal(2, launcher.Games.Count);
+        Assert.All(launcher.Games, x => Assert.Equal(builder.AssemblyPath, x.AssemblyPath));
+        Assert.Contains($"{ProjectName} started (process {launcher.Games[1].Id}).", Messages(buildAndRun));
+        foreach (var game in launcher.Games)
+            game.Exit(0);
+        await WaitForMessageAsync(buildAndRun, $"{ProjectName} exited with code 0.");
+    }
+
+    [Fact]
+    public async Task ASavedAssetMeansABuild()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type, ("Textures/Wood", "wood"));
+        var (builder, _) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session, Clock = BuildClock };
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        // The build saves the session first, as before
+        Edit(fixture, fixture.Session.AllAssets.Single(), "oak");
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        Assert.Equal(2, builder.Requests.Count);
+        Assert.Equal("oak", fixture.ReadAsset("Textures/Wood").Value);
+        var file = Path.Combine(ProjectName, "Assets", "Textures", "Wood.sdtesteditor");
+        Assert.Contains($"{file} changed since the last build at {BuildTime}.", Messages(buildAndRun));
+
+        // Nothing changed since
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(2, builder.Requests.Count);
+    }
+
+    [Fact]
+    public async Task AChangedCodeFileMeansABuild()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var code = Path.Combine(fixture.Directory, ProjectName, "Player.cs");
+        File.WriteAllText(code, "public class Player {}");
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session, Clock = BuildClock };
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        File.WriteAllText(code, "public class Player { public int Lives; }");
+        File.WriteAllText(Path.Combine(fixture.Directory, ProjectName, "Enemy.cs"), "public class Enemy {}");
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        Assert.Equal(2, builder.Requests.Count);
+        Assert.Contains(Messages(buildAndRun), x => x.EndsWith($"and 1 other files changed since the last build at {BuildTime}.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ABuildOfAnotherPlatformIsNotSkipped()
+    {
+        await using var fixture = await EditorSessionFixture.OpenGameAsync(Platform.Type, OtherPlatform);
+        var (builder, _) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session, Clock = BuildClock };
+        var editorHead = fixture.Session.CurrentProject!;
+        var otherHead = fixture.Session.LocalPackages.OfType<ProjectViewModel>().Single(x => x.Type == ProjectType.Executable && x.Platform == OtherPlatform);
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        fixture.Session.SetCurrentProjectCommand.Execute(otherHead);
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(2, builder.Requests.Count);
+
+        // Each platform keeps its last build
+        fixture.Session.SetCurrentProjectCommand.Execute(editorHead);
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        fixture.Session.SetCurrentProjectCommand.Execute(otherHead);
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(2, builder.Requests.Count);
+    }
+
+    [Fact]
+    public async Task AfterAFailedBuildTheProjectBuildsAgain()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var code = Path.Combine(fixture.Directory, ProjectName, "Player.cs");
+        File.WriteAllText(code, "public class Player {}");
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session, Clock = BuildClock };
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        File.WriteAllText(code, "public class Player { syntax error }");
+        builder.Succeed = false;
+        Assert.Equal(GameBuildOutcome.Failed, await buildAndRun.BuildAsync(false));
+        // The failed build may have written part of its output: the next one runs, even with no new change
+        builder.Succeed = true;
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(3, builder.Requests.Count);
+
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(3, builder.Requests.Count);
+    }
+
+    [Fact]
+    public async Task ADeletedOutputMeansABuild()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session, Clock = BuildClock };
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        File.Delete(builder.AssemblyPath);
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        Assert.Equal(2, builder.Requests.Count);
+        var assembly = Path.Combine(ProjectName, "bin", "Debug", ProjectName + ".dll");
+        Assert.Contains($"The output of the last build at {BuildTime} changed ({assembly}).", Messages(buildAndRun));
+        // The (fake) build wrote no assembly: there is nothing to check, the next build runs
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(3, builder.Requests.Count);
+    }
+
+    [Fact]
+    public async Task ARestoreMeansABuild()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var restore = Path.Combine(fixture.Directory, ProjectName, "obj", "project.assets.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(restore)!);
+        File.WriteAllText(restore, """{ "version": 3, "libraries": {} }""");
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session, Clock = BuildClock };
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        File.WriteAllText(restore, """{ "version": 3, "libraries": { "Stride.Engine/4.5.1": { "type": "package" } } }""");
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        Assert.Equal(2, builder.Requests.Count);
+        var file = Path.Combine(ProjectName, "obj", "project.assets.json");
+        Assert.Contains($"The packages were restored since the last build at {BuildTime} ({file}).", Messages(buildAndRun));
+    }
+
+    [Fact]
+    public async Task ForceBuildBuildsWithNoChange()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session, Clock = BuildClock };
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.True(buildAndRun.ForceBuildProjectCommand.IsEnabled);
+
+        buildAndRun.ForceBuildProjectCommand.Execute();
+        var timeout = DateTime.UtcNow + TimeSpan.FromSeconds(30);
+        while (builder.Requests.Count < 2 || buildAndRun.BuildInProgress)
+        {
+            Assert.True(DateTime.UtcNow < timeout, $"The forced build did not end: {string.Join(" | ", Messages(buildAndRun))}");
+            await Task.Delay(20);
+        }
+        Assert.Equal(2, builder.Requests.Count);
+        Assert.Contains($"Build of {ProjectName} succeeded.", Messages(buildAndRun));
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false, forceBuild: true));
+        Assert.Equal(3, builder.Requests.Count);
+
+        // The forced build is the last one
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(3, builder.Requests.Count);
+    }
+
+    [Fact]
+    public async Task WithoutTheSettingEveryBuildRuns()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session, SkipUnchangedBuilds = () => false };
+
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        Assert.Equal(2, builder.Requests.Count);
+        Assert.DoesNotContain(Messages(buildAndRun), x => x.Contains("since the last build", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TheSettingIsOnByDefault()
+    {
+        Assert.True(EditorSettings.SkipUnchangedBuilds.DefaultValue);
+        Assert.Equal("Build/SkipUnchangedBuilds", EditorSettings.SkipUnchangedBuilds.Name);
+    }
+
+    [Fact]
+    public async Task ASkippedBuildWhoseGameDoesNotStartSaysSo()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, launcher) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var status = new StatusViewModel(fixture.ServiceProvider);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider, status) { Session = fixture.Session, Clock = BuildClock };
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        launcher.FailToStart = true;
+        Assert.Equal(GameBuildOutcome.StartFailed, await buildAndRun.BuildAsync(true));
+
+        Assert.Single(builder.Requests);
+        Assert.Equal("Build skipped, but the game did not start", status.CurrentStatus);
+    }
+
+    [Fact]
+    public async Task TheCodeReloadBuildsAreNeverSkipped()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = RegisterFakes(fixture);
+        WriteOutput(fixture, builder);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session, Clock = BuildClock };
+        var project = fixture.Session.CurrentProject!.ProjectPath.ToOSPath();
+
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildCodeAsync([project]));
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildCodeAsync([project]));
+
+        Assert.Equal(2, builder.Requests.Count);
+    }
+
+    /// <summary>
+    /// The time of the builds of the tests (local time), as the messages show it.
+    /// </summary>
+    private static string BuildTime => new DateTime(2026, 11, 18, 11, 42, 0).ToString("t", CultureInfo.CurrentCulture);
+
+    private static TimeProvider BuildClock { get; } = new FixedTimeProvider(new DateTimeOffset(2026, 11, 18, 11, 42, 0, TimeSpan.Zero));
+
+    /// <summary>
+    /// Makes the fake builds produce an assembly in the build output of the project, which the fast path checks.
+    /// </summary>
+    private static void WriteOutput(EditorSessionFixture fixture, FakeGameProjectBuilder builder)
+    {
+        builder.AssemblyPath = Path.Combine(fixture.Directory, ProjectName, "bin", "Debug", ProjectName + ".dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(builder.AssemblyPath)!);
+        File.WriteAllText(builder.AssemblyPath, "assembly");
+    }
+
+    /// <summary>
+    /// A clock that stays at one time, in UTC.
+    /// </summary>
+    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
+
+        public override TimeZoneInfo LocalTimeZone => TimeZoneInfo.Utc;
     }
 
     private static (FakeGameProjectBuilder Builder, FakeGameLauncher Launcher) RegisterFakes(EditorSessionFixture fixture)

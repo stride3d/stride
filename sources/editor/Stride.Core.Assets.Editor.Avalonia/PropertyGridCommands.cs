@@ -34,6 +34,12 @@ public static class PropertyGridCommands
     public const string ResetToBaseId = "Stride.PropertyGrid.ResetToBase";
 
     /// <summary>
+    /// The identifier of the command that gives a property its default value: the value a new object of its owner's type has
+    /// (<see cref="ResetToDefaultCommand"/>). A property that has a base goes back to its base value instead.
+    /// </summary>
+    public const string ResetToDefaultId = "Stride.PropertyGrid.ResetToDefault";
+
+    /// <summary>
     /// The identifier of the command that pastes the copied value in place of the property's value (Ctrl+Shift+V by default),
     /// rather than into it.
     /// </summary>
@@ -77,15 +83,18 @@ public static class PropertyGridCommands
     }
 
     /// <summary>
-    /// Creates the commands of a property that run a command of its node: Reset to base value and Replace. They act on the
-    /// property the menu opened on or, for a shortcut, the property that holds the focus: the context's
-    /// <see cref="CommandContext.Source"/> is its <see cref="PropertyViewItem"/>, or a control inside it.
+    /// Creates the commands of a property that run a command of its node: Reset to base value, Reset to default value and
+    /// Replace. They act on the property the menu opened on or, for a shortcut, the property that holds the focus: the
+    /// context's <see cref="CommandContext.Source"/> is its <see cref="PropertyViewItem"/>, or a control inside it.
     /// </summary>
     public static IReadOnlyList<CommandDescriptor> CreateNodeCommands() =>
     [
         NodeCommand(ResetToBaseId, () => Tr._p("Menu", "Reset to base value"), ResetOverrideCommand.CommandName, null, ["archetype", "prefab", "inherit", "override"],
             // Only a property that has a base
             node => node is AssetNodeViewModel { HasBase: true }),
+        NodeCommand(ResetToDefaultId, () => Tr._p("Menu", "Reset to default value"), ResetToDefaultCommand.CommandName, null, ["revert", "default", "reset"],
+            // A property that has a base goes back to its base value
+            node => node is not AssetNodeViewModel { HasBase: true }),
         NodeCommand(ReplaceId, () => Tr._p("Menu", "Replace"), ReplacePropertyCommand.CommandName, "Ctrl+Shift+V", ["paste", "clipboard", "value"], null),
     ];
 
