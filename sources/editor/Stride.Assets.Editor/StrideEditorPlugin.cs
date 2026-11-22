@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Reflection;
+using Stride.Assets.Editor.AssemblyReloading;
 using Stride.Assets.Editor.Commands;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Quantum.NodePresenters;
@@ -156,6 +157,9 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
                 builderService.Logger.Error("Failed to update the shader files of the effects", e);
             }
         };
+
+        // A change of the game code reloads in the editor's process
+        context.Services.Register(new GameCodeReloader());
 
         if (EnableThumbnailService)
         {
