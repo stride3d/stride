@@ -876,6 +876,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             LoadMissingAssets(logger, Packages.Where(x => x != package).ToList(), dependencyLoadParameters);
 
             LoadMissingAssets(logger, [package], loadParameters);
+            PublishUpgradeReports(logger, loadParameters);
 
             // Run analysis after
             // TODO CSPROJ=XKPKG
@@ -1451,6 +1452,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             // failed restore, or a project whose references an upgrade rewrote). Skip when no project needs loading
             // (this is called again after everything is already DependenciesReady).
             dependenciesRestoredUpFront = false;
+            unrestoredProjects.Clear();
             var projectsToLoad = Projects.OfType<SolutionProject>().Where(x => x.Package.State < PackageState.DependenciesReady).ToList();
             // A new session names its solution before its first save writes the file: until then, the restore and the
             // source-code migration go by project
@@ -1471,29 +1473,41 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 {
                     log.Warning($"Unable to restore NuGet packages for solution [{SolutionPath}]", ex);
                 }
+
+                // A project added to the session since the solution file was saved: the solution restore doesn't cover it
+                if (dependenciesRestoredUpFront)
+                {
+                    var listedProjects = ReadSolutionProjects(SolutionPath.ToOSPath(), log);
+                    foreach (var project in projectsToLoad.Where(x => x.FullPath is not null && !listedProjects.Contains(x.FullPath.ToOSPath())))
+                        RestoreUpFront(project);
+                }
             }
             else if (projectsToLoad.Count > 0 && loadParameters.AutoCompileProjects && !solutionOnDisk)
             {
                 dependenciesRestoredUpFront = true;
                 foreach (var project in projectsToLoad)
+                    RestoreUpFront(project);
+            }
+
+            // A project whose restore failed is restored again when its dependencies load, and its source code isn't migrated
+            void RestoreUpFront(SolutionProject project)
+            {
+                if (project.FullPath is null || !File.Exists(project.FullPath.ToOSPath()))
+                    return;
+                try
                 {
-                    if (project.FullPath is null || !File.Exists(project.FullPath.ToOSPath()))
-                        continue;
-                    try
-                    {
-                        log.Verbose($"Restore NuGet packages for {project.Name}...");
-                        VSProjectHelper.RestoreNugetPackages(log, project.FullPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).GetAwaiter().GetResult();
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        log.Warning($"Unable to restore NuGet packages for project [{project.FullPath}]: see the errors above.");
-                        dependenciesRestoredUpFront = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Warning($"Unable to restore NuGet packages for project [{project.FullPath}]", ex);
-                        dependenciesRestoredUpFront = false;
-                    }
+                    log.Verbose($"Restore NuGet packages for {project.Name}...");
+                    VSProjectHelper.RestoreNugetPackages(log, project.FullPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).GetAwaiter().GetResult();
+                }
+                catch (InvalidOperationException)
+                {
+                    log.Warning($"Unable to restore NuGet packages for project [{project.FullPath}]: see the errors above.");
+                    unrestoredProjects.Add(project);
+                }
+                catch (Exception ex)
+                {
+                    log.Warning($"Unable to restore NuGet packages for project [{project.FullPath}]", ex);
+                    unrestoredProjects.Add(project);
                 }
             }
 
@@ -1512,6 +1526,17 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                     // A load cancelled during the upgrade questions migrates nothing, not even the projects answered before
                     if (cancelToken is { IsCancellationRequested: true })
                         return;
+
+                    // A project that isn't restored can't have its source code migrated: its references don't resolve
+                    foreach (var pending in pendingCodeUpgrades.Where(x => codeUpgradeRunner.HasSourceMigrations([x])).ToList())
+                    {
+                        if (unrestoredProjects.FirstOrDefault(x => x.FullPath == pending.ProjectFullPath) is { } unrestored)
+                        {
+                            stoppedUpgrades[unrestored] = $"[{unrestored.Name}] isn't restored, so its source code can't be migrated: restore it and upgrade again";
+                            pendingCodeUpgrades.Remove(pending);
+                        }
+                    }
+
                     if (pendingCodeUpgrades.Count > 0 && codeUpgradeRunner.HasSourceMigrations(pendingCodeUpgrades))
                     {
                         if (solutionOnDisk && !dependenciesRestoredUpFront)
@@ -1572,6 +1597,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         finally
         {
             dependenciesRestoredUpFront = false;
+            unrestoredProjects.Clear();
             // Clean up all cached MSBuild projects
             ClearAllCachedProjects();
         }

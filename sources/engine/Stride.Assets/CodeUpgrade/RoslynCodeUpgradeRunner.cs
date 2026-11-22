@@ -296,8 +296,15 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
         using var workspace = MSBuildWorkspace.Create(new Dictionary<string, string> { ["EmitAssetsLogMessages"] = "false" });
         if (solutionPath is not null)
         {
-            // Solution-coordinated upgrade: open the whole solution (one consistent old closure).
+            // Solution-coordinated upgrade: open the whole solution (one consistent old closure), then the projects added to
+            // the session since the solution file was saved
             await workspace.OpenSolutionAsync(solutionPath.ToOSPath(), cancellationToken: cancellationToken);
+            foreach (var (pendingItem, _) in plans)
+            {
+                var projectOsPath = pendingItem.ProjectFullPath.ToOSPath();
+                if (!workspace.CurrentSolution.Projects.Any(x => PathsEqual(x.FilePath, projectOsPath)))
+                    await workspace.OpenProjectAsync(projectOsPath, cancellationToken: cancellationToken);
+            }
         }
         else
         {

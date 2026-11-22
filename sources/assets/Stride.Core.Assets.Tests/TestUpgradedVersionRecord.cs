@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using Stride.Core.Diagnostics;
@@ -238,6 +239,28 @@ public class TestUpgradedVersionRecord : IDisposable
 
         Assert.Contains(new UFile(game), CodeRunner.MigratedProjects);
         Assert.Contains(new UFile(windows), CodeRunner.MigratedProjects);
+    }
+
+    [Fact]
+    public void AProjectAddedToASavedSessionHasItsCodeMigrated()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.Succeeds" Version="2.0.0" />""");
+        // Restored on its own, as the solution file doesn't list it yet: it needs the SDK, and its package
+        var extra = WriteProject("Extra", """<PackageReference Include="UpgradeRecord.CodeRules" Version="1.0.0" />""", sdk: true);
+        WriteLocalFeed(("UpgradeRecord.CodeRules", "1.0.0"));
+        var parameters = new PackageLoadParameters { AutoCompileProjects = true, LoadAssemblyReferences = false };
+        var result = new PackageSessionResult();
+        PackageSession.Load(WriteSolution(game), result, parameters);
+        using var session = result.Session!;
+
+        // The solution file lists the project once the session is saved
+        session.AddExistingProject(new UFile(extra), result, parameters);
+        session.Save(result);
+
+        Assert.DoesNotContain(result.Messages, x => x.Type == LogMessageType.Error && x.Text.Contains("is stopped", StringComparison.Ordinal));
+        Assert.Contains(new UFile(extra), CodeRunner.MigratedProjects);
+        Assert.Equal(new Dictionary<string, string> { ["UpgradeRecord.CodeRules"] = "2.0.0" }, ReadRecords(extra));
+        Assert.Contains(result.Messages, x => x.Text.StartsWith("Extra.csproj: UpgradeRecord.CodeRules 1.0.0 to 2.0.0", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -756,6 +779,25 @@ public class TestUpgradedVersionRecord : IDisposable
             project.SetAttributeValue("Sdk", "Microsoft.NET.Sdk");
         project.Save(path);
         return path;
+    }
+
+    // A nuget.config for the projects of the test: a local feed with these empty packages, and nothing else
+    private void WriteLocalFeed(params (string Id, string Version)[] packages)
+    {
+        var feed = Directory.CreateDirectory(Path.Combine(directory, "feed")).FullName;
+        foreach (var (id, version) in packages)
+        {
+            using var archive = ZipFile.Open(Path.Combine(feed, $"{id}.{version}.nupkg"), ZipArchiveMode.Create);
+            using var nuspec = archive.CreateEntry($"{id}.nuspec").Open();
+            XNamespace ns = "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd";
+            new XDocument(new XElement(ns + "package", new XElement(ns + "metadata",
+                new XElement(ns + "id", id), new XElement(ns + "version", version), new XElement(ns + "authors", "Stride"), new XElement(ns + "description", id))))
+                .Save(nuspec);
+        }
+        new XDocument(new XElement("configuration",
+            new XElement("config", new XElement("add", new XAttribute("key", "globalPackagesFolder"), new XAttribute("value", Path.Combine(directory, "packages")))),
+            new XElement("packageSources", new XElement("clear"), new XElement("add", new XAttribute("key", "feed"), new XAttribute("value", feed)))))
+            .Save(Path.Combine(directory, "nuget.config"));
     }
 
     private string WriteSolution(params string[] projects)

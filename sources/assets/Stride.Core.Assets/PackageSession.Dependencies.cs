@@ -20,6 +20,8 @@ partial class PackageSession
     // Set when LoadMissingDependencies restored the solution, or the projects without a solution file, once up front, so the
     // per-project restore below can be skipped (kept only as a fallback after a failed restore or an upgrade).
     private bool dependenciesRestoredUpFront;
+    // The projects whose restore up front failed: restored again when their dependencies load
+    private readonly HashSet<SolutionProject> unrestoredProjects = [];
     // During a session load, the files of the projects that the dependency phase evaluated as they are now (after the
     // restore): the asset listing that follows reads them instead of evaluating the projects again
     private Dictionary<string, Package.ProjectFiles>? loadProjectFiles;
@@ -449,7 +451,7 @@ partial class PackageSession
             // added to the solution that the up-front restore didn't cover.
             var assetsFile = msProject?.GetPropertyValue("ProjectAssetsFile");
             var restoreOutputMissing = string.IsNullOrEmpty(assetsFile) || !File.Exists(assetsFile);
-            if (loadParameters.AutoCompileProjects && (!dependenciesRestoredUpFront || referencesUpgraded || restoreOutputMissing))
+            if (loadParameters.AutoCompileProjects && (!dependenciesRestoredUpFront || unrestoredProjects.Contains(project) || referencesUpgraded || restoreOutputMissing))
             {
                 log.Verbose($"Restore NuGet packages for {project.Name}...");
                 try
