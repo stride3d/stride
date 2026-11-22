@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 using System.Collections.Generic;
 using System.Reflection;
 using Stride.Core.Assets;
@@ -8,7 +9,7 @@ using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Presentation.Dirtiables;
 
-namespace Stride.Assets.Presentation.AssemblyReloading
+namespace Stride.Assets.Editor.AssemblyReloading
 {
     /// <summary>
     /// Unloads a project assembly the editor should no longer load (loadability flip), without reloading it.

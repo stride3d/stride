@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +12,7 @@ using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Presentation.Dirtiables;
 
-namespace Stride.Assets.Presentation.AssemblyReloading
+namespace Stride.Assets.Editor.AssemblyReloading
 {
     /// <summary>
     /// What an unloaded assembly is missing to work again: its place in the container it was loaded by, and the

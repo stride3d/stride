@@ -140,6 +140,9 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
     /// </summary>
     protected TEditorGame Game { get; }
 
+    /// <inheritdoc/>
+    EditorServiceGame IEditorGameController.EditorGame => Game;
+
     /// <summary>
     /// Indicates whether this controller has been destroyed.
     /// </summary>

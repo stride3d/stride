@@ -27,7 +27,7 @@ using Stride.GameStudio.Helpers;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
-using Stride.Assets.Presentation.AssemblyReloading;
+using Stride.Assets.Editor.AssemblyReloading;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Annotations;
 using Stride.Core.Translation;
