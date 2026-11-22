@@ -310,30 +310,9 @@ namespace Stride.GameStudio.ViewModels
         /// The dependencies of the changed projects whose restored version differs from what the session loaded. A
         /// project whose csproj changed restores first, so that its build uses the dependencies it now asks for.
         /// </summary>
-        private async Task<List<DependencyVersionChange>> FindDependencyVersionChanges(IEnumerable<ModifiedAssembly> modifiedAssemblies)
+        private Task<List<DependencyVersionChange>> FindDependencyVersionChanges(IEnumerable<ModifiedAssembly> modifiedAssemblies)
         {
-            var changes = new List<DependencyVersionChange>();
-            var projects = new HashSet<SolutionProject>();
-            foreach (var modifiedAssembly in modifiedAssemblies)
-            {
-                var package = Session.AllPackages.FirstOrDefault(x => x.LoadedAssemblies.Contains(modifiedAssembly.LoadedAssembly))?.Package;
-                if (package?.Container is not SolutionProject project || project.FullPath is null || !projects.Add(project))
-                    continue;
-
-                try
-                {
-                    if (modifiedAssembly.ChangeType == AssemblyChangeType.Project)
-                        await VSProjectHelper.RestoreNugetPackages(ReloadLog, project.FullPath.ToOSPath());
-                    changes.AddRange(package.Session.FindDependencyVersionChanges(project));
-                }
-                catch (Exception e)
-                {
-                    ReloadLog.Error($"[{project.FullPath.GetFileNameWithoutExtension()}] could not read its restored dependencies", e);
-                }
-            }
-
-            // A dependency of several projects changes once
-            return changes.GroupBy(x => x.Dependency.Name, StringComparer.OrdinalIgnoreCase).Select(x => x.First()).ToList();
+            return GameCodeReloader.FindDependencyVersionChangesAsync(Session, modifiedAssemblies.Select(x => (x.LoadedAssembly, x.ChangeType == AssemblyChangeType.Project)), ReloadLog);
         }
 
         /// <param name="changedLibraries">Library assemblies moving to another version: the assemblies that reference them reload too.</param>
@@ -537,12 +516,7 @@ namespace Stride.GameStudio.ViewModels
 
             // The host's own copy, or a copy the host's code is bound to, stays in use: a new copy next to it would mix
             // the types of both. Only a new session uses the new build.
-            var inUseByHost = assembliesToReload
-                .Select(x => x.LoadedAssembly.Assembly)
-                .Where(x => x != null && (System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(x) == System.Runtime.Loader.AssemblyLoadContext.Default
-                                          || Core.Reflection.AssemblyContainer.IsBoundByHost(x)))
-                .Select(x => x.GetName().Name)
-                .ToList();
+            var inUseByHost = GameCodeReloader.FindAssembliesUsedByEditor(assembliesToReload.Select(x => x.LoadedAssembly.Assembly).NotNull());
             if (inUseByHost.Count > 0)
             {
                 ReloadLog.Error($"[{string.Join(", ", inUseByHost)}] in use by Game Studio itself: reload the session to use the new build. No assembly was reloaded.");
@@ -563,48 +537,31 @@ namespace Stride.GameStudio.ViewModels
             // If any assemblies are built successfully, reload them
             if (assembliesToReload.Count > 0 || versionChanges.Count > 0)
             {
-                using (var transaction = Session.UndoRedoService.CreateTransaction())
+                foreach (var versionChange in versionChanges)
+                    ReloadLog.Info($"[{versionChange}] loads the new version.");
+
+                var assemblyToAnalyze = assembliesToReload.Where(x => x.LoadedAssembly?.Assembly != null && x.Project != null).ToDictionary(x => x.Project, x => x.LoadedAssembly.Assembly.FullName);
+                var logResult = new LoggerResult();
+                Build.BuildLog.AddLogger(logResult);
+                GameCodeReloader.Apply(Session, logResult, assembliesToReload.ToDictionary(x => x.LoadedAssembly, x => x.LoadedAssemblyPath), versionChanges, async () =>
                 {
-                    // Before the reload, so that the reloaded assemblies resolve the new versions; undone after it
-                    if (versionChanges.Count > 0)
+                    foreach (var assemblyToReload in assemblyToAnalyze)
                     {
-                        foreach (var versionChange in versionChanges)
-                            ReloadLog.Info($"[{versionChange}] loads the new version.");
-                        void Apply() => versionChanges.ForEach(x => x.Apply());
-                        void Revert() => Enumerable.Reverse(versionChanges).ForEach(x => x.Revert());
-                        Apply();
-                        Session.UndoRedoService.PushOperation(new Core.Presentation.Dirtiables.AnonymousDirtyingOperation([], Revert, Apply));
+                        await entityComponentsSorter.AnalyzeProject(Session, assemblyToReload.Key, assemblyTrackingCancellation.Token);
                     }
-
-                    var assemblyToAnalyze = assembliesToReload.Where(x => x.LoadedAssembly?.Assembly != null && x.Project != null).ToDictionary(x => x.Project, x => x.LoadedAssembly.Assembly.FullName);
-                    var logResult = new LoggerResult();
-                    Build.BuildLog.AddLogger(logResult);
-                    GameStudioAssemblyReloader.Reload(Session, logResult, async () =>
+                    UpdateCommands();
+                }, () =>
+                {
+                    foreach (var assemblyToReload in assembliesToReload)
                     {
-                        foreach (var assemblyToReload in assemblyToAnalyze)
+                        if (!modifiedAssemblies.ContainsKey(assemblyToReload.LoadedAssembly))
                         {
-                            await entityComponentsSorter.AnalyzeProject(Session, assemblyToReload.Key, assemblyTrackingCancellation.Token);
+                            var modifiedAssembly = assemblyToReload;
+                            modifiedAssembly.ChangeType = AssemblyChangeType.Binary;
+                            modifiedAssemblies.Add(assemblyToReload.LoadedAssembly, modifiedAssembly);
                         }
-                        UpdateCommands();
-                    }, () =>
-                    {
-                        foreach (var assemblyToReload in assembliesToReload)
-                        {
-                            if (!modifiedAssemblies.ContainsKey(assemblyToReload.LoadedAssembly))
-                            {
-                                var modifiedAssembly = assemblyToReload;
-                                modifiedAssembly.ChangeType = AssemblyChangeType.Binary;
-                                modifiedAssemblies.Add(assemblyToReload.LoadedAssembly, modifiedAssembly);
-                            }
-                        }
-                    }, assembliesToReload.ToDictionary(x => x.LoadedAssembly, x => x.LoadedAssemblyPath));
-                    Session.AllAssets.ForEach(x => x.PropertyGraph?.RefreshBase());
-                    Session.AllAssets.ForEach(x => x.PropertyGraph?.ReconcileWithBase());
-
-                    Session.UndoRedoService.SetName(transaction, "Reload game assemblies");
-                }
-                // Make sure we refresh the property grid so we don't reference any old type
-                Session.AssetViewProperties.RefreshSelectedPropertiesAsync().Forget();
+                    }
+                });
             }
             else if (loadabilityChanged)
             {
