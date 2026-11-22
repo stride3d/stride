@@ -189,14 +189,19 @@ partial class PackageSession
 
             // A library: the container's copy came from another version's file
             var libraryChange = new DependencyVersionChange(this, dependency, null);
-            foreach (var newPath in dependency.Assemblies)
+            var devBuilds = DevRedirectBuilds(dependency);
+            foreach (var packagePath in dependency.Assemblies)
             {
-                var name = Path.GetFileNameWithoutExtension(newPath);
+                var name = Path.GetFileNameWithoutExtension(packagePath);
                 var loadedAssembly = loadedAssemblies.FirstOrDefault(x => string.Equals(x.Assembly.GetName().Name, name, StringComparison.OrdinalIgnoreCase));
-                // Another build of the same version (an editor plugin's own copy) is no change, unless the restore moved
-                // the dependency to another version
-                if (loadedAssembly is not null && !IsSameFile(loadedAssembly.Path, newPath) && (oldPaths.Count > 0 || !IsSameVersion(loadedAssembly.Assembly, newPath)))
-                    libraryChange.Libraries.Add((loadedAssembly, newPath));
+                if (loadedAssembly is null)
+                    continue;
+                // A dev-redirect stub (a source checkout) keeps the copy packed with it, but the game builds against the
+                // checkout's build: that is the file of the version
+                var builds = devBuilds.Where(x => string.Equals(Path.GetFileName(x), Path.GetFileName(packagePath), StringComparison.OrdinalIgnoreCase)).ToList();
+                var newPaths = builds.Count > 0 ? builds : [packagePath];
+                if (!newPaths.Any(x => IsSameFile(loadedAssembly.Path, x)))
+                    libraryChange.Libraries.Add((loadedAssembly, newPaths[0]));
             }
             if (libraryChange.Libraries.Count == 0 && oldPaths.Count == 0)
                 continue;
@@ -207,16 +212,17 @@ partial class PackageSession
         return changes;
     }
 
-    private static bool IsSameVersion(System.Reflection.Assembly assembly, string path)
+    // The checkout's builds of a dependency restored as a dev-redirect stub: its package folder, the one of its files,
+    // holds the stub's build/<name>.props
+    private static List<string> DevRedirectBuilds(Dependency dependency)
     {
-        try
+        var directory = dependency.Assemblies.Count > 0 ? Path.GetDirectoryName(dependency.Assemblies[0]) : null;
+        for (var depth = 0; directory is not null && depth < 4; ++depth, directory = Path.GetDirectoryName(directory))
         {
-            return System.Reflection.AssemblyName.GetAssemblyName(path).Version == assembly.GetName().Version;
+            if (File.Exists(Path.Combine(directory, "build", dependency.Name + ".props")))
+                return Stride.Core.Packages.NugetStore.GetDevRedirectAssemblies(directory, dependency.Name);
         }
-        catch (Exception e) when (e is IOException or BadImageFormatException)
-        {
-            return false;
-        }
+        return [];
     }
 
     // A copy next to the game (copied to its output) is the same version as the package cache's file

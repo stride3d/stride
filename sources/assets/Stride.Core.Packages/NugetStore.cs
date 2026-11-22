@@ -1289,6 +1289,44 @@ public partial class NugetStore : INugetDownloadProgress
     }
 
     /// <summary>
+    /// The checkout's builds of the assemblies a dev-redirect stub installed at <paramref name="packagePath"/> stands for, the
+    /// files a game of this checkout builds against (the stub keeps the copy packed with it): one per graphics API that was
+    /// built for a graphics-dependent assembly. Empty when the folder isn't such a stub or nothing is built.
+    /// </summary>
+    public static List<string> GetDevRedirectAssemblies(string packagePath, string packageId)
+    {
+        var assemblies = new List<string>();
+        var props = LoadDevRedirectProps(packagePath, packageId);
+        if (props is null || GetDevRedirectValue(props, "StrideDevRedirect") != "true")
+            return assemblies;
+
+        var root = GetDevRedirectValue(props, "StrideDevRoot") ?? string.Empty;
+        var configuration = GetDevRedirectValue(props, "StrideDevConfiguration");
+        var hintPaths = props.Descendants(props.Name.Namespace + "Reference").Select(x => x.Element(props.Name.Namespace + "HintPath")?.Value.Trim());
+        foreach (var hintPath in hintPaths.Where(x => !string.IsNullOrEmpty(x)))
+        {
+            var path = hintPath!
+                .Replace("$(StrideDevRoot)", root)
+                .Replace("$(StrideDevConfiguration)", string.IsNullOrEmpty(configuration) ? "Debug" : configuration)
+                .Replace('/', Path.DirectorySeparatorChar);
+            if (path.Contains("$(StrideGraphicsApi)", StringComparison.Ordinal))
+            {
+                foreach (var api in new[] { "Direct3D11", "Direct3D12", "Vulkan", "OpenGL", "OpenGLES" })
+                {
+                    var candidate = path.Replace("$(StrideGraphicsApi)", api);
+                    if (File.Exists(candidate))
+                        assemblies.Add(candidate);
+                }
+            }
+            else if (File.Exists(path))
+            {
+                assemblies.Add(path);
+            }
+        }
+        return assemblies;
+    }
+
+    /// <summary>
     /// The root element of the <c>build/&lt;Id&gt;.props</c> that a dev-redirect stub installed at <paramref name="packagePath"/>
     /// carries, or null when the folder has no such file or it isn't XML.
     /// </summary>
