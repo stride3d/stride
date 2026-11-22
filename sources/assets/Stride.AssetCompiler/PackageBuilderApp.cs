@@ -632,7 +632,7 @@ namespace Stride.AssetCompiler
             var exceptionInfo = message.ExceptionInfo;
             if (exceptionInfo != null)
             {
-                builder.Append(". Exception: ");
+                builder.Append(text?.EndsWith('.') == true ? " Exception: " : ". Exception: ");
                 builder.Append(exceptionInfo);
             }
             return builder.ToString();
