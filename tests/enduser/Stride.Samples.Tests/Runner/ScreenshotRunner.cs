@@ -521,12 +521,25 @@ public static class ScreenshotRunner
     /// </summary>
     internal static SampleResult? RegenerateSample(DiscoveredFixture fixture, string targetDir)
     {
+        var failure = GenerateSample(fixture, targetDir, upgrade: true);
+        if (failure is null)
+            AddFixture(fixture, targetDir);
+        return failure;
+    }
+
+    /// <summary>
+    /// Generates one sample from its template into <paramref name="targetDir"/>, without its fixture. Returns null on
+    /// success; a failure SampleResult on regen error.
+    /// </summary>
+    /// <param name="upgrade">Whether to bring a sample written for an older engine to this one.</param>
+    internal static SampleResult? GenerateSample(DiscoveredFixture fixture, string targetDir, bool upgrade)
+    {
         Console.WriteLine($"[{fixture.SampleName}] regenerating from template {fixture.TemplateId}");
         var stopwatch = Stopwatch.StartNew();
         var logger = new LoggerResult();
         try
         {
-            SampleGenerator.Generate(new UDirectory(targetDir), fixture.TemplateId, fixture.SampleName, logger);
+            SampleGenerator.Generate(new UDirectory(targetDir), fixture.TemplateId, fixture.SampleName, logger, upgrade);
         }
         catch (Exception ex)
         {
@@ -539,11 +552,15 @@ public static class ScreenshotRunner
                 Duration = stopwatch.Elapsed,
             };
         }
+        return null;
+    }
 
+    /// <summary>Copies the fixture file of a sample generated in <paramref name="targetDir"/> into its game project.</summary>
+    internal static void AddFixture(DiscoveredFixture fixture, string targetDir)
+    {
         var fixtureDest = Path.Combine(targetDir, $"{fixture.SampleName}.Game", "Tests", "ScreenshotTest.cs");
         Directory.CreateDirectory(Path.GetDirectoryName(fixtureDest)!);
         File.Copy(fixture.FixtureFile, fixtureDest, overwrite: true);
-        return null;
     }
 
     /// <summary>

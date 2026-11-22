@@ -2,17 +2,19 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
+using Stride.Samples.Generator;
 
 namespace Stride.SampleScreenshotRunner;
 
 /// <summary>
-/// Prepares the samples of a run before its first test: generates them from their template (with the upgrade) one at a
-/// time, then builds them all in one build. Then gives each test the folder of its sample, and its part of the build.
+/// Prepares the samples of a run before its first test: generates them from their template one at a time, upgrades the
+/// ones written for an older engine in one upgrade, then builds them all in one build. Then gives each test the folder of
+/// its sample, and its part of the build.
 /// </summary>
 /// <remarks>
-/// One build shares MSBuild and the compiler between the samples, which separate builds each start again. A test that
-/// passes gives the folder to the next test of the same sample, which takes it as it is. The tests run one at a time, so
-/// the state has no lock.
+/// One upgrade and one build share the asset compiler, MSBuild and Roslyn between the samples, which separate ones each
+/// start again. A test that passes gives the folder to the next test of the same sample, which takes it as it is. The
+/// tests run one at a time, so the state has no lock.
 /// </remarks>
 internal static class PreparedSamples
 {
@@ -89,10 +91,25 @@ internal static class PreparedSamples
             .OfType<DiscoveredFixture>()
             .ToList();
 
+        string FolderOf(DiscoveredFixture fixture) => ScreenshotRunner.SampleDirectory(worktreeRoot, fixture.SampleName);
+
         var watch = Stopwatch.StartNew();
         var failures = new Dictionary<string, SampleResult?>(StringComparer.OrdinalIgnoreCase);
         foreach (var fixture in toPrepare)
-            failures[fixture.SampleName] = ScreenshotRunner.RegenerateSample(fixture, ScreenshotRunner.SampleDirectory(worktreeRoot, fixture.SampleName));
+            failures[fixture.SampleName] = ScreenshotRunner.GenerateSample(fixture, FolderOf(fixture), upgrade: false);
+
+        var toUpgrade = toPrepare.Where(x => failures[x.SampleName] is null && SampleGenerator.NeedsUpgrade(FolderOf(x))).ToList();
+        var root = Path.Combine(worktreeRoot, ScreenshotRunner.SamplesGeneratedDirName);
+        if (toUpgrade.Count > 0 && !SampleGenerator.UpgradeAll(root, toUpgrade.Select(FolderOf).ToList()))
+        {
+            // An upgrade of each sample alone says which one fails, and takes the path of a sample on a version no feed has
+            Console.WriteLine($"Each of the {toUpgrade.Count} samples is generated again and upgraded alone");
+            foreach (var fixture in toUpgrade)
+                failures[fixture.SampleName] = ScreenshotRunner.GenerateSample(fixture, FolderOf(fixture), upgrade: true);
+        }
+
+        foreach (var fixture in toPrepare.Where(x => failures[x.SampleName] is null))
+            ScreenshotRunner.AddFixture(fixture, FolderOf(fixture));
         Console.WriteLine($"Prepared {failures.Count} samples in {watch.Elapsed.TotalSeconds:F0} s");
 
         var toBuild = failures.Where(x => x.Value is null).Select(x => x.Key).ToList();

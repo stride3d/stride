@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Stride.Assets;
 using Stride.Assets.Templates;
 using Stride.Core.Assets;
@@ -26,8 +27,10 @@ namespace Stride.Samples.Generator;
 public static class SampleGenerator
 {
     private const int UpgradeTimeoutSeconds = 900;
+    private const int UpgradeAllTimeoutSeconds = 1800;
 
-    public static PackageSession Generate(UDirectory outputPath, Guid templateGuid, string sampleName, LoggerResult logger)
+    /// <param name="upgrade">Whether to bring a sample written for an older engine to this one; else see <see cref="UpgradeAll"/>.</param>
+    public static PackageSession Generate(UDirectory outputPath, Guid templateGuid, string sampleName, LoggerResult logger, bool upgrade = true)
     {
         if (!outputPath.IsAbsolute)
             outputPath = UPath.Combine(Environment.CurrentDirectory, outputPath);
@@ -86,10 +89,49 @@ public static class SampleGenerator
             throw new InvalidOperationException($"Error generating sample {sampleName} from template:\r\n{logger.ToText()}");
 
         // A sample on the engine's version skips this: the generator already moved it to this build
-        if (DotNetNewTemplateGenerator.IsOlderContent(outputPath.ToOSPath()))
+        if (upgrade && NeedsUpgrade(outputPath.ToOSPath()))
             Upgrade(outputPath.ToOSPath(), sampleName, logger);
 
         return session;
+    }
+
+    /// <summary>Whether the sample generated in <paramref name="directory"/> is written for an older engine.</summary>
+    public static bool NeedsUpgrade(string directory) => DotNetNewTemplateGenerator.IsOlderContent(directory);
+
+    /// <summary>
+    /// Brings the samples generated in <paramref name="sampleDirectories"/>, written for an older engine, to this one in
+    /// one upgrade of a solution with the projects of all of them. Returns false when it failed, leaving the samples
+    /// partly upgraded.
+    /// </summary>
+    /// <remarks>
+    /// One upgrade starts the asset compiler, its MSBuild and Roslyn once, where an upgrade of each sample starts them
+    /// again. The samples share no asset id, type or namespace, so each comes out as its own upgrade would leave it.
+    /// </remarks>
+    public static bool UpgradeAll(string root, IReadOnlyList<string> sampleDirectories)
+    {
+        // The projects of each sample's own solution
+        var solution = Path.Combine(root, "Upgrade.slnx");
+        new XDocument(new XElement("Solution", sampleDirectories.SelectMany(directory =>
+        {
+            var sampleSolution = Directory.EnumerateFiles(directory, "*.slnx", SearchOption.TopDirectoryOnly).Single();
+            return XDocument.Load(sampleSolution).Descendants("Project")
+                .Select(x => new XElement("Project", new XAttribute("Path", Path.GetFullPath((string)x.Attribute("Path")!, directory))));
+        }))).Save(solution);
+
+        var log = Path.Combine(root, "upgrade.log");
+        File.Delete(log);
+        Console.WriteLine($"upgrading {sampleDirectories.Count} samples to Stride {StridePackageUpgrader.CurrentVersion} together...");
+        var watch = Stopwatch.StartNew();
+        // The files the upgrade overwrites only just came from the template: nothing to back up
+        var upgrade = RunDotnet([FindAssetCompiler(), "upgrade", solution, "--no-backup"], root, log, UpgradeAllTimeoutSeconds, nodeReuse: true);
+        if (upgrade.ExitCode != 0)
+        {
+            Console.WriteLine($"The upgrade of the {sampleDirectories.Count} samples together failed (exit code {upgrade.ExitCode}); see {log}:\n{Tail(upgrade.Output)}");
+            return false;
+        }
+
+        Console.WriteLine($"Upgraded {sampleDirectories.Count} samples to Stride {StridePackageUpgrader.CurrentVersion} together in {watch.Elapsed.TotalSeconds:F0} s");
+        return true;
     }
 
     /// <summary>
