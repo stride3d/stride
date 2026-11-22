@@ -62,7 +62,8 @@ For a change to an upgrader (a `PackageUpgrader`, the steps of `StridePackageUpg
 - Each new rule has a test with the code before and after (`TestCodeUpgrade`). A rule that could change what the code does without a build error (an overload that still binds, a member of the same name) also checks what the upgraded code binds to.
 - Each new step has a title that says what it changes, in one line. `Custom` rules and project steps need a title written by hand.
 - Steps are only added at the end of their gate. A step is never removed or moved: it is replaced in place by `Retired(...)` (`registry.RetiredProject(...)` for a project step). [StridePackageUpgrader.Steps.md](sources/engine/Stride.Assets/StridePackageUpgrader.Steps.md) lists the IDs: in its diff, no ID moves to another step. Lines are only added at the end of a gate, and a retired step keeps its line, with `Retired: ` before its title.
-- A project step changes files through `ProjectUpgradeContext` (`WriteFile`, `MoveFile`, `UnitFailed`), never directly, so that a step that throws changes nothing.
+- A project step changes files through `ProjectUpgradeContext` (`WriteFile`, `MoveFile`, `UnitFailed`), never directly, so that a step that throws changes nothing, and a reverted upgrade puts every file back. A code rule that can't change one document reports it with `CodeUpgradeUnits.Failed` and changes the others.
+- A step whose leftovers would still build but behave differently is marked `MayChangeBehaviour` (`with { MayChangeBehaviour = true }`, `mayChangeBehaviour: true` for a project step): the report lists them first, as the build doesn't point to them.
 - Each new step has a section in the upgrade guide page of its release (stride-docs), whose heading starts with its ID: `### Stride-4.5.0-P2 Add the plugin packages whose assets the project has`. The build of stride-docs fails when a step of the list has none: without it, the link of the step opens the top of the page.
 
 ## CI failures

@@ -139,6 +139,8 @@ namespace Stride.AssetCompiler
                 { "no-backup", "Upgrade verb only: skip backing up the files the upgrade overwrites (backup is on by default).", v => options.NoBackup = v != null },
                 { "resave-all", "Upgrade verb only: save every asset in the current format, also the ones the upgrade did not change.", v => options.ResaveAll = v != null },
                 { "report=", "Upgrade verb only: write what the upgrade did to each project, in Markdown, to this file.", v => options.UpgradeReportPath = v },
+                { "keep-partial", "Upgrade verb only: after a failed step, keep the files as the upgrade left them, and record the steps to finish by hand (by default, every file of the project is put back).", v => options.KeepPartialUpgrade = v != null },
+                { "mark-finished", "Upgrade verb only: mark an upgrade kept unfinished as finished, and upgrade.", v => options.MarkUpgradeFinished = v != null },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
                 {
                     if (!string.IsNullOrEmpty(v))
@@ -479,6 +481,8 @@ namespace Stride.AssetCompiler
                 AllowUpgradeDowngradeRestore = true,
                 // Snapshot every file the upgrade overwrites into a timestamped backup folder unless opted out.
                 BackupBeforeUpgrade = !options.NoBackup,
+                PackageUpgradeFailed = (_, _) => options.KeepPartialUpgrade ? PackageUpgradeFailedAnswer.Keep : PackageUpgradeFailedAnswer.Revert,
+                UnfinishedUpgradeFound = (_, _) => options.MarkUpgradeFinished,
             };
 
             // Load (compiling the project assemblies) is the slow phase; forward each message it logs live.
@@ -503,6 +507,16 @@ namespace Stride.AssetCompiler
             // is lost — and let the exit code below still report the errors.
             if (sessionResult.HasErrors)
                 options.Logger.Warning("The session loaded with errors; upgrading and saving the assets that loaded. Fix the errors and re-run for a complete upgrade.");
+
+            // A project with nothing to upgrade still has its unfinished upgrade marked as finished
+            if (options.MarkUpgradeFinished)
+            {
+                foreach (var project in sessionResult.Session.Projects.OfType<SolutionProject>().Where(x => x.FullPath is not null))
+                {
+                    if (VSProjectHelper.MarkUpgradesFinished(project.FullPath.ToOSPath(), sessionResult.Session.UpgradeBackup))
+                        options.Logger.Info($"The last upgrade of [{project.Name}] is marked as finished.");
+                }
+            }
 
             ReconcileBases(sessionResult.Session, options.Logger);
 

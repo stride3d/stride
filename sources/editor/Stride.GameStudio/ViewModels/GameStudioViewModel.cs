@@ -136,6 +136,7 @@ namespace Stride.GameStudio.ViewModels
         {
             GraphicsDeviceLoss.Lost -= OnGraphicsDeviceLost;
             Preview?.Destroy();
+            UpgradeReportBanner.Dispose();
             base.Destroy();
         }
 

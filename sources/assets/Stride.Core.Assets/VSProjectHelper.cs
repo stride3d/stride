@@ -275,14 +275,19 @@ public static class VSProjectHelper
     /// <param name="upgraderName">The <see cref="PackageUpgraderAttribute.Name"/> of the upgrader.</param>
     /// <param name="version">The version the upgrader moved the project to.</param>
     /// <param name="backup">The upgrade backup, which gets the project file before it is written; <c>null</c> for none.</param>
-    public static void SetUpgradeRecord(string projectPath, string upgraderName, string version, UpgradeBackup? backup = null)
+    /// <param name="unfinished">
+    /// The steps an upgrade kept after a failure left to finish by hand (see <see cref="PackageUpgrader.UnfinishedMetadata"/>),
+    /// or <c>null</c> or empty for an upgrade that completed.
+    /// </param>
+    public static void SetUpgradeRecord(string projectPath, string upgraderName, string version, UpgradeBackup? backup = null, IReadOnlyList<string>? unfinished = null)
     {
         const string VersionMetadata = "Version";
+        var unfinishedValue = string.Join(";", unfinished ?? []);
         var project = LoadProject(projectPath);
         try
         {
             var record = project.GetItems(PackageUpgrader.UpgradeRecordItem).LastOrDefault(x => string.Equals(x.EvaluatedInclude, upgraderName, StringComparison.OrdinalIgnoreCase));
-            if (record?.GetMetadataValue(VersionMetadata) == version)
+            if (record?.GetMetadataValue(VersionMetadata) == version && record.GetMetadataValue(PackageUpgrader.UnfinishedMetadata) == unfinishedValue)
                 return;
 
             backup?.Snapshot(project.Xml.FullPath);
@@ -290,6 +295,10 @@ public static class VSProjectHelper
             {
                 // An element of several items: MSBuild splits it
                 record.SetMetadataValue(VersionMetadata, version).Xml.ExpressedAsAttribute = true;
+                if (unfinishedValue.Length > 0)
+                    record.SetMetadataValue(PackageUpgrader.UnfinishedMetadata, unfinishedValue).Xml.ExpressedAsAttribute = true;
+                else
+                    record.RemoveMetadata(PackageUpgrader.UnfinishedMetadata);
             }
             else
             {
@@ -297,12 +306,13 @@ public static class VSProjectHelper
                 // the backup: an imported record is updated in the project file
                 var element = record is null ? project.Xml.AddItem(PackageUpgrader.UpgradeRecordItem, upgraderName)
                     : record.Xml.ContainingProject == project.Xml ? record.Xml
-                    : project.Xml.Items.LastOrDefault(x => x.ItemType == PackageUpgrader.UpgradeRecordItem && string.Equals(x.Update?.Trim(), upgraderName, StringComparison.OrdinalIgnoreCase))
-                        ?? AddUpdateItem(project.Xml, PackageUpgrader.UpgradeRecordItem, upgraderName);
-                if (element.Metadata.LastOrDefault(x => x.Name == VersionMetadata) is { } metadata)
-                    metadata.Value = version;
-                else
-                    element.AddMetadata(VersionMetadata, version, expressAsAttribute: true);
+                    : FindUpdateItem(project.Xml, upgraderName) ?? AddUpdateItem(project.Xml, PackageUpgrader.UpgradeRecordItem, upgraderName);
+                SetMetadata(element, VersionMetadata, version);
+                // An imported record that is unfinished is finished by an empty value in the project file
+                if (unfinishedValue.Length > 0 || (record is not null && record.Xml.ContainingProject != project.Xml && record.GetMetadataValue(PackageUpgrader.UnfinishedMetadata).Length > 0))
+                    SetMetadata(element, PackageUpgrader.UnfinishedMetadata, unfinishedValue);
+                else if (element.Metadata.LastOrDefault(x => x.Name == PackageUpgrader.UnfinishedMetadata) is { } unfinishedMetadata)
+                    element.RemoveChild(unfinishedMetadata);
             }
             project.Xml.Save();
         }
@@ -311,6 +321,78 @@ public static class VSProjectHelper
             project.ProjectCollection.UnloadAllProjects();
             project.ProjectCollection.Dispose();
         }
+    }
+
+    /// <summary>
+    /// The upgrades a project records as kept unfinished (see <see cref="PackageUpgrader.UnfinishedMetadata"/>): for each
+    /// upgrader, the steps left to finish by hand.
+    /// </summary>
+    /// <param name="projectPath">The project file.</param>
+    public static Dictionary<string, List<string>> GetUnfinishedUpgrades(string projectPath)
+    {
+        var project = LoadProject(projectPath);
+        try
+        {
+            var result = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var record in project.GetItems(PackageUpgrader.UpgradeRecordItem))
+            {
+                var steps = record.GetMetadataValue(PackageUpgrader.UnfinishedMetadata).Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (steps.Length > 0)
+                    result[record.EvaluatedInclude] = [.. steps];
+                else
+                    result.Remove(record.EvaluatedInclude);
+            }
+            return result;
+        }
+        finally
+        {
+            project.ProjectCollection.UnloadAllProjects();
+            project.ProjectCollection.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Marks the unfinished upgrades of a project as finished: its records keep their version, without the steps left.
+    /// </summary>
+    /// <param name="projectPath">The project file.</param>
+    /// <param name="backup">The upgrade backup, which gets the project file before it is written; <c>null</c> for none.</param>
+    /// <returns>Whether the project had an unfinished upgrade.</returns>
+    public static bool MarkUpgradesFinished(string projectPath, UpgradeBackup? backup = null)
+    {
+        var project = LoadProject(projectPath);
+        try
+        {
+            var unfinished = project.GetItems(PackageUpgrader.UpgradeRecordItem).Where(x => x.GetMetadataValue(PackageUpgrader.UnfinishedMetadata).Length > 0).ToList();
+            if (unfinished.Count == 0)
+                return false;
+
+            backup?.Snapshot(project.Xml.FullPath);
+            foreach (var record in unfinished)
+            {
+                if (record.Xml.ContainingProject == project.Xml && record.GetMetadata(PackageUpgrader.UnfinishedMetadata)?.Xml.ContainingProject == project.Xml)
+                    record.RemoveMetadata(PackageUpgrader.UnfinishedMetadata);
+                else
+                    SetMetadata(FindUpdateItem(project.Xml, record.EvaluatedInclude) ?? AddUpdateItem(project.Xml, PackageUpgrader.UpgradeRecordItem, record.EvaluatedInclude), PackageUpgrader.UnfinishedMetadata, "");
+            }
+            project.Xml.Save();
+            return true;
+        }
+        finally
+        {
+            project.ProjectCollection.UnloadAllProjects();
+            project.ProjectCollection.Dispose();
+        }
+    }
+
+    private static ProjectItemElement? FindUpdateItem(ProjectRootElement project, string upgraderName)
+        => project.Items.LastOrDefault(x => x.ItemType == PackageUpgrader.UpgradeRecordItem && string.Equals(x.Update?.Trim(), upgraderName, StringComparison.OrdinalIgnoreCase));
+
+    private static void SetMetadata(ProjectItemElement element, string name, string value)
+    {
+        if (element.Metadata.LastOrDefault(x => x.Name == name) is { } metadata)
+            metadata.Value = value;
+        else
+            element.AddMetadata(name, value, expressAsAttribute: true);
     }
 
     private static ProjectItemElement AddUpdateItem(ProjectRootElement project, string itemType, string update)

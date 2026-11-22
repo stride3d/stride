@@ -21,6 +21,10 @@ namespace Stride.AssetCompiler
         public bool ResaveAll { get; set; }
         // Upgrade verb only: the file the upgrade report is written to, in Markdown, or null.
         public string UpgradeReportPath { get; set; }
+        // Upgrade verb only: after a failed step, keep the files as the upgrade left them instead of putting them back.
+        public bool KeepPartialUpgrade { get; set; }
+        // Upgrade verb only: mark an upgrade kept unfinished as finished, and upgrade.
+        public bool MarkUpgradeFinished { get; set; }
         // This should not be a list
         public bool DisableAutoCompileProjects { get; set; }
         public string ProjectConfiguration { get; set; }

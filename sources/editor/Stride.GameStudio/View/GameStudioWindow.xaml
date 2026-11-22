@@ -352,6 +352,8 @@
       <Grid.RowDefinitions>
         <!-- TOOLBAR ROW DEFINITION-->
         <RowDefinition Height="Auto"/>
+        <!-- UPGRADE REPORT BANNER ROW DEFINITION-->
+        <RowDefinition Height="Auto"/>
         <!-- DOCKING ROW DEFINITION -->
         <RowDefinition Height="*"/>
         <!-- STATUS BAR ROW DEFINITION-->
@@ -473,8 +475,19 @@
         </ToolBar>
       </ToolBarTray>
 
+      <!-- UPGRADE REPORT BANNER ROW: while a project of the session has an upgrade-report.md, its last upgrades left items to do by hand -->
+      <Border Grid.Row="1" Padding="8,4" BorderThickness="0,1" BorderBrush="Gray" Background="#30E0A040"
+              Visibility="{Binding UpgradeReportBanner.IsVisible, Converter={sd:VisibleOrCollapsed}}">
+        <DockPanel>
+          <Button DockPanel.Dock="Right" Margin="8,0,0,0" Padding="8,2"
+                  Content="{sd:Localize Open the report, Context=Button}"
+                  Command="{Binding UpgradeReportBanner.OpenCommand}"/>
+          <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding UpgradeReportBanner.Message}"/>
+        </DockPanel>
+      </Border>
+
       <!-- DOCKING ROW -->
-      <xcad:DockingManager x:Name="Docking" Grid.Row="1" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}"
+      <xcad:DockingManager x:Name="Docking" Grid.Row="2" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}"
                            AllowMixedOrientation="True"
                            DocumentHeaderTemplate="{StaticResource AvalonDock_GameStudio_TabHeaderTemplate}" DocumentTitleTemplate="{StaticResource AvalonDock_GameStudio_TitleTemplate}" AnchorableTitleTemplate="{StaticResource AvalonDock_GameStudio_TitleTemplate}">
         <xcad:LayoutRoot>
@@ -1034,7 +1047,7 @@
           </xcad:LayoutPanel>
         </xcad:LayoutRoot>
       </xcad:DockingManager>
-      <StatusBar Grid.Row="2" Background="{StaticResource StatusBarBackgroundBrush}" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
+      <StatusBar Grid.Row="3" Background="{StaticResource StatusBarBackgroundBrush}" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
         <StatusBar.Resources>
           <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
             <Setter Property="Foreground" Value="{StaticResource SelectedTextBrush}"/>

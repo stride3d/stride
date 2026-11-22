@@ -19,6 +19,8 @@ internal static class UpgradeCommand
         var noBackup = new Option<bool>("--no-backup") { Description = "Skip the automatic backup of files the upgrade modifies before editing in place." };
         var report = new Option<string?>("--report") { Description = "Write what the upgrade did to each project, in Markdown, to this file (Stride 4.5 and newer). It doesn't change the upgrade-report.md of a project." };
         var verbose = new Option<bool>("--verbose", "-v") { Description = "Show the verbose log of the upgrade, with every step also when all of them are done." };
+        var keepPartial = new Option<bool>("--keep-partial") { Description = "After a failed step, keep the files as the upgrade left them, and record the steps to finish by hand. By default, every file of the project is put back as it was (Stride 4.5 and newer)." };
+        var markFinished = new Option<bool>("--mark-finished") { Description = "Mark an upgrade kept unfinished as finished once its steps are done by hand, and upgrade (Stride 4.5 and newer)." };
 
         var command = new Command("upgrade", "Upgrade a project to a newer installed Stride version.");
         command.Arguments.Add(path);
@@ -26,6 +28,8 @@ internal static class UpgradeCommand
         command.Options.Add(noBackup);
         command.Options.Add(report);
         command.Options.Add(verbose);
+        command.Options.Add(keepPartial);
+        command.Options.Add(markFinished);
         command.SetAction(async (parseResult, cancellationToken) =>
         {
             var cwd = Environment.CurrentDirectory;
@@ -80,7 +84,9 @@ internal static class UpgradeCommand
             // Best-effort since the current version can't always be determined; applies to explicit and implicit.
             PackageVersion? current = null;
             try { current = manager.ResolveVersion(null, projectDirectory); } catch { /* current unknown; proceed */ }
-            if (current is not null && target.CompareTo(current) <= 0)
+            // --mark-finished on the current version marks the upgrade finished, with nothing to upgrade
+            var markFinishedOnly = parseResult.GetValue(markFinished) && current is not null && target.CompareTo(current) == 0;
+            if (current is not null && target.CompareTo(current) <= 0 && !markFinishedOnly)
             {
                 Console.WriteLine($"Project is already on Stride {current}; nothing to upgrade (requested {target}).");
                 return 0;
@@ -129,6 +135,19 @@ internal static class UpgradeCommand
                     return 1;
                 }
                 args.Add($"--report={Path.GetFullPath(reportPath)}");
+            }
+            if (parseResult.GetValue(keepPartial) || parseResult.GetValue(markFinished))
+            {
+                // An older asset compiler always leaves the files of a failed upgrade, and has no unfinished upgrade
+                if (!DotNetHostSelector.ReferencesType(compiler, "PackageUpgradeFailedAnswer"))
+                {
+                    Console.Error.WriteLine($"The Asset Compiler of Stride {target} can't keep or finish an upgrade: --keep-partial and --mark-finished need a newer version.");
+                    return 1;
+                }
+                if (parseResult.GetValue(keepPartial))
+                    args.Add("--keep-partial");
+                if (parseResult.GetValue(markFinished))
+                    args.Add("--mark-finished");
             }
 
             Console.WriteLine($"Upgrading {Path.GetFileName(input)} to Stride {target}...");

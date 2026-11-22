@@ -288,20 +288,34 @@
       </Button>
     </sd:ToolBar>
 
-    <!-- Safe mode (D12 A): how many plugins are off, "Restart normally" (the same project without safe mode), and the Plugins panel -->
-    <Border Name="SafeModeBanner" Grid.Row="2" Padding="8,4" BorderThickness="0,1" BorderBrush="Gray" Background="#30E0A040"
-            IsVisible="{Binding SafeModeBanner?.IsVisible, FallbackValue=False}">
-      <Grid ColumnDefinitions="*, Auto, Auto">
-        <TextBlock Name="SafeModeMessage" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding SafeModeBanner?.Message}"/>
-        <Button Name="OpenPluginsPanelButton" Grid.Column="1" Margin="8,0,0,0"
-                Content="{sd:LocalizeString Show the plugins, Context=Button}"
-                Command="{Binding SafeModeBanner?.OpenPluginsPanelCommand}"/>
-        <Button Name="RestartNormallyButton" Grid.Column="2" Margin="8,0,0,0"
-                Content="{sd:LocalizeString Restart normally, Context=Button}"
-                Command="{Binding SafeModeBanner?.RestartNormallyCommand}"
-                ToolTip.Tip="{sd:LocalizeString Open the project again with all its plugins, Context=ToolTip}"/>
-      </Grid>
-    </Border>
+    <!-- The banners under the toolbar -->
+    <StackPanel Grid.Row="2">
+      <!-- Safe mode (D12 A): how many plugins are off, "Restart normally" (the same project without safe mode), and the Plugins panel -->
+      <Border Name="SafeModeBanner" Padding="8,4" BorderThickness="0,1" BorderBrush="Gray" Background="#30E0A040"
+              IsVisible="{Binding SafeModeBanner?.IsVisible, FallbackValue=False}">
+        <Grid ColumnDefinitions="*, Auto, Auto">
+          <TextBlock Name="SafeModeMessage" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding SafeModeBanner?.Message}"/>
+          <Button Name="OpenPluginsPanelButton" Grid.Column="1" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Show the plugins, Context=Button}"
+                  Command="{Binding SafeModeBanner?.OpenPluginsPanelCommand}"/>
+          <Button Name="RestartNormallyButton" Grid.Column="2" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Restart normally, Context=Button}"
+                  Command="{Binding SafeModeBanner?.RestartNormallyCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Open the project again with all its plugins, Context=ToolTip}"/>
+        </Grid>
+      </Border>
+
+      <!-- While a project of the session has an upgrade-report.md: its last upgrades left items to do by hand -->
+      <Border Name="UpgradeReportBanner" Padding="8,4" BorderThickness="0,1" BorderBrush="Gray" Background="#30E0A040"
+              IsVisible="{Binding UpgradeReportBanner.IsVisible}">
+        <Grid ColumnDefinitions="*, Auto">
+          <TextBlock Name="UpgradeReportMessage" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding UpgradeReportBanner.Message}"/>
+          <Button Name="OpenUpgradeReportButton" Grid.Column="1" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Open the report, Context=Button}"
+                  Command="{Binding UpgradeReportBanner.OpenCommand}"/>
+        </Grid>
+      </Border>
+    </StackPanel>
 
     <!-- Session area: the panels and the editors, docked as the layout of the session says (MainViewModel.Panels); the
          floating ones are in windows of their own. The views of the panels come from DockViewLocator. -->

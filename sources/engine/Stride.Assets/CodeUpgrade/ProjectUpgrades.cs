@@ -87,7 +87,7 @@ public sealed class ProjectUpgradeContext
 
     /// <summary>
     /// Moves the file <paramref name="source"/> to <paramref name="destination"/>, replacing it, once the step returned, after
-    /// the backup took a copy of both.
+    /// the backup took a copy of both (of the destination, that it didn't exist).
     /// </summary>
     /// <param name="source">The full path of the file.</param>
     /// <param name="destination">Its new full path.</param>
@@ -99,8 +99,7 @@ public sealed class ProjectUpgradeContext
         pendingChanges.Add((source, () =>
         {
             Backup?.Snapshot(source);
-            if (File.Exists(destination))
-                Backup?.Snapshot(destination);
+            Backup?.Snapshot(destination);
             File.Move(source, destination, overwrite: true);
         }, doneMessage));
     }

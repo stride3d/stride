@@ -451,6 +451,39 @@ partial class SessionViewModel
                 return upgrade ? PackageUpgradeRequestedAnswer.UpgradeAll : PackageUpgradeRequestedAnswer.DoNotUpgradeAny;
             return upgrade ? PackageUpgradeRequestedAnswer.Upgrade : PackageUpgradeRequestedAnswer.DoNotUpgrade;
         };
+        // The callbacks run on the loading thread, not on the UI thread: waiting for the dialog is safe
+        loadParameters.PackageUpgradeFailed = (package, report) =>
+        {
+            var message = new StringBuilder();
+            message.AppendLine(string.Format(Tr._p("Message", "The upgrade of **{0}** failed:"), package.Meta.Name));
+            message.AppendLine();
+            foreach (var line in UpgradeReportWriter.FormatStepLines(report).Where(x => !x.TrimStart().StartsWith("done", StringComparison.Ordinal)))
+                message.AppendLine("- " + line.Trim());
+            message.AppendLine();
+            message.AppendLine(Tr._p("Message", "**Revert** puts every file of the project back as it was before the upgrade: fix the errors of the log, then upgrade again. **Keep** leaves the files as the upgrade left them: finish the steps above by hand, as upgrade-report.md next to the project lists them, then mark the upgrade as finished."));
+            var buttons = new[]
+            {
+                new DialogButtonInfo { Content = Tr._p("Button", "Revert"), Result = (int)PackageUpgradeFailedAnswer.Revert, IsDefault = true },
+                new DialogButtonInfo { Content = Tr._p("Button", "Keep"), Result = (int)PackageUpgradeFailedAnswer.Keep },
+            };
+            return (PackageUpgradeFailedAnswer)serviceProvider.Get<IDialogService>().MessageBoxAsync(message.ToString(), buttons, MessageBoxImage.Warning).Result;
+        };
+        loadParameters.UnfinishedUpgradeFound = (package, steps) =>
+        {
+            var message = new StringBuilder();
+            message.AppendLine(string.Format(Tr._p("Message", "The last upgrade of **{0}** was kept unfinished, with these steps to finish by hand:"), package.Meta.Name));
+            message.AppendLine();
+            foreach (var step in steps)
+                message.AppendLine($"- `{step}`");
+            message.AppendLine();
+            message.AppendLine(Tr._p("Message", "Mark it as finished once they are done: the package is then upgraded."));
+            var buttons = new[]
+            {
+                new DialogButtonInfo { Content = Tr._p("Button", "Mark as finished and continue"), Result = 1 },
+                new DialogButtonInfo { Content = Tr._p("Button", "Cancel"), Result = 0, IsDefault = true },
+            };
+            return serviceProvider.Get<IDialogService>().MessageBoxAsync(message.ToString(), buttons, MessageBoxImage.Question).Result == 1;
+        };
         return loadParameters;
     }
 }

@@ -119,6 +119,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         // In safe mode, a banner says how many plugins are off, with "Restart normally" and the Plugins panel
         if (host is not null)
             SafeModeBanner = new SafeModeBannerViewModel(serviceProvider, host, this, () => Panels.Show(BuiltInPanels.Plugins), () => session is not null);
+        UpgradeReportBanner = new UpgradeReportBannerViewModel(serviceProvider);
 
         // The most recently used sessions of this and the earlier editor versions
         MRU = RecentSessionsSettings.CreateMostRecentlyUsedFiles();
@@ -143,6 +144,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     /// The banner shown in safe mode; null when the editor has no plugin host.
     /// </summary>
     public SafeModeBannerViewModel? SafeModeBanner { get; }
+
+    /// <summary>
+    /// The banner shown while a project of the session has an upgrade-report.md.
+    /// </summary>
+    public UpgradeReportBannerViewModel UpgradeReportBanner { get; }
 
     /// <summary>
     /// Loads the session file (a solution or a package) that <see cref="OpenSession"/> opens, with the load parameters of the
@@ -564,6 +570,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     private void OnSessionChanged()
     {
         SaveCommand.IsEnabled = session is not null;
+        UpgradeReportBanner.Session = session;
         Build.Session = session;
         CodeReload.Session = session;
         if (titleSession is not null)
@@ -849,6 +856,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         Build.Session = null;
         CodeReload.Session = null;
         session = null;
+        UpgradeReportBanner.Session = null;
         (ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable)?.Dispose();
         SafeModeBanner?.Update();
     }
@@ -858,6 +866,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     {
         panelCommands?.Dispose();
         SafeModeBanner?.Dispose();
+        UpgradeReportBanner.Dispose();
         base.Destroy();
     }
 
