@@ -543,6 +543,8 @@ namespace Stride.GameStudio.ViewModels
                 var assemblyToAnalyze = assembliesToReload.Where(x => x.LoadedAssembly?.Assembly != null && x.Project != null).ToDictionary(x => x.Project, x => x.LoadedAssembly.Assembly.FullName);
                 var logResult = new LoggerResult();
                 Build.BuildLog.AddLogger(logResult);
+                // The assemblies that the undo made pending again, which the redo takes back
+                var pendingAfterUndo = new List<PackageLoadedAssembly>();
                 GameCodeReloader.Apply(Session, logResult, assembliesToReload.ToDictionary(x => x.LoadedAssembly, x => x.LoadedAssemblyPath), versionChanges, async () =>
                 {
                     foreach (var assemblyToReload in assemblyToAnalyze)
@@ -559,8 +561,19 @@ namespace Stride.GameStudio.ViewModels
                             var modifiedAssembly = assemblyToReload;
                             modifiedAssembly.ChangeType = AssemblyChangeType.Binary;
                             modifiedAssemblies.Add(assemblyToReload.LoadedAssembly, modifiedAssembly);
+                            pendingAfterUndo.Add(assemblyToReload.LoadedAssembly);
                         }
                     }
+                }, () =>
+                {
+                    // A project whose code changed after the undo stays pending
+                    foreach (var loadedAssembly in pendingAfterUndo)
+                    {
+                        if (modifiedAssemblies.TryGetValue(loadedAssembly, out var pending) && pending.ChangeType == AssemblyChangeType.Binary)
+                            modifiedAssemblies.Remove(loadedAssembly);
+                    }
+                    pendingAfterUndo.Clear();
+                    UpdateCommands();
                 });
             }
             else if (loadabilityChanged)
