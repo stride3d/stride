@@ -161,6 +161,45 @@ namespace Stride.Graphics.Tests
             });
         }
 
+        /// <summary>
+        /// A size that is not a multiple of 4, as Vulkan fills buffers in 32-bit words.
+        /// </summary>
+        private const int UnalignedSize = 1710;
+
+        [SkippableFact]
+        public void NewBufferWithoutDataIsZero()
+        {
+            PerformTest(game =>
+            {
+                var device = game.GraphicsDevice;
+                var commandList = game.GraphicsContext.CommandList;
+
+                using var buffer = Buffer.Typed.New(device, UnalignedSize, PixelFormat.R8_UInt, unorderedAccess: true);
+                var bytes = buffer.GetData<byte>(commandList);
+
+                Assert.Equal(UnalignedSize, buffer.SizeInBytes);
+                Assert.Equal(UnalignedSize, bytes.Length);
+                Assert.All(bytes, b => Assert.Equal(0, b));
+            });
+        }
+
+        [SkippableFact]
+        public void ClearWritesEveryByteOfUnalignedBuffer()
+        {
+            PerformTest(game =>
+            {
+                var device = game.GraphicsDevice;
+                var commandList = game.GraphicsContext.CommandList;
+
+                using var buffer = Buffer.Typed.New(device, UnalignedSize, PixelFormat.R8_UInt, unorderedAccess: true);
+                commandList.ClearReadWrite(buffer, new UInt4(0xAB, 0, 0, 0));
+                var bytes = buffer.GetData<byte>(commandList);
+
+                Assert.Equal(UnalignedSize, bytes.Length);
+                Assert.All(bytes, b => Assert.Equal(0xAB, b));
+            });
+        }
+
         private static void AssertWords<T>(T[] values, T expected) where T : unmanaged
         {
             Assert.Equal(ElementCount, values.Length);
