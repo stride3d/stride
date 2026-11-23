@@ -31,6 +31,7 @@ public class NuGetConsumerTests
     {
         var templateGuid = new Guid("16476A4C-C131-4F48-865A-288EC7D5445F");
         var sampleName = "ConsumerBuild_CustomEffect";
+        TestEnvironment.EnsureSharedPackages(output);
         var slnPath = TestEnvironment.GenerateSample(templateGuid, sampleName);
         var sampleDir = Path.GetDirectoryName(slnPath)!;
 

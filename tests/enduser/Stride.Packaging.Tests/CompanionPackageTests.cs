@@ -316,7 +316,8 @@ public class CompanionPackageTests
         var game = Assert.Single(session.Projects.OfType<SolutionProject>(), p => p.Package.Meta.Name == "Consumer.Game");
         var executable = Assert.Single(session.Projects.OfType<SolutionProject>(), p => p.Package.Meta.Name == "Consumer");
         var log = new LoggerResult();
-        session.LoadAddedDependencies(log, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages, EditorToolkit = "Wpf" });
+        lock (TestEnvironment.InProcessLock)
+            session.LoadAddedDependencies(log, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages, EditorToolkit = "Wpf" });
         foreach (var message in log.Messages)
             output.WriteLine(message.ToString());
         Assert.False(log.HasErrors, "Loading the added dependency reported errors.");
@@ -574,8 +575,7 @@ public class CompanionPackageTests
     }
 
     /// <summary>
-    /// One temp tree per case: the plugin packed into a feed and a consumer built against it.
-    /// Old copies of the fixed-version packages are deleted from the global and the run's packages folders first.
+    /// One temp tree per case: the plugin packed into a feed and a consumer built against it, with a packages folder of its own.
     /// </summary>
     private sealed class Case : IDisposable
     {
@@ -587,11 +587,11 @@ public class CompanionPackageTests
         private readonly string assetsDir;
         private readonly string consumerDir;
         private readonly string feedDir;
-        private readonly string nugetCache;
 
         public Case(ITestOutputHelper output, string name)
         {
             this.output = output;
+            TestEnvironment.EnsureSharedPackages(output);
             version = TestEnvironment.ResolveStrideVersion();
             var fixtures = TestEnvironment.FixturesDir();
             caseDir = Path.Combine(TestEnvironment.CasesRoot, $"{name}-{Guid.NewGuid():N}");
@@ -599,18 +599,12 @@ public class CompanionPackageTests
             assetsDir = Path.Combine(caseDir, "PluginAssets");
             consumerDir = Path.Combine(caseDir, "consumer");
             feedDir = Path.Combine(caseDir, "feed");
-            nugetCache = TestEnvironment.RunPackagesFolder;
             TestEnvironment.CopyDirectory(Path.Combine(fixtures, "Plugin"), pluginDir);
             TestEnvironment.CopyDirectory(Path.Combine(fixtures, "PluginAssets"), assetsDir);
             TestEnvironment.CopyDirectory(Path.Combine(fixtures, "Consumer"), consumerDir);
             Directory.CreateDirectory(feedDir);
             NuGetConsumerFeed.WriteStrictNuGetConfig(pluginDir);
             NuGetConsumerFeed.WriteStrictNuGetConfig(assetsDir);
-
-            var globalPackages = Environment.GetEnvironmentVariable("NUGET_PACKAGES")
-                ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
-            TestEnvironment.DeleteFixedVersionPackages(globalPackages, version);
-            TestEnvironment.DeleteFixedVersionPackages(nugetCache, version);
         }
 
         private const string PluginReference = """<PackageReference Include="StrideAssetPlugin" Version="1.0.0" />""";
@@ -650,7 +644,7 @@ public class CompanionPackageTests
 
         private ExecResult Pack(string project, string workingDir, string? extraArg = null)
         {
-            var args = new List<string> { "pack", project, "-c", "Debug", "-v:m", $"-p:StrideEngineVersion={version}", $"-p:RestorePackagesPath={nugetCache}", "-o", feedDir };
+            var args = new List<string> { "pack", project, "-c", "Debug", "-nr:false", "-v:m", $"-p:StrideEngineVersion={version}", "-o", feedDir };
             if (extraArg is not null)
                 args.Add(extraArg);
             return Dotnet.Exec(args, workingDir, output, timeoutMin: 10);
@@ -909,14 +903,13 @@ public class CompanionPackageTests
         public ExecResult BuildConsumer()
         {
             NuGetConsumerFeed.WriteStrictNuGetConfig(consumerDir, [new ExtraFeed("plugin-feed", feedDir, "StrideAssetPlugin", "StrideAssetPlugin.Assets", "AcmeSpinPlugin", "AcmeSpinPlugin.Assets")]);
-            return ConsumerBuild.Run(Path.Combine(consumerDir, "Consumer.csproj"), consumerDir, output, timeoutMin: 10,
-                $"-p:StrideEngineVersion={version}", $"-p:RestorePackagesPath={nugetCache}");
+            return ConsumerBuild.Run(Path.Combine(consumerDir, "Consumer.csproj"), consumerDir, output, timeoutMin: 10, $"-p:StrideEngineVersion={version}");
         }
 
         /// <summary>Restores the executable and the game project it references, as Game Studio does after Add dependency.</summary>
         public void RestoreConsumer()
         {
-            var result = Dotnet.Exec(["restore", Path.Combine(consumerDir, "Consumer.csproj"), "-nr:false", "-v:m", $"-p:StrideEngineVersion={version}", $"-p:RestorePackagesPath={nugetCache}"], consumerDir, output, timeoutMin: 5);
+            var result = Dotnet.Exec(["restore", Path.Combine(consumerDir, "Consumer.csproj"), "-nr:false", "-v:m", $"-p:StrideEngineVersion={version}"], consumerDir, output, timeoutMin: 5);
             Assert.True(result.ExitCode == 0, $"Consumer restore should succeed (exit {result.ExitCode}).");
         }
 
@@ -936,11 +929,14 @@ public class CompanionPackageTests
         /// <summary>Headless session over the built consumer's build manifest, the asset compiler's path.</summary>
         public PackageSession LoadConsumerSession()
         {
-            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
-            var manifest = Path.Combine(consumerDir, "Consumer.Game", "obj", "Debug", "net10.0", "Consumer.Game.sdbuild");
-            var result = new PackageSessionResult();
-            PackageSession.LoadFromBuildManifest(manifest, result);
-            return CheckSession(result);
+            lock (TestEnvironment.InProcessLock)
+            {
+                PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+                var manifest = Path.Combine(consumerDir, "Consumer.Game", "obj", "Debug", "net10.0", "Consumer.Game.sdbuild");
+                var result = new PackageSessionResult();
+                PackageSession.LoadFromBuildManifest(manifest, result);
+                return CheckSession(result);
+            }
         }
 
         /// <summary>
@@ -949,20 +945,26 @@ public class CompanionPackageTests
         /// </summary>
         public PackageSession LoadConsumerExecutableSession()
         {
-            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
-            var manifest = Path.Combine(consumerDir, "obj", "Debug", "net10.0", "Consumer.sdbuild");
-            var result = new PackageSessionResult();
-            PackageSession.LoadFromBuildManifest(manifest, result, new PackageLoadParameters { LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
-            return CheckSession(result);
+            lock (TestEnvironment.InProcessLock)
+            {
+                PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+                var manifest = Path.Combine(consumerDir, "obj", "Debug", "net10.0", "Consumer.sdbuild");
+                var result = new PackageSessionResult();
+                PackageSession.LoadFromBuildManifest(manifest, result, new PackageLoadParameters { LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
+                return CheckSession(result);
+            }
         }
 
         /// <summary>Headless session over the consumer's solution (see <see cref="WriteSolution"/>), the editor's path.</summary>
         public PackageSession LoadConsumerSolutionSession()
         {
-            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
-            var result = new PackageSessionResult();
-            PackageSession.Load(Path.Combine(consumerDir, "Consumer.slnx"), result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
-            return CheckSession(result);
+            lock (TestEnvironment.InProcessLock)
+            {
+                PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+                var result = new PackageSessionResult();
+                PackageSession.Load(Path.Combine(consumerDir, "Consumer.slnx"), result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
+                return CheckSession(result);
+            }
         }
 
         /// <summary>
@@ -972,10 +974,13 @@ public class CompanionPackageTests
         /// </summary>
         public PackageSession LoadConsumerProjectSession(bool loadEditorPackages = false, string? editorToolkit = "Wpf", bool executable = false)
         {
-            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
-            var result = new PackageSessionResult();
-            PackageSession.Load(executable ? Path.Combine(consumerDir, "Consumer.csproj") : GameProject, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages, EditorToolkit = editorToolkit });
-            return CheckSession(result);
+            lock (TestEnvironment.InProcessLock)
+            {
+                PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+                var result = new PackageSessionResult();
+                PackageSession.Load(executable ? Path.Combine(consumerDir, "Consumer.csproj") : GameProject, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages, EditorToolkit = editorToolkit });
+                return CheckSession(result);
+            }
         }
 
         private PackageSession CheckSession(PackageSessionResult result)
@@ -990,9 +995,12 @@ public class CompanionPackageTests
 
         public void Dispose()
         {
-            for (var i = sessions.Count - 1; i >= 0; i--)
-                sessions[i].Dispose();
-            sessions.Clear();
+            lock (TestEnvironment.InProcessLock)
+            {
+                for (var i = sessions.Count - 1; i >= 0; i--)
+                    sessions[i].Dispose();
+                sessions.Clear();
+            }
             TestEnvironment.DeleteCaseDirectory(caseDir, output);
         }
     }

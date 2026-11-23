@@ -336,9 +336,11 @@ jobs:
       # Build + test in one invocation: the test project's ProjectReferences pack the engine into
       # bin/packages, then the pack/consume + external-consumer tests run against it. StridePlatforms
       # is required for the test SDK to emit the test assembly (host platform; graphics API defaults
-      # per OS — D3D11 on Windows, Vulkan on Linux).
+      # per OS — D3D11 on Windows, Vulkan on Linux). Linux gains up to 3 tests at once, Windows up to 2.
       - name: Run packaging + consumer tests
         id: test
+        env:
+          STRIDE_PACKAGING_TESTS_PARALLEL: 3
         run: |
           dotnet test tests/enduser/Stride.Packaging.Tests/Stride.Packaging.Tests.csproj \
             -nr:false -v:m -p:WarningLevel=0 \

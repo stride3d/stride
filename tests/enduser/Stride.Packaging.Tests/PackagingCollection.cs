@@ -6,13 +6,12 @@ using Xunit;
 
 namespace Stride.Packaging.Tests;
 
-// Pack/build subprocesses are heavy and the in-process template generator holds shared state;
-// run these tests serially.
-[CollectionDefinition("Packaging", DisableParallelization = true)]
-public class PackagingCollection : ICollectionFixture<RunPackagesFolderCleanup>;
+// One collection, whose tests ParallelTestFramework runs at the same time
+[CollectionDefinition("Packaging")]
+public class PackagingCollection : ICollectionFixture<SharedPackagesFolderCleanup>;
 
-/// <summary>Deletes <see cref="TestEnvironment.RunPackagesFolder"/> once the collection is done.</summary>
-public sealed class RunPackagesFolderCleanup : IDisposable
+/// <summary>Deletes <see cref="TestEnvironment.SharedPackagesFolder"/> once the collection is done.</summary>
+public sealed class SharedPackagesFolderCleanup : IDisposable
 {
-    public void Dispose() => TestEnvironment.DeleteCaseDirectory(TestEnvironment.RunPackagesFolder);
+    public void Dispose() => TestEnvironment.DeleteCaseDirectory(TestEnvironment.SharedPackagesFolder);
 }

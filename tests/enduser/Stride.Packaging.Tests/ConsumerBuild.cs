@@ -20,11 +20,18 @@ internal static class NuGetConsumerFeed
     /// fallback for first-party packages, so a missing-from-pack package fails as NU1101
     /// instead of silently resolving a public version. Mirrors the workspace's own
     /// packageSourceMapping (Stride.Dependencies.* etc. still flow from nuget.org). Extra
-    /// feeds (e.g. a freshly packed plugin) are mapped to their own patterns.
+    /// feeds (e.g. a freshly packed plugin) are mapped to their own patterns. The packages go to the case's own
+    /// folder, the engine's come from the shared one (<see cref="TestEnvironment.SharedPackagesFolder"/>).
     /// </summary>
     public static void WriteStrictNuGetConfig(string consumerDir, IReadOnlyList<ExtraFeed>? extraFeeds = null)
+        => WriteStrictNuGetConfig(consumerDir, TestEnvironment.CasePackagesFolder(consumerDir), TestEnvironment.SharedPackagesFolder, extraFeeds);
+
+    /// <summary>The same, with the packages in <paramref name="packagesFolder"/> and no other fallback folder than <paramref name="fallbackFolder"/>.</summary>
+    /// <remarks>The companion packages a session restores go to that folder too: the session reads this nuget.config.</remarks>
+    public static void WriteStrictNuGetConfig(string consumerDir, string packagesFolder, string? fallbackFolder, IReadOnlyList<ExtraFeed>? extraFeeds = null)
     {
         var binPackages = TestEnvironment.BinPackages();
+        var fallback = fallbackFolder is not null ? $"""<add key="shared" value="{fallbackFolder}" />""" : "";
 
         var sources = new StringBuilder();
         var mappings = new StringBuilder();
@@ -43,6 +50,13 @@ internal static class NuGetConsumerFeed
         File.WriteAllText(Path.Combine(consumerDir, "nuget.config"), $"""
             <?xml version="1.0" encoding="utf-8"?>
             <configuration>
+              <config>
+                <add key="globalPackagesFolder" value="{packagesFolder}" />
+              </config>
+              <fallbackPackageFolders>
+                <clear />
+                {fallback}
+              </fallbackPackageFolders>
               <packageSources>
                 <clear />
                 <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
