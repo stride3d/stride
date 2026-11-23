@@ -1,7 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -724,9 +727,10 @@ public partial class NugetStore : INugetDownloadProgress
         };
         foreach (var targetFramework in targetFrameworks)
         {
+            var framework = NuGetFramework.Parse(targetFramework);
             spec.TargetFrameworks.Add(new TargetFrameworkInformation
             {
-                FrameworkName = NuGetFramework.Parse(targetFramework),
+                FrameworkName = framework,
                 Dependencies =
                     [
                         new()
@@ -734,6 +738,7 @@ public partial class NugetStore : INugetDownloadProgress
                             LibraryRange = new LibraryRange(packageId, version, LibraryDependencyTarget.Package),
                         }
                     ],
+                PackagesToPrune = GetPackagesToPrune(framework),
             });
         }
 
@@ -811,6 +816,36 @@ public partial class NugetStore : INugetDownloadProgress
             return lockFile ?? throw new InvalidOperationException($"Could not restore package {packageId}");
         }
     }
+
+    /// <summary>
+    /// Gets the packages that a restore for <paramref name="framework"/> leaves out because the framework provides them, as the SDK does.
+    /// </summary>
+    /// <remarks>
+    /// The list is the one the SDK gave for the framework of this assembly, so it applies to that framework and the later ones, which still
+    /// provide those packages.
+    /// </remarks>
+    private static IReadOnlyDictionary<string, PrunePackageReference> GetPackagesToPrune(NuGetFramework framework)
+    {
+        var (listFramework, packages) = packagesToPrune.Value;
+        return framework.Framework == listFramework.Framework && framework.Version >= listFramework.Version
+            ? packages
+            : ImmutableDictionary<string, PrunePackageReference>.Empty;
+    }
+
+    // The build writes the PrunePackageReference items of this project in PackagesToPrune.txt (Stride.Core.Packages.csproj).
+    private static readonly Lazy<(NuGetFramework Framework, IReadOnlyDictionary<string, PrunePackageReference> Packages)> packagesToPrune = new(() =>
+    {
+        var assembly = typeof(NugetStore).Assembly;
+        var framework = NuGetFramework.Parse(assembly.GetCustomAttribute<TargetFrameworkAttribute>()!.FrameworkName);
+        var packages = new Dictionary<string, PrunePackageReference>(StringComparer.OrdinalIgnoreCase);
+        using var reader = new StreamReader(assembly.GetManifestResourceStream("PackagesToPrune.txt")!);
+        while (reader.ReadLine() is { } line)
+        {
+            var separator = line.IndexOf('|');
+            packages[line[..separator]] = PrunePackageReference.Create(line[..separator], line[(separator + 1)..]);
+        }
+        return (framework, packages);
+    });
 
     /// <summary>
     /// Uninstall <paramref name="package"/>, while still keeping the downloaded file in the cache.
