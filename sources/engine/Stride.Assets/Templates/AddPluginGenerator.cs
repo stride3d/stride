@@ -171,7 +171,15 @@ public sealed class AddPluginGenerator : SessionTemplateGenerator
             log.Info($"[{referencing.Name}] now references [{runtime.Name}].");
 
             // As Add dependency does: the restored game lists the plugin among its dependencies (its types, its features)
-            VSProjectHelper.RestoreNugetPackages(log, referencing.FullPath.ToOSPath()).GetAwaiter().GetResult();
+            try
+            {
+                VSProjectHelper.RestoreNugetPackages(log, referencing.FullPath.ToOSPath()).GetAwaiter().GetResult();
+            }
+            catch (InvalidOperationException)
+            {
+                // The restore logged its errors
+                log.Error($"[{referencing.Name}] could not be restored, so it doesn't list the plugin among its dependencies yet: fix the errors above and reload the project.");
+            }
             PackageSession.UpdateDependencies(referencing, false, true);
         }
         else

@@ -417,7 +417,15 @@ partial class PackageSession
             if (loadParameters.AutoCompileProjects && (!dependenciesRestoredUpFront || referencesUpgraded || restoreOutputMissing))
             {
                 log.Verbose($"Restore NuGet packages for {project.Name}...");
-                await VSProjectHelper.RestoreNugetPackages(log, project.FullPath, loadParameters.AllowUpgradeDowngradeRestore);
+                try
+                {
+                    await VSProjectHelper.RestoreNugetPackages(log, project.FullPath, loadParameters.AllowUpgradeDowngradeRestore);
+                }
+                catch (InvalidOperationException)
+                {
+                    // The restore logged its errors; the project still loads, with what its last restore left
+                    log.Error($"Could not restore the NuGet packages of [{project.Name}]: its dependencies may be missing or out of date.");
+                }
                 restoredSinceEvaluation = true;
             }
 
