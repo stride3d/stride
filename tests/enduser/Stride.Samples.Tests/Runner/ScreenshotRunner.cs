@@ -13,6 +13,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Graphics;
 using Stride.Samples.Generator;
+using Xunit;
 
 namespace Stride.SampleScreenshotRunner;
 
@@ -416,6 +417,8 @@ public static class ScreenshotRunner
         process.ErrorDataReceived += (_, e) => { if (e.Data is not null) log.WriteLine("[stderr] " + e.Data); };
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
+        // A cancelled run stops the process with its children, and the test
+        using var stop = TestContext.Current.CancellationToken.Register(() => { try { process.Kill(entireProcessTree: true); } catch { } });
 
         if (!process.WaitForExit(TimeSpan.FromSeconds(timeoutSeconds)))
         {
@@ -432,6 +435,7 @@ public static class ScreenshotRunner
             log.WriteLine($"[runner] killed after {timeoutSeconds}s timeout");
             return false;
         }
+        TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
         return process.ExitCode == 0;
     }
 

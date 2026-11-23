@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Stride.Packaging.Tests;
 
@@ -116,6 +116,8 @@ internal static class Dotnet
         proc.ErrorDataReceived += (_, e) => Sink("stderr", e.Data);
         proc.BeginOutputReadLine();
         proc.BeginErrorReadLine();
+        // A cancelled run stops the process with its children, and the test
+        using var stop = TestContext.Current.CancellationToken.Register(() => { try { proc.Kill(entireProcessTree: true); } catch { } });
 
         if (!proc.WaitForExit(timeoutMin * 60_000))
         {
@@ -123,6 +125,7 @@ internal static class Dotnet
             throw new TimeoutException($"`dotnet {string.Join(' ', args)}` timed out after {timeoutMin}min");
         }
         proc.WaitForExit(); // flush async readers
+        TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
         string text;
         lock (captured) text = string.Join('\n', captured);
         return new ExecResult(proc.ExitCode, text);

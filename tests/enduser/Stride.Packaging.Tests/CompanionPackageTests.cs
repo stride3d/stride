@@ -9,7 +9,6 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Stride.Packaging.Tests;
 
@@ -17,7 +16,6 @@ namespace Stride.Packaging.Tests;
 /// A runtime plugin package records its companion packages (id, version, kind); a game references the runtime only,
 /// and sessions load the companions from that record.
 /// </summary>
-[Collection("Packaging")]
 public class CompanionPackageTests
 {
     private readonly ITestOutputHelper output;
@@ -591,7 +589,7 @@ public class CompanionPackageTests
         public Case(ITestOutputHelper output, string name)
         {
             this.output = output;
-            TestEnvironment.EnsureSharedPackages(output);
+            TestEnvironment.EnsureSharedPackages();
             version = TestEnvironment.ResolveStrideVersion();
             var fixtures = TestEnvironment.FixturesDir();
             caseDir = Path.Combine(TestEnvironment.CasesRoot, $"{name}-{Guid.NewGuid():N}");

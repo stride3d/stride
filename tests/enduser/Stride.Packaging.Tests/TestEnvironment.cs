@@ -12,7 +12,7 @@ using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Samples.Generator;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Stride.Packaging.Tests;
 
@@ -124,15 +124,10 @@ internal static class TestEnvironment
     /// <summary>The packages folder of the case tree that holds <paramref name="path"/>.</summary>
     public static string CasePackagesFolder(string path) => Path.Combine(CaseDirectory(path), "packages");
 
-    private static readonly Lazy<string> sharedPackages = new(() => RestoreSharedPackages(sharedPackagesOutput!));
-    private static ITestOutputHelper? sharedPackagesOutput;
+    private static readonly Lazy<string> sharedPackages = new(() => RestoreSharedPackages(TestContext.Current.TestOutputHelper!));
 
     /// <summary>Restores <see cref="SharedPackagesFolder"/> once, the first case to ask logging the restore.</summary>
-    public static string EnsureSharedPackages(ITestOutputHelper output)
-    {
-        Interlocked.CompareExchange(ref sharedPackagesOutput, output, null);
-        return sharedPackages.Value;
-    }
+    public static string EnsureSharedPackages() => sharedPackages.Value;
 
     /// <summary>
     /// Restores the engine packages the cases use and the asset compiler, with their dependencies (the asset side's are

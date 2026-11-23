@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.SampleScreenshotRunner;
-using Xunit.Abstractions;
 using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Stride.Samples.Tests
 {
@@ -16,13 +16,10 @@ namespace Stride.Samples.Tests
     /// </summary>
     public sealed class SampleRunOrderer : ITestCaseOrderer
     {
-        public const string TypeName = "Stride.Samples.Tests.SampleRunOrderer";
-        public const string AssemblyName = "Stride.Samples.Tests";
-
-        public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase
+        public IReadOnlyCollection<TTestCase> OrderTestCases<TTestCase>(IReadOnlyCollection<TTestCase> testCases) where TTestCase : notnull, ITestCase
         {
-            var ordered = testCases.OrderBy(x => x.DisplayName, StringComparer.Ordinal).ToList();
-            PreparedSamples.Plan(ordered.Select(x => SampleScreenshotTests.SampleOf(x)).OfType<string>());
+            var ordered = testCases.OrderBy(x => x.TestCaseDisplayName, StringComparer.Ordinal).ToList();
+            PreparedSamples.Plan(ordered.OfType<IXunitTestCase>().Select(SampleScreenshotTests.SampleOf).OfType<string>());
             return ordered;
         }
     }

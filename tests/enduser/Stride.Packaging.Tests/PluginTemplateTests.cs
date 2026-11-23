@@ -10,7 +10,6 @@ using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Stride.Packaging.Tests;
 
@@ -18,7 +17,6 @@ namespace Stride.Packaging.Tests;
 /// The stride-plugin template added to a game's solution by <see cref="AddPluginGenerator"/>: its projects join the
 /// session and the game builds with the plugin.
 /// </summary>
-[Collection("Packaging")]
 public class PluginTemplateTests
 {
     private readonly ITestOutputHelper output;
@@ -36,7 +34,7 @@ public class PluginTemplateTests
     {
         const string gameName = "PluginHost";
         const string pluginName = PluginName;
-        TestEnvironment.EnsureSharedPackages(output);
+        TestEnvironment.EnsureSharedPackages();
         var solutionPath = TestEnvironment.GenerateSample(NewGameTemplateId, gameName);
         var solutionDir = Path.GetDirectoryName(solutionPath)!;
         var logger = new LoggerResult();

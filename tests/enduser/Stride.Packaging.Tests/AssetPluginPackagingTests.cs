@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Stride.Packaging.Tests;
 
@@ -24,7 +23,6 @@ namespace Stride.Packaging.Tests;
 /// must compile it under its rooted /StrideAssetPlugin/ URL and resolve its engine-asset
 /// references through the plugin package's own dependency closure.
 /// </summary>
-[Collection("Packaging")]
 public class AssetPluginPackagingTests : IDisposable
 {
     private readonly ITestOutputHelper output;
@@ -112,7 +110,7 @@ public class AssetPluginPackagingTests : IDisposable
     /// </summary>
     private (ExecResult Result, string ConsumerDir) RunCase(bool declareAssetAssembly, bool viaProjectReference = false)
     {
-        TestEnvironment.EnsureSharedPackages(output);
+        TestEnvironment.EnsureSharedPackages();
         var version = TestEnvironment.ResolveStrideVersion();
         var fixtures = TestEnvironment.FixturesDir();
 

@@ -8,22 +8,22 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 using Xunit.Sdk;
+using Xunit.v3;
 
-[assembly: TestFramework("Stride.Packaging.Tests.ParallelTestFramework", "Stride.Packaging.Tests")]
+[assembly: TestFramework(typeof(Stride.Packaging.Tests.ParallelTestFramework))]
 
 namespace Stride.Packaging.Tests;
 
 /// <summary>
-/// Runs the test methods of a collection at the same time, at most <see cref="MaxParallelTests"/> at once: xUnit runs
-/// the tests of a collection one after the other.
+/// Runs the test methods of a class at the same time, at most <see cref="MaxParallelTests"/> at once over all the
+/// classes: xUnit runs the classes at the same time, but the tests of a class one after the other.
 /// </summary>
 /// <remarks>
 /// The tests spend their time in <c>dotnet</c> child processes. The work they do in the test process takes
 /// <see cref="TestEnvironment.InProcessLock"/>.
 /// </remarks>
-public sealed class ParallelTestFramework(IMessageSink messageSink) : XunitTestFramework(messageSink)
+public sealed class ParallelTestFramework : XunitTestFramework
 {
     /// <summary>The number of tests at once, from STRIDE_PACKAGING_TESTS_PARALLEL; one when it is not set.</summary>
     public static int MaxParallelTests { get; } =
@@ -31,59 +31,66 @@ public sealed class ParallelTestFramework(IMessageSink messageSink) : XunitTestF
 
     private static readonly SemaphoreSlim Slots = new(MaxParallelTests);
 
-    protected override ITestFrameworkExecutor CreateExecutor(AssemblyName assemblyName)
-        => new Executor(assemblyName, SourceInformationProvider, DiagnosticMessageSink);
+    protected override ITestFrameworkExecutor CreateExecutor(Assembly assembly)
+        => new Executor(new XunitTestAssembly(assembly, version: assembly.GetName().Version));
 
-    private sealed class Executor(AssemblyName assemblyName, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink)
-        : XunitTestFrameworkExecutor(assemblyName, sourceInformationProvider, diagnosticMessageSink)
+    private sealed class Executor(IXunitTestAssembly testAssembly) : XunitTestFrameworkExecutor(testAssembly)
     {
-        protected override async void RunTestCases(IEnumerable<IXunitTestCase> testCases, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
-        {
-            using var runner = new AssemblyRunner(TestAssembly, testCases, DiagnosticMessageSink, executionMessageSink, executionOptions);
-            await runner.RunAsync();
-        }
+        public override async ValueTask RunTestCases(IReadOnlyCollection<IXunitTestCase> testCases, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions, CancellationToken cancellationToken)
+            => await AssemblyRunner.Instance.Run(TestAssembly, testCases, executionMessageSink, executionOptions, cancellationToken);
     }
 
-    private sealed class AssemblyRunner(ITestAssembly testAssembly, IEnumerable<IXunitTestCase> testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
-        : XunitTestAssemblyRunner(testAssembly, testCases, diagnosticMessageSink, executionMessageSink, executionOptions)
+    // xUnit's runners are singletons that call each other's Instance: each level is replaced to reach ClassRunner
+    private sealed class AssemblyRunner : XunitTestAssemblyRunner
     {
-        protected override Task<RunSummary> RunTestCollectionAsync(IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
-            => new CollectionRunner(testCollection, testCases, DiagnosticMessageSink, messageBus, TestCaseOrderer, new ExceptionAggregator(Aggregator), cancellationTokenSource).RunAsync();
+        public static new AssemblyRunner Instance { get; } = new();
+
+        protected override ValueTask<RunSummary> RunTestCollection(XunitTestAssemblyRunnerContext ctxt, IXunitTestCollection testCollection, IReadOnlyCollection<IXunitTestCase> testCases)
+            => CollectionRunner.Instance.Run(testCollection, testCases, ctxt.ExplicitOption, ctxt.MessageBus, ctxt.AssemblyTestCaseOrderer ?? DefaultTestCaseOrderer.Instance,
+                ctxt.Aggregator.Clone(), ctxt.CancellationTokenSource, ctxt.AssemblyFixtureMappings);
     }
 
-    private sealed class CollectionRunner(ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, IMessageSink diagnosticMessageSink, IMessageBus messageBus, ITestCaseOrderer testCaseOrderer, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
-        : XunitTestCollectionRunner(testCollection, testCases, diagnosticMessageSink, messageBus, testCaseOrderer, aggregator, cancellationTokenSource)
+    private sealed class CollectionRunner : XunitTestCollectionRunner
     {
-        protected override async Task<RunSummary> RunTestClassesAsync()
-        {
-            var classes = TestCases.GroupBy(tc => tc.TestMethod.TestClass, TestClassComparer.Instance)
-                .Select(group => RunTestClassAsync(group.Key, (IReflectionTypeInfo)group.Key.Class, group));
-            return Sum(await Task.WhenAll(classes));
-        }
+        public static new CollectionRunner Instance { get; } = new();
 
-        protected override Task<RunSummary> RunTestClassAsync(ITestClass testClass, IReflectionTypeInfo @class, IEnumerable<IXunitTestCase> testCases)
-            => new ClassRunner(testClass, @class, testCases, DiagnosticMessageSink, MessageBus, TestCaseOrderer, new ExceptionAggregator(Aggregator), CancellationTokenSource, CollectionFixtureMappings).RunAsync();
+        protected override ValueTask<RunSummary> RunTestClass(XunitTestCollectionRunnerContext ctxt, IXunitTestClass? testClass, IReadOnlyCollection<IXunitTestCase> testCases)
+            => testClass is null
+                ? base.RunTestClass(ctxt, testClass, testCases)
+                : ClassRunner.Instance.Run(testClass, testCases, ctxt.ExplicitOption, ctxt.MessageBus, ctxt.TestCaseOrderer, ctxt.Aggregator.Clone(), ctxt.CancellationTokenSource, ctxt.CollectionFixtureMappings);
     }
 
-    private sealed class ClassRunner(ITestClass testClass, IReflectionTypeInfo @class, IEnumerable<IXunitTestCase> testCases, IMessageSink diagnosticMessageSink, IMessageBus messageBus, ITestCaseOrderer testCaseOrderer, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, IDictionary<Type, object> collectionFixtureMappings)
-        : XunitTestClassRunner(testClass, @class, testCases, diagnosticMessageSink, messageBus, testCaseOrderer, aggregator, cancellationTokenSource, collectionFixtureMappings)
+    private sealed class ClassRunner : XunitTestClassRunner
     {
-        protected override async Task<RunSummary> RunTestMethodsAsync()
+        public static new ClassRunner Instance { get; } = new();
+
+        protected override async ValueTask<RunSummary> RunTestMethods(XunitTestClassRunnerContext ctxt, Exception? exception)
         {
-            var methods = TestCases.GroupBy(tc => tc.TestMethod, TestMethodComparer.Instance)
-                .Select(group => RunInSlotAsync(group.Key, group.ToList()));
-            return Sum(await Task.WhenAll(methods));
+            if (exception is null)
+            {
+                var testCases = OrderTestCases(ctxt);
+                // The ITestOutputHelper among them is the one of the current test, so the tests can share them
+                var constructorArguments = await CreateTestClassConstructorArguments(ctxt);
+                exception = ctxt.Aggregator.ToException();
+                ctxt.Aggregator.Clear();
+                if (exception is null)
+                {
+                    var methods = testCases.GroupBy<IXunitTestCase, IXunitTestMethod>(x => x.TestMethod, TestMethodComparer.Instance)
+                        .Select(group => RunInSlot(ctxt, group.Key, group.ToList(), constructorArguments));
+                    return Sum(await Task.WhenAll(methods));
+                }
+            }
+            // Fails the tests of the class with the exception
+            return await base.RunTestMethods(ctxt, exception);
         }
 
-        private async Task<RunSummary> RunInSlotAsync(ITestMethod method, IReadOnlyList<IXunitTestCase> testCases)
+        private async Task<RunSummary> RunInSlot(XunitTestClassRunnerContext ctxt, IXunitTestMethod method, IReadOnlyCollection<IXunitTestCase> testCases, object?[] constructorArguments)
         {
-            await Slots.WaitAsync(CancellationTokenSource.Token);
+            await Slots.WaitAsync(ctxt.CancellationTokenSource.Token);
             try
             {
-                // Arguments of its own: the ITestOutputHelper among them belongs to one test at a time. The test
-                // methods block their thread on child processes: Task.Run keeps them off the threads of the runner.
-                var arguments = CreateTestClassConstructorArguments();
-                return await Task.Run(() => RunTestMethodAsync(method, (IReflectionMethodInfo)method.Method, testCases, arguments));
+                // The test methods block their thread on child processes: Task.Run keeps them off the threads of the runner
+                return await Task.Run(() => RunTestMethod(ctxt, method, testCases, constructorArguments).AsTask());
             }
             finally
             {

@@ -4,13 +4,13 @@
 using System;
 using Xunit;
 
+[assembly: AssemblyFixture(typeof(Stride.Packaging.Tests.SharedPackagesFolderCleanup))]
+// The generator and the sessions report on the console: it goes to the output of the test they run for
+[assembly: CaptureConsole]
+
 namespace Stride.Packaging.Tests;
 
-// One collection, whose tests ParallelTestFramework runs at the same time
-[CollectionDefinition("Packaging")]
-public class PackagingCollection : ICollectionFixture<SharedPackagesFolderCleanup>;
-
-/// <summary>Deletes <see cref="TestEnvironment.SharedPackagesFolder"/> once the collection is done.</summary>
+/// <summary>Deletes <see cref="TestEnvironment.SharedPackagesFolder"/> once the tests are done.</summary>
 public sealed class SharedPackagesFolderCleanup : IDisposable
 {
     public void Dispose() => TestEnvironment.DeleteCaseDirectory(TestEnvironment.SharedPackagesFolder);

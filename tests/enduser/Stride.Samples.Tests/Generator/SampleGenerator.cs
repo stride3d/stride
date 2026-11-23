@@ -14,6 +14,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Xunit;
 
 namespace Stride.Samples.Generator;
 
@@ -226,6 +227,8 @@ public static class SampleGenerator
         process.ErrorDataReceived += (_, e) => Collect(e.Data);
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
+        // A cancelled run stops the process with its children, and the test
+        using var stop = TestContext.Current.CancellationToken.Register(() => { try { process.Kill(entireProcessTree: true); } catch { } });
 
         var exited = process.WaitForExit(TimeSpan.FromSeconds(timeoutSeconds));
         if (exited)
@@ -239,6 +242,7 @@ public static class SampleGenerator
             Collect($"killed after {timeoutSeconds} s");
         }
 
+        TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
         lock (output)
         {
             File.AppendAllLines(logPath, output);

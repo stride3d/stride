@@ -13,6 +13,8 @@
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <SkipXunitReference>true</SkipXunitReference>
     <SkipTestSdkReference>true</SkipTestSdkReference>
+    <!-- xunit.v3 runs the tests through dotnet test, not through the Stride xUnit 2 launcher -->
+    <IncludeXunitLauncher>false</IncludeXunitLauncher>
     <SkipSourceLink>true</SkipSourceLink>
     <!-- Override SDK test output path since this project is outside sources/ -->
     <OutputPath>$(MSBuildThisFileDirectory)..\..\..\bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</OutputPath>
@@ -29,14 +31,13 @@
     <PackageReference Include="Microsoft.Build.Framework" Version="18.3.3" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="18.3.3" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\sources\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <!-- Stride.Assets carries the templating types (DotNetNewTemplateBridge, TemplateManager) and
          PackageSessionPublicHelper used to generate the consumer sample headlessly. -->
     <ProjectReference Include="..\..\..\sources\engine\Stride.Assets\Stride.Assets.csproj" />
