@@ -355,15 +355,24 @@ jobs:
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
+      # The NDK toolchain compiles with -g: the package gets the library without its debug info (the symbol table
+      # stays), and the full library goes to the symbols pre-release, outside the pack job's spirv-tools-* pattern.
       - name: Collect output
         run: |
-          mkdir -p spirv-tools-out
-          cp _build/libstride_spirv_tools.so spirv-tools-out/
+          mkdir -p spirv-tools-out spirv-tools-symbols
+          cp _build/libstride_spirv_tools.so spirv-tools-symbols/
+          $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip --strip-debug \
+            -o spirv-tools-out/libstride_spirv_tools.so _build/libstride_spirv_tools.so
 
       - uses: actions/upload-artifact@v7
         with:
           name: spirv-tools-${{ matrix.rid }}
           path: spirv-tools-out/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-spirv-tools-${{ matrix.rid }}
+          path: spirv-tools-symbols/
 
   # ---------------------------------------------------------------------------
   # Pack NuGet from all artifacts.
@@ -379,8 +388,18 @@ jobs:
       - build-iossimulator-arm64
       - build-android
     runs-on: windows-2025-vs2026
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v7
+
+      - name: Package version
+        id: version
+        shell: pwsh
+        run: |
+          $version = "${{ github.event.inputs.version }}"
+          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
+          "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Download artifacts
         uses: actions/download-artifact@v8
@@ -422,6 +441,10 @@ jobs:
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
             "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           )
+          # The symbols job creates this pre-release on stride3d/stride only
+          if ('${{ github.repository }}' -eq 'stride3d/stride') {
+            $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/spirv-tools/${{ steps.version.outputs.version }}"
+          }
           New-Item -ItemType Directory -Force deps/spirv-tools/tools | Out-Null
           $lines | Set-Content deps/spirv-tools/tools/VERSION.txt
           $block = @('```') + $lines + @('```')
@@ -438,16 +461,17 @@ jobs:
       - name: Pack NuGet (dotnet pack)
         shell: pwsh
         run: |
-          $version = "${{ github.event.inputs.version }}"
-          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
           dotnet pack deps/spirv-tools/Stride.Dependencies.SPIRVTools.csproj `
             -c Release `
-            -p:PackageVersion=$version `
+            -p:PackageVersion=${{ steps.version.outputs.version }} `
             -p:RepositoryCommit=${{ github.sha }} `
             -o nupkg
 
       - uses: actions/upload-artifact@v7
         with: { name: Stride.Dependencies.SPIRVTools.nupkg, path: nupkg/*.nupkg }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: version-spirv-tools, path: deps/spirv-tools/tools/VERSION.txt }
 
   # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
@@ -458,3 +482,14 @@ jobs:
     uses: ./.github/workflows/dep-publish.yml
     with:
       artifact: Stride.Dependencies.SPIRVTools.nupkg
+
+  # After publish: a package that was not published gets no debug files
+  symbols:
+    needs: [pack, publish]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: spirv-tools
+      version: ${{ needs.pack.outputs.version }}
+      notes-artifact: version-spirv-tools

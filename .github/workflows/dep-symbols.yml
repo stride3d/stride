@@ -1,0 +1,58 @@
+name: "Dep: Symbols Pre-release"
+
+# Keeps the debug files of a dependency build (full-debug libraries, .pdb) as a GitHub pre-release, after the run's
+# artifacts expire. The shipped binaries are stripped, and a later rebuild gives debug files that don't match them.
+# The calling workflow uploads them as artifacts named symbols-<name>-<rid>, and its VERSION.txt in another artifact.
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        description: Name of the dependency, in the tag deps/<name>/<version> and the artifact names symbols-<name>-<rid>
+        required: true
+        type: string
+      version:
+        description: Version of the build, unique for the dependency
+        required: true
+        type: string
+      notes-artifact:
+        description: Name of the artifact whose VERSION.txt becomes the release notes
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Create symbols pre-release
+    # Forks keep the debug files as artifacts of the run only.
+    if: github.repository == 'stride3d/stride'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download symbols
+        uses: actions/download-artifact@v8
+        with:
+          pattern: symbols-${{ inputs.name }}-*
+          path: symbols
+
+      - name: Download VERSION.txt
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.notes-artifact }}
+          path: notes
+
+      # One zip per RID: the files of each RID have the same names.
+      - name: Create pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ inputs.name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          cd symbols
+          for dir in */; do (cd "$dir" && zip -r "../${dir%/}.zip" .); done
+          { echo '```'; cat ../notes/VERSION.txt; echo '```'; } > ../notes.md
+          gh release create "deps/$NAME/$VERSION" *.zip \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --prerelease --latest=false \
+            --title "$NAME $VERSION debug files" \
+            --notes-file ../notes.md

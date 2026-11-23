@@ -43,18 +43,26 @@ jobs:
             -DFT_DISABLE_ZLIB=ON
           cmake --build freetype-build --config Release
 
+      # The .pdb, when the build makes one, goes to the symbols pre-release: it would ship next to the DLL in every game.
       - name: Collect output
         shell: pwsh
         run: |
-          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force
+          New-Item -Path "out/${{ matrix.rid }}", "symbols/${{ matrix.rid }}" -ItemType Directory -Force
           Copy-Item freetype-build/Release/freetype.dll "out/${{ matrix.rid }}/"
-          Copy-Item freetype-build/Release/freetype.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
+          Copy-Item freetype-build/Release/freetype.pdb "symbols/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
 
       - name: Upload
         uses: actions/upload-artifact@v7
         with:
           name: freetype-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
+
+      - name: Upload symbols
+        uses: actions/upload-artifact@v7
+        with:
+          name: symbols-freetype-${{ matrix.rid }}
+          path: symbols/${{ matrix.rid }}/
+          if-no-files-found: ignore
 
   build-linux:
     name: Build FreeType (Linux x64)
@@ -172,16 +180,26 @@ jobs:
             -DFT_DISABLE_ZLIB=ON
           cmake --build freetype-build -- -j$(nproc)
 
+      # The NDK toolchain compiles with -g: ship the library without its debug info (the symbol table stays), and
+      # keep the full library in the symbols pre-release.
       - name: Collect output
         run: |
-          mkdir -p out/${{ matrix.rid }}
-          cp freetype-build/libfreetype.so out/${{ matrix.rid }}/
+          mkdir -p out/${{ matrix.rid }} symbols/${{ matrix.rid }}
+          cp freetype-build/libfreetype.so symbols/${{ matrix.rid }}/
+          $ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip --strip-debug \
+            -o out/${{ matrix.rid }}/libfreetype.so freetype-build/libfreetype.so
 
       - name: Upload
         uses: actions/upload-artifact@v7
         with:
           name: freetype-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
+
+      - name: Upload symbols
+        uses: actions/upload-artifact@v7
+        with:
+          name: symbols-freetype-${{ matrix.rid }}
+          path: symbols/${{ matrix.rid }}/
 
   build-ios:
     name: Build FreeType (${{ matrix.rid }})
@@ -233,6 +251,11 @@ jobs:
     name: Collect all platforms
     needs: [build-windows, build-linux, build-macos, build-android, build-ios]
     runs-on: ubuntu-24.04
+    env:
+      # A FreeType version can be built more than once, as when only the build options change
+      SYMBOLS_VERSION: ${{ github.event.inputs.freetype-version }}-run${{ github.run_number }}
+    outputs:
+      symbols-version: ${{ env.SYMBOLS_VERSION }}
     steps:
       - name: Checkout FreeType (for version info)
         uses: actions/checkout@v7
@@ -274,6 +297,10 @@ jobs:
             "$(date -u +%Y-%m-%d)" \
             "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             > $OUT/VERSION.txt
+          # The symbols job creates this pre-release on stride3d/stride only
+          if [ "${{ github.repository }}" = stride3d/stride ]; then
+            echo "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/freetype/$SYMBOLS_VERSION" >> $OUT/VERSION.txt
+          fi
 
       - name: List contents
         run: find freetype-out -type f | sort
@@ -283,3 +310,13 @@ jobs:
         with:
           name: freetype-all-platforms
           path: freetype-out/
+
+  symbols:
+    needs: collect
+    permissions:
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: freetype
+      version: ${{ needs.collect.outputs.symbols-version }}
+      notes-artifact: freetype-all-platforms
