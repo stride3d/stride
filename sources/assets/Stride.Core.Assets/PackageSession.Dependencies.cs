@@ -502,7 +502,11 @@ partial class PackageSession
                             file = UPath.Combine(project.FullPath.GetFullDirectory(), (UFile)projectDependency.MSBuildProject);
                         break;
                     case DependencyType.Package:
-                        file = PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(projectDependency.Version), constraintProvider);
+                        // The restore's packages folder can be another than the user's (globalPackagesFolder in a nuget.config).
+                        // A dev package of a checkout is a stub without assets: they are in its project.
+                        file = projectDependency.PackageDirectory is { } packageDirectory
+                            ? PackageStore.FindPackageFile(NugetStore.GetRealPath(packageDirectory, projectDependency.Name, projectDependency.Version), projectDependency.Name)
+                            : PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(projectDependency.Version), constraintProvider);
                         break;
                 }
 
@@ -709,6 +713,8 @@ partial class PackageSession
 
                         if (libraryPath != null)
                         {
+                            projectDependency.PackageDirectory = libraryPath;
+
                             // Build list of assemblies
                             foreach (var a in targetLibrary.RuntimeAssemblies)
                             {

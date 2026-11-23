@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core;
 using Stride.Core.Packages;
 using Xunit;
 
@@ -60,6 +61,25 @@ public sealed class DevRedirectStubTests : IDisposable
         Directory.CreateDirectory(Path.Combine(root, "checkout", "sources", "assets", "Stride.AssetCompiler"));
 
         Assert.Null(NugetStore.TryGetDevRedirectOutputDirectory(package, "Stride.AssetCompiler"));
+    }
+
+    [Fact]
+    public void GetRealPath_OfADevStubIsItsCheckoutProject()
+    {
+        var package = WriteStub("Debug");
+        var project = Path.Combine(root, "checkout", "sources", "assets", "Stride.AssetCompiler");
+        Directory.CreateDirectory(project);
+
+        Assert.Equal(project, NugetStore.GetRealPath(package, "Stride.AssetCompiler", PackageVersion.Parse("4.5.0-dev")));
+    }
+
+    [Fact]
+    public void GetRealPath_OfARealPackageIsItsFolder()
+    {
+        var package = Path.Combine(root, "packages", "stride.assetcompiler", "4.4.1");
+        Directory.CreateDirectory(package);
+
+        Assert.Equal(package, NugetStore.GetRealPath(package, "Stride.AssetCompiler", PackageVersion.Parse("4.4.1")));
     }
 
     [Fact]

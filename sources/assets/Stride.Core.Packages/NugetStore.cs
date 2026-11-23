@@ -1176,14 +1176,20 @@ public partial class NugetStore : INugetDownloadProgress
     {
     }
 
-    public string GetRealPath(NugetLocalPackage package)
+    public string GetRealPath(NugetLocalPackage package) => GetRealPath(package.Path, package.Id, package.Version);
+
+    /// <summary>
+    /// The folder that holds the assets of <paramref name="packageId"/> installed at <paramref name="packagePath"/>: the
+    /// checkout project a dev-redirect package stands for, else the package folder itself.
+    /// </summary>
+    public static string GetRealPath(string packagePath, string packageId, PackageVersion version)
     {
-        if (IsDevRedirectPackage(package))
+        if (IsDevRedirectPackage(packagePath, packageId, version))
         {
             // Legacy dev-redirect (<3.1): a "<Id>.redirect" file holds the source directory directly.
-            if (package.Version < new PackageVersion(3, 1, 0, 0))
+            if (version < new PackageVersion(3, 1, 0, 0))
             {
-                var realPath = File.ReadAllText(GetRedirectFile(package));
+                var realPath = File.ReadAllText(GetRedirectFile(packagePath, packageId));
                 if (!Directory.Exists(realPath))
                     throw new DirectoryNotFoundException();
                 return realPath;
@@ -1192,20 +1198,13 @@ public partial class NugetStore : INugetDownloadProgress
             // Modern dev-redirect stub: resolve the in-tree source project directory from the
             // build/<Id>.props the stub generator emitted, so the asset compiler reads assets and
             // shader source straight from the checkout instead of the (asset-less) stub.
-            var sourceDir = TryGetDevRedirectProjectDirectory(package);
+            var sourceDir = TryGetDevRedirectProjectDirectory(packagePath, packageId);
             if (sourceDir != null)
                 return sourceDir;
         }
 
-        return package.Path;
+        return packagePath;
     }
-
-    /// <summary>
-    /// Reads <c>StrideDevProjectDirectory</c> (with <c>$(StrideDevRoot)</c> resolved) from a modern
-    /// dev-redirect stub's <c>build/&lt;Id&gt;.props</c>. Returns null if it isn't a resolvable stub.
-    /// </summary>
-    private static string? TryGetDevRedirectProjectDirectory(NugetLocalPackage package)
-        => TryGetDevRedirectProjectDirectory(package.Path, package.Id);
 
     /// <summary>
     /// The checkout project directory a dev-redirect stub installed at <paramref name="packagePath"/> stands for,
@@ -1252,16 +1251,17 @@ public partial class NugetStore : INugetDownloadProgress
         return Directory.Exists(outputDirectory) ? outputDirectory : null;
     }
 
-    public string GetRedirectFile(NugetLocalPackage package)
-    {
-        return Path.Combine(package.Path, $"{package.Id}.redirect");
-    }
+    public string GetRedirectFile(NugetLocalPackage package) => GetRedirectFile(package.Path, package.Id);
 
-    public bool IsDevRedirectPackage(NugetLocalPackage package)
+    private static string GetRedirectFile(string packagePath, string packageId) => Path.Combine(packagePath, $"{packageId}.redirect");
+
+    public bool IsDevRedirectPackage(NugetLocalPackage package) => IsDevRedirectPackage(package.Path, package.Id, package.Version);
+
+    private static bool IsDevRedirectPackage(string packagePath, string packageId, PackageVersion version)
     {
-        return package.Version < new PackageVersion(3, 1, 0, 0)
-            ? File.Exists(GetRedirectFile(package))
-            : (package.Version.SpecialVersion?.StartsWith("dev", StringComparison.Ordinal) == true && !package.Version.SpecialVersion.Contains('.'));
+        return version < new PackageVersion(3, 1, 0, 0)
+            ? File.Exists(GetRedirectFile(packagePath, packageId))
+            : (version.SpecialVersion?.StartsWith("dev", StringComparison.Ordinal) == true && !version.SpecialVersion.Contains('.'));
     }
 
     /// <summary>

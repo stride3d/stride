@@ -315,6 +315,9 @@ public class Dependency
 
     public List<string> Assemblies { get; } = [];
 
+    /// <summary>The folder the project's restore extracted the package to, as its lock file names it; null when unknown.</summary>
+    internal string? PackageDirectory { get; set; }
+
     public override string ToString()
     {
         return $"{Name} {Version} ({Type})";

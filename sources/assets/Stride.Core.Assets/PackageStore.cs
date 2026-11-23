@@ -84,25 +84,19 @@ public class PackageStore
         ArgumentNullException.ThrowIfNull(packageName);
 
         var package = store.FindLocalPackage(packageName, versionRange, constraintProvider, allowPreleaseVersion, allowUnlisted);
+        return package is not null ? FindPackageFile((UDirectory)store.GetRealPath(package), packageName) : null;
+    }
 
-        // If package was not found, 
-        if (package is not null)
-        {
-            var packageRoot = (UDirectory)store.GetRealPath(package);
-            var packageFilename = new UFile(packageName + Package.PackageFileExtension);
+    /// <summary>The <c>.sdpkg</c> of <paramref name="packageName"/> in the extracted package at <paramref name="packageRoot"/>, at its root or in its <c>stride</c> folder.</summary>
+    internal static UFile? FindPackageFile(UDirectory packageRoot, string packageName)
+    {
+        var packageFilename = new UFile(packageName + Package.PackageFileExtension);
+        var packageFile = UPath.Combine(packageRoot, packageFilename);
+        if (File.Exists(packageFile))
+            return packageFile;
 
-            // First look for sdpkg at package root
-            var packageFile = UPath.Combine(packageRoot, packageFilename);
-            if (File.Exists(packageFile))
-                return packageFile;
-
-            // Then look for sdpkg inside stride subfolder
-            packageFile = UPath.Combine(UPath.Combine(packageRoot, (UDirectory)"stride"), packageFilename);
-            if (File.Exists(packageFile))
-                return packageFile;
-        }
-
-        return null;
+        packageFile = UPath.Combine(UPath.Combine(packageRoot, (UDirectory)"stride"), packageFilename);
+        return File.Exists(packageFile) ? packageFile : null;
     }
 
     /// <summary>
