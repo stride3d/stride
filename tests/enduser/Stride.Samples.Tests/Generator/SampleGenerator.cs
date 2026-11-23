@@ -152,7 +152,7 @@ public static class SampleGenerator
         var upgrade = RunDotnet([FindAssetCompiler(), "upgrade", solution, "--no-backup"], directory, log, UpgradeTimeoutSeconds, nodeReuse: true);
         if (upgrade.ExitCode != 0)
         {
-            // The upgrade restores the sample first, and stops there, with nothing changed, when the restore fails
+            // The session restores the sample first: a version that no feed has fails the upgrade with the NuGet errors
             if (!upgrade.Output.Any(IsStridePackageNotFound))
                 throw new InvalidOperationException($"The upgrade of {sampleName} to Stride {StridePackageUpgrader.CurrentVersion} failed (exit code {upgrade.ExitCode}); see {log}:\n{Tail(upgrade.Output)}");
 

@@ -463,46 +463,6 @@ namespace Stride.AssetCompiler
                 }
             }
 
-            // Restore packages first so PackageSession.Load sees a fully-resolved dep
-            // graph. Today's narrow asset-YAML schema migration doesn't strictly require
-            // this (path-based .sdpkg AssetFolders discovery + no code transforms), but
-            // anything code-aware does — Roslyn upgrades, MSBuild item enumeration that
-            // includes items contributed by package-imported targets (.sdsl/.sdfx, etc.).
-            // Restoring up-front avoids surprises when the upgrader grows beyond schema
-            // bumps. Also cleans up Session log noise from unresolved engine asset refs.
-            // Incremental for already-restored projects, so cheap when called from the
-            // StrideUpgradeAssets MSBuild target inside a real consumer build.
-            var restoreTarget = Stride.Core.Solutions.Solution.IsSolutionFile(upgradeTarget)
-                || upgradeTarget.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
-                ? upgradeTarget
-                : System.IO.Path.ChangeExtension(upgradeTarget, ".csproj");
-            if (System.IO.File.Exists(restoreTarget))
-            {
-                var psi = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    // -p:WarningsAsErrors= demotes NU1605 (package downgrade) from error back to a visible
-                    // warning for this restore only: during an upgrade a dependency may already be on the new
-                    // version while this project isn't yet (e.g. a shared plugin, or a dependency processed
-                    // earlier in the batch), which is a transient, expected downgrade that the upgrade's
-                    // reference rewrite resolves. Scoped to this upgrade-time restore — real builds keep
-                    // NU1605 as a hard error. (NoWarn would hide it; WarningsNotAsErrors isn't honored by restore.)
-                    ArgumentList = { "restore", restoreTarget, "--nologo", "-p:WarningsAsErrors=" },
-                    UseShellExecute = false,
-                };
-                // No redirect: inherit the console so dotnet's colored terminal-logger output streams live.
-                // Trade-off vs capturing: no tidy error summary, but on failure dotnet's own error lines are
-                // already on screen.
-                using var proc = System.Diagnostics.Process.Start(psi)!;
-                proc.WaitForExit();
-                if (proc.ExitCode != 0)
-                {
-                    // Fail hard: a failed restore would make the code-aware upgrade produce wrong results.
-                    options.Logger.Error($"dotnet restore failed for {restoreTarget} (exit {proc.ExitCode}); see the restore output above.");
-                    return (int)BuildResultCode.BuildError;
-                }
-            }
-
             // Reconcile reproduces a GameStudio open+save, so load the session the way GameStudio
             // does — using the defaults, which compile and load the project assemblies. Without that,
             // assets referencing user script types (e.g. a sample's own components) fail to
