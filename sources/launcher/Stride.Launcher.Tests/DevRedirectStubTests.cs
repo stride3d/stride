@@ -83,6 +83,19 @@ public sealed class DevRedirectStubTests : IDisposable
     }
 
     [Fact]
+    public void TryGetDevRedirectOutputDirectory_SkipsCommentedOutElements()
+    {
+        var package = WriteStub("Release");
+        var props = Path.Combine(package, "build", "Stride.AssetCompiler.props");
+        File.WriteAllText(props, File.ReadAllText(props).Replace("<PropertyGroup>",
+            "<!-- <StrideDevConfiguration>Debug</StrideDevConfiguration> --><PropertyGroup>", StringComparison.Ordinal));
+        Directory.CreateDirectory(ProjectOutput("Debug"));
+        Directory.CreateDirectory(ProjectOutput("Release"));
+
+        Assert.Equal(ProjectOutput("Release"), NugetStore.TryGetDevRedirectOutputDirectory(package, "Stride.AssetCompiler"));
+    }
+
+    [Fact]
     public void TryGetDevRedirectOutputDirectory_NullForARealPackage()
     {
         var package = Path.Combine(root, "packages", "stride.assetcompiler", "4.4.1");

@@ -8,6 +8,8 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Xml;
+using System.Xml.Linq;
 using NuGet.Commands;
 using NuGet.Common;
 using NuGet.Configuration;
@@ -1249,18 +1251,17 @@ public partial class NugetStore : INugetDownloadProgress
     /// </summary>
     public static string? TryGetDevRedirectProjectDirectory(string packagePath, string packageId)
     {
-        var propsPath = Path.Combine(packagePath, "build", $"{packageId}.props");
-        if (!File.Exists(propsPath))
+        var props = LoadDevRedirectProps(packagePath, packageId);
+        if (props is null)
             return null;
 
-        var text = File.ReadAllText(propsPath);
-        var dir = Regex.Match(text, "<StrideDevProjectDirectory>(.*?)</StrideDevProjectDirectory>").Groups[1].Value;
+        var dir = GetDevRedirectValue(props, "StrideDevProjectDirectory");
         if (string.IsNullOrEmpty(dir))
             return null;
 
         if (dir.Contains("$(StrideDevRoot)"))
         {
-            var root = Regex.Match(text, "<StrideDevRoot[^>]*>(.*?)</StrideDevRoot>").Groups[1].Value;
+            var root = GetDevRedirectValue(props, "StrideDevRoot");
             if (string.IsNullOrEmpty(root))
                 return null;
             dir = dir.Replace("$(StrideDevRoot)", root);
@@ -1278,14 +1279,40 @@ public partial class NugetStore : INugetDownloadProgress
     public static string? TryGetDevRedirectOutputDirectory(string packagePath, string packageId)
     {
         var projectDirectory = TryGetDevRedirectProjectDirectory(packagePath, packageId);
-        if (projectDirectory is null)
+        var props = LoadDevRedirectProps(packagePath, packageId);
+        if (projectDirectory is null || props is null)
             return null;
 
-        var text = File.ReadAllText(Path.Combine(packagePath, "build", $"{packageId}.props"));
-        var configuration = Regex.Match(text, "<StrideDevConfiguration[^>]*>(.*?)</StrideDevConfiguration>").Groups[1].Value;
+        var configuration = GetDevRedirectValue(props, "StrideDevConfiguration");
         var outputDirectory = Path.Combine(projectDirectory, "bin", string.IsNullOrEmpty(configuration) ? "Debug" : configuration);
         return Directory.Exists(outputDirectory) ? outputDirectory : null;
     }
+
+    /// <summary>
+    /// The root element of the <c>build/&lt;Id&gt;.props</c> that a dev-redirect stub installed at <paramref name="packagePath"/>
+    /// carries, or null when the folder has no such file or it isn't XML.
+    /// </summary>
+    private static XElement? LoadDevRedirectProps(string packagePath, string packageId)
+    {
+        var propsPath = Path.Combine(packagePath, "build", $"{packageId}.props");
+        if (!File.Exists(propsPath))
+            return null;
+
+        try
+        {
+            return XDocument.Load(propsPath).Root;
+        }
+        catch (XmlException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// The value of the first property or item metadata named <paramref name="name"/> in a dev-redirect stub's props, or null.
+    /// </summary>
+    private static string? GetDevRedirectValue(XElement props, string name)
+        => props.Descendants(props.Name.Namespace + name).FirstOrDefault()?.Value.Trim();
 
     public string GetRedirectFile(NugetLocalPackage package) => GetRedirectFile(package.Path, package.Id);
 
