@@ -253,9 +253,18 @@ public class ResolveStrideWorktreeVersion : Task
     {
         // Reuse the generated file when the stamp (ledger mtime, source file hash) is unchanged; the file
         // marker is "stamp|suffix", so it must start with stamp + "|".
-        if (!File.Exists(GeneratedVersionFile))
+        // Read outside the lock, while another project may be rewriting the file: missing or unreadable is a miss,
+        // and Execute then resolves under the lock.
+        string generated;
+        try
+        {
+            generated = File.ReadAllText(GeneratedVersionFile);
+        }
+        catch (IOException)
+        {
             return false;
-        var m = Regex.Match(File.ReadAllText(GeneratedVersionFile), "// version-stamp: (.*)");
+        }
+        var m = Regex.Match(generated, "// version-stamp: (.*)");
         if (!m.Success)
             return false;
         string key = m.Groups[1].Value;
