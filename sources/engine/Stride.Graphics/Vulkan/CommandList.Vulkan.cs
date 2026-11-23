@@ -3,6 +3,8 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -23,6 +25,7 @@ namespace Stride.Graphics
         internal CommandBufferPool CommandBufferPool;
 
         private PipelineState activePipeline;
+        private PipelineState validatedPipeline;
         private bool pipelineDirty = true;
 
         /// <summary>
@@ -2087,6 +2090,13 @@ namespace Stride.Graphics
             // sampled at the same time
             bool depthReadOnly = depthStencilBuffer != null && (depthStencilBuffer.IsDepthStencilReadOnly || DepthStencilAccess == DepthStencilAccess.Read);
 
+            // The render pass instance stays active across pipeline changes, so the check also runs when only the pipeline changed
+            if (GraphicsDevice.IsDebugMode && (renderingDirty || activePipeline != validatedPipeline) && (RenderTargetCount > 0 || depthStencilBuffer != null))
+            {
+                ValidateAttachments();
+                validatedPipeline = activePipeline;
+            }
+
             // The render pass instance stays active across pipeline changes as long as the
             // attachments and the depth layout stay the same
             if (activeRendering && !renderingDirty && activeDepthReadOnly == depthReadOnly)
@@ -2098,18 +2108,6 @@ namespace Stride.Graphics
             var renderTarget = RenderTargetCount > 0 ? renderTargets[0] : depthStencilBuffer;
             if (renderTarget == null)
                 return;
-
-            // An attachment mismatch with the pipeline's declared formats is undefined behavior that
-            // loses the device on strict drivers; fail loud in debug (only, to not break drivers that
-            // tolerate it) instead.
-            if (GraphicsDevice.IsDebugMode)
-            {
-                var output = activePipeline.Description.Output;
-                if (RenderTargetCount != output.RenderTargetCount || (depthStencilBuffer != null) != (output.DepthStencilFormat != PixelFormat.None))
-                    throw new InvalidOperationException(
-                        $"Bound render targets ({RenderTargetCount} color, depth: {depthStencilBuffer != null}) do not match the active pipeline's output " +
-                        $"({output.RenderTargetCount} color, depth: {output.DepthStencilFormat != PixelFormat.None}). The render targets bound on the command list must match the pipeline's Output description.");
-            }
 
             // Clear attachments if needed
             for (int index = 0; index < RenderTargetCount; index++)
@@ -2169,6 +2167,58 @@ namespace Stride.Graphics
             activeRendering = true;
             activeDepthReadOnly = depthReadOnly;
             renderingDirty = false;
+        }
+
+        /// <summary>
+        ///   Throws if the bound attachments do not match the formats of the active pipeline.
+        ///   With dynamic rendering a mismatch is undefined behavior and loses the device on some drivers.
+        /// </summary>
+        private void ValidateAttachments()
+        {
+            var pipeline = activePipeline;
+            var output = pipeline.Description.Output;
+            var expectedColorFormats = pipeline.ColorAttachmentFormats;
+            bool expectsDepth = output.DepthStencilFormat != PixelFormat.None;
+
+            if (RenderTargetCount != expectedColorFormats.Length || (depthStencilBuffer != null) != expectsDepth)
+                ThrowAttachmentMismatch(output);
+
+            for (int i = 0; i < RenderTargetCount; i++)
+            {
+                if (renderTargets[i].NativeFormat != expectedColorFormats[i])
+                    ThrowAttachmentMismatch(output);
+            }
+
+            if (depthStencilBuffer != null && depthStencilBuffer.NativeFormat != pipeline.DepthAttachmentFormat)
+                ThrowAttachmentMismatch(output);
+        }
+
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void ThrowAttachmentMismatch(RenderOutputDescription output)
+        {
+            var bound = new System.Text.StringBuilder();
+            for (int i = 0; i < RenderTargetCount; i++)
+            {
+                if (i > 0)
+                    bound.Append(", ");
+                bound.Append(renderTargets[i].ViewFormat);
+            }
+            var boundDepth = depthStencilBuffer != null ? depthStencilBuffer.ViewFormat.ToString() : "none";
+
+            var expected = new System.Text.StringBuilder();
+            var expectedFormats = output.RenderTargetFormats;
+            for (int i = 0; i < output.RenderTargetCount; i++)
+            {
+                if (i > 0)
+                    expected.Append(", ");
+                expected.Append(expectedFormats[i]);
+            }
+
+            throw new InvalidOperationException(
+                $"The bound render targets do not match the active pipeline's output. Bound: color [{bound}], depth {boundDepth}. " +
+                $"Expected: color [{expected}], depth {output.DepthStencilFormat}. " +
+                "The attachments bound on the command list must have the formats of the pipeline's Output description.");
         }
 
         private unsafe void CleanupRenderPass()

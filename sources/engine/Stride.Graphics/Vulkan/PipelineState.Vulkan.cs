@@ -26,6 +26,10 @@ namespace Stride.Graphics
         internal PipelineStateDescription Description;
         internal bool IsCompute;
 
+        // The attachment formats the graphics pipeline was created with
+        internal VkFormat[] ColorAttachmentFormats = [];
+        internal VkFormat DepthAttachmentFormat;
+
         // State exposed by the CommandList
         private static readonly VkDynamicState[] dynamicStates =
         {
@@ -231,12 +235,18 @@ namespace Stride.Graphics
                     var output = Description.Output;
                     var colorAttachmentFormats = stackalloc VkFormat[renderTargetCount > 0 ? renderTargetCount : 1];
                     var renderTargetFormat = &output.RenderTargetFormat0;
+                    ColorAttachmentFormats = new VkFormat[renderTargetCount];
                     for (int i = 0; i < renderTargetCount; i++)
-                        colorAttachmentFormats[i] = VulkanConvertExtensions.ConvertPixelFormat(*(renderTargetFormat + i));
+                    {
+                        var colorFormat = VulkanConvertExtensions.ConvertPixelFormat(*(renderTargetFormat + i));
+                        colorAttachmentFormats[i] = colorFormat;
+                        ColorAttachmentFormats[i] = colorFormat;
+                    }
 
                     var depthAttachmentFormat = output.DepthStencilFormat != PixelFormat.None
                         ? VulkanConvertExtensions.ConvertPixelFormat(GraphicsDevice.GetSupportedDepthStencilFormat(output.DepthStencilFormat))
                         : VkFormat.Undefined;
+                    DepthAttachmentFormat = depthAttachmentFormat;
 
                     var renderingCreateInfo = new VkPipelineRenderingCreateInfo
                     {
