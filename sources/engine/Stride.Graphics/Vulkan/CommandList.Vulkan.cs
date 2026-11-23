@@ -113,6 +113,7 @@ namespace Stride.Graphics
             boundDescriptorSets.Clear();
             currentCbLayouts.Clear();
             currentCbBufferLayouts.Clear();
+            ClearBoundBuffers();
             pendingMemoryBarriers.Clear();
             pendingBufferBarriers.Clear();
             pendingImageBarriers.Clear();
@@ -514,6 +515,8 @@ namespace Stride.Graphics
             //if (index != 0)
             //    throw new NotImplementedException();
 
+            TrackVertexBuffer(index, buffer, offset, stride);
+
             var bufferCopy = buffer.NativeBuffer;
             var offsetCopy = (ulong) offset;
 
@@ -522,6 +525,8 @@ namespace Stride.Graphics
 
         public void SetIndexBuffer(Buffer buffer, int offset, bool is32bits)
         {
+            TrackIndexBuffer(buffer, offset, is32bits);
+
             GraphicsDevice.NativeDeviceApi.vkCmdBindIndexBuffer(currentCommandList.NativeCommandBuffer, buffer.NativeBuffer, (ulong) offset, is32bits ? VkIndexType.Uint32 : VkIndexType.Uint16);
         }
 
@@ -2017,6 +2022,7 @@ namespace Stride.Graphics
                 var discardedBuffer = (Buffer) resource;
                 discardedBuffer.Rename();
                 currentCbBufferLayouts.Remove(discardedBuffer);
+                RebindBuffer(discardedBuffer);
             }
 
             if (mapMode != MapMode.WriteNoOverwrite && mapMode != MapMode.Write && !isDiscard)

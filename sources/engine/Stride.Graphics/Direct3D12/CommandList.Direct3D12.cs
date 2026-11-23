@@ -159,6 +159,7 @@ namespace Stride.Graphics
             samplerMapping.Clear();
 
             cbLayouts.Clear();
+            ClearBoundBuffers();
 
             currentCommandList.Builder = this;
             currentCommandList.SrvHeaps = GraphicsDevice.DescriptorHeapLists.Acquire();
@@ -478,6 +479,8 @@ namespace Stride.Graphics
         /// </param>
         public void SetVertexBuffer(int index, Buffer buffer, int offset, int stride)
         {
+            TrackVertexBuffer(index, buffer, offset, stride);
+
             if (buffer is null)
             {
                 scoped ref var nullVertexBufferView = ref NullRef<VertexBufferView>();
@@ -508,6 +511,8 @@ namespace Stride.Graphics
         /// </param>
         public void SetIndexBuffer(Buffer buffer, int offset, bool is32Bits) // TODO: Use IndexElementSize?
         {
+            TrackIndexBuffer(buffer, offset, is32Bits);
+
             if (buffer is null)
             {
                 scoped ref var nullIndexBufferView = ref NullRef<IndexBufferView>();
@@ -2364,7 +2369,10 @@ namespace Stride.Graphics
 
                 // Create new resource
                 if (resource is Buffer discardedBuffer)
+                {
                     discardedBuffer.Recreate(IntPtr.Zero);
+                    RebindBuffer(discardedBuffer);
+                }
                 else
                     ((Texture)resource).Recreate();
             }
