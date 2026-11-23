@@ -4,13 +4,13 @@ name: Screenshot Vision Gate
 # the screenshot suite captures + LPIPS-scores there and marks borderline frames "deferred" instead of
 # failing. This workflow runs in base context (has the key) on the BASE checkout (trusted comparator),
 # over the PR's uploaded image artifacts and the PR's own gold images — data only, so no PR-built code
-# ever runs with the key. It posts a "Screenshot Vision Gate" status on the PR head; mark it required
-# to make deferrals blocking.
+# ever runs with the key. It posts a "Screenshot Vision Gate" status on the PR head: pending from the
+# start of a screenshot run, then its verdict. Mark it required to make deferrals blocking.
 
 on:
   workflow_run:
     workflows: ["PR Label Suites", "Test End-User", "Test GameStudio (Screenshots)"]
-    types: [completed]
+    types: [requested, completed]
 
 permissions:
   contents: read
@@ -18,10 +18,27 @@ permissions:
   statuses: write     # post the gate status on the PR head
 
 jobs:
+  # Only PR-triggered runs carry a PR head to post a status on. Dispatched runs of Test End-User
+  # are trusted and keyed (nothing gets deferred), so they need no gate.
+  pending:
+    if: github.event.workflow_run.event == 'pull_request' && github.event.action == 'requested'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Post pending gate status on PR head
+        uses: actions/github-script@v9
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              sha: context.payload.workflow_run.head_sha,
+              context: 'Screenshot Vision Gate',
+              state: 'pending',
+              target_url: context.payload.workflow_run.html_url,
+              description: 'Waiting for the screenshot run to end',
+            });
+
   vision-gate:
-    # Only PR-triggered runs carry a PR head to post a check on. Dispatched runs of Test End-User
-    # are trusted and keyed (nothing gets deferred), so they need no gate.
-    if: github.event.workflow_run.event == 'pull_request'
+    if: github.event.workflow_run.event == 'pull_request' && github.event.action == 'completed'
     runs-on: ubuntu-24.04
     steps:
       # Base checkout: trusted comparator source and vision prompts — pinned EXPLICITLY to the repo
@@ -166,6 +183,19 @@ jobs:
             const failed = file && fs.existsSync(file)
               ? [...new Set(fs.readFileSync(file, 'utf8').split('\n').map(x => x.trim()).filter(x => x))]
               : [];
+            // Another run of the same workflow on this commit (after a push and a label, say) may still be
+            // capturing: its gate posts the verdict, so a pass here leaves the status pending
+            const { data } = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner, repo: context.repo.repo,
+              workflow_id: context.payload.workflow_run.workflow_id,
+              head_sha: context.payload.workflow_run.head_sha,
+              per_page: 100,
+            });
+            const running = data.workflow_runs.filter(run => run.id !== context.payload.workflow_run.id && run.status !== 'completed');
+            if (ok && running.length > 0) {
+              core.info(`Left pending for the runs still going: ${running.map(run => run.html_url).join(', ')}`);
+              return;
+            }
             let description = ok
               ? 'Deferred frames resolved (or nothing was deferred)'
               : failed.length > 0
