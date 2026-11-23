@@ -512,6 +512,7 @@ namespace Stride.Graphics
                 shaderCullDistance = deviceFeatures.shaderCullDistance,
                 samplerAnisotropy = deviceFeatures.samplerAnisotropy,
                 depthClamp = deviceFeatures.depthClamp,
+                depthBiasClamp = deviceFeatures.depthBiasClamp,
                 tessellationShader = deviceFeatures.tessellationShader,
                 shaderStorageImageReadWithoutFormat = deviceFeatures.shaderStorageImageReadWithoutFormat,
                 shaderStorageImageWriteWithoutFormat = deviceFeatures.shaderStorageImageWriteWithoutFormat,

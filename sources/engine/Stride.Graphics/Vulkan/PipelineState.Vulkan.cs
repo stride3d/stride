@@ -447,7 +447,7 @@ namespace Stride.Graphics
                 depthBiasEnable = true, // TODO VULKAN
                 depthBiasConstantFactor = description.DepthBias,
                 depthBiasSlopeFactor = description.SlopeScaleDepthBias,
-                depthBiasClamp = description.DepthBiasClamp,
+                depthBiasClamp = GraphicsDevice.EnabledFeatures.depthBiasClamp ? description.DepthBiasClamp : 0f,
                 lineWidth = 1.0f,
                 depthClampEnable = !description.DepthClipEnable,
                 rasterizerDiscardEnable = false
