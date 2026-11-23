@@ -76,6 +76,15 @@ namespace Stride.Rendering
 
         public ComputeFallbackEffectDelegate ComputeFallbackEffect { get; set; }
 
+        /// <summary>
+        /// Gets or sets whether an object with no fallback effect is skipped while its effect compiles, instead of the frame waiting for the compilation.
+        /// </summary>
+        /// <remarks>
+        /// The object is not drawn until the compilation finishes, so it pops in. <see cref="MeshRenderFeature"/> and the particle emitter render feature
+        /// skip an object without an effect.
+        /// </remarks>
+        public bool SkipWhileCompiling { get; set; }
+
         public ResourceGroup[] ResourceGroupPool = new ResourceGroup[256];
 
         public ConcurrentCollector<FrameResourceGroupLayout> FrameLayouts { get; } = new ConcurrentCollector<FrameResourceGroupLayout>();
@@ -481,7 +490,7 @@ namespace Stride.Rendering
                             continue;
 
                         var effect = renderEffect.Effect;
-                        if (effect == null && renderEffect.State == RenderEffectState.Compiling)
+                        if (effect == null && renderEffect.State == RenderEffectState.Compiling && !SkipWhileCompiling)
                         {
                             // Need to wait for completion because we have nothing else
                             renderEffect.PendingEffect.Wait();

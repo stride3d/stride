@@ -44,6 +44,8 @@
     <Compile Include="SpriteAnimationTest.cs" />
     <Compile Include="TesselationTest.cs" />
     <Compile Include="EffectFallbackTest.cs" />
+    <Compile Include="EffectSkipWhileCompilingTest.cs" />
+    <Compile Include="GatedEffectCompiler.cs" />
     <Compile Include="DirectionalShadowCascadeFitTests.cs" />
     <Compile Include="RenderSystemDrawJobExceptionTest.cs" />
     <Compile Include="EffectSystemTests.cs" />
