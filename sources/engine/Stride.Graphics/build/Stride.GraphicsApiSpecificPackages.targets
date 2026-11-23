@@ -168,4 +168,24 @@
     </ItemGroup>
   </Target>
 
+  <!-- ==================================================================
+       The deps.json lists the copy-local items selected above, but its inputs (assets file, project files)
+       do not change when only the graphics API does. The API goes in a marker file that joins those inputs.
+  -->
+  <Target Name="_StrideGraphicsApiDepsFileInput"
+          Condition="'$(GenerateDependencyFile)' == 'true'"
+          DependsOnTargets="_StridePackageReferenceResolveGraphicsApi"
+          BeforeTargets="GenerateBuildDependencyFile;GeneratePublishDependencyFile">
+    <PropertyGroup>
+      <_StrideGraphicsApiMarker>$(IntermediateOutputPath)$(MSBuildProjectName).StrideGraphicsApi.cache</_StrideGraphicsApiMarker>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_StrideGraphicsApiMarker)" Lines="$(_StrideGraphicsApiCurrent)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <PropertyGroup>
+      <MSBuildAllProjects>$(MSBuildAllProjects);$(_StrideGraphicsApiMarker)</MSBuildAllProjects>
+    </PropertyGroup>
+    <ItemGroup>
+      <FileWrites Include="$(_StrideGraphicsApiMarker)" />
+    </ItemGroup>
+  </Target>
+
 </Project>
