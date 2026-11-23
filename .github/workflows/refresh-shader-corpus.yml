@@ -23,8 +23,11 @@ permissions:
 concurrency:
   group: refresh-shader-corpus
 
+# Fork-friendly: the schedule runs the lanes only when STRIDE_ENABLE_SCHEDULED_CI is set on the repository.
+# workflow_dispatch always runs.
 jobs:
   Samples:
+    if: github.event_name != 'schedule' || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
     uses: ./.github/workflows/test-enduser.yml
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -33,6 +36,7 @@ jobs:
       capture-shader-corpus: true
 
   Editor:
+    if: github.event_name != 'schedule' || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
     uses: ./.github/workflows/test-gamestudio-screenshots.yml
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -42,6 +46,7 @@ jobs:
 
   # The game test suites: features no sample uses (tessellation, post effects, MSAA, compute shaders...)
   Game:
+    if: github.event_name != 'schedule' || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
     uses: ./.github/workflows/test-windows-game.yml
     with:
       build-type: Debug
@@ -53,8 +58,8 @@ jobs:
 
   Gather:
     needs: [Samples, Editor, Game]
-    # Screenshot drift fails the sample and editor runs, but their captures are still complete
-    if: ${{ !cancelled() }}
+    # Screenshot drift fails the sample and editor runs, but their captures are still complete. A skipped lane has none.
+    if: ${{ !cancelled() && !contains(needs.*.result, 'skipped') }}
     runs-on: windows-2025-vs2026
     permissions:
       contents: write       # the push, when there's no Stride Bot app (a fork)
