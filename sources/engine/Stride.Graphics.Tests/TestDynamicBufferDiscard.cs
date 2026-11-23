@@ -17,9 +17,15 @@ namespace Stride.Graphics.Tests;
 /// <summary>
 ///   Mapping a Dynamic Buffer with <see cref="MapMode.WriteDiscard"/> leaves the draws recorded before it reading the old contents.
 /// </summary>
-public class TestDynamicBufferDiscard : GameTestBase
+public class TestDynamicBufferDiscard : GraphicTestGameBase
 {
     private const int TargetSize = 4;
+
+    // More than 16 vertex buffer slots need Direct3D 11 feature level 10 or more
+    public TestDynamicBufferDiscard()
+    {
+        GraphicsDeviceManager.ShaderProfile = GraphicsProfile.Level_11_0;
+    }
 
     // One triangle that covers the whole target
     private static readonly Vector2[] Positions = [new(-1, -1), new(-1, 3), new(3, -1)];
@@ -111,8 +117,6 @@ public class TestDynamicBufferDiscard : GameTestBase
     public void DiscardAfterBindingAVertexBufferInAHighSlotChangesWhatLaterDrawsRead()
     {
         const int HighSlot = 20;
-
-        SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D11, "Direct3D 11 has 16 vertex buffer slots");
 
         PerformTest(game =>
         {
