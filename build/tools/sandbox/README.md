@@ -80,7 +80,7 @@ A job is a PowerShell script that runs in the desktop session of the sandbox. [i
 |---|---|
 | `New-Game <name>` | Makes a game in `C:\sbx\projects\<name>` from the game templates of the Game Studio under test; returns its solution |
 | `Start-Gs <solution> [-FirstChanceLog]` | Starts Game Studio. `-FirstChanceLog` logs every first-chance exception to `logs\fchook-<pid>.log`: the exceptions Game Studio catches and never logs |
-| `Wait-Session <title>` | Waits for the session to open, answers the Upgrade question, fails at any other dialog or a crash |
+| `Wait-Session <title> [-AllowErrors]` | Waits for the session to open, answers the Upgrade question, fails at any other dialog or a crash. A session that opens with errors fails with them; with `-AllowErrors`, it closes the "Operation failed." window and returns them |
 | `Clear-Dialogs <title>` | Answers the dialogs that came up: "reload the assemblies" gets Don't reload, others OK |
 | `Shot <name>` | Picture of the screen: `shots\<name>.png` |
 | `Copy-EditorLog <title> <name>` | The Editor tab of the Output panel to `logs\<name>.txt` |
@@ -104,6 +104,7 @@ A job is a PowerShell script that runs in the desktop session of the sandbox. [i
 
 - Build Game Studio on the host after every change to the repo, before you start it in the sandbox. When it starts, Game Studio builds the template package of the repo and what it references; that build must find everything up to date, since the repo is read-only in the sandbox.
 - The first session of a sandbox takes a few minutes to open: the editor compiles its shaders.
+- A session that opens with errors (a failed NuGet restore, a missing asset) keeps the "Opening session" window open, with "Operation failed." and its log, until Close is clicked. The project is open behind it.
 - In Windows PowerShell, `$ErrorActionPreference = 'Stop'` turns each line a program writes to stderr into an error. Check `$LASTEXITCODE` instead.
 - Some controls are not in the UI Automation tree, such as the hex box of the color editor. Click them inside the rectangle of their row, which `uia find` gives (see the example).
 - Entity rows of the scene tree are `EntityViewModel` DataItems without names: `invoke` them by index, in the order of the tree.

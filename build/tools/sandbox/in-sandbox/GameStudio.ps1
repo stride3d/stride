@@ -63,8 +63,10 @@ function Start-Gs([string]$Solution, [string]$Arguments = '', [switch]$FirstChan
 }
 
 # Waits until the main window of Game Studio shows -Title and the "Opening session" window is gone. Answers an Upgrade
-# question with Upgrade (for every package); throws at any other dialog, with its tree.
-function Wait-Session([string]$Title, [int]$TimeoutSec = 600) {
+# question with Upgrade (for every package); throws at any other dialog, with its tree. A session that opens with errors
+# keeps the "Opening session" window, which says "Operation failed.": throws with the errors of its log, or with
+# -AllowErrors closes that window and returns them.
+function Wait-Session([string]$Title, [int]$TimeoutSec = 600, [switch]$AllowErrors) {
     $watch = [Diagnostics.Stopwatch]::StartNew()
     $last = ''
     while ($watch.Elapsed.TotalSeconds -lt $TimeoutSec) {
@@ -76,6 +78,16 @@ function Wait-Session([string]$Title, [int]$TimeoutSec = 600) {
         $main = $windows | Where-Object { $_ -match 'Stride Game Studio' -and $_ -match [regex]::Escape($Title) }
         $opening = $windows | Where-Object { $_ -match 'Opening session' }
         if ($main -and -not $opening) { return "$(Stamp) session $Title open after $([int]$watch.Elapsed.TotalSeconds) s" }
+        if ($main -and $opening) {
+            $hwnd = Get-Hwnd @($opening)[0]
+            if ((& $Uia find $hwnd '=Operation failed.' Text) -match '^Text') {
+                $errors = @(& $Uia text $hwnd PART_LogTextBox Document | Where-Object { $_ -match '^\s*(\[[^\]]*\]: )?(Error|Fatal)' })
+                if (-not $AllowErrors) { throw "session $Title opened with $($errors.Count) error(s):`n$($errors -join "`n")" }
+                & $Uia invoke $hwnd '=Close' Button | Out-Null
+                $errors
+                return "$(Stamp) session $Title open with $($errors.Count) error(s) after $([int]$watch.Elapsed.TotalSeconds) s"
+            }
+        }
         # Message boxes are titled "Stride Game Studio <version> (.NET <version>)"
         foreach ($dialog in ($windows | Where-Object { $_ -match '"Stride Game Studio [^"]*\(\.NET [^"]*"$' -and $_ -notmatch [regex]::Escape($Title) })) {
             $hwnd = Get-Hwnd $dialog
