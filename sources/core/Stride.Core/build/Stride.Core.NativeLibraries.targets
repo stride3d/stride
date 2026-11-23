@@ -15,6 +15,10 @@
     item collections matter per context) and depends on the shared
     _StrideBuildDependencies below to parse them.
 
+    _StrideTrimRuntimeAssets below is shared too: each consumer
+    turns it on with StrideTrimRuntimeAssets (the package path for
+    executables, the engine self-build for its tooling hosts).
+
     iOS NativeReference shaping is the only platform-specific bit
     here — both consumer paths have identical needs (static .a +
     ForceLoad metadata; Microsoft.iOS.Sdk doesn't auto-derive that
@@ -174,6 +178,38 @@
           Condition=" '$(TargetPlatformIdentifier)' == 'ios' ">
     <ItemGroup>
       <_ProcessedReferenceNativeSymbol Include="_vkGetInstanceProcAddr" />
+    </ItemGroup>
+  </Target>
+
+  <!-- A desktop app built with no runtime identifier gets the runtimes/<rid>/ assets of every platform, mobile
+       included. Keep only those of the OS families it can run on. A net10.0 app whose StridePlatform comes from
+       the build machine (a tooling host such as the asset compiler, or a user's tool or server) runs on every
+       desktop OS. Covers NuGet assets (ReferenceCopyLocalPaths), .ssdeps natives
+       and Content copies (_SourceItemsToCopyToOutputDirectory[Always|IfDifferent]); items outside runtimes/ are
+       untouched. 'dotnet publish -r' is not affected: it selects one RID already. A consumer that adds runtimes/
+       items in a target of its own runs it first through _StrideTrimRuntimeAssetsDependsOn.
+       These copy lists and targets are MSBuild's private ones: if a .NET SDK renames them, the trim silently stops,
+       and NuGetConsumerTests (tests/enduser/Stride.Packaging.Tests) fails on the extra runtimes/ folders. -->
+  <Target Name="_StrideTrimRuntimeAssets"
+          DependsOnTargets="GetCopyToOutputDirectoryItems;$(_StrideTrimRuntimeAssetsDependsOn)"
+          BeforeTargets="_CopyOutOfDateSourceItemsToOutputDirectory;_CopyOutOfDateSourceItemsToOutputDirectoryAlways;_CopyDifferingSourceItemsToOutputDirectory;_CopyFilesMarkedCopyLocal"
+          Condition="'$(StrideTrimRuntimeAssets)' == 'true' And '$(RuntimeIdentifier)' == ''">
+    <PropertyGroup>
+      <_StrideKeptRuntimes Condition="('$(StrideToolingHost)' == 'true' Or '$(_StridePlatformFromHost)' == 'true') And '$(TargetPlatformIdentifier)' != 'Windows'">win|linux|osx|unix</_StrideKeptRuntimes>
+      <_StrideKeptRuntimes Condition="'$(_StrideKeptRuntimes)' == '' And ('$(StrideToolingHost)' == 'true' Or '$(StridePlatform)' == 'Windows')">win</_StrideKeptRuntimes>
+      <_StrideKeptRuntimes Condition="'$(_StrideKeptRuntimes)' == '' And '$(StridePlatform)' == 'Linux'">linux|unix</_StrideKeptRuntimes>
+      <_StrideKeptRuntimes Condition="'$(_StrideKeptRuntimes)' == '' And '$(StridePlatform)' == 'macOS'">osx|unix</_StrideKeptRuntimes>
+      <_StrideDroppedRuntimeAsset>^runtimes[/\\](?!$(_StrideKeptRuntimes))</_StrideDroppedRuntimeAsset>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(_StrideKeptRuntimes)' != ''">
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(ReferenceCopyLocalPaths.DestinationSubPath)', '$(_StrideDroppedRuntimeAsset)'))" />
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)"
+          Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(_SourceItemsToCopyToOutputDirectory.TargetPath)', '$(_StrideDroppedRuntimeAsset)'))" />
+      <_SourceItemsToCopyToOutputDirectoryAlways Remove="@(_SourceItemsToCopyToOutputDirectoryAlways)"
+          Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)', '$(_StrideDroppedRuntimeAsset)'))" />
+      <_SourceItemsToCopyToOutputDirectoryIfDifferent Remove="@(_SourceItemsToCopyToOutputDirectoryIfDifferent)"
+          Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(_SourceItemsToCopyToOutputDirectoryIfDifferent.TargetPath)', '$(_StrideDroppedRuntimeAsset)'))" />
     </ItemGroup>
   </Target>
 
