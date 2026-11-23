@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using Xunit;
 
 namespace Stride.Packaging.Tests;
@@ -46,5 +47,20 @@ public class NuGetConsumerTests
 
         var result = ConsumerBuild.Run(exeProject, sampleDir, output, timeoutMin: 10);
         Assert.True(result.ExitCode == 0, $"Consumer build of {sampleName} exited with {result.ExitCode}");
+
+        // The game gets only the native libraries of its OS (_StrideTrimRuntimeAssets). The trim hooks MSBuild's
+        // private copy lists, so a .NET SDK that renames them shows here as extra folders.
+        var runtimes = Path.Combine(sampleDir, "Bin", platformSuffix, "Debug", "runtimes");
+        Assert.True(Directory.Exists(runtimes), $"The game output has no runtimes folder: {runtimes}");
+        string[] keptPrefixes = platformSuffix switch
+        {
+            "Windows" => ["win"],
+            "Linux" => ["linux", "unix"],
+            _ => ["osx", "unix"],
+        };
+        var otherPlatforms = Directory.GetDirectories(runtimes).Select(dir => Path.GetFileName(dir))
+            .Where(rid => !keptPrefixes.Any(prefix => rid.StartsWith(prefix, StringComparison.Ordinal)))
+            .ToList();
+        Assert.True(otherPlatforms.Count == 0, $"The {platformSuffix} game output has the native libraries of other platforms: {string.Join(", ", otherPlatforms)}");
     }
 }

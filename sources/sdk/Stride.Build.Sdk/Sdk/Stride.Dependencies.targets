@@ -135,37 +135,12 @@
          engine self-build path here and the NuGet PackageReference path. -->
   </Target>
 
-  <!-- StrideToolingHost (AssetCompiler, GameStudio): drop runtimes/<rid>/ assets that this desktop
-       host can't use from its no-RID output — mobile (android/ios/tvos, ~250 MB) on net10.0, plus
-       linux/osx on the Windows-only net10.0-windows. Covers NuGet assets (ReferenceCopyLocalPaths),
-       .ssdeps natives and Content copies (_SourceItemsToCopyToOutputDirectory[Always]); items outside
-       runtimes/ are untouched. Normalize '\'→'/' — Replace('/','\\') yields a double backslash here,
-       so 'runtimes/win-x64' would fail StartsWith('runtimes\win') and drop the win natives. -->
-  <Target Name="_StrideTrimToolingHostRuntimeAssets"
-          DependsOnTargets="GetCopyToOutputDirectoryItems"
-          BeforeTargets="_CopyOutOfDateSourceItemsToOutputDirectory;_CopyOutOfDateSourceItemsToOutputDirectoryAlways;_CopyFilesMarkedCopyLocal"
-          Condition="'$(StrideToolingHost)' == 'true' And '$(RuntimeIdentifier)' == ''">
-    <ItemGroup>
-      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
-          Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.DestinationSubPath)').Replace('\','/').StartsWith('runtimes/'))
-                     And !$([System.String]::Copy('%(ReferenceCopyLocalPaths.DestinationSubPath)').Replace('\','/').StartsWith('runtimes/win'))
-                     And ('$(StrideTargetFramework)' == '$(StrideFrameworkWindows)'
-                          Or (!$([System.String]::Copy('%(ReferenceCopyLocalPaths.DestinationSubPath)').Replace('\','/').StartsWith('runtimes/linux'))
-                              And !$([System.String]::Copy('%(ReferenceCopyLocalPaths.DestinationSubPath)').Replace('\','/').StartsWith('runtimes/osx'))))" />
-      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)"
-          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('\','/').StartsWith('runtimes/'))
-                     And !$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('\','/').StartsWith('runtimes/win'))
-                     And ('$(StrideTargetFramework)' == '$(StrideFrameworkWindows)'
-                          Or (!$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('\','/').StartsWith('runtimes/linux'))
-                              And !$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectory.TargetPath)').Replace('\','/').StartsWith('runtimes/osx'))))" />
-      <_SourceItemsToCopyToOutputDirectoryAlways Remove="@(_SourceItemsToCopyToOutputDirectoryAlways)"
-          Condition="$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)').Replace('\','/').StartsWith('runtimes/'))
-                     And !$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)').Replace('\','/').StartsWith('runtimes/win'))
-                     And ('$(StrideTargetFramework)' == '$(StrideFrameworkWindows)'
-                          Or (!$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)').Replace('\','/').StartsWith('runtimes/linux'))
-                              And !$([System.String]::Copy('%(_SourceItemsToCopyToOutputDirectoryAlways.TargetPath)').Replace('\','/').StartsWith('runtimes/osx'))))" />
-    </ItemGroup>
-  </Target>
+  <!-- Tooling hosts (AssetCompiler, GameStudio) copy only the natives of the OSes they run on:
+       _StrideTrimRuntimeAssets in Stride.Core.NativeLibraries.targets, after the .ssdeps natives are added. -->
+  <PropertyGroup>
+    <StrideTrimRuntimeAssets Condition="'$(StrideTrimRuntimeAssets)' == ''">$(StrideToolingHost)</StrideTrimRuntimeAssets>
+    <_StrideTrimRuntimeAssetsDependsOn>_StrideSetupNativeLibraries</_StrideTrimRuntimeAssetsDependsOn>
+  </PropertyGroup>
 
   <!-- Track deployed native libraries in the fast up-to-date check as copied outputs, each paired with its
        source via Original metadata. Unlike a plain UpToDateCheckInput, the re-copy on rebuild makes the output
@@ -176,7 +151,7 @@
     <CollectUpToDateCheckBuiltDesignTimeDependsOn>$(CollectUpToDateCheckBuiltDesignTimeDependsOn);_StrideCollectNativeUpToDateCheckBuilt</CollectUpToDateCheckBuiltDesignTimeDependsOn>
   </PropertyGroup>
   <Target Name="_StrideCollectNativeUpToDateCheckBuilt"
-          DependsOnTargets="_StrideSetupNativeLibraries;_StrideFilterTransitiveCopyToOutputDirectoryItems;_StrideTrimToolingHostRuntimeAssets">
+          DependsOnTargets="_StrideSetupNativeLibraries;_StrideFilterTransitiveCopyToOutputDirectoryItems;_StrideTrimRuntimeAssets">
     <!-- This project's own StrideNativeLib, deployed to its output by _StrideGenerateDependenciesCore. -->
     <AssignTargetPath RootFolder="$(OutputPath)" Files="@(StrideNativeLib)">
       <Output TaskParameter="AssignedFiles" ItemName="_StrideNativeLibBuiltCheck" />
