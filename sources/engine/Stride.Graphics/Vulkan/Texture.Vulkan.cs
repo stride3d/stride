@@ -31,6 +31,13 @@ namespace Stride.Graphics
         internal VkImageView NativeColorAttachmentView;
         internal VkImageView NativeDepthStencilView;
         internal VkImageView NativeImageView;
+
+        /// <summary>
+        ///   A 2D-array view of a cube texture for storage descriptors, as shaders write cubes through <c>RWTexture2DArray</c>. Null for other textures.
+        /// </summary>
+        internal VkImageView NativeCubeStorageView;
+
+        internal VkImageView NativeStorageImageView => NativeCubeStorageView != VkImageView.Null ? NativeCubeStorageView : NativeImageView;
         internal VkImageSubresourceRange NativeResourceRange;
 
         private bool isNotOwningResources;
@@ -92,6 +99,7 @@ namespace Stride.Graphics
             (NativeColorAttachmentView, otherTexture.NativeColorAttachmentView) = (otherTexture.NativeColorAttachmentView, NativeColorAttachmentView);
             (NativeDepthStencilView, otherTexture.NativeDepthStencilView)       = (otherTexture.NativeDepthStencilView, NativeDepthStencilView);
             (NativeImageView, otherTexture.NativeImageView)                     = (otherTexture.NativeImageView, NativeImageView);
+            (NativeCubeStorageView, otherTexture.NativeCubeStorageView)         = (otherTexture.NativeCubeStorageView, NativeCubeStorageView);
             (NativeResourceRange, otherTexture.NativeResourceRange)             = (otherTexture.NativeResourceRange, NativeResourceRange);
             (isNotOwningResources, otherTexture.isNotOwningResources)           = (otherTexture.isNotOwningResources, isNotOwningResources);
             (IsInitialized, otherTexture.IsInitialized)                         = (otherTexture.IsInitialized, IsInitialized);
@@ -240,6 +248,7 @@ namespace Stride.Graphics
                 if (!isNotOwningResources)
                 {
                     NativeImageView = GetImageView(ViewType, ArraySlice, MipLevel);
+                    NativeCubeStorageView = GetImageView(ViewType, ArraySlice, MipLevel, cubeAsStorageArray: true);
                     NativeColorAttachmentView = GetColorAttachmentView(ViewType, ArraySlice, MipLevel);
                     NativeDepthStencilView = GetDepthStencilView();
                 }
@@ -556,6 +565,12 @@ namespace Stride.Graphics
                     NativeImageView = VkImageView.Null;
                 }
 
+                if (NativeCubeStorageView != VkImageView.Null)
+                {
+                    GraphicsDevice.Collect(NativeCubeStorageView);
+                    NativeCubeStorageView = VkImageView.Null;
+                }
+
                 if (NativeColorAttachmentView != VkImageView.Null)
                 {
                     GraphicsDevice.Collect(NativeColorAttachmentView);
@@ -576,7 +591,7 @@ namespace Stride.Graphics
 
         partial void ReleaseImportedImageResources();
 
-        private unsafe VkImageView GetImageView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
+        private unsafe VkImageView GetImageView(ViewType viewType, int arrayOrDepthSlice, int mipIndex, bool cubeAsStorageArray = false)
         {
             if (!IsShaderResource && !IsUnorderedAccess)
                 return VkImageView.Null;
@@ -588,10 +603,14 @@ namespace Stride.Graphics
 
             var layerCount = Dimension == TextureDimension.Texture3D ? 1 : arrayOrDepthCount;
 
+            var hasCubeStorageArrayView = IsUnorderedAccess && Dimension == TextureDimension.TextureCube && layerCount > 1;
+            if (cubeAsStorageArray && !hasCubeStorageArrayView)
+                return VkImageView.Null;
+
             // Narrow view usage to what it's actually bound as (drops ColorAttachment etc.) — avoids MoltenVK's layered-render check on iOS sim.
             var viewUsage = default(VkImageUsageFlags);
-            if (IsShaderResource) viewUsage |= VkImageUsageFlags.Sampled;
-            if (IsUnorderedAccess) viewUsage |= VkImageUsageFlags.Storage;
+            if (IsShaderResource && !cubeAsStorageArray) viewUsage |= VkImageUsageFlags.Sampled;
+            if (IsUnorderedAccess && (cubeAsStorageArray || !hasCubeStorageArrayView)) viewUsage |= VkImageUsageFlags.Storage;
             var viewUsageInfo = new VkImageViewUsageCreateInfo
             {
                 sType = VkStructureType.ImageViewUsageCreateInfo,
@@ -627,7 +646,8 @@ namespace Stride.Graphics
                     case TextureDimension.TextureCube:
                         if (layerCount % 6 != 0) throw new NotSupportedException("Texture cube views require a layerCount which is a multiple of 6");
 
-                        createInfo.viewType = layerCount > 6 ? VkImageViewType.ImageCubeArray : VkImageViewType.ImageCube;
+                        createInfo.viewType = cubeAsStorageArray ? VkImageViewType.Image2DArray
+                            : layerCount > 6 ? VkImageViewType.ImageCubeArray : VkImageViewType.ImageCube;
                         break;
                 }
             }

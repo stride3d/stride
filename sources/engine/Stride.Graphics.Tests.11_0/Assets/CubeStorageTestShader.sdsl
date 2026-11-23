@@ -1,0 +1,18 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Writes each thread's dispatch coordinates, with the face index as the third component, into the faces of a cube texture.
+    /// </summary>
+    internal shader CubeStorageTestShader : ComputeShaderBase
+    {
+        stage RWTexture2DArray<float4> Output;
+
+        override void Compute()
+        {
+            Output[streams.DispatchThreadId] = float4(streams.DispatchThreadId.x, streams.DispatchThreadId.y, streams.DispatchThreadId.z, 1);
+        }
+    };
+}
