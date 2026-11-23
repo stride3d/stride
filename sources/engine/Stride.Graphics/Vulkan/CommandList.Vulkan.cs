@@ -1303,7 +1303,7 @@ namespace Stride.Graphics
 
             // Not allowed inside a render pass, after the transition to a copy destination
             BeginCommandOutsideRenderPass();
-            GraphicsDevice.NativeDeviceApi.vkCmdFillBuffer(currentCommandList.NativeCommandBuffer, buffer.NativeBuffer, dstOffset: 0, (ulong) (buffer.SizeInBytes & ~3), word);
+            GraphicsDevice.NativeDeviceApi.vkCmdFillBuffer(currentCommandList.NativeCommandBuffer, buffer.NativeBuffer, dstOffset: 0, buffer.NativeSizeInBytes, word);
 
             ResourceBarrierTransition(buffer, BarrierLayout.UnorderedAccess);
         }

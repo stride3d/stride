@@ -14,6 +14,11 @@ namespace Stride.Graphics
         internal VkAccessFlags NativeAccessMask;
 
         /// <summary>
+        /// The size of the <see cref="NativeBuffer"/>: <see cref="SizeInBytes"/> rounded up to a multiple of 4, which <c>vkCmdFillBuffer</c> requires.
+        /// </summary>
+        internal ulong NativeSizeInBytes => ((ulong) SizeInBytes + 3) & ~3UL;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Buffer" /> class.
         /// </summary>
         /// <param name="description">The description.</param>
@@ -74,7 +79,7 @@ namespace Stride.Graphics
             var createInfo = new VkBufferCreateInfo
             {
                 sType = VkStructureType.BufferCreateInfo,
-                size = (ulong) bufferDescription.SizeInBytes,
+                size = NativeSizeInBytes,
                 flags = VkBufferCreateFlags.None
             };
 
@@ -205,7 +210,7 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    GraphicsDevice.NativeDeviceApi.vkCmdFillBuffer(commandBuffer, NativeBuffer, 0, (uint) bufferDescription.SizeInBytes, 0);
+                    GraphicsDevice.NativeDeviceApi.vkCmdFillBuffer(commandBuffer, NativeBuffer, 0, NativeSizeInBytes, 0);
                 }
 
                 // Barrier
