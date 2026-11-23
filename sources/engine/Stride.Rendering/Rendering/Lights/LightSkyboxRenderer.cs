@@ -56,6 +56,8 @@ namespace Stride.Rendering.Lights
 
                     lightShaderGroupsPerSkybox.Add(light, lightShaderGroup);
                 }
+
+                lightShaderGroup.ViewIndices.Add(parameters.ViewIndex);
             }
 
             // Consume all the lights
@@ -91,9 +93,21 @@ namespace Stride.Rendering.Lights
 
             public RenderLight Light { get; set; }
 
+            /// <summary>
+            /// The views that take this light. The shader is in the effects of every view, so the other views get zero intensity.
+            /// </summary>
+            public HashSet<int> ViewIndices { get; } = new HashSet<int>();
+
             public LightSkyBoxShaderGroup(ShaderSource mixin) : base(mixin)
             {
                 HasEffectPermutations = true;
+            }
+
+            public override void Reset()
+            {
+                base.Reset();
+
+                ViewIndices.Clear();
             }
 
             public override void UpdateLayout(string compositionName)
@@ -132,7 +146,7 @@ namespace Stride.Rendering.Lights
                 var lightSkybox = ((LightSkybox)Light.Type);
                 var skybox = lightSkybox.Skybox;
 
-                var intensity = Light.Intensity;
+                var intensity = ViewIndices.Contains(viewIndex) ? Light.Intensity : 0.0f;
 
                 var skyMatrix = Matrix.Invert(Matrix.RotationQuaternion(lightSkybox.Rotation));
 

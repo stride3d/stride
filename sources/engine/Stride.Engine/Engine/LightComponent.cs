@@ -51,5 +51,15 @@ namespace Stride.Engine
         [DataMember(30)]
         [DefaultValue(1.0f)]
         public float Intensity { get; set; }
+
+        /// <summary>
+        /// Gets or sets the light layers of this light.
+        /// </summary>
+        /// <value>The light layers of this light. The default is <see cref="LightLayerMask.Layer0"/>.</value>
+        /// <userdoc>A camera renderer is lit by this light when its light mask includes one of these layers. The light then lights everything that camera renderer draws, whatever render group the objects are in.</userdoc>
+        [DataMember(40)]
+        [DefaultValue(LightLayerMask.Layer0)]
+        [Display("Light layers")]
+        public LightLayerMask LightLayers { get; set; } = LightLayerMask.Layer0;
     }
 }
