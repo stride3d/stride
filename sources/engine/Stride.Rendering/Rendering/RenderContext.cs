@@ -166,6 +166,13 @@ namespace Stride.Rendering
             return result;
         }
 
+        /// <summary>
+        ///   Gets the <see cref="RenderDrawContext"/> of the calling thread.
+        /// </summary>
+        /// <remarks>
+        ///   Its command list is open only inside <c>RootRenderFeature.Draw</c>; outside it the list is closed and recording on Direct3D 12 and Vulkan throws.
+        ///   Record per-frame uploads on the main list instead: <c>RenderDrawContext.CommandList</c> in Prepare and PrepareEffectPermutations, or the <c>GraphicsContext</c> service.
+        /// </remarks>
         public RenderDrawContext GetThreadContext() => threadContext.Value;
 
         public void Reset()

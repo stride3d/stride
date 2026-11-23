@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 using Stride.Core.Mathematics;
 
@@ -20,6 +22,13 @@ namespace Stride.Graphics
         ///   The maximum number of Viewports or Scissor Rectangles that can be set simultaneously by Stride.
         /// </summary>
         public const int MaxViewportAndScissorRectangleCount = 16;
+
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowCommandListClosed()
+        {
+            throw new InvalidOperationException("The command list is closed: record commands between Reset and Close. RenderContext.GetThreadContext().CommandList is open only inside RootRenderFeature.Draw.");
+        }
 
         #region Viewports
 
