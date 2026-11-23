@@ -418,7 +418,9 @@ namespace Stride.Graphics
                                 && parent == depthStencilBuffer.RootTexture;
                             var imageLayout = perCb == BarrierLayout.DepthStencilRead || (perCb == null && sampledBoundReadOnlyDepth)
                                 ? VkImageLayout.DepthStencilReadOnlyOptimal
-                                : VkImageLayout.ShaderReadOnlyOptimal;
+                                : perCb is { } tracked && BarrierMapping.ToVkImageLayout(tracked) == VkImageLayout.General
+                                    ? VkImageLayout.General
+                                    : VkImageLayout.ShaderReadOnlyOptimal;
                             descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = imageLayout };
                             write->pImageInfo = &descriptorData->ImageInfo;
                             break;
