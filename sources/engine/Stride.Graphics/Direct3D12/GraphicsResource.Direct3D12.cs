@@ -3,6 +3,8 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
+using System.Threading;
+
 using Silk.NET.Direct3D12;
 
 namespace Stride.Graphics
@@ -21,6 +23,20 @@ namespace Stride.Graphics
         /// Command list which updated the resource (i.e. <see cref="CommandList.Copy(GraphicsResource, GraphicsResource)"/>) before it has been submitted. Will become <see cref="CommandListFenceValue"/> when command list is submitted.
         /// </summary>
         internal CommandList UpdatingCommandList;
+
+        /// <summary>
+        ///   Counts how many times the resource was recreated, so a Descriptor written from it can tell it is out of date.
+        /// </summary>
+        internal int RenameVersion { get; private set; }
+
+        /// <summary>
+        ///   Marks the resource as recreated, so the Descriptors written from it are rewritten before they are used again.
+        /// </summary>
+        internal void MarkRecreated()
+        {
+            RenameVersion++;
+            Interlocked.Increment(ref GraphicsDevice.DescriptorRecreateCount);
+        }
 
         /// <summary>
         ///   A handle to the CPU-accessible Shader Resource View (SRV) Descriptor.

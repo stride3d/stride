@@ -37,6 +37,7 @@ namespace Stride.Graphics
 
         private PipelineState boundPipelineState;
         private DescriptorSet[] boundDescriptorSets;
+        private int descriptorRecreateCount;
         private readonly ID3D12DescriptorHeap*[] descriptorHeaps = new ID3D12DescriptorHeap*[2];
         private readonly List<ResourceBarrierDescription> pendingBarriers = new(16);
 
@@ -184,6 +185,7 @@ namespace Stride.Graphics
             ResetCommandList();
 
             boundPipelineState = null;
+            boundDescriptorSets = null;
 
             //
             // Reset the command list state.
@@ -260,6 +262,7 @@ namespace Stride.Graphics
             ResetSamplerHeap(createNewHeap: false);
 
             ClearBoundBuffers();
+            boundDescriptorSets = null;
 
             var commandList = currentCommandList;
             currentCommandList = default;
@@ -474,6 +477,7 @@ namespace Stride.Graphics
                     NativeCommandList.SetGraphicsRootSignature(pipelineState.RootSignature);
 
                 boundPipelineState = pipelineState;
+                boundDescriptorSets = null;
                 NativeCommandList.IASetPrimitiveTopology(pipelineState.PrimitiveTopology);
             }
         }
@@ -843,6 +847,14 @@ namespace Stride.Graphics
         {
             boundDescriptorSets = descriptorSets;
 
+            // A recreated resource changes the Descriptors of the Descriptor Sets written from it: copy them again
+            var recreateCount = GraphicsDevice.DescriptorRecreateCount;
+            if (descriptorRecreateCount != recreateCount)
+            {
+                descriptorRecreateCount = recreateCount;
+                srvMapping.Clear();
+            }
+
         RestartWithNewHeap:
             var descriptorTableIndex = 0;
 
@@ -870,6 +882,8 @@ namespace Stride.Graphics
                             NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
                             goto RestartWithNewHeap;
                         }
+
+                        descriptorSet.RefreshStaleDescriptors();
 
                         // Copy
                         var destHandle = new CpuDescriptorHandle(srvHeap.CPUDescriptorHandleForHeapStart.Ptr +
@@ -946,6 +960,25 @@ namespace Stride.Graphics
                         for (int j = 0; j < samplerBindCount; ++j)
                             NativeCommandList.SetGraphicsRootDescriptorTable((uint) descriptorTableIndex++, gpuSamplerStart);
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        ///   Binds the Descriptor Sets again if one of them was written from the specified Graphics Resource,
+        ///   so the next draws read its new native resource.
+        /// </summary>
+        private void RebindDescriptorSets(GraphicsResource resource)
+        {
+            if (boundDescriptorSets is null)
+                return;
+
+            foreach (var descriptorSet in boundDescriptorSets)
+            {
+                if (descriptorSet.UsesResource(resource))
+                {
+                    SetDescriptorSets(0, boundDescriptorSets);
+                    return;
                 }
             }
         }
@@ -2390,6 +2423,9 @@ namespace Stride.Graphics
                 }
                 else
                     ((Texture)resource).Recreate();
+
+                resource.MarkRecreated();
+                RebindDescriptorSets(resource);
             }
             else if (mapMode != MapMode.WriteNoOverwrite)   // Write / Read / ReadWrite
             {

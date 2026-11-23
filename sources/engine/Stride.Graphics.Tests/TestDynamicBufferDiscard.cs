@@ -21,7 +21,7 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
 {
     private const int TargetSize = 4;
 
-    // More than 16 vertex buffer slots need Direct3D 11 feature level 10 or more
+    // Buffers read through a shader resource view, and more than 16 vertex buffer slots, need Direct3D 11 feature level 10 or more
     public TestDynamicBufferDiscard()
     {
         GraphicsDeviceManager.ShaderProfile = GraphicsProfile.Level_11_0;
@@ -149,15 +149,27 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
 
             using var vertexBuffer = Buffer.Vertex.New(device, 4 * sizeof(uint), GraphicsResourceUsage.Dynamic);
             using var indexBuffer = Buffer.Index.New(device, 4 * sizeof(ushort), GraphicsResourceUsage.Dynamic);
+            using var colorBuffer = Buffer.Constant.New(device, 4 * sizeof(float), GraphicsResourceUsage.Dynamic);
+            using var target = Texture.New2D(device, TargetSize, TargetSize, PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget);
             using var commandList = CommandList.New(device);
 
+            using var effect = new EffectInstance(game.EffectSystem.LoadEffect("SimpleEffect").WaitForResult());
+            effect.UpdateEffect(device);
+            using var pool = CreateDescriptorPool(device, effect);
+            var descriptorSets = CreateDescriptorSets(device, pool, effect, colorBuffer, null);
+
+            commandList.SetRenderTargetAndViewport(null, target);
+            var pipelineState = CreateQuadPipelineState(device, effect, commandList);
+            commandList.SetPipelineState(pipelineState.CurrentState);
+            commandList.SetDescriptorSets(0, descriptorSets);
             commandList.SetVertexBuffer(0, vertexBuffer, 0, 4);
             commandList.SetIndexBuffer(indexBuffer, 0, false);
             device.ExecuteCommandList(commandList.Close());
 
-            // Between Close and Reset there is no native command list to record the binding in
+            // Between Close and Reset there is no native command list to record the bindings in
             vertexBuffer.SetData(commandList, new[] { Color.Red });
             indexBuffer.SetData(commandList, new ushort[] { 0, 1, 2 });
+            colorBuffer.SetData(commandList, new[] { new Color4(1, 0, 0, 1) });
 
             commandList.Reset();
             vertexBuffer.SetData(commandList, new[] { Color.Blue });
@@ -263,11 +275,32 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
     }
 #endif
 
-    [SkippableFact]
+    [Fact]
     public void DiscardAfterSettingDescriptorsChangesWhatLaterDrawsRead()
     {
-        SkipTestForGraphicPlatform(GraphicsPlatform.Direct3D12, "A Descriptor Set copies the view of a Buffer when it is filled, and a discard creates a new resource: the set keeps the view of the old one");
+        DrawAfterDiscardWithDescriptors(setDescriptorsBeforeDiscard: true, readView: false);
+    }
 
+    [Fact]
+    public void DiscardBeforeSettingDescriptorsChangesWhatLaterDrawsRead()
+    {
+        DrawAfterDiscardWithDescriptors(setDescriptorsBeforeDiscard: false, readView: false);
+    }
+
+    [SkippableFact]
+    public void DiscardAfterSettingDescriptorsChangesWhatLaterDrawsView()
+    {
+        DrawAfterDiscardWithDescriptors(setDescriptorsBeforeDiscard: true, readView: true);
+    }
+
+    [SkippableFact]
+    public void DiscardBeforeSettingDescriptorsChangesWhatLaterDrawsView()
+    {
+        DrawAfterDiscardWithDescriptors(setDescriptorsBeforeDiscard: false, readView: true);
+    }
+
+    private void DrawAfterDiscardWithDescriptors(bool setDescriptorsBeforeDiscard, bool readView)
+    {
         PerformTest(game =>
         {
             var device = game.GraphicsDevice;
@@ -276,55 +309,99 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
             using var target = Texture.New2D(device, TargetSize, TargetSize, PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget);
             using var colorBuffer = Buffer.Constant.New(device, 4 * sizeof(float), GraphicsResourceUsage.Dynamic);
 
-            using var effect = new EffectInstance(game.EffectSystem.LoadEffect("SimpleEffect").WaitForResult());
+            Buffer colorView = null;
+            if (readView)
+                colorView = Buffer.Raw.New(device, 4 * sizeof(float), BufferFlags.ShaderResource, GraphicsResourceUsage.Dynamic);
+
+            var effectName = readView ? "SimpleBufferEffect" : "SimpleEffect";
+            using var effect = new EffectInstance(game.EffectSystem.LoadEffect(effectName).WaitForResult());
             effect.UpdateEffect(device);
 
-            var layouts = effect.DescriptorReflection.Layouts.Select(layout => layout.Layout).ToArray();
-            var typeCounts = new Dictionary<EffectParameterClass, int>();
-            foreach (var layout in layouts)
-            {
-                foreach (var entry in layout.Entries)
-                {
-                    typeCounts.TryGetValue(entry.Class, out var count);
-                    typeCounts[entry.Class] = count + 1;
-                }
-            }
-
-            var poolTypes = typeCounts.Select(pair => new DescriptorTypeCount(pair.Key, pair.Value)).ToArray();
-            using var pool = DescriptorPool.New(device, poolTypes);
-            var descriptorSets = new DescriptorSet[layouts.Length];
-            for (var i = 0; i < layouts.Length; i++)
-            {
-                descriptorSets[i] = DescriptorSet.New(device, pool, DescriptorSetLayout.New(device, layouts[i]));
-                for (var slot = 0; slot < layouts[i].Entries.Count; slot++)
-                {
-                    if (layouts[i].Entries[slot].Class == EffectParameterClass.ConstantBuffer)
-                        descriptorSets[i].SetConstantBuffer(slot, colorBuffer, 0, colorBuffer.SizeInBytes);
-                }
-            }
-
-            var pipelineState = new MutablePipelineState(device);
-            pipelineState.State.SetDefaults();
-            pipelineState.State.RootSignature = effect.RootSignature;
-            pipelineState.State.EffectBytecode = effect.Effect.Bytecode;
-            pipelineState.State.InputElements = PrimitiveQuad.VertexDeclaration.CreateInputElements();
-            pipelineState.State.PrimitiveType = PrimitiveQuad.PrimitiveType;
+            using var pool = CreateDescriptorPool(device, effect);
+            var descriptorSets = CreateDescriptorSets(device, pool, effect, colorBuffer, colorView);
 
             colorBuffer.SetData(commandList, new[] { new Color4(1, 0, 0, 1) });
+            colorView?.SetData(commandList, new[] { new Color4(1, 0, 0, 1) });
 
             commandList.SetRenderTargetAndViewport(null, target);
-            pipelineState.State.Output.CaptureState(commandList);
-            pipelineState.Update();
+            var pipelineState = CreateQuadPipelineState(device, effect, commandList);
             commandList.Clear(target, Color.Black);
             commandList.SetPipelineState(pipelineState.CurrentState);
-            commandList.SetDescriptorSets(0, descriptorSets);
 
-            // The descriptor set is set already: the draw reads what the discard wrote
+            // The descriptor sets were filled before the discard: the draw reads what the discard wrote
+            if (setDescriptorsBeforeDiscard)
+                commandList.SetDescriptorSets(0, descriptorSets);
+
             colorBuffer.SetData(commandList, new[] { new Color4(0, 0, 1, 1) });
+            colorView?.SetData(commandList, new[] { new Color4(0, 0, 1, 1) });
+
+            if (!setDescriptorsBeforeDiscard)
+                commandList.SetDescriptorSets(0, descriptorSets);
+
             device.PrimitiveQuad.Draw(commandList);
 
             Assert.Equal(Color.Blue, ReadColor(commandList, target));
+
+            colorView?.Dispose();
         });
+    }
+
+    /// <summary>
+    ///   Creates a Descriptor Pool large enough for one set of each Descriptor Set layout of the effect.
+    /// </summary>
+    private static DescriptorPool CreateDescriptorPool(GraphicsDevice device, EffectInstance effect)
+    {
+        var typeCounts = new Dictionary<EffectParameterClass, int>();
+        foreach (var layout in effect.DescriptorReflection.Layouts)
+        {
+            foreach (var entry in layout.Layout.Entries)
+            {
+                typeCounts.TryGetValue(entry.Class, out var count);
+                typeCounts[entry.Class] = count + 1;
+            }
+        }
+
+        var poolTypes = typeCounts.Select(pair => new DescriptorTypeCount(pair.Key, pair.Value)).ToArray();
+        return DescriptorPool.New(device, poolTypes);
+    }
+
+    /// <summary>
+    ///   Creates the Descriptor Sets of the effect, with its constant buffers set to <paramref name="constantBuffer"/>
+    ///   and its shader resource views to <paramref name="view"/>.
+    /// </summary>
+    private static DescriptorSet[] CreateDescriptorSets(GraphicsDevice device, DescriptorPool pool, EffectInstance effect, Buffer constantBuffer, Buffer view)
+    {
+        var layouts = effect.DescriptorReflection.Layouts.Select(layout => layout.Layout).ToArray();
+        var descriptorSets = new DescriptorSet[layouts.Length];
+        for (var i = 0; i < layouts.Length; i++)
+        {
+            descriptorSets[i] = DescriptorSet.New(device, pool, DescriptorSetLayout.New(device, layouts[i]));
+            for (var slot = 0; slot < layouts[i].Entries.Count; slot++)
+            {
+                var entryClass = layouts[i].Entries[slot].Class;
+                if (entryClass == EffectParameterClass.ConstantBuffer)
+                    descriptorSets[i].SetConstantBuffer(slot, constantBuffer, 0, constantBuffer.SizeInBytes);
+                else if (entryClass == EffectParameterClass.ShaderResourceView)
+                    descriptorSets[i].SetShaderResourceView(slot, view);
+            }
+        }
+        return descriptorSets;
+    }
+
+    /// <summary>
+    ///   Creates a pipeline that draws <see cref="PrimitiveQuad"/> with the effect into the render targets bound on the command list.
+    /// </summary>
+    private static MutablePipelineState CreateQuadPipelineState(GraphicsDevice device, EffectInstance effect, CommandList commandList)
+    {
+        var pipelineState = new MutablePipelineState(device);
+        pipelineState.State.SetDefaults();
+        pipelineState.State.RootSignature = effect.RootSignature;
+        pipelineState.State.EffectBytecode = effect.Effect.Bytecode;
+        pipelineState.State.InputElements = PrimitiveQuad.VertexDeclaration.CreateInputElements();
+        pipelineState.State.PrimitiveType = PrimitiveQuad.PrimitiveType;
+        pipelineState.State.Output.CaptureState(commandList);
+        pipelineState.Update();
+        return pipelineState;
     }
 
     private static Color ReadColor(CommandList commandList, Texture target)

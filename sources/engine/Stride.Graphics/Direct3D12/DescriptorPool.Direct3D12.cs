@@ -38,6 +38,7 @@ namespace Stride.Graphics
         internal CpuDescriptorHandle SrvStart;  // CPU handle to the start of the Shader Resource View heap
         internal int SrvOffset;                 // Offset in the SRV heap from SrvStart
         internal int SrvCount;                  // Number of SRVs allocated in the pool
+        internal DescriptorSource[] SrvSources; // The Graphics Resource each SRV Descriptor was written from, indexed like the SRV heap
 
         internal CpuDescriptorHandle SamplerStart;  // CPU handle to the start of the Sampler heap
         internal int SamplerOffset;                 // Offset in the Sampler heap from SamplerStart
@@ -71,6 +72,7 @@ namespace Stride.Graphics
 
                 nativeSrvHeap = descriptorHeap;
                 SrvStart = SrvHeap.GetCPUDescriptorHandleForHeapStart();
+                SrvSources = new DescriptorSource[SrvCount];
             }
 
             if (SamplerCount > 0)
@@ -106,6 +108,9 @@ namespace Stride.Graphics
         /// </summary>
         public void Reset()
         {
+            if (SrvSources is not null)
+                System.Array.Clear(SrvSources, 0, SrvOffset);
+
             SrvOffset = 0;
             SamplerOffset = 0;
         }

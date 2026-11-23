@@ -15,6 +15,10 @@ namespace Stride.Graphics
     {
         private readonly ComPtr<ID3D12Device> nativeDevice;
 
+        // Where the Descriptors that come from a Graphics Resource are recorded, to rewrite them after the resource is recreated
+        private readonly DescriptorPool? pool;
+        private readonly int srvIndex;
+
         // Mapping of binding slot -> offset from start handle
         /// <inheritdoc cref="DescriptorSetLayout.BindingOffsets"/>
         private readonly ReadOnlySpan<int> BindingOffsets => IsValid ? Description!.BindingOffsets : default;
@@ -69,6 +73,8 @@ namespace Stride.Graphics
                 // Early exit if OOM, IsValid should return false
                 // TODO: different mechanism?
                 nativeDevice = null;
+                pool = null;
+                srvIndex = 0;
                 Description = null;
                 SrvStart = default;
                 SamplerStart = default;
@@ -79,6 +85,8 @@ namespace Stride.Graphics
 
             nativeDevice = graphicsDevice.NativeDevice;
             Description = layout;
+            this.pool = pool;
+            srvIndex = pool.SrvOffset;
 
             // Store starting CpuDescriptorHandle for SRVs, UAVs, etc.
             var startHandle = layout.SrvCount > 0
@@ -141,10 +149,17 @@ namespace Stride.Graphics
         /// <param name="shaderResourceView">The Shader Resource View (SRV) to set.</param>
         public void SetShaderResourceView(int slot, GraphicsResource shaderResourceView)
         {
+            var bindingOffset = BindingOffsets[slot];
+            Record(bindingOffset, shaderResourceView, DescriptorSourceKind.ShaderResourceView, offset: 0, size: 0);
+
+            WriteShaderResourceView(bindingOffset, shaderResourceView);
+        }
+
+        private void WriteShaderResourceView(int bindingOffset, GraphicsResource shaderResourceView)
+        {
             if (shaderResourceView.NativeShaderResourceView.Ptr == 0)
                 return;
 
-            var bindingOffset = BindingOffsets[slot];
             var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) bindingOffset);
 
             nativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
@@ -181,6 +196,14 @@ namespace Stride.Graphics
         {
             // TODO: We should validate whether offset + size fits inside the Constant Buffer memory
 
+            var bindingOffset = BindingOffsets[slot];
+            Record(bindingOffset, buffer, DescriptorSourceKind.ConstantBuffer, offset, size);
+
+            WriteConstantBuffer(bindingOffset, buffer, offset, size);
+        }
+
+        private void WriteConstantBuffer(int bindingOffset, Buffer buffer, int offset, int size)
+        {
             var cbufferViewDesc = new ConstantBufferViewDesc
             {
                 BufferLocation = buffer.GPUVirtualAddress + (ulong) offset,
@@ -189,7 +212,6 @@ namespace Stride.Graphics
                 SizeInBytes = (uint) ((size + D3D12.ConstantBufferDataPlacementAlignment) / D3D12.ConstantBufferDataPlacementAlignment * D3D12.ConstantBufferDataPlacementAlignment)
             };
 
-            var bindingOffset = BindingOffsets[slot];
             var destDescriptorHandle = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) bindingOffset);
 
             nativeDevice.CreateConstantBufferView(in cbufferViewDesc, destDescriptorHandle);
@@ -205,18 +227,100 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentException">The Graphics Resource does not have an Unordered Access View.</exception>
         public void SetUnorderedAccessView(int slot, GraphicsResource unorderedAccessView)
         {
+            var bindingOffset = BindingOffsets[slot];
+            Record(bindingOffset, unorderedAccessView, DescriptorSourceKind.UnorderedAccessView, offset: 0, size: 0);
+
+            WriteUnorderedAccessView(bindingOffset, unorderedAccessView);
+        }
+
+        private void WriteUnorderedAccessView(int bindingOffset, GraphicsResource unorderedAccessView)
+        {
             // TODO: Why this throws, but the SRVs just return?
 
             if (unorderedAccessView.NativeUnorderedAccessView.Ptr == 0)
                 throw new ArgumentException($"Resource '{unorderedAccessView}' has missing Unordered Access View.");
 
-            var bindingOffset = BindingOffsets[slot];
             var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) bindingOffset);
 
             nativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
                                                unorderedAccessView.NativeUnorderedAccessView, DescriptorHeapType.CbvSrvUav);
         }
+
+        private void Record(int bindingOffset, GraphicsResource resource, DescriptorSourceKind kind, int offset, int size)
+        {
+            if (pool?.SrvSources is not { } sources)
+                return;
+
+            var index = srvIndex + bindingOffset / resource.GraphicsDevice.SrvHandleIncrementSize;
+            sources[index] = new DescriptorSource(resource, resource.RenameVersion, kind, offset, size);
+        }
+
+        /// <summary>
+        ///   Rewrites the Descriptors whose Graphics Resource was recreated after the Descriptor was written.
+        /// </summary>
+        internal void RefreshStaleDescriptors()
+        {
+            if (pool?.SrvSources is not { } sources)
+                return;
+
+            var srvCount = Description!.SrvCount;
+            for (var i = 0; i < srvCount; i++)
+            {
+                var source = sources[srvIndex + i];
+                var resource = source.Resource;
+                if (resource is null || source.Version == resource.RenameVersion)
+                    continue;
+
+                sources[srvIndex + i] = source with { Version = resource.RenameVersion };
+
+                var bindingOffset = i * resource.GraphicsDevice.SrvHandleIncrementSize;
+                switch (source.Kind)
+                {
+                    case DescriptorSourceKind.ShaderResourceView:
+                        WriteShaderResourceView(bindingOffset, resource);
+                        break;
+
+                    case DescriptorSourceKind.UnorderedAccessView:
+                        WriteUnorderedAccessView(bindingOffset, resource);
+                        break;
+
+                    case DescriptorSourceKind.ConstantBuffer:
+                        WriteConstantBuffer(bindingOffset, (Buffer) resource, source.Offset, source.Size);
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        ///   Determines whether a Descriptor of the Descriptor Set was written from the specified Graphics Resource.
+        /// </summary>
+        internal bool UsesResource(GraphicsResource resource)
+        {
+            if (pool?.SrvSources is not { } sources)
+                return false;
+
+            var srvCount = Description!.SrvCount;
+            for (var i = 0; i < srvCount; i++)
+            {
+                if (sources[srvIndex + i].Resource == resource)
+                    return true;
+            }
+
+            return false;
+        }
     }
+
+    internal enum DescriptorSourceKind : byte
+    {
+        ShaderResourceView,
+        UnorderedAccessView,
+        ConstantBuffer
+    }
+
+    /// <summary>
+    ///   The Graphics Resource a Descriptor was written from, and the <see cref="GraphicsResource.RenameVersion"/> it had then.
+    /// </summary>
+    internal readonly record struct DescriptorSource(GraphicsResource Resource, int Version, DescriptorSourceKind Kind, int Offset, int Size);
 }
 
 #endif
