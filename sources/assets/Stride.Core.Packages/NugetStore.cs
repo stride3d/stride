@@ -552,7 +552,8 @@ public partial class NugetStore : INugetDownloadProgress
                         try
                         {
                             using var stream = File.OpenRead(nupkgPath);
-                            await GlobalPackagesFolderUtility.AddPackageAsync(
+                            // The result holds the installed nupkg open
+                            using var result = await GlobalPackagesFolderUtility.AddPackageAsync(
                                 source: source,
                                 packageIdentity: identity,
                                 packageStream: stream,
