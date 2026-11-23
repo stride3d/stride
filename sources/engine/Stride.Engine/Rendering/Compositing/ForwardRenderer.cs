@@ -34,6 +34,7 @@ namespace Stride.Rendering.Compositing
         private IShadowMapRenderer shadowMapRenderer;
         private Texture depthStencilROCached;
         private MultisampleCount actualMultisampleCount = MultisampleCount.None;
+        private PixelFormat depthStencilFormat = DepthBufferFormat;
         private VRDeviceSystem vrSystem;
 
         private readonly Logger logger = GlobalLogger.GetLogger(nameof(ForwardRenderer));
@@ -307,7 +308,12 @@ namespace Stride.Rendering.Compositing
                 // Mark this view as requiring shadows
                 shadowMapRenderer?.RenderViewsWithShadows.Add(context.RenderView);
 
-                context.RenderOutput = new RenderOutputDescription(PostEffects != null ? PixelFormat.R16G16B16A16_Float : context.RenderOutput.RenderTargetFormat0, DepthBufferFormat, actualMultisampleCount);
+                // The pipelines must match the depth buffer that is bound when drawing
+                depthStencilFormat = context.RenderOutput.DepthStencilFormat;
+                if (depthStencilFormat == PixelFormat.None)
+                    depthStencilFormat = DepthBufferFormat;
+
+                context.RenderOutput = new RenderOutputDescription(PostEffects != null ? PixelFormat.R16G16B16A16_Float : context.RenderOutput.RenderTargetFormat0, depthStencilFormat, actualMultisampleCount);
 
                 CollectStages(context);
 
@@ -918,7 +924,7 @@ namespace Stride.Rendering.Compositing
             if (viewDepthStencil == null || viewDepthStencil.MultisampleCount != MultisampleCount.None)
             {
                 viewDepthStencil = PushScopedResource(drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(
-                    TextureDescription.New2D(renderTargetsSize.Width, renderTargetsSize.Height, 1, DepthBufferFormat,
+                    TextureDescription.New2D(renderTargetsSize.Width, renderTargetsSize.Height, 1, depthStencilFormat,
                         TextureFlags.ShaderResource | TextureFlags.DepthStencil)));
             }
 

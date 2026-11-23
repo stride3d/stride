@@ -24,6 +24,7 @@
     <Compile Include="EngineTestBase.cs" />
     <Compile Include="ClearRendererDepthFormatTest.cs" />
     <Compile Include="ForwardRendererPrepassDepthTest.cs" />
+    <Compile Include="ForwardRendererDepthFormatTest.cs" />
     <Compile Include="ForwardRendererTransparentTargetsTest.cs" />
     <Compile Include="ParameterCollectionAttachedReferenceTest.cs" />
     <Compile Include="ParameterCollectionUpdateEngineTest.cs" />
