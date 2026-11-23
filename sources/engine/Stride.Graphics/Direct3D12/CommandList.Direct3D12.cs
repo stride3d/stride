@@ -65,6 +65,18 @@ namespace Stride.Graphics
 
         private CompiledCommandList currentCommandList;
 
+        private ref CompiledCommandList OpenCommandList
+        {
+            get
+            {
+                if (currentCommandList.Builder is null)
+                    ThrowCommandListClosed();
+                return ref currentCommandList;
+            }
+        }
+
+        private ComPtr<ID3D12GraphicsCommandList7> NativeCommandList => OpenCommandList.NativeCommandList;
+
         private bool IsComputePipelineStateBound => boundPipelineState?.IsCompute is true;
 
 
@@ -222,9 +234,12 @@ namespace Stride.Graphics
         /// </returns>
         public partial CompiledCommandList Close()
         {
+            if (currentCommandList.Builder is null)
+                ThrowCommandListClosed();
+
             FlushResourceBarriers();
 
-            HResult result = currentCommandList.NativeCommandList.Close();
+            HResult result = NativeCommandList.Close();
 
             if (result.IsFailure)
             {
@@ -277,7 +292,7 @@ namespace Stride.Graphics
             if (boundPipelineState is not null)
                 SetPipelineState(boundPipelineState);
 
-            currentCommandList.NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
+            NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
             SetRenderTargetsImpl(depthStencilBuffer, RenderTargets);
         }
 
@@ -312,7 +327,7 @@ namespace Stride.Graphics
                 ? ref depthStencilBuffer.NativeDepthStencilView
                 : ref NullRef<CpuDescriptorHandle>();
 
-            currentCommandList.NativeCommandList.OMSetRenderTargets((uint) renderTargetCount, in renderTargetHandles[0],
+            NativeCommandList.OMSetRenderTargets((uint) renderTargetCount, in renderTargetHandles[0],
                                                                     RTsSingleHandleToDescriptorRange: false,
                                                                     in depthStencilView);
         }
@@ -333,14 +348,14 @@ namespace Stride.Graphics
                 Debug.Assert(sizeof(Viewport) == sizeof(D3D12Viewport));
                 scoped ref var d3dViewport = ref As<Viewport, D3D12Viewport>(ref viewport);
 
-                currentCommandList.NativeCommandList.RSSetViewports(NumViewports: 1, in d3dViewport);
+                NativeCommandList.RSSetViewports(NumViewports: 1, in d3dViewport);
 
                 var scissorRect = new SilkBox2I
                 {
                     Min = { X = (int) viewport.X, Y = (int) viewport.Y },
                     Max = { X = (int) (viewport.X + viewport.Width), Y = (int) (viewport.Y + viewport.Height) }
                 };
-                currentCommandList.NativeCommandList.RSSetScissorRects(NumRects: 1, in scissorRect);
+                NativeCommandList.RSSetScissorRects(NumRects: 1, in scissorRect);
                 viewportDirty = false;
             }
 
@@ -355,7 +370,7 @@ namespace Stride.Graphics
                         Min = { X = scissor.X, Y = scissor.Y },
                         Max = { X = scissor.Right, Y = scissor.Bottom }
                     };
-                    currentCommandList.NativeCommandList.RSSetScissorRects(NumRects: 1, in scissorRect);
+                    NativeCommandList.RSSetScissorRects(NumRects: 1, in scissorRect);
                 }
             }
             else
@@ -367,7 +382,7 @@ namespace Stride.Graphics
                     Min = { X = (int) viewport.X, Y = (int) viewport.Y },
                     Max = { X = (int) (viewport.X + viewport.Width), Y = (int) (viewport.Y + viewport.Height) }
                 };
-                currentCommandList.NativeCommandList.RSSetScissorRects(NumRects: 1, in scissorRect);
+                NativeCommandList.RSSetScissorRects(NumRects: 1, in scissorRect);
             }
 
             scissorsDirty = false;
@@ -412,7 +427,7 @@ namespace Stride.Graphics
         /// <seealso cref="SetPipelineState(PipelineState)"/>
         public void SetStencilReference(int stencilReference)
         {
-            currentCommandList.NativeCommandList.OMSetStencilRef((uint) stencilReference);
+            NativeCommandList.OMSetStencilRef((uint) stencilReference);
         }
 
         /// <summary>
@@ -434,7 +449,7 @@ namespace Stride.Graphics
         {
             scoped Span<float> blendFactorFloats = blendFactor.AsSpan<Color4, float>();
 
-            currentCommandList.NativeCommandList.OMSetBlendFactor(blendFactorFloats);
+            NativeCommandList.OMSetBlendFactor(blendFactorFloats);
         }
 
         /// <summary>
@@ -451,15 +466,15 @@ namespace Stride.Graphics
                 // If scissor state changed, force a refresh
                 scissorsDirty |= (boundPipelineState?.HasScissorEnabled ?? false) != pipelineState.HasScissorEnabled;
 
-                currentCommandList.NativeCommandList.SetPipelineState(pipelineState.CompiledState);
+                NativeCommandList.SetPipelineState(pipelineState.CompiledState);
 
                 if (pipelineState.IsCompute)
-                    currentCommandList.NativeCommandList.SetComputeRootSignature(pipelineState.RootSignature);
+                    NativeCommandList.SetComputeRootSignature(pipelineState.RootSignature);
                 else
-                    currentCommandList.NativeCommandList.SetGraphicsRootSignature(pipelineState.RootSignature);
+                    NativeCommandList.SetGraphicsRootSignature(pipelineState.RootSignature);
 
                 boundPipelineState = pipelineState;
-                currentCommandList.NativeCommandList.IASetPrimitiveTopology(pipelineState.PrimitiveTopology);
+                NativeCommandList.IASetPrimitiveTopology(pipelineState.PrimitiveTopology);
             }
         }
 
@@ -488,7 +503,7 @@ namespace Stride.Graphics
                 scoped ref var nullVertexBufferView = ref NullRef<VertexBufferView>();
 
                 // Unset the Vertex Buffer from the slot
-                currentCommandList.NativeCommandList.IASetVertexBuffers(StartSlot: (uint) index, NumViews: 1, in nullVertexBufferView);
+                NativeCommandList.IASetVertexBuffers(StartSlot: (uint) index, NumViews: 1, in nullVertexBufferView);
                 return;
             }
 
@@ -498,7 +513,7 @@ namespace Stride.Graphics
                 StrideInBytes = (uint) stride,
                 SizeInBytes = (uint) (buffer.SizeInBytes - offset)
             };
-            currentCommandList.NativeCommandList.IASetVertexBuffers(StartSlot: (uint) index, NumViews: 1, in vertexBufferView);
+            NativeCommandList.IASetVertexBuffers(StartSlot: (uint) index, NumViews: 1, in vertexBufferView);
         }
 
         /// <summary>
@@ -519,7 +534,7 @@ namespace Stride.Graphics
             {
                 scoped ref var nullIndexBufferView = ref NullRef<IndexBufferView>();
 
-                currentCommandList.NativeCommandList.IASetIndexBuffer(in nullIndexBufferView);
+                NativeCommandList.IASetIndexBuffer(in nullIndexBufferView);
                 return;
             }
 
@@ -529,7 +544,7 @@ namespace Stride.Graphics
                 Format = is32Bits ? Format.FormatR32Uint : Format.FormatR16Uint,
                 SizeInBytes = (uint) (buffer.SizeInBytes - offset)
             };
-            currentCommandList.NativeCommandList.IASetIndexBuffer(in indexBufferView);
+            NativeCommandList.IASetIndexBuffer(in indexBufferView);
         }
 
         /// <summary>
@@ -573,7 +588,7 @@ namespace Stride.Graphics
             {
                 tracker = resource.LayoutTracker.Clone();
                 if (recordTransitions)
-                    SubmittedLayoutReplay.RecordAssumed(currentCommandList.RecordedTransitions, resource, tracker);
+                    SubmittedLayoutReplay.RecordAssumed(OpenCommandList.RecordedTransitions, resource, tracker);
             }
 
             barrierTransitions.Clear();
@@ -604,7 +619,7 @@ namespace Stride.Graphics
                     Subresource = transition.Subresource
                 });
                 if (recordTransitions)
-                    currentCommandList.RecordedTransitions.Add(new RecordedTransition(resource, transition.Subresource, transition.LayoutBefore, newLayout));
+                    OpenCommandList.RecordedTransitions.Add(new RecordedTransition(resource, transition.Subresource, transition.LayoutBefore, newLayout));
             }
             resource.LayoutTracker = tracker;
         }
@@ -727,7 +742,7 @@ namespace Stride.Graphics
 
                 if (groupCount > 0)
                 {
-                    currentCommandList.NativeCommandList.Barrier((uint)groupCount, (BarrierGroup*)groups);
+                    NativeCommandList.Barrier((uint)groupCount, (BarrierGroup*)groups);
                 }
             }
         }
@@ -779,7 +794,7 @@ namespace Stride.Graphics
         public unsafe void UnorderedAccessBarrier()
         {
             FlushResourceBarriers();
-            EnhancedBarriers.GlobalBarrier(currentCommandList.NativeCommandList.Handle, D3D12BarrierSync.AllShading, D3D12BarrierSync.AllShading,
+            EnhancedBarriers.GlobalBarrier(NativeCommandList.Handle, D3D12BarrierSync.AllShading, D3D12BarrierSync.AllShading,
                                            D3D12BarrierAccess.UnorderedAccess, D3D12BarrierAccess.UnorderedAccess);
         }
 
@@ -802,11 +817,11 @@ namespace Stride.Graphics
             if (resource is Texture)
             {
                 var layout = BarrierMapping.ToEnhancedLayout(BarrierLayout.UnorderedAccess);
-                EnhancedBarriers.TextureBarrier(currentCommandList.NativeCommandList.Handle, resource.NativeResource, syncBefore, syncAfter, Access, Access, layout, layout, subresources);
+                EnhancedBarriers.TextureBarrier(NativeCommandList.Handle, resource.NativeResource, syncBefore, syncAfter, Access, Access, layout, layout, subresources);
             }
             else
             {
-                EnhancedBarriers.BufferBarrier(currentCommandList.NativeCommandList.Handle, resource.NativeResource, syncBefore, syncAfter, Access, Access);
+                EnhancedBarriers.BufferBarrier(NativeCommandList.Handle, resource.NativeResource, syncBefore, syncAfter, Access, Access);
             }
         }
 
@@ -849,7 +864,7 @@ namespace Stride.Graphics
                         {
                             ResetSrvHeap(createNewHeap: true);
 
-                            currentCommandList.NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
+                            NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
                             goto RestartWithNewHeap;
                         }
 
@@ -874,12 +889,12 @@ namespace Stride.Graphics
                     if (IsComputePipelineStateBound)
                     {
                         for (int j = 0; j < srvBindCount; ++j)
-                            currentCommandList.NativeCommandList.SetComputeRootDescriptorTable((uint) descriptorTableIndex++, gpuSrvStart);
+                            NativeCommandList.SetComputeRootDescriptorTable((uint) descriptorTableIndex++, gpuSrvStart);
                     }
                     else
                     {
                         for (int j = 0; j < srvBindCount; ++j)
-                            currentCommandList.NativeCommandList.SetGraphicsRootDescriptorTable((uint) descriptorTableIndex++, gpuSrvStart);
+                            NativeCommandList.SetGraphicsRootDescriptorTable((uint) descriptorTableIndex++, gpuSrvStart);
                     }
                 }
 
@@ -896,7 +911,7 @@ namespace Stride.Graphics
                         {
                             ResetSamplerHeap(createNewHeap: true);
 
-                            currentCommandList.NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
+                            NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
                             goto RestartWithNewHeap;
                         }
 
@@ -921,12 +936,12 @@ namespace Stride.Graphics
                     if (IsComputePipelineStateBound)
                     {
                         for (int j = 0; j < samplerBindCount; ++j)
-                            currentCommandList.NativeCommandList.SetComputeRootDescriptorTable((uint) descriptorTableIndex++, gpuSamplerStart);
+                            NativeCommandList.SetComputeRootDescriptorTable((uint) descriptorTableIndex++, gpuSamplerStart);
                     }
                     else
                     {
                         for (int j = 0; j < samplerBindCount; ++j)
-                            currentCommandList.NativeCommandList.SetGraphicsRootDescriptorTable((uint) descriptorTableIndex++, gpuSamplerStart);
+                            NativeCommandList.SetGraphicsRootDescriptorTable((uint) descriptorTableIndex++, gpuSamplerStart);
                     }
                 }
             }
@@ -950,7 +965,7 @@ namespace Stride.Graphics
             // If there is currently a heap, recycle it
             if (srvHeap.Heap.IsNotNull())
             {
-                currentCommandList.SrvHeaps.Add(srvHeap);
+                OpenCommandList.SrvHeaps.Add(srvHeap);
                 srvHeap.Heap = default;
             }
 
@@ -984,7 +999,7 @@ namespace Stride.Graphics
             // If there is currently a heap, recycle it
             if (samplerHeap.Heap.IsNotNull())
             {
-                currentCommandList.SamplerHeaps.Add(samplerHeap);
+                OpenCommandList.SamplerHeaps.Add(samplerHeap);
                 samplerHeap.Heap = default;
             }
 
@@ -1010,7 +1025,7 @@ namespace Stride.Graphics
         {
             PrepareDraw(isDispatch: true); // TODO: PrepareDraw for Compute dispatch?
 
-            currentCommandList.NativeCommandList.Dispatch((uint) threadCountX, (uint) threadCountY, (uint) threadCountZ);
+            NativeCommandList.Dispatch((uint) threadCountX, (uint) threadCountY, (uint) threadCountZ);
         }
 
         /// <summary>
@@ -1042,7 +1057,7 @@ namespace Stride.Graphics
         private unsafe void ExecuteIndirect(ID3D12CommandSignature* commandSignature, Buffer argumentsBuffer, int offsetInBytes)
         {
             // One command, no count buffer
-            currentCommandList.NativeCommandList.ExecuteIndirect(commandSignature, 1, (ID3D12Resource*) argumentsBuffer.NativeResource, (ulong) offsetInBytes, (ID3D12Resource*) null, 0);
+            NativeCommandList.ExecuteIndirect(commandSignature, 1, (ID3D12Resource*) argumentsBuffer.NativeResource, (ulong) offsetInBytes, (ID3D12Resource*) null, 0);
         }
 
         /// <summary>
@@ -1057,7 +1072,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            currentCommandList.NativeCommandList.DrawInstanced((uint) vertexCount, InstanceCount: 1,
+            NativeCommandList.DrawInstanced((uint) vertexCount, InstanceCount: 1,
                                                                (uint) startVertexLocation, StartInstanceLocation: 0);
 
             GraphicsDevice.FrameTriangleCount += (uint)vertexCount;
@@ -1085,7 +1100,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            currentCommandList.NativeCommandList.DrawIndexedInstanced((uint) indexCount, InstanceCount: 1,
+            NativeCommandList.DrawIndexedInstanced((uint) indexCount, InstanceCount: 1,
                                                                       (uint) startIndexLocation, baseVertexLocation,
                                                                       StartInstanceLocation: 0);
             GraphicsDevice.FrameDrawCalls++;
@@ -1104,7 +1119,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            currentCommandList.NativeCommandList.DrawIndexedInstanced((uint) indexCountPerInstance,
+            NativeCommandList.DrawIndexedInstanced((uint) indexCountPerInstance,
                                                                       (uint) instanceCount,
                                                                       (uint) startIndexLocation, baseVertexLocation,
                                                                       (uint) startInstanceLocation);
@@ -1142,7 +1157,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            currentCommandList.NativeCommandList.DrawInstanced((uint) vertexCountPerInstance, (uint) instanceCount,
+            NativeCommandList.DrawInstanced((uint) vertexCountPerInstance, (uint) instanceCount,
                                                                (uint) startVertexLocation, (uint) startInstanceLocation);
             GraphicsDevice.FrameDrawCalls++;
             GraphicsDevice.FrameTriangleCount += (uint) (vertexCountPerInstance * instanceCount);
@@ -1174,7 +1189,7 @@ namespace Stride.Graphics
         /// <param name="index">The index of the Query to write.</param>
         public void WriteTimestamp(QueryPool queryPool, int index)
         {
-            currentCommandList.NativeCommandList.EndQuery(queryPool.NativeQueryHeap, Silk.NET.Direct3D12.QueryType.Timestamp, (uint) index);
+            NativeCommandList.EndQuery(queryPool.NativeQueryHeap, Silk.NET.Direct3D12.QueryType.Timestamp, (uint) index);
 
             queryPool.PendingValue = queryPool.CompletedValue + 1;
         }
@@ -1208,7 +1223,7 @@ namespace Stride.Graphics
 
             if (WinPixNative.IsAvailable)
             {
-                WinPixNative.PIXBeginEventOnCommandList(currentCommandList.NativeCommandList, profileColor, name);
+                WinPixNative.PIXBeginEventOnCommandList(NativeCommandList, profileColor, name);
             }
             else
             {
@@ -1219,7 +1234,7 @@ namespace Stride.Graphics
                 var nameBytes = stackalloc byte[maxBytes];
                 int written = System.Text.Encoding.ASCII.GetBytes(name, new Span<byte>(nameBytes, maxBytes));
                 nameBytes[written] = 0;
-                currentCommandList.NativeCommandList.BeginEvent(Metadata: 1, nameBytes, (uint)(written + 1));
+                NativeCommandList.BeginEvent(Metadata: 1, nameBytes, (uint)(written + 1));
             }
         }
 
@@ -1235,9 +1250,9 @@ namespace Stride.Graphics
                 return;
 
             if (WinPixNative.IsAvailable)
-                WinPixNative.PIXEndEventOnCommandList(currentCommandList.NativeCommandList);
+                WinPixNative.PIXEndEventOnCommandList(NativeCommandList);
             else
-                currentCommandList.NativeCommandList.EndEvent();
+                NativeCommandList.EndEvent();
         }
 
         /// <summary>
@@ -1267,7 +1282,7 @@ namespace Stride.Graphics
 
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
 
-            currentCommandList.NativeCommandList.ClearDepthStencilView(depthStencilBuffer.NativeDepthStencilView,
+            NativeCommandList.ClearDepthStencilView(depthStencilBuffer.NativeDepthStencilView,
                                                                        (ClearFlags) options, depth, stencil,
                                                                        NumRects: 0, in nullRect);
             RecordDebugCounter(DebugCounterKind.Clear);
@@ -1289,7 +1304,7 @@ namespace Stride.Graphics
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
             scoped ref var clearColorFloats = ref color.AsSpan<Color4, float>()[0];
 
-            currentCommandList.NativeCommandList.ClearRenderTargetView(renderTarget.NativeRenderTargetView, ref clearColorFloats,
+            NativeCommandList.ClearRenderTargetView(renderTarget.NativeRenderTargetView, ref clearColorFloats,
                                                                         NumRects: 0, in nullRect);
             RecordDebugCounter(DebugCounterKind.Clear);
         }
@@ -1318,7 +1333,7 @@ namespace Stride.Graphics
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
             scoped ref var clearValue = ref value.AsSpan<Vector4, float>()[0];
 
-            currentCommandList.NativeCommandList.ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, buffer.NativeResource,
+            NativeCommandList.ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, buffer.NativeResource,
                                                                                ref clearValue, NumRects: 0, in nullRect);
             UnorderedAccessSync(buffer, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
@@ -1348,7 +1363,7 @@ namespace Stride.Graphics
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
             scoped ref var clearValue = ref value.AsSpan<Int4, uint>()[0];
 
-            currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
+            NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
             UnorderedAccessSync(buffer, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
@@ -1378,7 +1393,7 @@ namespace Stride.Graphics
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
             scoped ref var clearValue = ref value.AsSpan<UInt4, uint>()[0];
 
-            currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
+            NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
             UnorderedAccessSync(buffer, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
@@ -1408,7 +1423,7 @@ namespace Stride.Graphics
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
             scoped ref var clearValue = ref value.AsSpan<Vector4, float>()[0];
 
-            currentCommandList.NativeCommandList.ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, texture.NativeResource,
+            NativeCommandList.ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, texture.NativeResource,
                                                                                ref clearValue, NumRects: 0, in nullRect);
             UnorderedAccessSync(texture, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
@@ -1438,7 +1453,7 @@ namespace Stride.Graphics
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
             scoped ref var clearValue = ref value.AsSpan<Int4, uint>()[0];
 
-            currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
+            NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
             UnorderedAccessSync(texture, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
@@ -1468,7 +1483,7 @@ namespace Stride.Graphics
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
             scoped ref var clearValue = ref value.AsSpan<UInt4, uint>()[0];
 
-            currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
+            NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
             UnorderedAccessSync(texture, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
@@ -1493,7 +1508,7 @@ namespace Stride.Graphics
                 {
                     ResetSrvHeap(createNewHeap: true);
 
-                    currentCommandList.NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
+                    NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
                 }
 
                 // Copy
@@ -1571,7 +1586,7 @@ namespace Stride.Graphics
                     // Fence for host access
                     destinationParent.CommandListFenceValue = null;
                     destinationParent.UpdatingCommandList = this;
-                    currentCommandList.StagingResources.Add(destinationParent);
+                    OpenCommandList.StagingResources.Add(destinationParent);
                 }
                 else // Copy Texture -> Texture
                 {
@@ -1652,7 +1667,7 @@ namespace Stride.Graphics
                             SubresourceIndex = (uint) (arraySlice * sourceParent.MipLevelCount + mipLevel)
                         };
 
-                        currentCommandList.NativeCommandList.CopyTextureRegion(in destRegion, DstX: 0, DstY: 0, DstZ: 0,
+                        NativeCommandList.CopyTextureRegion(in destRegion, DstX: 0, DstY: 0, DstZ: 0,
                                                                                in srcRegion, pSrcBox: null);
 
                         copyOffset += destinationTexture.ComputeSubResourceSize(mipLevel);
@@ -1669,7 +1684,7 @@ namespace Stride.Graphics
                 ResourceBarrierTransition(destinationTexture, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
-                currentCommandList.NativeCommandList.CopyResource(destinationTexture.NativeResource, sourceTexture.NativeResource);
+                NativeCommandList.CopyResource(destinationTexture.NativeResource, sourceTexture.NativeResource);
             }
 
             //
@@ -1681,14 +1696,14 @@ namespace Stride.Graphics
                 ResourceBarrierTransition(destinationBuffer, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
-                currentCommandList.NativeCommandList.CopyResource(destinationBuffer.NativeResource, sourceBuffer.NativeResource);
+                NativeCommandList.CopyResource(destinationBuffer.NativeResource, sourceBuffer.NativeResource);
 
                 if (destinationBuffer.Usage == GraphicsResourceUsage.Staging)
                 {
                     // Fence for host access
                     destinationBuffer.CommandListFenceValue = null;
                     destinationBuffer.UpdatingCommandList = this;
-                    currentCommandList.StagingResources.Add(destinationBuffer);
+                    OpenCommandList.StagingResources.Add(destinationBuffer);
                 }
             }
         }
@@ -1764,7 +1779,7 @@ namespace Stride.Graphics
             ResourceBarrierTransition(destinationTexture, BarrierLayout.ResolveDest);
             FlushResourceBarriers();
 
-            currentCommandList.NativeCommandList.ResolveSubresource(destinationTexture.NativeResource, (uint) destinationSubResourceIndex,
+            NativeCommandList.ResolveSubresource(destinationTexture.NativeResource, (uint) destinationSubResourceIndex,
                                                                     sourceMultiSampledTexture.NativeResource, (uint) sourceSubResourceIndex,
                                                                     (Format)(format == PixelFormat.None ? destinationTexture.Format : format));
         }
@@ -1892,7 +1907,7 @@ namespace Stride.Graphics
                     // Fence for host access
                     destinationParent.CommandListFenceValue = null;
                     destinationParent.UpdatingCommandList = this;
-                    currentCommandList.StagingResources.Add(destinationParent);
+                    OpenCommandList.StagingResources.Add(destinationParent);
                 }
                 else // Regular Texture
                 {
@@ -1910,12 +1925,12 @@ namespace Stride.Graphics
                     Debug.Assert(sizeof(D3D12Box) == sizeof(ResourceRegion));
                     var sourceBox = srcResourceRegion.BitCast<ResourceRegion, D3D12Box>();
 
-                    currentCommandList.NativeCommandList.CopyTextureRegion(in destRegion, (uint) dstX, (uint) dstY, (uint) dstZ,
+                    NativeCommandList.CopyTextureRegion(in destRegion, (uint) dstX, (uint) dstY, (uint) dstZ,
                                                                            in srcRegion, in sourceBox);
                 }
                 else
                 {
-                    currentCommandList.NativeCommandList.CopyTextureRegion(in destRegion, (uint) dstX, (uint) dstY, (uint) dstZ,
+                    NativeCommandList.CopyTextureRegion(in destRegion, (uint) dstX, (uint) dstY, (uint) dstZ,
                                                                            in srcRegion, pSrcBox: null);
                 }
             }
@@ -1929,7 +1944,7 @@ namespace Stride.Graphics
                 ResourceBarrierTransition(destination, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
-                currentCommandList.NativeCommandList.CopyBufferRegion(destinationBuffer.NativeResource, (ulong)dstX,
+                NativeCommandList.CopyBufferRegion(destinationBuffer.NativeResource, (ulong)dstX,
                                                                       sourceBuffer.NativeResource,
                                                                       SrcOffset: (ulong)(sourceRegion?.Left ?? 0),
                                                                       NumBytes: sourceRegion.HasValue
@@ -1964,7 +1979,7 @@ namespace Stride.Graphics
             ResourceBarrierTransition(destinationBuffer, BarrierLayout.CopyDest);
             FlushResourceBarriers();
 
-            currentCommandList.NativeCommandList.CopyBufferRegion(destinationBuffer.NativeResource, (ulong) destinationOffsetInBytes,
+            NativeCommandList.CopyBufferRegion(destinationBuffer.NativeResource, (ulong) destinationOffsetInBytes,
                                                                   sourceBuffer.NativeResource, SrcOffset: 0, NumBytes: sizeof(uint));
         }
 
@@ -2185,7 +2200,7 @@ namespace Stride.Graphics
                     Type = TextureCopyType.SubresourceIndex,
                     SubresourceIndex = 0
                 };
-                currentCommandList.NativeCommandList.CopyTextureRegion(in destRegion, (uint) region.Left, (uint) region.Top, (uint) region.Front,
+                NativeCommandList.CopyTextureRegion(in destRegion, (uint) region.Left, (uint) region.Top, (uint) region.Front,
                                                                        in srcRegion, in fullBox);
             }
 
@@ -2205,7 +2220,7 @@ namespace Stride.Graphics
                 ResourceBarrierTransition(resource, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
 
-                currentCommandList.NativeCommandList.CopyBufferRegion(pDstBuffer: resource.NativeResource, DstOffset: (ulong)region.Left,
+                NativeCommandList.CopyBufferRegion(pDstBuffer: resource.NativeResource, DstOffset: (ulong)region.Left,
                                                                       uploadResource, (ulong)uploadOffset, (ulong)uploadSize);
             }
         }
