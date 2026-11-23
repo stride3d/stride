@@ -31,14 +31,6 @@ namespace Stride.Graphics
         /// </summary>
         internal CpuDescriptorHandle NativeUnorderedAccessView;
 
-        /// <summary>
-        ///   Gets a value indicating whether the Graphics Resource is in "Debug mode".
-        /// </summary>
-        /// <value>
-        ///   <see langword="true"/> if the Graphics Resource is initialized in "Debug mode"; otherwise, <see langword="false"/>.
-        /// </value>
-        protected bool IsDebugMode => GraphicsDevice?.IsDebugMode == true;
-
         /// <inheritdoc/>
         internal override void SwapInternal(GraphicsResourceBase other)
         {

@@ -49,14 +49,6 @@ namespace Stride.Graphics
             }
         }
 
-        protected bool IsDebugMode
-        {
-            get
-            {
-                return GraphicsDevice != null && GraphicsDevice.IsDebugMode;
-            }
-        }
-
         protected override void OnNameChanged()
         {
             base.OnNameChanged();

@@ -114,14 +114,6 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
         }
 
-        /// <summary>
-        /// Unset the read/write buffers.
-        /// </summary>
-        public void UnsetReadWriteBuffers()
-        {
-            NullHelper.ToImplement();
-        }
-
         public void SetStencilReference(int stencilReference)
         {
             NullHelper.ToImplement();

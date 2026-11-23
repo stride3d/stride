@@ -130,14 +130,6 @@ public abstract unsafe partial class GraphicsResourceBase
     /// </remarks>
     protected ComPtr<ID3D11Device> NativeDevice => GraphicsDevice?.NativeDevice ?? default;
 
-    /// <summary>
-    ///   Gets a value indicating whether the Graphics Resource is in "Debug mode".
-    /// </summary>
-    /// <value>
-    ///   <see langword="true"/> if the Graphics Resource is initialized in "Debug mode"; otherwise, <see langword="false"/>.
-    /// </value>
-    protected bool IsDebugMode => GraphicsDevice?.IsDebugMode == true;
-
 
     // No Direct3D-specific initialization
     private partial void Initialize() { }

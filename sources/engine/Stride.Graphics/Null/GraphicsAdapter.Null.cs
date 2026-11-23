@@ -10,6 +10,8 @@ namespace Stride.Graphics
     /// </summary>
     public partial class GraphicsAdapter
     {
+        internal GraphicsAdapter() { }
+
         /// <summary>
         /// Gets the description of this adapter.
         /// </summary>
