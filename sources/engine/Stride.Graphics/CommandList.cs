@@ -547,6 +547,55 @@ namespace Stride.Graphics
         /// <inheritdoc cref="UpdateSubResource(GraphicsResource, int, ReadOnlySpan{byte}, ResourceRegion)" path="/remarks" />
         internal unsafe partial void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData, ResourceRegion region);
 
+        /// <summary>
+        ///   Gets the region that covers a whole sub-resource of a Graphics Resource.
+        /// </summary>
+        private static ResourceRegion GetWholeSubResourceRegion(GraphicsResource resource, int subResourceIndex)
+        {
+            if (resource is Texture texture)
+            {
+                var mipLevel = subResourceIndex % texture.MipLevelCount;
+
+                var width = Texture.CalculateMipSize(texture.Width, mipLevel);
+                var height = Texture.CalculateMipSize(texture.Height, mipLevel);
+                var depth = Texture.CalculateMipSize(texture.Depth, mipLevel);
+
+                return new ResourceRegion(left: 0, top: 0, front: 0, width, height, depth);
+            }
+
+            if (resource is Buffer buffer)
+                return new ResourceRegion(left: 0, top: 0, front: 0, buffer.SizeInBytes, bottom: 1, back: 1);
+
+            throw new InvalidOperationException("Unknown resource type");
+        }
+
+        /// <summary>
+        ///   Gets the pitches of texture data that holds the rows and slices of <paramref name="region"/> packed one after the other.
+        /// </summary>
+        /// <exception cref="ArgumentException"><paramref name="lengthInBytes"/> is smaller than the region.</exception>
+        private static void GetPackedPitches(Texture texture, ResourceRegion region, int lengthInBytes, out int rowPitch, out int slicePitch)
+        {
+            var format = texture.Format;
+            rowPitch = (region.Right - region.Left + format.BlockWidth - 1) / format.BlockWidth * format.BlockSize;
+            slicePitch = rowPitch * ((region.Bottom - region.Top + format.BlockHeight - 1) / format.BlockHeight);
+            var requiredLength = slicePitch * (region.Back - region.Front);
+
+            if (lengthInBytes < requiredLength)
+                throw new ArgumentException($"The source data ({lengthInBytes} bytes) is smaller than the region ({requiredLength} bytes).", "sourceData");
+        }
+
+        /// <summary>
+        ///   Describes the data of a span: the whole span for a Buffer, packed rows and slices of <paramref name="region"/> for a Texture.
+        /// </summary>
+        private static DataBox GetSpanDataBox(GraphicsResource resource, nint dataPointer, int lengthInBytes, ResourceRegion region)
+        {
+            if (resource is not Texture texture)
+                return new DataBox(dataPointer, lengthInBytes, 0);
+
+            GetPackedPitches(texture, region, lengthInBytes, out var rowPitch, out var slicePitch);
+            return new DataBox(dataPointer, rowPitch, slicePitch);
+        }
+
         // TODO GRAPHICS REFACTOR what should we do with this?
         /// <summary>
         ///   Maps a sub-resource of a Graphics Resource to be accessible from CPU memory, and in the process denies the GPU access to that sub-resource.

@@ -1996,10 +1996,12 @@ namespace Stride.Graphics
             if (sourceData.IsEmpty)
                 return;
 
+            var region = GetWholeSubResourceRegion(resource, subResourceIndex);
+
             fixed (byte* sourceDataPtr = sourceData)
             {
-                var sourceDataBox = new DataBox((nint) sourceDataPtr, rowPitch: 0, slicePitch: 0);
-                UpdateSubResource(resource, subResourceIndex, sourceDataBox);
+                var sourceDataBox = GetSpanDataBox(resource, (nint) sourceDataPtr, sourceData.Length, region);
+                UpdateSubResource(resource, subResourceIndex, sourceDataBox, region);
             }
         }
 
@@ -2016,14 +2018,7 @@ namespace Stride.Graphics
         /// <inheritdoc cref="UpdateSubResource(GraphicsResource, int, ReadOnlySpan{byte})" path="/remarks" />
         internal void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData)
         {
-            ResourceRegion region = resource switch
-            {
-                Texture texture => new ResourceRegion(left: 0, top: 0, front: 0, texture.Width, texture.Height, texture.Depth),
-                Buffer buffer => new ResourceRegion(left: 0, top: 0, front: 0, buffer.SizeInBytes, bottom: 1, back: 1),
-
-                _ => throw new InvalidOperationException("Unknown resource type")
-            };
-
+            var region = GetWholeSubResourceRegion(resource, subResourceIndex);
             UpdateSubResource(resource, subResourceIndex, sourceData, region);
         }
 
@@ -2060,7 +2055,7 @@ namespace Stride.Graphics
 
             fixed (byte* sourceDataPtr = sourceData)
             {
-                var sourceDataBox = new DataBox((nint) sourceDataPtr, rowPitch: 0, slicePitch: 0);
+                var sourceDataBox = GetSpanDataBox(resource, (nint) sourceDataPtr, sourceData.Length, region);
                 UpdateSubResource(resource, subResourceIndex, sourceDataBox, region);
             }
         }
