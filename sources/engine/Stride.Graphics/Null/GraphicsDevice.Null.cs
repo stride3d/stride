@@ -50,6 +50,23 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Enables or disables profiling.
+        /// </summary>
+        /// <param name="enabledFlag"><see langword="true"/> to enable profiling; <see langword="false"/> to disable it.</param>
+        public void EnableProfile(bool enabledFlag)
+        {
+            NullHelper.ToImplement();
+        }
+
+        /// <summary>
+        ///   Simulates a device loss: from now on, the status says <see cref="GraphicsDeviceStatus.Reset"/>.
+        /// </summary>
+        public void SimulateReset()
+        {
+            NullHelper.ToImplement();
+        }
+
+        /// <summary>
         /// Gets status of this device.
         /// </summary>
         /// <value>The graphics device status.</value>

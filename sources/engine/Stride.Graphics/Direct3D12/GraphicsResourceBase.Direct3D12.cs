@@ -18,14 +18,6 @@ namespace Stride.Graphics
         private ID3D12Resource* nativeResource;
 
         /// <summary>
-        ///   Gets a value indicating whether the Graphics Resource is in "Debug mode".
-        /// </summary>
-        /// <value>
-        ///   <see langword="true"/> if the Graphics Resource is initialized in "Debug mode"; otherwise, <see langword="false"/>.
-        /// </value>
-        protected bool IsDebugMode => GraphicsDevice?.IsDebugMode == true;
-
-        /// <summary>
         ///   Gets the internal Direct3D 11 Resource.
         /// </summary>
         /// <remarks>

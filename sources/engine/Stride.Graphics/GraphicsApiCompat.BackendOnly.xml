@@ -341,11 +341,4 @@
     <Left>Vulkan</Left>
     <Right>Direct3D11</Right>
   </Suppression>
-  <!-- GraphicsResourceBase.IsDebugMode: protected, declared on GraphicsResource on Vulkan. -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:Stride.Graphics.GraphicsResourceBase.get_IsDebugMode</Target>
-    <Left>Direct3D11</Left>
-    <Right>Vulkan</Right>
-  </Suppression>
 </Suppressions>

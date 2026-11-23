@@ -12,6 +12,11 @@ namespace Stride.Graphics
     /// </summary>
     public partial class GraphicsOutput
     {
+        internal GraphicsOutput() { }
+
+        /// <summary>Gets the native Windows monitor handle, or zero when unavailable.</summary>
+        public IntPtr MonitorHandle => IntPtr.Zero;
+
         /// <summary>
         /// Find the display mode that most closely matches the requested display mode.
         /// </summary>
