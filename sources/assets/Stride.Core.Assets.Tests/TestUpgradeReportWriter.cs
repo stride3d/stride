@@ -148,6 +148,20 @@ public class TestUpgradeReportWriter
     }
 
     [Fact]
+    public void TheDialogsListTheStepsWithTheirIdLinkedToTheGuide()
+    {
+        Assert.Equal("""
+            - failed [Stride-4.5.0-C2](https://doc/4.5.html#stride-4.5.0-c2) Fix the callbacks
+            - partial [Stride-4.5.0-C3](https://doc/4.5.html#stride-4.5.0-c3) Add `[EffectKeys]` (1 change not made)
+            - partial [Stride-4.5.0-P1](https://doc/4.5.html#stride-4.5.0-p1) Update the effects (1 file left unchanged, 1 change not made)
+            - not run [Stride-4.5.0-P2](https://doc/4.5.html#stride-4.5.0-p2) Add the plugin packages
+            """.ReplaceLineEndings("\n"), UpgradeReportWriter.FormatStepsLeftList(LeftoversReport()));
+        Assert.Equal(
+            "- [Stride-4.5.0-P1](https://doc/4.5.html#stride-4.5.0-p1) Update the effects\n- `Stride-4.4.0-P9`",
+            UpgradeReportWriter.FormatStepList([new UpgradeStepInfo("Stride-4.5.0-P1", "Update the effects", "https://doc/4.5.html#stride-4.5.0-p1"), new UpgradeStepInfo("Stride-4.4.0-P9", "", null)]));
+    }
+
+    [Fact]
     public void AnExceptionShowsItsFirstFrames()
     {
         var project = CleanReport();

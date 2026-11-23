@@ -172,10 +172,11 @@ public sealed class PackageLoadParameters
 
     /// <summary>
     /// Occurs when the project of a package to upgrade records an earlier upgrade that was kept unfinished (see
-    /// <see cref="PackageUpgrader.UnfinishedMetadata"/>), with the steps it left: <c>true</c> marks that upgrade as finished and
-    /// upgrades the package. Without it, or with <c>false</c>, the package isn't upgraded.
+    /// <see cref="PackageUpgrader.UnfinishedMetadata"/>), with the steps it left (only their ID when the upgrader no longer
+    /// declares them): <c>true</c> marks that upgrade as finished and upgrades the package. Without it, or with <c>false</c>, the
+    /// package isn't upgraded.
     /// </summary>
-    public Func<Package, IReadOnlyList<string>, bool>? UnfinishedUpgradeFound { get; set; }
+    public Func<Package, IReadOnlyList<UpgradeStepInfo>, bool>? UnfinishedUpgradeFound { get; set; }
 
     /// <summary>
     /// Set by the in-place upgrade flow to tolerate transient NU1605 downgrades when restoring a solution from a

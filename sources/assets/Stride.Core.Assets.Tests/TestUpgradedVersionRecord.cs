@@ -23,7 +23,12 @@ public class TestUpgradedVersionRecord : IDisposable
     }
 
     [PackageUpgrader(["UpgradeRecord.Succeeds", "UpgradeRecord.Succeeds.Extra"], "1.0.0", "2.0.0", Name = "Succeeds")]
-    public class SucceedingUpgrader : SucceedingUpgraderBase;
+    public class SucceedingUpgrader : SucceedingUpgraderBase
+    {
+        // A step below the version of every test project, which an earlier upgrade can leave unfinished
+        public override IReadOnlyList<UpgradeStepInfo> GetUpgradeSteps(PackageVersion fromVersion)
+            => fromVersion < new PackageVersion("1.0.0") ? [new UpgradeStepInfo("Succeeds-1.0.0-P2", "Move the settings", "https://doc/1.0.html#succeeds-1.0.0-p2")] : [];
+    }
 
     // Named after its package
     [PackageUpgrader(["MyPlugin"], "1.0.0", "3.0.0")]
@@ -698,9 +703,9 @@ public class TestUpgradedVersionRecord : IDisposable
     {
         var game = WriteProject("Game", """
             <PackageReference Include="UpgradeRecord.Succeeds" Version="1.0.0" />
-            <StridePackageUpgradeRecord Include="Succeeds" Version="1.0.0" Unfinished="Succeeds-1.0.0-P2" />
+            <StridePackageUpgradeRecord Include="Succeeds" Version="1.0.0" Unfinished="Succeeds-1.0.0-P2;Succeeds-0.9.0-P1" />
             """);
-        IReadOnlyList<string>? asked = null;
+        IReadOnlyList<UpgradeStepInfo>? asked = null;
 
         LoadAndSave(game, out var report, parameters => parameters.UnfinishedUpgradeFound = (_, steps) =>
         {
@@ -708,10 +713,11 @@ public class TestUpgradedVersionRecord : IDisposable
             return true;
         });
 
-        Assert.Equal(["Succeeds-1.0.0-P2"], asked);
+        // A step the upgrader no longer declares has only its ID
+        Assert.Equal([new UpgradeStepInfo("Succeeds-1.0.0-P2", "Move the settings", "https://doc/1.0.html#succeeds-1.0.0-p2"), new UpgradeStepInfo("Succeeds-0.9.0-P1", "", null)], asked);
         Assert.Equal(new Dictionary<string, string> { ["Succeeds"] = "2.0.0" }, ReadRecords(game));
         Assert.Null(ReadUnfinished(game, "Succeeds"));
-        Assert.Equal(["Succeeds-1.0.0-P2"], report.Projects.Single().ContinuedFromUnfinished);
+        Assert.Equal(["Succeeds-1.0.0-P2", "Succeeds-0.9.0-P1"], report.Projects.Single().ContinuedFromUnfinished);
     }
 
     [Fact]

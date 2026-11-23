@@ -457,8 +457,7 @@ partial class SessionViewModel
             var message = new StringBuilder();
             message.AppendLine(string.Format(Tr._p("Message", "The upgrade of **{0}** failed:"), package.Meta.Name));
             message.AppendLine();
-            foreach (var line in UpgradeReportWriter.FormatStepLines(report).Where(x => !x.TrimStart().StartsWith("done", StringComparison.Ordinal)))
-                message.AppendLine("- " + line.Trim());
+            message.AppendLine(UpgradeReportWriter.FormatStepsLeftList(report));
             message.AppendLine();
             message.AppendLine(Tr._p("Message", "**Revert** puts every file of the project back as it was before the upgrade: fix the errors of the log, then upgrade again. **Keep** leaves the files as the upgrade left them: finish the steps above by hand, as upgrade-report.md next to the project lists them, then mark the upgrade as finished."));
             var buttons = new[]
@@ -473,8 +472,7 @@ partial class SessionViewModel
             var message = new StringBuilder();
             message.AppendLine(string.Format(Tr._p("Message", "The last upgrade of **{0}** was kept unfinished, with these steps to finish by hand:"), package.Meta.Name));
             message.AppendLine();
-            foreach (var step in steps)
-                message.AppendLine($"- `{step}`");
+            message.AppendLine(UpgradeReportWriter.FormatStepList(steps));
             message.AppendLine();
             message.AppendLine(Tr._p("Message", "Mark it as finished once they are done: the package is then upgraded."));
             var buttons = new[]

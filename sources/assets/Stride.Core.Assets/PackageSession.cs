@@ -1407,22 +1407,34 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         if (package.Container is not SolutionProject { FullPath: { } projectPath } project || !File.Exists(projectPath.ToOSPath()))
             return unfinishedUpgradeAnswers[package] = true;
 
-        var names = pendingPackageUpgrades.Select(x => x.PackageUpgrader.Attribute.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var unfinished = VSProjectHelper.GetUnfinishedUpgrades(projectPath.ToOSPath()).Where(x => names.Contains(x.Key)).SelectMany(x => x.Value).ToList();
+        var upgraders = pendingPackageUpgrades.Select(x => x.PackageUpgrader).DistinctBy(x => x.Attribute.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(x => x.Attribute.Name, StringComparer.OrdinalIgnoreCase);
+        var unfinished = VSProjectHelper.GetUnfinishedUpgrades(projectPath.ToOSPath())
+            .Where(x => upgraders.ContainsKey(x.Key))
+            .SelectMany(x => DescribeSteps(upgraders[x.Key], x.Value))
+            .ToList();
         if (unfinished.Count == 0)
             return unfinishedUpgradeAnswers[package] = true;
 
+        var ids = unfinished.Select(x => x.Id).ToList();
         if (loadParameters.UnfinishedUpgradeFound?.Invoke(package, unfinished) != true)
         {
-            log.Error($"The last upgrade of [{project.Name}] was kept unfinished, with {string.Join(", ", unfinished)} to finish by hand: mark it as finished once they are done, then upgrade again (in Game Studio, or with 'stride upgrade --mark-finished').");
+            log.Error($"The last upgrade of [{project.Name}] was kept unfinished, with {string.Join(", ", ids)} to finish by hand: mark it as finished once they are done, then upgrade again (in Game Studio, or with 'stride upgrade --mark-finished').");
             return unfinishedUpgradeAnswers[package] = false;
         }
 
         ArmUpgradeBackup(loadParameters, log);
         VSProjectHelper.MarkUpgradesFinished(projectPath.ToOSPath(), UpgradeBackup);
-        continuedFromUnfinished[projectPath] = unfinished;
-        log.Info($"The last upgrade of [{project.Name}] is marked as finished: it had left {string.Join(", ", unfinished)} to finish by hand.");
+        continuedFromUnfinished[projectPath] = ids;
+        log.Info($"The last upgrade of [{project.Name}] is marked as finished: it had left {string.Join(", ", ids)} to finish by hand.");
         return unfinishedUpgradeAnswers[package] = true;
+    }
+
+    // The steps of the upgrader with these IDs, as it declares them; a step it no longer declares has only its ID
+    private static IEnumerable<UpgradeStepInfo> DescribeSteps(PackageUpgrader upgrader, IEnumerable<string> ids)
+    {
+        var steps = upgrader.GetUpgradeSteps(new PackageVersion("0.0.0")).ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase);
+        return ids.Select(id => steps.GetValueOrDefault(id) ?? new UpgradeStepInfo(id, "", null));
     }
 
     /// <summary>

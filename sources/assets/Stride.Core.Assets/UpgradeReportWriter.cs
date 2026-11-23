@@ -86,6 +86,29 @@ public static class UpgradeReportWriter
         }
     }
 
+    /// <summary>
+    /// The steps of the upgrade of the project that aren't done, as a Markdown list with their status, each ID linked to its
+    /// section of the upgrade guide.
+    /// </summary>
+    public static string FormatStepsLeftList(ProjectUpgradeReport project)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        return string.Join("\n", project.Upgraders.SelectMany(x => x.Steps).Where(x => x.Status != UpgradeStepStatus.Done).Select(step =>
+        {
+            var line = $"- {StatusName(step.Status)} {(step.Id is null ? "" : FormatIdLink(step.Id, step.HelpLink) + " ")}{step.Title}";
+            return step.Status == UpgradeStepStatus.Partial ? $"{line} ({string.Join(", ", LeftParts(step))})" : line;
+        }));
+    }
+
+    /// <summary>
+    /// The steps as a Markdown list, each ID linked to its section of the upgrade guide.
+    /// </summary>
+    public static string FormatStepList(IEnumerable<UpgradeStepInfo> steps)
+    {
+        ArgumentNullException.ThrowIfNull(steps);
+        return string.Join("\n", steps.Select(step => $"- {FormatIdLink(step.Id, step.HelpLink)} {step.Title}".TrimEnd()));
+    }
+
     private static string FormatSection(ProjectUpgradeReport project, DateTime time, bool withProjectName)
     {
         var steps = project.Upgraders.SelectMany(x => x.Steps).ToList();
@@ -215,6 +238,9 @@ public static class UpgradeReportWriter
         var text = step.Id is null ? step.Title : $"`{step.Id}` {step.Title}";
         return step.HelpLink is null ? text : $"{text} ([guide]({step.HelpLink}))";
     }
+
+    // The ID of a step, as a link to its section of the upgrade guide when it has one
+    private static string FormatIdLink(string id, string? helpLink) => helpLink is null ? Code(id) : $"[{id}]({helpLink})";
 
     private static string FormatOutcome(ProjectUpgradeReport project)
     {
