@@ -49,6 +49,16 @@ namespace Stride.Graphics
         {
             GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
 
+            ReleaseNativeObjects();
+
+            base.OnDestroyed(immediately);
+        }
+
+        /// <summary>
+        /// Hands the native objects to the device to destroy once the GPU is done with them.
+        /// </summary>
+        private void ReleaseNativeObjects()
+        {
             if (NativeBufferView != VkBufferView.Null)
             {
                 GraphicsDevice.Collect(NativeBufferView);
@@ -66,15 +76,27 @@ namespace Stride.Graphics
                 GraphicsDevice.Collect(NativeMemory);
                 NativeMemory = VkDeviceMemory.Null;
             }
+        }
 
-            base.OnDestroyed(immediately);
+        /// <summary>
+        /// Gives the buffer new native memory with undefined contents, so that commands already recorded or in flight keep reading the old memory.
+        /// </summary>
+        internal void Rename()
+        {
+            ReleaseNativeObjects();
+            Recreate(IntPtr.Zero, clearContents: false);
         }
 
         /// <summary>
         /// Replaces the native buffer with a new one initialized with the provided data, keeping the description.
         /// </summary>
         /// <param name="dataPointer">The data to initialize the buffer with, or <see cref="IntPtr.Zero"/> for none.</param>
-        public unsafe void Recreate(IntPtr dataPointer)
+        public void Recreate(IntPtr dataPointer)
+        {
+            Recreate(dataPointer, clearContents: true);
+        }
+
+        private unsafe void Recreate(IntPtr dataPointer, bool clearContents)
         {
             var createInfo = new VkBufferCreateInfo
             {
@@ -169,7 +191,8 @@ namespace Stride.Graphics
                 GraphicsDevice.NativeDeviceApi.vkBindBufferMemory(GraphicsDevice.NativeDevice, NativeBuffer, NativeMemory, 0);
             }
 
-            if (SizeInBytes > 0)
+            // Without data or a clear, the contents stay undefined and nothing is submitted
+            if (SizeInBytes > 0 && (dataPointer != IntPtr.Zero || clearContents))
             {
                 var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CopyFence.GetCompletedValue());
 
@@ -230,9 +253,14 @@ namespace Stride.Graphics
 
                 // Make sure any subsequent CPU access (i.e. MapSubresource) will wait for copy command list to be finished
                 CopyFenceValue = copyFenceValue;
-
-                InitializeViews();
             }
+            else
+            {
+                CopyFenceValue = null;
+            }
+
+            if (SizeInBytes > 0)
+                InitializeViews();
         }
 
         /// <summary>

@@ -2009,7 +2009,17 @@ namespace Stride.Graphics
                     throw new InvalidOperationException();
             }
 
-            if (mapMode != MapMode.WriteNoOverwrite && mapMode != MapMode.Write)
+            // Discarding gives a buffer new memory: commands that are recorded or in flight keep reading the old one.
+            // Dynamic Textures are not renamed: their image is device-local and not mappable.
+            var isDiscard = mapMode == MapMode.WriteDiscard && usage != GraphicsResourceUsage.Staging && resource is Buffer;
+            if (isDiscard)
+            {
+                var discardedBuffer = (Buffer) resource;
+                discardedBuffer.Rename();
+                currentCbBufferLayouts.Remove(discardedBuffer);
+            }
+
+            if (mapMode != MapMode.WriteNoOverwrite && mapMode != MapMode.Write && !isDiscard)
             {
                 // Need to wait?
                 if (
