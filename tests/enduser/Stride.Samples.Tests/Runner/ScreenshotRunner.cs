@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Stride.Assets.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
@@ -12,6 +13,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Graphics;
 using Stride.Samples.Generator;
+using Xunit;
 
 namespace Stride.SampleScreenshotRunner;
 
@@ -26,6 +28,7 @@ public static class ScreenshotRunner
 {
     private const int LaunchTimeoutSeconds = 120;
     private const int BuildTimeoutSeconds = 300;
+    private const int BuildSamplesTimeoutSeconds = 1800;
     // A cold NativeAOT publish (ILC compile + native link) is far slower than a JIT build.
     private const int AotPublishTimeoutSeconds = 1200;
     internal const string SamplesGeneratedDirName = "samplesGenerated";
@@ -64,7 +67,8 @@ public static class ScreenshotRunner
 
     /// <summary>
     /// Regenerate <paramref name="sampleName"/> from its template, build it with
-    /// <c>StrideAutoTesting=true -p:Configuration=&lt;configuration&gt;</c>, launch the exe, wait for it
+    /// <c>StrideAutoTesting=true -p:Configuration=&lt;configuration&gt;</c> (both done for every sample of the run
+    /// before its first test, see <see cref="PreparedSamples"/>), launch the exe, wait for it
     /// to write done.json or hit the 60s timeout, copy the captured screenshots + done.json +
     /// error.log into <c>&lt;captureRoot&gt;/&lt;sampleName&gt;/</c>. Build and launch stdout/stderr land
     /// in build.log and launch.log under that dir — callers (e.g. the xunit wrapper) can dump them
@@ -92,12 +96,11 @@ public static class ScreenshotRunner
         }
 
         EnsureSamplesGeneratedTargets(worktreeRoot);
-        var sampleDir = Path.Combine(worktreeRoot, SamplesGeneratedDirName, fixture.SampleName);
-        var regenResult = RegenerateSample(fixture, sampleDir);
+        var regenResult = PreparedSamples.Take(fixture, worktreeRoot, configuration, out var build);
         if (regenResult is not null)
             return regenResult;
 
-        return RunSample(sampleDir, captureRoot, headless, configuration, aot);
+        return RunSample(SampleDirectory(worktreeRoot, fixture.SampleName), captureRoot, headless, configuration, aot, build);
     }
 
     /// <summary>
@@ -115,27 +118,72 @@ public static class ScreenshotRunner
             ?? throw new InvalidOperationException($"No fixture in tests/enduser/Stride.Samples.Tests/Fixtures/<{sampleName}>.cs.");
 
         EnsureSamplesGeneratedTargets(worktreeRoot);
-        var sampleDir = Path.Combine(worktreeRoot, SamplesGeneratedDirName, fixture.SampleName);
-        var regenResult = RegenerateSample(fixture, sampleDir);
+        var regenResult = PreparedSamples.Take(fixture, worktreeRoot, configuration, out _);
         if (regenResult is not null)
             throw new InvalidOperationException($"Regen failed for '{sampleName}': {regenResult.Detail}");
 
-        // Force the requested feature switches for the trimmer, scoped to this sample (Directory.Build.props
-        // is auto-imported by the per-platform project under it). Written after regen, which wipes sampleDir.
+        var sampleDir = SampleDirectory(worktreeRoot, fixture.SampleName);
+
+        // Force the requested feature switches for the trimmer, for this publish only (Directory.Build.props
+        // is auto-imported by the per-platform project under it): a later test may take the folder.
         var options = string.Join(Environment.NewLine, switches.Select(kv =>
             $"    <RuntimeHostConfigurationOption Include=\"{kv.Key}\" Value=\"{kv.Value}\" Trim=\"true\" />"));
-        File.WriteAllText(Path.Combine(sampleDir, "Directory.Build.props"),
+        var switchesProps = Path.Combine(sampleDir, "Directory.Build.props");
+        File.WriteAllText(switchesProps,
             $"<Project>{Environment.NewLine}  <ItemGroup>{Environment.NewLine}{options}{Environment.NewLine}  </ItemGroup>{Environment.NewLine}</Project>{Environment.NewLine}");
 
-        var platformCsproj = Path.Combine(sampleDir, $"{fixture.SampleName}.{HostPlatform.Folder}", $"{fixture.SampleName}.{HostPlatform.Folder}.csproj");
+        var platformCsproj = PlatformProject(sampleDir, fixture.SampleName);
         var graphicsApi = GraphicsDevice.Platform.ToString();
         var publishLog = Path.Combine(sampleDir, "publish-trimmed.log");
         Console.WriteLine($"[{fixture.SampleName}] trimmed publish (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
         var args = $"publish \"{platformCsproj}\" -c {configuration} -r {HostPlatform.Rid} -p:PublishTrimmed=true -p:SelfContained=true -p:StrideGraphicsApi={graphicsApi}";
-        if (!RunProcess("dotnet", args, publishLog, sampleDir, env: null, AotPublishTimeoutSeconds))
-            throw new InvalidOperationException($"Trimmed publish failed for '{sampleName}'; see {publishLog}");
+        try
+        {
+            if (!RunProcess("dotnet", args, publishLog, sampleDir, env: null, AotPublishTimeoutSeconds))
+                throw new InvalidOperationException($"Trimmed publish failed for '{sampleName}'; see {publishLog}");
+        }
+        finally
+        {
+            File.Delete(switchesProps);
+        }
 
         return Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, HostPlatform.Rid, "publish");
+    }
+
+    /// <summary>The folder a sample is regenerated in.</summary>
+    internal static string SampleDirectory(string worktreeRoot, string sampleName) => Path.Combine(worktreeRoot, SamplesGeneratedDirName, sampleName);
+
+    private static string PlatformProject(string sampleDir, string sampleName)
+        => Path.Combine(sampleDir, $"{sampleName}.{HostPlatform.Folder}", $"{sampleName}.{HostPlatform.Folder}.csproj");
+
+    /// <summary>
+    /// Builds the regenerated <paramref name="sampleNames"/> in one build, with the arguments <see cref="RunSample"/> builds
+    /// one with, and returns the build of each. Null when the build failed without naming a sample.
+    /// </summary>
+    internal static Dictionary<string, SampleBuild>? BuildSamples(string worktreeRoot, IReadOnlyList<string> sampleNames, string configuration)
+    {
+        var root = Path.Combine(worktreeRoot, SamplesGeneratedDirName);
+        var solution = Path.Combine(root, "Samples.slnx");
+        new XDocument(new XElement("Solution", sampleNames.Select(name =>
+            new XElement("Project", new XAttribute("Path", PlatformProject(SampleDirectory(worktreeRoot, name), name)))))).Save(solution);
+
+        var log = Path.Combine(root, "build.log");
+        File.Delete(log);
+        Console.WriteLine($"building {sampleNames.Count} samples (Configuration={configuration}, StrideGraphicsApi={GraphicsDevice.Platform})...");
+        var (exitCode, output) = SampleGenerator.RunDotnet(
+            ["build", solution, "-p:StrideAutoTesting=true", $"-p:Configuration={configuration}", $"-p:StrideGraphicsApi={GraphicsDevice.Platform}"],
+            root, log, BuildSamplesTimeoutSeconds);
+
+        // MSBuild names the project of each error, and of each output it writes
+        var builds = sampleNames.ToDictionary(name => name, name =>
+        {
+            var sampleDir = SampleDirectory(worktreeRoot, name) + Path.DirectorySeparatorChar;
+            var lines = output.Where(x => x.Contains(sampleDir, StringComparison.OrdinalIgnoreCase)).ToList();
+            return new SampleBuild(lines.Any(x => x.Contains(": error ", StringComparison.Ordinal)), lines);
+        }, StringComparer.OrdinalIgnoreCase);
+
+        // A build killed at its timeout (-1) leaves samples without errors half built
+        return exitCode == 0 || (exitCode > 0 && builds.Values.Any(x => x.Failed)) ? builds : null;
     }
 
     /// <summary>Returns the catalog of discovered fixtures (cached per <paramref name="worktreeRoot"/>).</summary>
@@ -201,7 +249,7 @@ public static class ScreenshotRunner
         return fixtures;
     }
 
-    private static SampleResult RunSample(string sampleDir, string outputRoot, bool headless, string configuration, bool aot)
+    private static SampleResult RunSample(string sampleDir, string outputRoot, bool headless, string configuration, bool aot, SampleBuild? build)
     {
         sampleDir = Path.GetFullPath(sampleDir);
         outputRoot = Path.GetFullPath(outputRoot);
@@ -214,7 +262,7 @@ public static class ScreenshotRunner
         var stopwatch = Stopwatch.StartNew();
         var result = new SampleResult { Name = sampleName, Status = "unknown" };
 
-        var platformCsproj = Path.Combine(sampleDir, $"{sampleName}.{HostPlatform.Folder}", $"{sampleName}.{HostPlatform.Folder}.csproj");
+        var platformCsproj = PlatformProject(sampleDir, sampleName);
         if (!File.Exists(platformCsproj))
         {
             result.Status = "missing-csproj";
@@ -233,6 +281,12 @@ public static class ScreenshotRunner
                               $"-p:StrideAutoTesting=true -p:StrideAutoTestingAot=true -p:StrideGraphicsApi={graphicsApi}";
             buildOk = RunProcess("dotnet", publishArgs, buildLog, sampleDir, AotBuildEnv(), AotPublishTimeoutSeconds);
         }
+        else if (build is not null)
+        {
+            Console.WriteLine($"[{sampleName}] built with the other samples of the run (the whole output: {SamplesGeneratedDirName}/build.log)");
+            File.WriteAllLines(buildLog, build.Output);
+            buildOk = !build.Failed;
+        }
         else
         {
             Console.WriteLine($"[{sampleName}] building (Configuration={configuration}, StrideGraphicsApi={graphicsApi})...");
@@ -246,21 +300,13 @@ public static class ScreenshotRunner
             return result;
         }
 
-        // AOT lands the self-contained native exe in the publish/ subfolder; the JIT build path varies
-        // (some csprojs set RuntimeIdentifier, others don't).
+        // AOT lands the self-contained native exe in the publish/ subfolder
         var exeName = $"{sampleName}.{HostPlatform.Folder}{HostPlatform.ExeExt}";
-        var exeCandidates = aot
-            ? new[] { Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, HostPlatform.Rid, "publish", exeName) }
-            : new[]
-            {
-                Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, HostPlatform.Rid, exeName),
-                Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, exeName),
-            };
-        var exePath = exeCandidates.FirstOrDefault(File.Exists);
-        if (exePath is null)
+        var exePath = Path.Combine(sampleDir, "Bin", HostPlatform.Folder, configuration, HostPlatform.Rid, aot ? "publish" : "", exeName);
+        if (!File.Exists(exePath))
         {
             result.Status = "missing-exe";
-            result.Detail = string.Join(" | ", exeCandidates);
+            result.Detail = exePath;
             result.Duration = stopwatch.Elapsed;
             return result;
         }
@@ -371,6 +417,8 @@ public static class ScreenshotRunner
         process.ErrorDataReceived += (_, e) => { if (e.Data is not null) log.WriteLine("[stderr] " + e.Data); };
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
+        // A cancelled run stops the process with its children, and the test
+        using var stop = TestContext.Current.CancellationToken.Register(() => { try { process.Kill(entireProcessTree: true); } catch { } });
 
         if (!process.WaitForExit(TimeSpan.FromSeconds(timeoutSeconds)))
         {
@@ -387,6 +435,7 @@ public static class ScreenshotRunner
             log.WriteLine($"[runner] killed after {timeoutSeconds}s timeout");
             return false;
         }
+        TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
         return process.ExitCode == 0;
     }
 
@@ -474,14 +523,27 @@ public static class ScreenshotRunner
     /// fixture file into <c>&lt;targetDir&gt;/&lt;SampleName&gt;.Game/Tests/ScreenshotTest.cs</c>.
     /// Returns null on success; a failure SampleResult on regen error.
     /// </summary>
-    private static SampleResult? RegenerateSample(DiscoveredFixture fixture, string targetDir)
+    internal static SampleResult? RegenerateSample(DiscoveredFixture fixture, string targetDir)
+    {
+        var failure = GenerateSample(fixture, targetDir, upgrade: true);
+        if (failure is null)
+            AddFixture(fixture, targetDir);
+        return failure;
+    }
+
+    /// <summary>
+    /// Generates one sample from its template into <paramref name="targetDir"/>, without its fixture. Returns null on
+    /// success; a failure SampleResult on regen error.
+    /// </summary>
+    /// <param name="upgrade">Whether to bring a sample written for an older engine to this one.</param>
+    internal static SampleResult? GenerateSample(DiscoveredFixture fixture, string targetDir, bool upgrade)
     {
         Console.WriteLine($"[{fixture.SampleName}] regenerating from template {fixture.TemplateId}");
         var stopwatch = Stopwatch.StartNew();
         var logger = new LoggerResult();
         try
         {
-            SampleGenerator.Generate(new UDirectory(targetDir), fixture.TemplateId, fixture.SampleName, logger);
+            SampleGenerator.Generate(new UDirectory(targetDir), fixture.TemplateId, fixture.SampleName, logger, upgrade);
         }
         catch (Exception ex)
         {
@@ -494,11 +556,15 @@ public static class ScreenshotRunner
                 Duration = stopwatch.Elapsed,
             };
         }
+        return null;
+    }
 
+    /// <summary>Copies the fixture file of a sample generated in <paramref name="targetDir"/> into its game project.</summary>
+    internal static void AddFixture(DiscoveredFixture fixture, string targetDir)
+    {
         var fixtureDest = Path.Combine(targetDir, $"{fixture.SampleName}.Game", "Tests", "ScreenshotTest.cs");
         Directory.CreateDirectory(Path.GetDirectoryName(fixtureDest)!);
         File.Copy(fixture.FixtureFile, fixtureDest, overwrite: true);
-        return null;
     }
 
     /// <summary>
@@ -508,6 +574,7 @@ public static class ScreenshotRunner
     /// Lives above the per-sample dir because SampleGenerator wipes the sample dir at the start of
     /// regeneration. Next to it goes the NuGet config of the repository's samples: a sample written for an
     /// older engine restores that release before its upgrade, so Stride.* also comes from nuget.org there.
+    /// A Directory.Build.props gives the platform projects the host RID.
     /// </summary>
     private static void EnsureSamplesGeneratedTargets(string worktreeRoot)
     {
@@ -520,6 +587,13 @@ public static class ScreenshotRunner
             .Replace("$STRIDE_DEV_VERSION$", GetStrideDevVersion(worktreeRoot));
 
         File.WriteAllText(Path.Combine(samplesGeneratedDir, "Directory.Build.targets"), content);
+
+        // The host RID keeps the natives of other platforms (over 300 MB a sample) out of the output. It goes in
+        // the platform projects, not on the command line: a solution build refuses -r (NETSDK1134).
+        new XDocument(new XElement("Project",
+            new XElement("PropertyGroup",
+                new XAttribute("Condition", $"'$(StrideAutoTesting)' == 'true' And $(MSBuildProjectName.EndsWith('.{HostPlatform.Folder}'))"),
+                new XElement("RuntimeIdentifier", HostPlatform.Rid)))).Save(Path.Combine(samplesGeneratedDir, "Directory.Build.props"));
     }
 
     /// <summary>
@@ -620,6 +694,9 @@ public static class ScreenshotRunner
 
 /// <summary>Fixture discovered in <c>tests/enduser/Stride.Samples.Tests/Fixtures/&lt;Name&gt;.cs</c>: GUID + resolved template name + source file.</summary>
 public sealed record DiscoveredFixture(string FixtureFile, Guid TemplateId, string SampleName);
+
+/// <summary>The build of a sample with the others of the run: the lines of the build output that name it.</summary>
+internal sealed record SampleBuild(bool Failed, IReadOnlyList<string> Output);
 
 /// <summary>Outcome of a single sample run.</summary>
 public sealed class SampleResult

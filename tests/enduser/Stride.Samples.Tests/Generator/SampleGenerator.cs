@@ -7,12 +7,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Stride.Assets;
 using Stride.Assets.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Xunit;
 
 namespace Stride.Samples.Generator;
 
@@ -25,10 +27,11 @@ namespace Stride.Samples.Generator;
 /// </summary>
 public static class SampleGenerator
 {
-    private const int RestoreTimeoutSeconds = 600;
     private const int UpgradeTimeoutSeconds = 900;
+    private const int UpgradeAllTimeoutSeconds = 1800;
 
-    public static PackageSession Generate(UDirectory outputPath, Guid templateGuid, string sampleName, LoggerResult logger)
+    /// <param name="upgrade">Whether to bring a sample written for an older engine to this one; else see <see cref="UpgradeAll"/>.</param>
+    public static PackageSession Generate(UDirectory outputPath, Guid templateGuid, string sampleName, LoggerResult logger, bool upgrade = true)
     {
         if (!outputPath.IsAbsolute)
             outputPath = UPath.Combine(Environment.CurrentDirectory, outputPath);
@@ -87,10 +90,49 @@ public static class SampleGenerator
             throw new InvalidOperationException($"Error generating sample {sampleName} from template:\r\n{logger.ToText()}");
 
         // A sample on the engine's version skips this: the generator already moved it to this build
-        if (DotNetNewTemplateGenerator.IsOlderContent(outputPath.ToOSPath()))
+        if (upgrade && NeedsUpgrade(outputPath.ToOSPath()))
             Upgrade(outputPath.ToOSPath(), sampleName, logger);
 
         return session;
+    }
+
+    /// <summary>Whether the sample generated in <paramref name="directory"/> is written for an older engine.</summary>
+    public static bool NeedsUpgrade(string directory) => DotNetNewTemplateGenerator.IsOlderContent(directory);
+
+    /// <summary>
+    /// Brings the samples generated in <paramref name="sampleDirectories"/>, written for an older engine, to this one in
+    /// one upgrade of a solution with the projects of all of them. Returns false when it failed, leaving the samples
+    /// partly upgraded.
+    /// </summary>
+    /// <remarks>
+    /// One upgrade starts the asset compiler, its MSBuild and Roslyn once, where an upgrade of each sample starts them
+    /// again. The samples share no asset id, type or namespace, so each comes out as its own upgrade would leave it.
+    /// </remarks>
+    public static bool UpgradeAll(string root, IReadOnlyList<string> sampleDirectories)
+    {
+        // The projects of each sample's own solution
+        var solution = Path.Combine(root, "Upgrade.slnx");
+        new XDocument(new XElement("Solution", sampleDirectories.SelectMany(directory =>
+        {
+            var sampleSolution = Directory.EnumerateFiles(directory, "*.slnx", SearchOption.TopDirectoryOnly).Single();
+            return XDocument.Load(sampleSolution).Descendants("Project")
+                .Select(x => new XElement("Project", new XAttribute("Path", Path.GetFullPath((string)x.Attribute("Path")!, directory))));
+        }))).Save(solution);
+
+        var log = Path.Combine(root, "upgrade.log");
+        File.Delete(log);
+        Console.WriteLine($"upgrading {sampleDirectories.Count} samples to Stride {StridePackageUpgrader.CurrentVersion} together...");
+        var watch = Stopwatch.StartNew();
+        // The files the upgrade overwrites only just came from the template: nothing to back up
+        var upgrade = RunDotnet([FindAssetCompiler(), "upgrade", solution, "--no-backup"], root, log, UpgradeAllTimeoutSeconds, nodeReuse: true);
+        if (upgrade.ExitCode != 0)
+        {
+            Console.WriteLine($"The upgrade of the {sampleDirectories.Count} samples together failed (exit code {upgrade.ExitCode}); see {log}:\n{Tail(upgrade.Output)}");
+            return false;
+        }
+
+        Console.WriteLine($"Upgraded {sampleDirectories.Count} samples to Stride {StridePackageUpgrader.CurrentVersion} together in {watch.Elapsed.TotalSeconds:F0} s");
+        return true;
     }
 
     /// <summary>
@@ -107,11 +149,13 @@ public static class SampleGenerator
         var log = Path.Combine(directory, "upgrade.log");
         var watch = Stopwatch.StartNew();
 
-        var restore = RunDotnet(["restore", solution, "--nologo"], directory, log, RestoreTimeoutSeconds);
-        if (restore.ExitCode != 0)
+        // The files the upgrade overwrites only just came from the template: nothing to back up
+        var upgrade = RunDotnet([FindAssetCompiler(), "upgrade", solution, "--no-backup"], directory, log, UpgradeTimeoutSeconds, nodeReuse: true);
+        if (upgrade.ExitCode != 0)
         {
-            if (!restore.Output.Any(IsStridePackageNotFound))
-                throw new InvalidOperationException($"The restore of {sampleName} before its upgrade failed (exit code {restore.ExitCode}); see {log}:\n{Tail(restore.Output)}");
+            // The session restores the sample first: a version that no feed has fails the upgrade with the NuGet errors
+            if (!upgrade.Output.Any(IsStridePackageNotFound))
+                throw new InvalidOperationException($"The upgrade of {sampleName} to Stride {StridePackageUpgrader.CurrentVersion} failed (exit code {upgrade.ExitCode}); see {log}:\n{Tail(upgrade.Output)}");
 
             Console.WriteLine($"[{sampleName}] NOT upgraded: no feed has the Stride version it is written for. Its references move to {StridePackageUpgrader.CurrentVersion} as they are.");
             foreach (var project in Directory.EnumerateFiles(directory, "*.csproj", SearchOption.AllDirectories))
@@ -119,18 +163,15 @@ public static class SampleGenerator
             return;
         }
 
-        // The files the upgrade overwrites only just came from the template: nothing to back up
-        var upgrade = RunDotnet([FindAssetCompiler(), "upgrade", solution, "--no-backup"], directory, log, UpgradeTimeoutSeconds);
-        if (upgrade.ExitCode != 0)
-            throw new InvalidOperationException($"The upgrade of {sampleName} to Stride {StridePackageUpgrader.CurrentVersion} failed (exit code {upgrade.ExitCode}); see {log}:\n{Tail(upgrade.Output)}");
-
         Console.WriteLine($"[{sampleName}] upgraded to Stride {StridePackageUpgrader.CurrentVersion} in {watch.Elapsed.TotalSeconds:F0} s");
     }
 
-    // NU1101: no feed has the package; NU1102: no feed has that version of it
+    // NU1101: no feed has the package; NU1102: no feed has that version of it; NU1103: the feeds have only prereleases
+    // above that version, such as the dev packages of this engine
     private static bool IsStridePackageNotFound(string line)
         => (line.Contains("NU1101", StringComparison.Ordinal) || line.Contains("NU1102", StringComparison.Ordinal))
-            && line.Contains("Unable to find package Stride", StringComparison.Ordinal);
+            && line.Contains("Unable to find package Stride", StringComparison.Ordinal)
+            || line.Contains("NU1103", StringComparison.Ordinal) && line.Contains("Unable to find a stable package Stride", StringComparison.Ordinal);
 
     private static string Tail(IReadOnlyList<string> lines) => string.Join('\n', lines.Skip(Math.Max(0, lines.Count - 40)));
 
@@ -155,7 +196,8 @@ public static class SampleGenerator
     }
 
     /// <summary>Runs <c>dotnet</c> with <paramref name="arguments"/>, and appends its output to <paramref name="logPath"/>.</summary>
-    private static (int ExitCode, IReadOnlyList<string> Output) RunDotnet(IReadOnlyList<string> arguments, string workingDirectory, string logPath, int timeoutSeconds)
+    /// <param name="nodeReuse">Whether MSBuild may keep its nodes for reuse: only for a program that shuts them down when it ends.</param>
+    internal static (int ExitCode, IReadOnlyList<string> Output) RunDotnet(IReadOnlyList<string> arguments, string workingDirectory, string logPath, int timeoutSeconds, bool nodeReuse = false)
     {
         var startInfo = new ProcessStartInfo("dotnet")
         {
@@ -167,8 +209,9 @@ public static class SampleGenerator
         foreach (var argument in arguments)
             startInfo.ArgumentList.Add(argument);
         // A node that MSBuild keeps for reuse holds the output streams open, so the wait for their end below would last
-        // as long as the node idles. The variable also reaches the builds inside the asset compiler, which an argument does not.
-        startInfo.Environment["MSBUILDDISABLENODEREUSE"] = "1";
+        // as long as the node idles. The variable also reaches the builds that a program runs inside, which an argument does not.
+        if (!nodeReuse)
+            startInfo.Environment["MSBUILDDISABLENODEREUSE"] = "1";
 
         var output = new List<string> { $"> dotnet {string.Join(' ', arguments)}" };
         void Collect(string? line)
@@ -184,6 +227,8 @@ public static class SampleGenerator
         process.ErrorDataReceived += (_, e) => Collect(e.Data);
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
+        // A cancelled run stops the process with its children, and the test
+        using var stop = TestContext.Current.CancellationToken.Register(() => { try { process.Kill(entireProcessTree: true); } catch { } });
 
         var exited = process.WaitForExit(TimeSpan.FromSeconds(timeoutSeconds));
         if (exited)
@@ -197,6 +242,7 @@ public static class SampleGenerator
             Collect($"killed after {timeoutSeconds} s");
         }
 
+        TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
         lock (output)
         {
             File.AppendAllLines(logPath, output);

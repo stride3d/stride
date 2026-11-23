@@ -31,8 +31,14 @@ internal partial class PackageSessionHelper
                 var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), "obj", LockFileFormat.AssetsFileName);
                 if (!File.Exists(projectAssetsJsonPath))
                 {
-                    var log = new Stride.Core.Diagnostics.LoggerResult();
-                    await VSProjectHelper.RestoreNugetPackages(log, projectPath);
+                    try
+                    {
+                        await VSProjectHelper.RestoreNugetPackages(new Stride.Core.Diagnostics.LoggerResult(), projectPath);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // The version written in the project still tells
+                    }
                 }
 #endif
                 // The restored version, or the one written in the project when edited since its restore

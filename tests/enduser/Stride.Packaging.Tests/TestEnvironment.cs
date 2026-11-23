@@ -2,14 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Xml.Linq;
 using Stride.Assets.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Samples.Generator;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Stride.Packaging.Tests;
 
@@ -18,6 +21,9 @@ namespace Stride.Packaging.Tests;
 /// </summary>
 internal static class TestEnvironment
 {
+    // Each case names its packages folder in its nuget.config, which NUGET_PACKAGES would override for all of them
+    static TestEnvironment() => Environment.SetEnvironmentVariable("NUGET_PACKAGES", null);
+
     // Dev-redirect packages skip the engine's pack: bin/packages then holds stubs and stale packages
 #if STRIDE_REDIRECT_PACKAGES
     private static readonly bool BuiltWithRedirectPackages = true;
@@ -108,35 +114,66 @@ internal static class TestEnvironment
     }
 
     /// <summary>
-    /// The NuGet packages folder the plugin cases restore into, one per test run: the engine packages are extracted
-    /// once, and each case deletes the fixed-version packages first (<see cref="DeleteFixedVersionPackages"/>).
+    /// The NuGet packages folder the cases share, one per test run, which none of them writes to: the engine packages,
+    /// restored before the first case (<see cref="RestoreSharedPackages"/>). Each case restores into a folder of its
+    /// own (<see cref="CasePackagesFolder"/>) with this one as its fallback folder, so the plugin packages each case
+    /// packs again at the same version stay apart.
     /// </summary>
-    public static string RunPackagesFolder { get; } = Path.Combine(CasesRoot, $"nuget-{Guid.NewGuid():N}");
+    public static string SharedPackagesFolder { get; } = Path.Combine(CasesRoot, $"nuget-{Guid.NewGuid():N}");
+
+    /// <summary>The packages folder of the case tree that holds <paramref name="path"/>.</summary>
+    public static string CasePackagesFolder(string path) => Path.Combine(CaseDirectory(path), "packages");
+
+    private static readonly Lazy<string> sharedPackages = new(() => RestoreSharedPackages(TestContext.Current.TestOutputHelper!));
+
+    /// <summary>Restores <see cref="SharedPackagesFolder"/> once, the first case to ask logging the restore.</summary>
+    public static string EnsureSharedPackages() => sharedPackages.Value;
 
     /// <summary>
-    /// Deletes the packages whose content changes under the same version (the plugin fixtures at 1.0.0, the engine's Bepu
-    /// companion at <paramref name="engineVersion"/>) from <paramref name="packagesFolder"/>, so a restore extracts them again.
+    /// Restores the engine packages the cases use and the asset compiler, with their dependencies (the asset side's are
+    /// close to 1 GB), and downloads every other package of this version in <see cref="BinPackages"/> (the companions the sessions load).
     /// </summary>
-    public static void DeleteFixedVersionPackages(string packagesFolder, string engineVersion)
+    private static string RestoreSharedPackages(ITestOutputHelper output)
     {
-        if (!Directory.Exists(packagesFolder))
-            return;
-        var dirs = Directory.EnumerateDirectories(packagesFolder, "strideassetplugin*")
-            .Concat(Directory.EnumerateDirectories(packagesFolder, "acmespinplugin*"))
-            .Append(Path.Combine(packagesFolder, "stride.bepuphysics.assets", engineVersion.ToLowerInvariant()))
-            .Where(Directory.Exists)
-            .ToList();
-        foreach (var dir in dirs)
-        {
-            // Extracted packages can hold read-only files
-            foreach (var file in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
-                File.SetAttributes(file, FileAttributes.Normal);
-            Directory.Delete(dir, recursive: true);
-        }
+        var version = ResolveStrideVersion();
+        string[] references = ["Stride.Engine", "Stride.UI", "Stride.Audio", "Stride.Particles", "Stride.Physics", "Stride.BepuPhysics", "Stride.SpriteStudio.Runtime", "Stride.Video", "Stride.Voxels", "Stride.AssetCompiler"];
+        var suffix = $".{version}.nupkg";
+        var downloads = Directory.EnumerateFiles(BinPackages(), "Stride*" + suffix)
+            .Select(file => Path.GetFileName(file)[..^suffix.Length])
+            .Where(id => !references.Contains(id, StringComparer.OrdinalIgnoreCase))
+            .Order(StringComparer.Ordinal);
+
+        var restoreDir = SharedPackagesFolder + "-restore";
+        Directory.CreateDirectory(restoreDir);
+        NuGetConsumerFeed.WriteStrictNuGetConfig(restoreDir, SharedPackagesFolder, fallbackFolder: null);
+        var project = Path.Combine(restoreDir, "SharedPackages.csproj");
+        // The games build for net10.0; on Windows, a session restores its companions for net10.0-windows7.0, whose
+        // dependency groups differ (Stride.Input's SharpDX)
+        var frameworks = OperatingSystem.IsWindows() ? "net10.0;net10.0-windows7.0" : "net10.0";
+        new XDocument(new XElement("Project", new XAttribute("Sdk", "Microsoft.NET.Sdk"),
+            new XElement("PropertyGroup", new XElement("TargetFrameworks", frameworks)),
+            new XElement("ItemGroup",
+                references.Select(id => new XElement("PackageReference", new XAttribute("Include", id), new XAttribute("Version", version))),
+                downloads.Select(id => new XElement("PackageDownload", new XAttribute("Include", id), new XAttribute("Version", $"[{version}]"))))))
+            .Save(project);
+
+        var watch = Stopwatch.StartNew();
+        var result = Dotnet.Exec(["restore", project, "-nr:false", "-v:m"], restoreDir, output, timeoutMin: 15);
+        if (result.ExitCode != 0)
+            throw new InvalidOperationException($"The restore of the shared packages failed with exit {result.ExitCode}.");
+        output.WriteLine($"Restored the shared packages in {watch.Elapsed.TotalSeconds:F0} s");
+        DeleteCaseDirectory(restoreDir, output);
+        return SharedPackagesFolder;
     }
 
     /// <summary>
-    /// Deletes a temp tree (a case's, or <see cref="RunPackagesFolder"/>) once done with it: the packages folder holds well
+    /// Taken by the work of the tests in the test process (sessions, generators, MSBuild setup), whose static state
+    /// is not meant for several threads; the tests run at the same time otherwise (<see cref="ParallelTestFramework"/>).
+    /// </summary>
+    public static readonly Lock InProcessLock = new();
+
+    /// <summary>
+    /// Deletes a temp tree (a case's, or <see cref="SharedPackagesFolder"/>) once done with it: the packages folder holds well
     /// over 1 GB. Set STRIDE_KEEP_TEST_DIRS to keep them for a look after the run.
     /// </summary>
     public static void DeleteCaseDirectory(string caseDir, ITestOutputHelper? output = null)
@@ -162,16 +199,19 @@ internal static class TestEnvironment
     /// <summary>Generate a sample from its template GUID into a fresh temp directory; returns the .slnx path.</summary>
     public static string GenerateSample(Guid templateGuid, string sampleName)
     {
-        if (!msbuildReady)
+        lock (InProcessLock)
         {
-            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
-            DotNetNewTemplateBridge.RegisterProjectTemplates();
-            msbuildReady = true;
-        }
+            if (!msbuildReady)
+            {
+                PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+                DotNetNewTemplateBridge.RegisterProjectTemplates();
+                msbuildReady = true;
+            }
 
-        var outputDir = Path.Combine(CasesRoot, sampleName);
-        var logger = new LoggerResult();
-        var session = SampleGenerator.Generate(new UDirectory(outputDir), templateGuid, sampleName, logger);
-        return session.SolutionPath.ToOSPath();
+            var outputDir = Path.Combine(CasesRoot, sampleName);
+            var logger = new LoggerResult();
+            var session = SampleGenerator.Generate(new UDirectory(outputDir), templateGuid, sampleName, logger);
+            return session.SolutionPath.ToOSPath();
+        }
     }
 }

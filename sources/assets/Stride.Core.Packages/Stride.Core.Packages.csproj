@@ -38,5 +38,13 @@
       <LastGenOutput>TargetGenerator.cs</LastGenOutput>
     </None>
   </ItemGroup>
+  <!-- The packages the SDK prunes from a restore for this project's framework: NugetStore prunes them from the restores it runs itself. -->
+  <Target Name="_StrideEmbedPackagesToPrune" BeforeTargets="BeforeBuild" DependsOnTargets="AddPrunePackageReferences">
+    <WriteLinesToFile File="$(IntermediateOutputPath)PackagesToPrune.txt" Lines="@(PrunePackageReference->'%(Identity)|%(Version)')" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <EmbeddedResource Include="$(IntermediateOutputPath)PackagesToPrune.txt" LogicalName="PackagesToPrune.txt" />
+      <FileWrites Include="$(IntermediateOutputPath)PackagesToPrune.txt" />
+    </ItemGroup>
+  </Target>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

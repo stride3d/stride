@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Stride.Packaging.Tests;
 
@@ -24,7 +23,6 @@ namespace Stride.Packaging.Tests;
 /// must compile it under its rooted /StrideAssetPlugin/ URL and resolve its engine-asset
 /// references through the plugin package's own dependency closure.
 /// </summary>
-[Collection("Packaging")]
 public class AssetPluginPackagingTests : IDisposable
 {
     private readonly ITestOutputHelper output;
@@ -108,10 +106,11 @@ public class AssetPluginPackagingTests : IDisposable
 
     /// <summary>
     /// Pack the plugin into an isolated feed, then build the consumer against it. Each case runs in
-    /// its own temp tree and deletes the fixed 1.0.0 plugin package from the run's packages folder first.
+    /// its own temp tree, with a packages folder of its own for the fixed 1.0.0 plugin package.
     /// </summary>
     private (ExecResult Result, string ConsumerDir) RunCase(bool declareAssetAssembly, bool viaProjectReference = false)
     {
+        TestEnvironment.EnsureSharedPackages();
         var version = TestEnvironment.ResolveStrideVersion();
         var fixtures = TestEnvironment.FixturesDir();
 
@@ -121,8 +120,6 @@ public class AssetPluginPackagingTests : IDisposable
         var pluginDir = Path.Combine(caseDir, "plugin");
         var consumerDir = Path.Combine(caseDir, "consumer");
         var feedDir = Path.Combine(caseDir, "feed");
-        var nugetCache = TestEnvironment.RunPackagesFolder;
-        TestEnvironment.DeleteFixedVersionPackages(nugetCache, version);
         TestEnvironment.CopyDirectory(Path.Combine(fixtures, "Plugin"), pluginDir);
         TestEnvironment.CopyDirectory(Path.Combine(fixtures, "Consumer"), consumerDir);
         Directory.CreateDirectory(feedDir);
@@ -142,9 +139,8 @@ public class AssetPluginPackagingTests : IDisposable
             var packArgs = new List<string>
             {
                 "pack", Path.Combine(pluginDir, "StrideAssetPlugin.csproj"),
-                "-c", "Debug", "-v:m",
+                "-c", "Debug", "-nr:false", "-v:m",
                 $"-p:StrideEngineVersion={version}",
-                $"-p:RestorePackagesPath={nugetCache}",
                 "-o", feedDir,
             };
             if (!declareAssetAssembly)
@@ -157,6 +153,6 @@ public class AssetPluginPackagingTests : IDisposable
         NuGetConsumerFeed.WriteStrictNuGetConfig(consumerDir,
             [new ExtraFeed("plugin-feed", feedDir, "StrideAssetPlugin")]);
         return (ConsumerBuild.Run(Path.Combine(consumerDir, "Consumer.csproj"), consumerDir, output, timeoutMin: 10,
-            $"-p:StrideEngineVersion={version}", $"-p:RestorePackagesPath={nugetCache}"), consumerDir);
+            $"-p:StrideEngineVersion={version}"), consumerDir);
     }
 }

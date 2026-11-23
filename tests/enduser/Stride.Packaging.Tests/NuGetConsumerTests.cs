@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Stride.Packaging.Tests;
 
@@ -15,7 +14,6 @@ namespace Stride.Packaging.Tests;
 /// the <c>dotnet build</c> CLI path (vs Stride's in-process VSProjectHelper), and packaging
 /// integrity: a package missing from the pack or a broken nuspec fails restore here.
 /// </summary>
-[Collection("Packaging")]
 public class NuGetConsumerTests
 {
     private readonly ITestOutputHelper output;
@@ -31,6 +29,7 @@ public class NuGetConsumerTests
     {
         var templateGuid = new Guid("16476A4C-C131-4F48-865A-288EC7D5445F");
         var sampleName = "ConsumerBuild_CustomEffect";
+        TestEnvironment.EnsureSharedPackages();
         var slnPath = TestEnvironment.GenerateSample(templateGuid, sampleName);
         var sampleDir = Path.GetDirectoryName(slnPath)!;
 

@@ -1,7 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -549,7 +552,8 @@ public partial class NugetStore : INugetDownloadProgress
                         try
                         {
                             using var stream = File.OpenRead(nupkgPath);
-                            await GlobalPackagesFolderUtility.AddPackageAsync(
+                            // The result holds the installed nupkg open
+                            using var result = await GlobalPackagesFolderUtility.AddPackageAsync(
                                 source: source,
                                 packageIdentity: identity,
                                 packageStream: stream,
@@ -724,9 +728,10 @@ public partial class NugetStore : INugetDownloadProgress
         };
         foreach (var targetFramework in targetFrameworks)
         {
+            var framework = NuGetFramework.Parse(targetFramework);
             spec.TargetFrameworks.Add(new TargetFrameworkInformation
             {
-                FrameworkName = NuGetFramework.Parse(targetFramework),
+                FrameworkName = framework,
                 Dependencies =
                     [
                         new()
@@ -734,6 +739,7 @@ public partial class NugetStore : INugetDownloadProgress
                             LibraryRange = new LibraryRange(packageId, version, LibraryDependencyTarget.Package),
                         }
                     ],
+                PackagesToPrune = GetPackagesToPrune(framework),
             });
         }
 
@@ -811,6 +817,36 @@ public partial class NugetStore : INugetDownloadProgress
             return lockFile ?? throw new InvalidOperationException($"Could not restore package {packageId}");
         }
     }
+
+    /// <summary>
+    /// Gets the packages that a restore for <paramref name="framework"/> leaves out because the framework provides them, as the SDK does.
+    /// </summary>
+    /// <remarks>
+    /// The list is the one the SDK gave for the framework of this assembly, so it applies to that framework and the later ones, which still
+    /// provide those packages.
+    /// </remarks>
+    private static IReadOnlyDictionary<string, PrunePackageReference> GetPackagesToPrune(NuGetFramework framework)
+    {
+        var (listFramework, packages) = packagesToPrune.Value;
+        return framework.Framework == listFramework.Framework && framework.Version >= listFramework.Version
+            ? packages
+            : ImmutableDictionary<string, PrunePackageReference>.Empty;
+    }
+
+    // The build writes the PrunePackageReference items of this project in PackagesToPrune.txt (Stride.Core.Packages.csproj).
+    private static readonly Lazy<(NuGetFramework Framework, IReadOnlyDictionary<string, PrunePackageReference> Packages)> packagesToPrune = new(() =>
+    {
+        var assembly = typeof(NugetStore).Assembly;
+        var framework = NuGetFramework.Parse(assembly.GetCustomAttribute<TargetFrameworkAttribute>()!.FrameworkName);
+        var packages = new Dictionary<string, PrunePackageReference>(StringComparer.OrdinalIgnoreCase);
+        using var reader = new StreamReader(assembly.GetManifestResourceStream("PackagesToPrune.txt")!);
+        while (reader.ReadLine() is { } line)
+        {
+            var separator = line.IndexOf('|');
+            packages[line[..separator]] = PrunePackageReference.Create(line[..separator], line[(separator + 1)..]);
+        }
+        return (framework, packages);
+    });
 
     /// <summary>
     /// Uninstall <paramref name="package"/>, while still keeping the downloaded file in the cache.
@@ -1176,14 +1212,20 @@ public partial class NugetStore : INugetDownloadProgress
     {
     }
 
-    public string GetRealPath(NugetLocalPackage package)
+    public string GetRealPath(NugetLocalPackage package) => GetRealPath(package.Path, package.Id, package.Version);
+
+    /// <summary>
+    /// The folder that holds the assets of <paramref name="packageId"/> installed at <paramref name="packagePath"/>: the
+    /// checkout project a dev-redirect package stands for, else the package folder itself.
+    /// </summary>
+    public static string GetRealPath(string packagePath, string packageId, PackageVersion version)
     {
-        if (IsDevRedirectPackage(package))
+        if (IsDevRedirectPackage(packagePath, packageId, version))
         {
             // Legacy dev-redirect (<3.1): a "<Id>.redirect" file holds the source directory directly.
-            if (package.Version < new PackageVersion(3, 1, 0, 0))
+            if (version < new PackageVersion(3, 1, 0, 0))
             {
-                var realPath = File.ReadAllText(GetRedirectFile(package));
+                var realPath = File.ReadAllText(GetRedirectFile(packagePath, packageId));
                 if (!Directory.Exists(realPath))
                     throw new DirectoryNotFoundException();
                 return realPath;
@@ -1192,20 +1234,13 @@ public partial class NugetStore : INugetDownloadProgress
             // Modern dev-redirect stub: resolve the in-tree source project directory from the
             // build/<Id>.props the stub generator emitted, so the asset compiler reads assets and
             // shader source straight from the checkout instead of the (asset-less) stub.
-            var sourceDir = TryGetDevRedirectProjectDirectory(package);
+            var sourceDir = TryGetDevRedirectProjectDirectory(packagePath, packageId);
             if (sourceDir != null)
                 return sourceDir;
         }
 
-        return package.Path;
+        return packagePath;
     }
-
-    /// <summary>
-    /// Reads <c>StrideDevProjectDirectory</c> (with <c>$(StrideDevRoot)</c> resolved) from a modern
-    /// dev-redirect stub's <c>build/&lt;Id&gt;.props</c>. Returns null if it isn't a resolvable stub.
-    /// </summary>
-    private static string? TryGetDevRedirectProjectDirectory(NugetLocalPackage package)
-        => TryGetDevRedirectProjectDirectory(package.Path, package.Id);
 
     /// <summary>
     /// The checkout project directory a dev-redirect stub installed at <paramref name="packagePath"/> stands for,
@@ -1252,16 +1287,17 @@ public partial class NugetStore : INugetDownloadProgress
         return Directory.Exists(outputDirectory) ? outputDirectory : null;
     }
 
-    public string GetRedirectFile(NugetLocalPackage package)
-    {
-        return Path.Combine(package.Path, $"{package.Id}.redirect");
-    }
+    public string GetRedirectFile(NugetLocalPackage package) => GetRedirectFile(package.Path, package.Id);
 
-    public bool IsDevRedirectPackage(NugetLocalPackage package)
+    private static string GetRedirectFile(string packagePath, string packageId) => Path.Combine(packagePath, $"{packageId}.redirect");
+
+    public bool IsDevRedirectPackage(NugetLocalPackage package) => IsDevRedirectPackage(package.Path, package.Id, package.Version);
+
+    private static bool IsDevRedirectPackage(string packagePath, string packageId, PackageVersion version)
     {
-        return package.Version < new PackageVersion(3, 1, 0, 0)
-            ? File.Exists(GetRedirectFile(package))
-            : (package.Version.SpecialVersion?.StartsWith("dev", StringComparison.Ordinal) == true && !package.Version.SpecialVersion.Contains('.'));
+        return version < new PackageVersion(3, 1, 0, 0)
+            ? File.Exists(GetRedirectFile(packagePath, packageId))
+            : (version.SpecialVersion?.StartsWith("dev", StringComparison.Ordinal) == true && !version.SpecialVersion.Contains('.'));
     }
 
     /// <summary>

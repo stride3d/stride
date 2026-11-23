@@ -10,7 +10,6 @@ using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Stride.Packaging.Tests;
 
@@ -18,7 +17,6 @@ namespace Stride.Packaging.Tests;
 /// The stride-plugin template added to a game's solution by <see cref="AddPluginGenerator"/>: its projects join the
 /// session and the game builds with the plugin.
 /// </summary>
-[Collection("Packaging")]
 public class PluginTemplateTests
 {
     private readonly ITestOutputHelper output;
@@ -36,6 +34,7 @@ public class PluginTemplateTests
     {
         const string gameName = "PluginHost";
         const string pluginName = PluginName;
+        TestEnvironment.EnsureSharedPackages();
         var solutionPath = TestEnvironment.GenerateSample(NewGameTemplateId, gameName);
         var solutionDir = Path.GetDirectoryName(solutionPath)!;
         var logger = new LoggerResult();
@@ -45,41 +44,44 @@ public class PluginTemplateTests
         var loadParameters = PackageLoadParameters.Default();
         loadParameters.AutoCompileProjects = false;
         loadParameters.LoadAssemblyReferences = false;
-        var result = new PackageSessionResult();
-        PackageSession.Load(solutionPath, result, loadParameters);
-        AssertNoPluginError(result);
-        using var session = result.Session;
-
-        var description = TemplateManager.FindTemplates(session).First(t => t.Id == PluginTemplateId);
-        var parameters = new SessionTemplateGeneratorParameters
+        lock (TestEnvironment.InProcessLock)
         {
-            Session = session,
-            Unattended = true,
-            Description = description,
-            Name = pluginName,
-            Namespace = pluginName,
-            OutputDirectory = new UDirectory(solutionDir),
-            Logger = logger,
-        };
-        var gitignore = File.ReadAllText(Path.Combine(solutionDir, ".gitignore"));
-        var generator = new AddPluginGenerator(null, loadParameters);
-        Assert.True(generator.PrepareForRun(parameters).Result, "PrepareForRun returned false.");
-        Assert.True(generator.Generate(parameters), "Generate returned false.");
-        Assert.False(logger.HasErrors, "The generator reported errors.");
+            var result = new PackageSessionResult();
+            PackageSession.Load(solutionPath, result, loadParameters);
+            AssertNoPluginError(result);
+            using var session = result.Session;
 
-        // The three projects are in the session, the game library references the runtime only, the template's own
-        // solution file is gone
-        foreach (var name in new[] { pluginName, pluginName + ".Assets", pluginName + ".Editor" })
-            Assert.Contains(session.Projects.OfType<SolutionProject>(), p => p.Name == name);
-        var gameProject = File.ReadAllText(Path.Combine(solutionDir, $"{gameName}.Game", $"{gameName}.Game.csproj"));
-        Assert.Contains($"{pluginName}.csproj", gameProject);
-        Assert.DoesNotContain($"{pluginName}.Assets.csproj", gameProject);
-        Assert.DoesNotContain($"{pluginName}.Editor.csproj", gameProject);
-        Assert.False(File.Exists(Path.Combine(solutionDir, pluginName + ".slnx")), "The template's solution file must not stay next to the game's.");
-        // The game's own files stay as they were
-        Assert.Equal(gitignore, File.ReadAllText(Path.Combine(solutionDir, ".gitignore")));
-        session.Save(logger);
-        Assert.False(logger.HasErrors, "Saving the session reported errors.");
+            var description = TemplateManager.FindTemplates(session).First(t => t.Id == PluginTemplateId);
+            var parameters = new SessionTemplateGeneratorParameters
+            {
+                Session = session,
+                Unattended = true,
+                Description = description,
+                Name = pluginName,
+                Namespace = pluginName,
+                OutputDirectory = new UDirectory(solutionDir),
+                Logger = logger,
+            };
+            var gitignore = File.ReadAllText(Path.Combine(solutionDir, ".gitignore"));
+            var generator = new AddPluginGenerator(null, loadParameters);
+            Assert.True(generator.PrepareForRun(parameters).Result, "PrepareForRun returned false.");
+            Assert.True(generator.Generate(parameters), "Generate returned false.");
+            Assert.False(logger.HasErrors, "The generator reported errors.");
+
+            // The three projects are in the session, the game library references the runtime only, the template's own
+            // solution file is gone
+            foreach (var name in new[] { pluginName, pluginName + ".Assets", pluginName + ".Editor" })
+                Assert.Contains(session.Projects.OfType<SolutionProject>(), p => p.Name == name);
+            var gameProject = File.ReadAllText(Path.Combine(solutionDir, $"{gameName}.Game", $"{gameName}.Game.csproj"));
+            Assert.Contains($"{pluginName}.csproj", gameProject);
+            Assert.DoesNotContain($"{pluginName}.Assets.csproj", gameProject);
+            Assert.DoesNotContain($"{pluginName}.Editor.csproj", gameProject);
+            Assert.False(File.Exists(Path.Combine(solutionDir, pluginName + ".slnx")), "The template's solution file must not stay next to the game's.");
+            // The game's own files stay as they were
+            Assert.Equal(gitignore, File.ReadAllText(Path.Combine(solutionDir, ".gitignore")));
+            session.Save(logger);
+            Assert.False(logger.HasErrors, "Saving the session reported errors.");
+        }
 
         // The game builds: the executable builds the Assets companion for the asset compiler, and does not ship it
         var platformSuffix = TestEnvironment.HostPlatform == "linux" ? "Linux"
@@ -97,55 +99,58 @@ public class PluginTemplateTests
         Assert.Empty(Directory.GetFiles(Path.Combine(solutionDir, "Bin"), pluginName + ".Assets.dll", SearchOption.AllDirectories));
         Assert.NotEmpty(Directory.GetFiles(Path.Combine(solutionDir, "Bin"), pluginName + ".dll", SearchOption.AllDirectories));
 
-        // The reloaded solution in Game Studio: the runtime declares both companions, found as solution projects. The Editor
-        // project is toolkit-neutral (net10.0, Stride.Assets.Editor), so it builds with the game on every platform.
-        var reloaded = new PackageSessionResult();
-        loadParameters.LoadEditorPackages = true;
-        loadParameters.EditorToolkit = "Wpf";
-        PackageSession.Load(solutionPath, reloaded, loadParameters);
-        AssertNoPluginError(reloaded);
-        using var reloadedSession = reloaded.Session;
-        var runtime = Assert.Single(reloadedSession.Packages, p => p.Meta.Name == pluginName);
-        var companions = new[] { pluginName + ".Assets", pluginName + ".Editor" };
-        Assert.Equal(companions, runtime.CompanionPackages.Select(c => c.Name).OrderBy(n => n));
-        Assert.Contains(runtime.CompanionPackages, c => c.Kind == PackageKind.Assets);
-        var editorProject = Assert.IsType<SolutionProject>(Assert.Single(reloadedSession.Packages, p => p.Meta.Name == pluginName + ".Editor").Container);
-        Assert.True(editorProject.ShouldLoadAssemblyInEditor);
-        // The Assets companion's asset template, listed by its .sdpkg, is what Add asset offers
-        Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, reloadedSession), t => t.Name == pluginName && t is TemplateAssetDescription);
+        lock (TestEnvironment.InProcessLock)
+        {
+            // The reloaded solution in Game Studio: the runtime declares both companions, found as solution projects. The Editor
+            // project is toolkit-neutral (net10.0, Stride.Assets.Editor), so it builds with the game on every platform.
+            var reloaded = new PackageSessionResult();
+            loadParameters.LoadEditorPackages = true;
+            loadParameters.EditorToolkit = "Wpf";
+            PackageSession.Load(solutionPath, reloaded, loadParameters);
+            AssertNoPluginError(reloaded);
+            using var reloadedSession = reloaded.Session;
+            var runtime = Assert.Single(reloadedSession.Packages, p => p.Meta.Name == pluginName);
+            var companions = new[] { pluginName + ".Assets", pluginName + ".Editor" };
+            Assert.Equal(companions, runtime.CompanionPackages.Select(c => c.Name).OrderBy(n => n));
+            Assert.Contains(runtime.CompanionPackages, c => c.Kind == PackageKind.Assets);
+            var editorProject = Assert.IsType<SolutionProject>(Assert.Single(reloadedSession.Packages, p => p.Meta.Name == pluginName + ".Editor").Container);
+            Assert.True(editorProject.ShouldLoadAssemblyInEditor);
+            // The Assets companion's asset template, listed by its .sdpkg, is what Add asset offers
+            Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, reloadedSession), t => t.Name == pluginName && t is TemplateAssetDescription);
 
-        // The Editor project references no editor toolkit, so the editors of both toolkits load its assembly
-        var editorDeclaration = Assert.Single(runtime.CompanionPackages, c => c.Kind == PackageKind.Editor);
-        Assert.True(string.IsNullOrEmpty(editorDeclaration.Toolkit), $"The Editor project should be toolkit-neutral, not {editorDeclaration.Toolkit}.");
-        var otherEditor = new PackageSessionResult();
-        loadParameters.EditorToolkit = "Avalonia";
-        PackageSession.Load(solutionPath, otherEditor, loadParameters);
-        AssertNoPluginError(otherEditor);
-        using var otherEditorSession = otherEditor.Session;
-        var otherEditorProject = (SolutionProject)Assert.Single(otherEditorSession.Packages, p => p.Meta.Name == pluginName + ".Editor").Container;
-        Assert.True(otherEditorProject.ShouldLoadAssemblyInEditor);
+            // The Editor project references no editor toolkit, so the editors of both toolkits load its assembly
+            var editorDeclaration = Assert.Single(runtime.CompanionPackages, c => c.Kind == PackageKind.Editor);
+            Assert.True(string.IsNullOrEmpty(editorDeclaration.Toolkit), $"The Editor project should be toolkit-neutral, not {editorDeclaration.Toolkit}.");
+            var otherEditor = new PackageSessionResult();
+            loadParameters.EditorToolkit = "Avalonia";
+            PackageSession.Load(solutionPath, otherEditor, loadParameters);
+            AssertNoPluginError(otherEditor);
+            using var otherEditorSession = otherEditor.Session;
+            var otherEditorProject = (SolutionProject)Assert.Single(otherEditorSession.Packages, p => p.Meta.Name == pluginName + ".Editor").Container;
+            Assert.True(otherEditorProject.ShouldLoadAssemblyInEditor);
 
-        // The game loads first and pulls in the plugin's assembly; the plugin package must still register it.
-        // The Editor project is left out: only Game Studio builds and loads it.
-        var solutionText = File.ReadAllText(solutionPath);
-        var projectLines = solutionText.Split('\n').Where(l => l.Contains("<Project ", StringComparison.Ordinal) && !l.Contains(".Editor", StringComparison.Ordinal)).Select(l => l.TrimEnd('\r')).ToList();
-        var gameFirst = projectLines.Where(l => l.Contains(gameName, StringComparison.Ordinal)).Concat(projectLines.Where(l => !l.Contains(gameName, StringComparison.Ordinal)));
-        File.WriteAllText(solutionPath, "<Solution>" + Environment.NewLine + string.Join(Environment.NewLine, gameFirst) + Environment.NewLine + "</Solution>" + Environment.NewLine);
-        var withAssemblies = new PackageSessionResult();
-        var assemblyLoadParameters = PackageLoadParameters.Default();
-        assemblyLoadParameters.AutoCompileProjects = false;
-        assemblyLoadParameters.LoadEditorPackages = false;
-        PackageSession.Load(solutionPath, withAssemblies, assemblyLoadParameters);
-        AssertNoPluginError(withAssemblies);
-        using var assemblySession = withAssemblies.Session;
-        Assert.Contains(Stride.Core.Reflection.AssemblyRegistry.Find(Stride.Core.Reflection.AssemblyCommonCategories.Assets), a => a.GetName().Name == pluginName);
-        Assert.Contains(Stride.Core.Extensions.TypeDescriptorExtensions.GetInheritedInstantiableTypes(typeof(Stride.Engine.EntityComponent)), t => t.FullName == $"{pluginName}.{PluginTypeName}Component");
+            // The game loads first and pulls in the plugin's assembly; the plugin package must still register it.
+            // The Editor project is left out: only Game Studio builds and loads it.
+            var solutionText = File.ReadAllText(solutionPath);
+            var projectLines = solutionText.Split('\n').Where(l => l.Contains("<Project ", StringComparison.Ordinal) && !l.Contains(".Editor", StringComparison.Ordinal)).Select(l => l.TrimEnd('\r')).ToList();
+            var gameFirst = projectLines.Where(l => l.Contains(gameName, StringComparison.Ordinal)).Concat(projectLines.Where(l => !l.Contains(gameName, StringComparison.Ordinal)));
+            File.WriteAllText(solutionPath, "<Solution>" + Environment.NewLine + string.Join(Environment.NewLine, gameFirst) + Environment.NewLine + "</Solution>" + Environment.NewLine);
+            var withAssemblies = new PackageSessionResult();
+            var assemblyLoadParameters = PackageLoadParameters.Default();
+            assemblyLoadParameters.AutoCompileProjects = false;
+            assemblyLoadParameters.LoadEditorPackages = false;
+            PackageSession.Load(solutionPath, withAssemblies, assemblyLoadParameters);
+            AssertNoPluginError(withAssemblies);
+            using var assemblySession = withAssemblies.Session;
+            Assert.Contains(Stride.Core.Reflection.AssemblyRegistry.Find(Stride.Core.Reflection.AssemblyCommonCategories.Assets), a => a.GetName().Name == pluginName);
+            Assert.Contains(Stride.Core.Extensions.TypeDescriptorExtensions.GetInheritedInstantiableTypes(typeof(Stride.Engine.EntityComponent)), t => t.FullName == $"{pluginName}.{PluginTypeName}Component");
 
-        // The plugin's data is content: a member of its type references an asset of the plugin
-        var dataType = Stride.Core.Reflection.AssemblyRegistry.Find(Stride.Core.Reflection.AssemblyCommonCategories.Assets).First(a => a.GetName().Name == pluginName).GetType($"{pluginName}.{PluginTypeName}Data", throwOnError: true)!;
-        Assert.True(AssetRegistry.IsExactContentType(dataType));
-        Assert.True(AssetRegistry.CanPropertyHandleAssets(dataType, out var dataAssetTypes));
-        Assert.Contains(dataAssetTypes, t => t.Name == PluginTypeName + "Asset");
+            // The plugin's data is content: a member of its type references an asset of the plugin
+            var dataType = Stride.Core.Reflection.AssemblyRegistry.Find(Stride.Core.Reflection.AssemblyCommonCategories.Assets).First(a => a.GetName().Name == pluginName).GetType($"{pluginName}.{PluginTypeName}Data", throwOnError: true)!;
+            Assert.True(AssetRegistry.IsExactContentType(dataType));
+            Assert.True(AssetRegistry.CanPropertyHandleAssets(dataType, out var dataAssetTypes));
+            Assert.Contains(dataAssetTypes, t => t.Name == PluginTypeName + "Asset");
+        }
     }
 
     /// <summary>

@@ -465,7 +465,15 @@ namespace Stride.Core.Assets.Presentation.ViewModels
                     // The whole solution: a project referencing this one (the game's executable) needs the new package too
                     var log = new LoggerResult();
                     var solutionPath = Session.SolutionPath;
-                    await VSProjectHelper.RestoreNugetPackages(log, solutionPath != null && File.Exists(solutionPath) ? solutionPath : project2.FullPath);
+                    try
+                    {
+                        await VSProjectHelper.RestoreNugetPackages(log, solutionPath != null && File.Exists(solutionPath) ? solutionPath : project2.FullPath);
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        await ServiceProvider.Get<IDialogService2>().MessageBoxAsync(string.Format(Tr._p("Message", "The dependency was added, but its packages couldn't be restored. {0}"), e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
 
                     // The packages not in the session yet, with their companions (a plugin's asset and editor types)
                     await Session.Internals().LoadAddedDependencies(log);

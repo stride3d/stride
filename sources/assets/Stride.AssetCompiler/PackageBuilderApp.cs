@@ -253,6 +253,12 @@ namespace Stride.AssetCompiler
                     GlobalLogger.GlobalMessageLogged += globalLoggerOnGlobalMessageLogged;
                 }
 
+                // Before any verb runs: a misspelled option must not run the verb with its defaults
+                if (unexpectedArgs.Count > 0)
+                {
+                    throw new OptionException("Unexpected arguments [{0}]".ToFormat(string.Join(", ", unexpectedArgs)), "args");
+                }
+
                 if (mode == BuilderMode.AdoptCrashes)
                 {
                     // Post-build native-crash adoption (Linux/macOS): read createdump's minidumps, sign and store
@@ -300,121 +306,19 @@ namespace Stride.AssetCompiler
                 {
                     PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
-                    // Prefer the whole solution: a project referencing Stride only transitively is detected only
-                    // while every project is still pre-bump. Resolve a bare .csproj to its .sln, else upgrade it alone.
-                    var upgradeTarget = options.PackageFile;
-                    if (upgradeTarget.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var containingSolution = FindContainingSolution(upgradeTarget);
-                        if (containingSolution != null)
-                        {
-                            options.Logger.Info($"Resolved [{System.IO.Path.GetFileName(upgradeTarget)}] to its solution [{System.IO.Path.GetFileName(containingSolution)}] — upgrading the whole solution.");
-                            upgradeTarget = containingSolution;
-                        }
-                        else
-                        {
-                            options.Logger.Warning($"No solution found for [{System.IO.Path.GetFileName(upgradeTarget)}] — upgrading this project alone; projects that reference it may need upgrading separately.");
-                        }
-                    }
-
-                    // Restore packages first so PackageSession.Load sees a fully-resolved dep
-                    // graph. Today's narrow asset-YAML schema migration doesn't strictly require
-                    // this (path-based .sdpkg AssetFolders discovery + no code transforms), but
-                    // anything code-aware does — Roslyn upgrades, MSBuild item enumeration that
-                    // includes items contributed by package-imported targets (.sdsl/.sdfx, etc.).
-                    // Restoring up-front avoids surprises when the upgrader grows beyond schema
-                    // bumps. Also cleans up Session log noise from unresolved engine asset refs.
-                    // Incremental for already-restored projects, so cheap when called from the
-                    // StrideUpgradeAssets MSBuild target inside a real consumer build.
-                    var restoreTarget = Stride.Core.Solutions.Solution.IsSolutionFile(upgradeTarget)
-                        || upgradeTarget.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
-                        ? upgradeTarget
-                        : System.IO.Path.ChangeExtension(upgradeTarget, ".csproj");
-                    if (System.IO.File.Exists(restoreTarget))
-                    {
-                        var psi = new System.Diagnostics.ProcessStartInfo
-                        {
-                            FileName = "dotnet",
-                            // -p:WarningsAsErrors= demotes NU1605 (package downgrade) from error back to a visible
-                            // warning for this restore only: during an upgrade a dependency may already be on the new
-                            // version while this project isn't yet (e.g. a shared plugin, or a dependency processed
-                            // earlier in the batch), which is a transient, expected downgrade that the upgrade's
-                            // reference rewrite resolves. Scoped to this upgrade-time restore — real builds keep
-                            // NU1605 as a hard error. (NoWarn would hide it; WarningsNotAsErrors isn't honored by restore.)
-                            ArgumentList = { "restore", restoreTarget, "--nologo", "-p:WarningsAsErrors=" },
-                            UseShellExecute = false,
-                        };
-                        // No redirect: inherit the console so dotnet's colored terminal-logger output streams live.
-                        // Trade-off vs capturing: no tidy error summary, but on failure dotnet's own error lines are
-                        // already on screen.
-                        using var proc = System.Diagnostics.Process.Start(psi)!;
-                        proc.WaitForExit();
-                        if (proc.ExitCode != 0)
-                        {
-                            // Fail hard: a failed restore would make the code-aware upgrade produce wrong results.
-                            options.Logger.Error($"dotnet restore failed for {restoreTarget} (exit {proc.ExitCode}); see the restore output above.");
-                            return (int)BuildResultCode.BuildError;
-                        }
-                    }
-
-                    // Reconcile reproduces a GameStudio open+save, so load the session the way GameStudio
-                    // does — using the defaults, which compile and load the project assemblies. Without that,
-                    // assets referencing user script types (e.g. a sample's own components) fail to
-                    // deserialize. Reconcile also pulls archetype/base values from dependency packages (e.g.
-                    // the engine's default compositor); those load read-only, so Save (LocalPackages only)
-                    // never writes back to them.
-                    var loadParameters = new PackageLoadParameters
-                    {
-                        PackageUpgradeRequested = (pkg, upgrades) => PackageUpgradeRequestedAnswer.UpgradeAll,
-                        // Whole-solution upgrade may start mixed (e.g. a shared pack already bumped); tolerate the transient NU1605.
-                        AllowUpgradeDowngradeRestore = true,
-                        // Snapshot every file the upgrade overwrites into a timestamped backup folder unless opted out.
-                        BackupBeforeUpgrade = !options.NoBackup,
-                    };
-
-                    // Load (compiling the project assemblies) is the slow phase; forward each message it logs live.
-                    options.Logger.Info($"Loading [{System.IO.Path.GetFileName(upgradeTarget)}] (compiling and loading project assemblies)...");
-                    var sessionResult = new PackageSessionResult();
-                    void ForwardLog(object sender, MessageLoggedEventArgs e) => options.Logger.Log(e.Message);
-                    sessionResult.MessageLogged += ForwardLog;
+                    // The MSBuild nodes of the upgrade end with it: a node kept for reuse would hold the console or the output
+                    // pipes of whoever started the compiler for minutes. The salt keeps them apart from the nodes of other builds.
+                    Environment.SetEnvironmentVariable("MSBUILDNODEHANDSHAKESALT", $"Stride.AssetCompiler.{Environment.ProcessId}");
                     try
                     {
-                        PackageSession.Load(upgradeTarget, sessionResult, loadParameters);
+                        return UpgradeAssets(options);
                     }
                     finally
                     {
-                        sessionResult.MessageLogged -= ForwardLog;
+                        VSProjectHelper.ShutdownBuildNodes();
                     }
-                    if (sessionResult.Session == null)
-                        return (int)BuildResultCode.BuildError;
-
-                    // Be lenient like Game Studio: load errors (e.g. a project that won't build against the new
-                    // version, so its script-referencing assets load as IUnloadable) don't abort the upgrade.
-                    // Reconcile and save whatever loaded — IUnloadable round-trips its original YAML, so nothing
-                    // is lost — and let the exit code below still report the errors.
-                    if (sessionResult.HasErrors)
-                        options.Logger.Warning("The session loaded with errors; upgrading and saving the assets that loaded. Fix the errors and re-run for a complete upgrade.");
-
-                    ReconcileBases(sessionResult.Session, options.Logger);
-
-                    if (options.ResaveAll)
-                    {
-                        foreach (var assetItem in sessionResult.Session.LocalPackages.SelectMany(package => package.Assets))
-                        {
-                            // A source file holds user text, not a serialized asset.
-                            if (assetItem.Asset is not SourceCodeAsset)
-                                assetItem.IsDirty = true;
-                        }
-                    }
-
-                    sessionResult.Session.Save(options.Logger);
-                    return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
                 }
 
-                if (unexpectedArgs.Any())
-                {
-                    throw new OptionException("Unexpected arguments [{0}]".ToFormat(string.Join(", ", unexpectedArgs)), "args");
-                }
                 try
                 {
                     options.ValidateOptions();
@@ -539,6 +443,80 @@ namespace Stride.AssetCompiler
         private void OnConsoleOnCancelKeyPress(object _, ConsoleCancelEventArgs e)
         {
             e.Cancel = builder.Cancel();
+        }
+
+        // Restores the solution or project, loads it with every upgrade accepted, reconciles the assets with their bases and saves them
+        private static int UpgradeAssets(PackageBuilderOptions options)
+        {
+            // Prefer the whole solution: a project referencing Stride only transitively is detected only
+            // while every project is still pre-bump. Resolve a bare .csproj to its .sln, else upgrade it alone.
+            var upgradeTarget = options.PackageFile;
+            if (upgradeTarget.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
+            {
+                var containingSolution = FindContainingSolution(upgradeTarget);
+                if (containingSolution != null)
+                {
+                    options.Logger.Info($"Resolved [{System.IO.Path.GetFileName(upgradeTarget)}] to its solution [{System.IO.Path.GetFileName(containingSolution)}] — upgrading the whole solution.");
+                    upgradeTarget = containingSolution;
+                }
+                else
+                {
+                    options.Logger.Warning($"No solution found for [{System.IO.Path.GetFileName(upgradeTarget)}] — upgrading this project alone; projects that reference it may need upgrading separately.");
+                }
+            }
+
+            // Reconcile reproduces a GameStudio open+save, so load the session the way GameStudio
+            // does — using the defaults, which compile and load the project assemblies. Without that,
+            // assets referencing user script types (e.g. a sample's own components) fail to
+            // deserialize. Reconcile also pulls archetype/base values from dependency packages (e.g.
+            // the engine's default compositor); those load read-only, so Save (LocalPackages only)
+            // never writes back to them.
+            var loadParameters = new PackageLoadParameters
+            {
+                PackageUpgradeRequested = (pkg, upgrades) => PackageUpgradeRequestedAnswer.UpgradeAll,
+                // Whole-solution upgrade may start mixed (e.g. a shared pack already bumped); tolerate the transient NU1605.
+                AllowUpgradeDowngradeRestore = true,
+                // Snapshot every file the upgrade overwrites into a timestamped backup folder unless opted out.
+                BackupBeforeUpgrade = !options.NoBackup,
+            };
+
+            // Load (compiling the project assemblies) is the slow phase; forward each message it logs live.
+            options.Logger.Info($"Loading [{System.IO.Path.GetFileName(upgradeTarget)}] (compiling and loading project assemblies)...");
+            var sessionResult = new PackageSessionResult();
+            void ForwardLog(object sender, MessageLoggedEventArgs e) => options.Logger.Log(e.Message);
+            sessionResult.MessageLogged += ForwardLog;
+            try
+            {
+                PackageSession.Load(upgradeTarget, sessionResult, loadParameters);
+            }
+            finally
+            {
+                sessionResult.MessageLogged -= ForwardLog;
+            }
+            if (sessionResult.Session == null)
+                return (int)BuildResultCode.BuildError;
+
+            // Be lenient like Game Studio: load errors (e.g. a project that won't build against the new
+            // version, so its script-referencing assets load as IUnloadable) don't abort the upgrade.
+            // Reconcile and save whatever loaded — IUnloadable round-trips its original YAML, so nothing
+            // is lost — and let the exit code below still report the errors.
+            if (sessionResult.HasErrors)
+                options.Logger.Warning("The session loaded with errors; upgrading and saving the assets that loaded. Fix the errors and re-run for a complete upgrade.");
+
+            ReconcileBases(sessionResult.Session, options.Logger);
+
+            if (options.ResaveAll)
+            {
+                foreach (var assetItem in sessionResult.Session.LocalPackages.SelectMany(package => package.Assets))
+                {
+                    // A source file holds user text, not a serialized asset.
+                    if (assetItem.Asset is not SourceCodeAsset)
+                        assetItem.IsDirty = true;
+                }
+            }
+
+            sessionResult.Session.Save(options.Logger);
+            return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
         }
 
         // Re-applies changed archetype/base values to derived assets, the way GameStudio does on load.

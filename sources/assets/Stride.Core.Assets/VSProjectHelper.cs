@@ -47,6 +47,20 @@ public static class VSProjectHelper
         }
     }
 
+    /// <summary>Shuts down the idle MSBuild nodes kept for reuse that this process can connect to.</summary>
+    public static void ShutdownBuildNodes()
+    {
+        buildGate.Wait();
+        try
+        {
+            mainBuildManager.ShutdownAllNodes();
+        }
+        finally
+        {
+            buildGate.Release();
+        }
+    }
+
     public static Guid GetProjectGuid(MicrosoftProject project)
     {
         ArgumentNullException.ThrowIfNull(project);
@@ -187,6 +201,7 @@ public static class VSProjectHelper
     /// <param name="projectPath">The path of the project to restore.</param>
     /// <param name="tolerateDowngrade">Suppress NU1605 (package downgrade) for this restore — used by the in-place
     /// upgrade flow, where the graph is transiently mixed. Off for normal loads so real downgrades fail.</param>
+    /// <exception cref="InvalidOperationException">The restore failed; the message holds its errors, which <paramref name="logger"/> also gets.</exception>
     public static async Task RestoreNugetPackages(ILogger logger, string projectPath, bool tolerateDowngrade = false)
     {
         await Task.Run(() =>
@@ -195,9 +210,10 @@ public static class VSProjectHelper
 
             try
             {
+                var errors = new List<string>();
                 var parameters = new BuildParameters(pc)
                 {
-                    Loggers = [new LoggerRedirect(logger, true)], //Instance of ILogger instantiated earlier
+                    Loggers = [new LoggerRedirect(logger, true, errors)],
                     DisableInProcNode = true,
                 };
 
@@ -215,7 +231,9 @@ public static class VSProjectHelper
                     globalProperties["NoWarn"] = "NU1605";
                 var request = new BuildRequestData(projectPath, globalProperties, null, ["Restore"], null, BuildRequestDataFlags.None);
 
-                RunBuild(parameters, request);
+                var result = RunBuild(parameters, request);
+                if (result.OverallResult == BuildResultCode.Failure)
+                    throw new InvalidOperationException($"The NuGet restore of [{Path.GetFileName(projectPath)}] failed.{string.Concat(errors.Select(x => Environment.NewLine + x))}", result.Exception);
             }
             finally
             {
@@ -434,11 +452,14 @@ public static class VSProjectHelper
     {
         private readonly ILogger logger;
         private readonly bool onlyErrors;
+        private readonly List<string>? errors;
 
-        public LoggerRedirect(ILogger logger, bool onlyErrors = false)
+        /// <param name="errors">Gets the errors too, when not <c>null</c>.</param>
+        public LoggerRedirect(ILogger logger, bool onlyErrors = false, List<string>? errors = null)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.onlyErrors = onlyErrors;
+            this.errors = errors;
         }
 
         public override void Initialize(IEventSource eventSource)
@@ -497,18 +518,20 @@ public static class VSProjectHelper
 
         void ErrorRaised(object sender, BuildErrorEventArgs e)
         {
+            string message;
             if (e.Code == "NETSDK1045")
             {
                 var netVersion = Regex.Match(e.Message, @"\.(NET|net) ?(\d+\.\d+)");
-                if (netVersion.Success)
-                    logger.Error($"{e.Code}: this project requires {netVersion} SDK, please go to https://dotnet.microsoft.com/download and download {netVersion} SDK.");
-                else
-                    logger.Error($"{e.Code}: {e.Message}");
+                message = netVersion.Success
+                    ? $"{e.Code}: this project requires {netVersion} SDK, please go to https://dotnet.microsoft.com/download and download {netVersion} SDK."
+                    : $"{e.Code}: {e.Message}";
             }
             else
             {
-                logger.Error(WithLocation(e.File, e.LineNumber, e.ColumnNumber, WithCode(e.Code, e.Message)));
+                message = WithLocation(e.File, e.LineNumber, e.ColumnNumber, WithCode(e.Code, e.Message));
             }
+            logger.Error(message);
+            errors?.Add(message);
         }
     }
 

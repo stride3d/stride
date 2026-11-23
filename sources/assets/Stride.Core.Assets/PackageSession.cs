@@ -315,6 +315,9 @@ public class Dependency
 
     public List<string> Assemblies { get; } = [];
 
+    /// <summary>The folder the project's restore extracted the package to, as its lock file names it; null when unknown.</summary>
+    internal string? PackageDirectory { get; set; }
+
     public override string ToString()
     {
         return $"{Name} {Version} ({Type})";
@@ -1282,8 +1285,12 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 try
                 {
                     log.Verbose($"Restore NuGet packages for {SolutionPath.GetFileName()}...");
-                    VSProjectHelper.RestoreNugetPackages(log, SolutionPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).Wait();
+                    VSProjectHelper.RestoreNugetPackages(log, SolutionPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).GetAwaiter().GetResult();
                     dependenciesRestoredUpFront = true;
+                }
+                catch (InvalidOperationException)
+                {
+                    log.Warning($"Unable to restore NuGet packages for solution [{SolutionPath}]: see the errors above.");
                 }
                 catch (Exception ex)
                 {
@@ -1300,7 +1307,12 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                     try
                     {
                         log.Verbose($"Restore NuGet packages for {project.Name}...");
-                        VSProjectHelper.RestoreNugetPackages(log, project.FullPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).Wait();
+                        VSProjectHelper.RestoreNugetPackages(log, project.FullPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).GetAwaiter().GetResult();
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        log.Warning($"Unable to restore NuGet packages for project [{project.FullPath}]: see the errors above.");
+                        dependenciesRestoredUpFront = false;
                     }
                     catch (Exception ex)
                     {

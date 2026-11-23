@@ -10,7 +10,10 @@ using Stride.Graphics;
 using Stride.SampleScreenshotRunner;
 using Stride.Tests.ScreenshotComparator;
 using Xunit;
-using Xunit.Abstractions;
+using Xunit.v3;
+
+// The preparation and the runner report on the console: it goes to the output of the test they run for
+[assembly: CaptureConsole]
 
 namespace Stride.Samples.Tests
 {
@@ -29,19 +32,33 @@ namespace Stride.Samples.Tests
     public class ScreenshotsCollection { }
 
     [Collection("Screenshots")]
+    [TestCaseOrderer(typeof(SampleRunOrderer))]
     public class SampleScreenshotTests
     {
         private readonly ITestOutputHelper output;
         public SampleScreenshotTests(ITestOutputHelper output) => this.output = output;
 
-        public static IEnumerable<object[]> Samples()
+        public static TheoryData<string> Samples()
         {
             var fixturesDir = Path.Combine(WorktreeRoot(), "tests", "enduser", "Stride.Samples.Tests", "Fixtures");
-            if (!Directory.Exists(fixturesDir))
-                yield break;
-            foreach (var file in Directory.EnumerateFiles(fixturesDir, "*.cs"))
-                yield return new object[] { Path.GetFileNameWithoutExtension(file) };
+            return Directory.Exists(fixturesDir)
+                ? new(Directory.EnumerateFiles(fixturesDir, "*.cs").Select(file => Path.GetFileNameWithoutExtension(file)))
+                : [];
         }
+
+        // The sample the publish tests use. Publishing is expensive, so they run on one graphics API.
+        private const string PublishedSample = "TopDownRPG";
+        private const string PublishTestsSkipped = "Runs on Direct3D11 only: AOT and trimming don't depend on the graphics API.";
+        public static bool RunsPublishTests => GraphicsDevice.Platform == GraphicsPlatform.Direct3D11;
+
+        /// <summary>The sample <paramref name="test"/> uses, or null when it uses none on this graphics API.</summary>
+        internal static string? SampleOf(IXunitTestCase test) => test.TestMethodName switch
+        {
+            // Each row of the theory is an XunitTestCase with its arguments
+            nameof(Sample) => (test as XunitTestCase)?.TestMethodArguments.FirstOrDefault() as string,
+            nameof(TopDownRPGAot) or nameof(TopDownRPGTrimsWinForms) when RunsPublishTests => PublishedSample,
+            _ => null,
+        };
 
         [Theory]
         [MemberData(nameof(Samples))]
@@ -53,36 +70,19 @@ namespace Stride.Samples.Tests
         /// regressions — ILC compile breaks, reflection-based serialization creeping back, native
         /// teardown crashes — that a JIT run wouldn't surface.
         /// </summary>
-        [Fact]
-        public void TopDownRPGAot()
-        {
-            // AOT publish is expensive and engine AOT-cleanliness is mostly API-agnostic, so one API
-            // is enough. Run on Direct3D11 only — a no-op on the D3D12/Vulkan matrix legs.
-            if (GraphicsDevice.Platform != GraphicsPlatform.Direct3D11)
-            {
-                output.WriteLine($"[aot] skipped: AOT lane runs on Direct3D11 only (current: {GraphicsDevice.Platform}).");
-                return;
-            }
-            RunSampleTest("TopDownRPG", aot: true);
-        }
+        [Fact(Skip = PublishTestsSkipped, SkipUnless = nameof(RunsPublishTests))]
+        public void TopDownRPGAot() => RunSampleTest(PublishedSample, aot: true);
 
         /// <summary>
         /// Trim guard: publish a sample trimmed with the WinForms backend disabled and assert
         /// System.Windows.Forms gets dropped. Proves the WinFormsBackendEnabled gating actually lets
         /// trimming/AOT remove the Win32 windowing + input stack (and catches any un-gated WinForms ref).
         /// </summary>
-        [Fact]
+        [Fact(Skip = PublishTestsSkipped, SkipUnless = nameof(RunsPublishTests))]
         public void TopDownRPGTrimsWinForms()
         {
-            // Publish is expensive and the gating is API-agnostic; run on Direct3D11 only.
-            if (GraphicsDevice.Platform != GraphicsPlatform.Direct3D11)
-            {
-                output.WriteLine($"[trim] skipped: runs on Direct3D11 only (current: {GraphicsDevice.Platform}).");
-                return;
-            }
-
             var worktree = WorktreeRoot();
-            var publishDir = ScreenshotRunner.PublishTrimmed("TopDownRPG", worktree,
+            var publishDir = ScreenshotRunner.PublishTrimmed(PublishedSample, worktree,
                 new Dictionary<string, string> { ["Stride.Games.WinFormsBackendEnabled"] = "false" });
             output.WriteLine($"[trim] publish dir: {publishDir}");
 
@@ -96,9 +96,9 @@ namespace Stride.Samples.Tests
             Assert.False(File.Exists(winforms),
                 $"System.Windows.Forms.dll should have been trimmed with WinFormsBackendEnabled=false, but it's present: {winforms}");
 
-            if (Environment.GetEnvironmentVariable("STRIDE_TESTS_KEEP") != "1")
+            if (PreparedSamples.Release(PublishedSample) && Environment.GetEnvironmentVariable("STRIDE_TESTS_KEEP") != "1")
             {
-                var sampleDir = Path.Combine(worktree, ScreenshotRunner.SamplesGeneratedDirName, "TopDownRPG");
+                var sampleDir = Path.Combine(worktree, ScreenshotRunner.SamplesGeneratedDirName, PublishedSample);
                 if (Directory.Exists(sampleDir))
                 {
                     try { Directory.Delete(sampleDir, recursive: true); }
@@ -155,20 +155,16 @@ namespace Stride.Samples.Tests
             var failures = results.Where(r => r.Status is "drift" or "error" or "new").ToList();
             Assert.Empty(failures);
 
-            // Deferred-only (no hard failures): the verdict belongs to the trusted vision gate. xunit's
-            // dynamic Assert.Skip isn't available under this project's custom runner, so follow the
-            // repo idiom (log + return); the manifest above + the required, fail-closed gate keep it honest.
+            // Deferred-only (no hard failures): the verdict belongs to the trusted vision gate, which the manifest above
+            // feeds. The regenerated sample dir stays for post-mortem / the gate.
             if (deferred.Count > 0)
-            {
-                output.WriteLine($"[compare] DEFERRED {deferred.Count} frame(s) to the vision gate " +
-                                 $"(no Anthropic API key in this run): {string.Join(", ", deferred.Select(r => r.Frame))}");
-                return; // leave the regenerated sample dir in place for post-mortem / the gate
-            }
+                Assert.Skip($"{deferred.Count} frame(s) deferred to the vision gate (no Anthropic API key in this run): {string.Join(", ", deferred.Select(r => r.Frame))}");
 
-            // Test passed — wipe the regenerated sample dir to keep working trees small. Skip on
-            // failure so the post-mortem still has the regenerated project for local debugging.
-            // STRIDE_TESTS_KEEP=1 also preserves the dir on pass (for ad-hoc poking at the built sample).
-            if (Environment.GetEnvironmentVariable("STRIDE_TESTS_KEEP") != "1")
+            // Test passed — wipe the regenerated sample dir to keep working trees small, unless a later
+            // test uses the same sample. Skip on failure so the post-mortem still has the regenerated
+            // project for local debugging. STRIDE_TESTS_KEEP=1 also preserves the dir on pass (for
+            // ad-hoc poking at the built sample).
+            if (PreparedSamples.Release(name) && Environment.GetEnvironmentVariable("STRIDE_TESTS_KEEP") != "1")
             {
                 var sampleDir = Path.Combine(worktree, ScreenshotRunner.SamplesGeneratedDirName, name);
                 if (Directory.Exists(sampleDir))
