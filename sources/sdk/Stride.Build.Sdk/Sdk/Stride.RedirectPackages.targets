@@ -23,13 +23,15 @@
        older than an input, means "build", and the build adopts) and the generator script as an input; the central
        package versions are an import and the packed build/ assets are items, so they count already. Declared at
        evaluation, when PackageVersion still lacks the worktree suffix (a target adds it later): the suffix is read
-       from the generated version file instead. -->
-  <PropertyGroup Condition="'$(StrideRedirectPackages)' == 'true' And Exists('$(StrideRoot)sources/shared/SharedAssemblyInfo.Generated.cs')">
+       from the generated version file instead. Only in Visual Studio: a parallel command-line build evaluates
+       projects while another one rewrites that file, and the read would fail. Only once the file exists (i.e. after
+       a first build): before that the suffix, hence the output name, is unknown, and a declared output that never
+       appears would keep VS rebuilding the project. -->
+  <PropertyGroup Condition="'$(StrideRedirectPackages)' == 'true' And ('$(BuildingInsideVisualStudio)' == 'true' Or '$(DesignTimeBuild)' == 'true') And Exists('$(StrideRoot)sources/shared/SharedAssemblyInfo.Generated.cs')">
     <_StrideDevStubSuffix>$([System.Text.RegularExpressions.Regex]::Replace($([System.IO.File]::ReadAllText('$(StrideRoot)sources/shared/SharedAssemblyInfo.Generated.cs')), '(?s).*NuGetVersionSuffix = &quot;([^&quot;]*)&quot;.*', '$1'))</_StrideDevStubSuffix>
+    <_StrideDevStubUpToDateCheck>true</_StrideDevStubUpToDateCheck>
   </PropertyGroup>
-  <!-- Only once the generated version file exists (i.e. after a first build): before that the suffix, hence the
-       output name, is unknown, and a declared output that never appears would keep VS rebuilding the project. -->
-  <ItemGroup Condition="'$(_StrideDevStubProject)' == 'true' And '$(PackageId)' != '' And Exists('$(StrideRoot)sources/shared/SharedAssemblyInfo.Generated.cs')">
+  <ItemGroup Condition="'$(_StrideDevStubProject)' == 'true' And '$(PackageId)' != '' And '$(_StrideDevStubUpToDateCheck)' == 'true'">
     <UpToDateCheckOutput Include="$(LocalAppData)/stride/nugetdev/$(PackageId).$(PackageVersion)$(_StrideDevStubSuffix).nupkg" />
     <UpToDateCheckInput Include="$(StrideRoot)build/redirect-packages.cs" />
   </ItemGroup>
