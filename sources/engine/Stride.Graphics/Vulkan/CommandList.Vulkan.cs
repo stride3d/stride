@@ -1889,11 +1889,28 @@ namespace Stride.Graphics
             int lengthInBytes = 0;
 
             int blockSize;
+            var rowsPerSlice = 0;
             var texture = resource as Texture;
             if (texture != null)
             {
-                lengthInBytes = databox.SlicePitch * (region.Back - region.Front);
-                blockSize = texture.Format.BlockSize;
+                var format = texture.Format;
+                var depth = region.Back - region.Front;
+                var rowCount = (region.Bottom - region.Top + format.BlockHeight - 1) / format.BlockHeight;
+                var rowBytes = (region.Right - region.Left + format.BlockWidth - 1) / format.BlockWidth * format.BlockSize;
+
+                // Vulkan describes the source layout in texels, so the pitches must be whole blocks and rows
+                if (databox.RowPitch < rowBytes || databox.RowPitch % format.BlockSize != 0)
+                    throw new ArgumentException($"The row pitch ({databox.RowPitch}) must be a multiple of {format.BlockSize} and at least {rowBytes}, the size of a row of the region.", nameof(databox));
+                if (depth > 1 && (databox.SlicePitch < databox.RowPitch * rowCount || databox.SlicePitch % databox.RowPitch != 0))
+                    throw new ArgumentException($"The slice pitch ({databox.SlicePitch}) must be a multiple of the row pitch ({databox.RowPitch}) and at least {databox.RowPitch * rowCount}, the size of a slice of the region.", nameof(databox));
+
+                // The copy reads the last row only up to the width of the region
+                var lastSliceBytes = databox.RowPitch * (rowCount - 1) + rowBytes;
+                rowsPerSlice = depth > 1 ? databox.SlicePitch / databox.RowPitch : rowCount;
+
+                // The slice pitch only separates the depth slices of a 3D region, like in Direct3D 11
+                lengthInBytes = depth > 1 ? databox.SlicePitch * (depth - 1) + lastSliceBytes : lastSliceBytes;
+                blockSize = format.BlockSize;
             }
             else
             {
@@ -1926,13 +1943,12 @@ namespace Stride.Graphics
                 TransitionTexture(texture, range: null, (uint) subResourceIndex, BarrierLayout.CopyDest, destinationTransferTransitions);
 
                 // TODO VULKAN: Handle depth-stencil (NOTE: only supported on graphics queue)
-                // TODO VULKAN: Handle non-packed pitches
                 var bufferCopy = new VkBufferImageCopy
                 {
                     bufferOffset = (ulong) (uploadOffset + alignment),
                     imageSubresource = new VkImageSubresourceLayers { aspectMask = texture.NativeImageAspect, baseArrayLayer = (uint) arraySlice, layerCount = 1, mipLevel = (uint) mipSlice },
                     bufferRowLength = (uint) (databox.RowPitch * texture.Format.BlockWidth / texture.Format.BlockSize),
-                    bufferImageHeight = (uint) (databox.SlicePitch * texture.Format.BlockHeight / databox.RowPitch),
+                    bufferImageHeight = (uint) (rowsPerSlice * texture.Format.BlockHeight),
                     imageOffset = new VkOffset3D(region.Left, region.Top, region.Front),
                     imageExtent = new VkExtent3D(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front)
                 };
