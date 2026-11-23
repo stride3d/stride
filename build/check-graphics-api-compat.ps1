@@ -1,10 +1,11 @@
 # Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 # Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-# Checks that the Direct3D 11, Direct3D 12 and Vulkan builds of Stride.Graphics have the same public API: a game compiles
-# against one and runs on any, so a member missing on one is a MissingMethodException at run time. Run it after building
-# the three (-p:StrideGraphicsApiDependentBuildAll=true). The members that differ on purpose are in the suppression file
-# next to Stride.Graphics.csproj; -GenerateSuppressionFile writes all the differences found to a new file to compare.
+# Checks that the Direct3D 11, Direct3D 12, Vulkan and Null builds of Stride.Graphics have the same public API: a game
+# compiles against one and runs on any, so a member missing on one is a MissingMethodException at run time. Run it after
+# building the first three (-p:StrideGraphicsApiDependentBuildAll=true); the script builds Null itself. The members that
+# differ on purpose are in the suppression file next to Stride.Graphics.csproj; -GenerateSuppressionFile writes all the
+# differences found to a new file to compare.
 param(
     [string]$Configuration = 'Debug',
     [switch]$GenerateSuppressionFile
@@ -16,6 +17,10 @@ $repository = Split-Path $PSScriptRoot -Parent
 $project = Join-Path $repository 'sources/engine/Stride.Graphics'
 $bin = Join-Path $project "bin/$Configuration/net10.0"
 $suppressionFile = Join-Path $project 'GraphicsApiCompat.BackendOnly.xml'
+
+# Null is not one of the APIs the engine builds by default
+dotnet build (Join-Path $project 'Stride.Graphics.csproj') -f net10.0 -c $Configuration -p:StrideGraphicsApi=Null -p:UseSharedCompilation=false -v:q -nologo
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 # The assemblies the API refers to: the .NET reference pack, the Stride assemblies next to each build, and the compile
 # assets of the NuGet packages (the native bindings are not copied to the output)
@@ -40,8 +45,10 @@ foreach ($library in $assets.targets.'net10.0'.PSObject.Properties) {
     }
 }
 
-# Direct3D 11 against each of the others, both ways: together, the four find a member missing on any one of the three
-$pairs = @(('Direct3D11', 'Direct3D12'), ('Direct3D12', 'Direct3D11'), ('Direct3D11', 'Vulkan'), ('Vulkan', 'Direct3D11'))
+# Direct3D 11 against each of the others, both ways: together, the four find a member missing on any one of the three.
+# Null, the stub of every member a backend implements, against each of the three, both ways.
+$pairs = @(('Direct3D11', 'Direct3D12'), ('Direct3D12', 'Direct3D11'), ('Direct3D11', 'Vulkan'), ('Vulkan', 'Direct3D11'),
+           ('Null', 'Direct3D11'), ('Direct3D11', 'Null'), ('Null', 'Direct3D12'), ('Direct3D12', 'Null'), ('Null', 'Vulkan'), ('Vulkan', 'Null'))
 $arguments = [System.Collections.Generic.List[string]]::new()
 foreach ($pair in $pairs) {
     foreach ($side in @(@{ Name = $pair[0]; Assembly = '-l'; References = '--lref' }, @{ Name = $pair[1]; Assembly = '-r'; References = '--rref' })) {
@@ -53,7 +60,7 @@ foreach ($pair in $pairs) {
 }
 # The suppressions name the graphics API rather than the path of its build
 foreach ($option in '--left-assemblies-transformation-pattern', '--right-assemblies-transformation-pattern') {
-    $arguments.Add($option); $arguments.Add('.*(Direct3D11|Direct3D12|Vulkan).Stride.Graphics.dll;$1')
+    $arguments.Add($option); $arguments.Add('.*(Direct3D11|Direct3D12|Vulkan|Null).Stride.Graphics.dll;$1')
 }
 $arguments.Add('--create-work-item-per-assembly')
 $arguments.Add('--suppression-file'); $arguments.Add($suppressionFile)
@@ -67,7 +74,7 @@ $ErrorActionPreference = 'Continue'
 $output = dotnet dnx --yes Microsoft.DotNet.ApiCompat.Tool@10.0.403 -- @arguments 2>&1 | ForEach-Object { $line = "$_"; Write-Host $line; $line }
 $exitCode = $LASTEXITCODE
 if ($exitCode -ne 0) {
-    Write-Host "The graphics APIs differ in the public API of Stride.Graphics. Add the member to the backends that lack it; if it differs on purpose, add it to $suppressionFile."
+    Write-Host "The graphics APIs, Null included, differ in the public API of Stride.Graphics. Add the member to the backends that lack it; if it differs on purpose, add it to $suppressionFile."
     exit $exitCode
 }
 # The tool reports a suppression of a difference that is gone without failing: keep the file exact
@@ -75,4 +82,4 @@ if ($output -match '^Unnecessary suppressions found') {
     Write-Host "Remove the suppressions above from $suppressionFile."
     exit 1
 }
-Write-Host 'Direct3D 11, Direct3D 12 and Vulkan have the same public API in Stride.Graphics.'
+Write-Host 'Direct3D 11, Direct3D 12, Vulkan and Null have the same public API in Stride.Graphics.'
