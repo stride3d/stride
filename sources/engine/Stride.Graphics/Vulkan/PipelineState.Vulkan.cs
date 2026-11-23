@@ -127,15 +127,13 @@ namespace Stride.Graphics
                         };
                     }
 
-                    inputBindings[slotIndex].binding = (uint)slotIndex;
-                    inputBindings[slotIndex].inputRate = inputElement.InputSlotClass == InputClassification.Vertex ? VkVertexInputRate.Vertex : VkVertexInputRate.Instance;
+                    var bindingIndex = GetOrAddInputBinding(inputBindings, ref inputBindingCount, slotIndex);
+                    ref var inputBinding = ref inputBindings[bindingIndex];
+                    inputBinding.inputRate = inputElement.InputSlotClass == InputClassification.Vertex ? VkVertexInputRate.Vertex : VkVertexInputRate.Instance;
 
                     // TODO VULKAN: This is currently an argument to Draw() overloads.
-                    if (inputBindings[slotIndex].stride < inputElement.AlignedByteOffset + size)
-                        inputBindings[slotIndex].stride = (uint)(inputElement.AlignedByteOffset + size);
-
-                    if (inputElement.InputSlot >= inputBindingCount)
-                        inputBindingCount = inputElement.InputSlot + 1;
+                    if (inputBinding.stride < inputElement.AlignedByteOffset + size)
+                        inputBinding.stride = (uint)(inputElement.AlignedByteOffset + size);
                 }
 
                 var inputAssemblyState = new VkPipelineInputAssemblyStateCreateInfo
@@ -304,6 +302,21 @@ namespace Stride.Graphics
         }
 
         internal List<DescriptorSetInfo> DescriptorBindingMapping;
+
+        /// <summary>
+        ///   Gets the index of the binding of a vertex input slot, adding it if it is not there yet, so that each used slot has one binding.
+        /// </summary>
+        private static int GetOrAddInputBinding(VkVertexInputBindingDescription[] inputBindings, ref int inputBindingCount, int slot)
+        {
+            for (int index = 0; index < inputBindingCount; index++)
+            {
+                if (inputBindings[index].binding == (uint) slot)
+                    return index;
+            }
+
+            inputBindings[inputBindingCount] = new VkVertexInputBindingDescription { binding = (uint) slot };
+            return inputBindingCount++;
+        }
 
         private unsafe void CreatePipelineLayout(PipelineStateDescription pipelineStateDescription)
         {
