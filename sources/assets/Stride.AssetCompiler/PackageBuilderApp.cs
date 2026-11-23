@@ -253,6 +253,12 @@ namespace Stride.AssetCompiler
                     GlobalLogger.GlobalMessageLogged += globalLoggerOnGlobalMessageLogged;
                 }
 
+                // Before any verb runs: a misspelled option must not run the verb with its defaults
+                if (unexpectedArgs.Count > 0)
+                {
+                    throw new OptionException("Unexpected arguments [{0}]".ToFormat(string.Join(", ", unexpectedArgs)), "args");
+                }
+
                 if (mode == BuilderMode.AdoptCrashes)
                 {
                     // Post-build native-crash adoption (Linux/macOS): read createdump's minidumps, sign and store
@@ -313,10 +319,6 @@ namespace Stride.AssetCompiler
                     }
                 }
 
-                if (unexpectedArgs.Any())
-                {
-                    throw new OptionException("Unexpected arguments [{0}]".ToFormat(string.Join(", ", unexpectedArgs)), "args");
-                }
                 try
                 {
                     options.ValidateOptions();
