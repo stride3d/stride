@@ -1817,35 +1817,19 @@ namespace Stride.Graphics
             if (sourceData.IsEmpty)
                 return;
 
+            var region = GetWholeSubResourceRegion(resource, subResourceIndex);
+
             fixed (byte* sourceDataPtr = sourceData)
             {
-                UpdateSubResource(resource, subResourceIndex, new DataBox((nint) sourceDataPtr, sourceData.Length, 0));
+                var sourceDataBox = GetSpanDataBox(resource, (nint) sourceDataPtr, sourceData.Length, region);
+                UpdateSubResource(resource, subResourceIndex, sourceDataBox, region);
             }
         }
 
         internal void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox databox)
         {
-            if (resource is Texture texture)
-            {
-                var mipLevel = subResourceIndex % texture.MipLevelCount;
-
-                var width = Texture.CalculateMipSize(texture.Width, mipLevel);
-                var height = Texture.CalculateMipSize(texture.Height, mipLevel);
-                var depth = Texture.CalculateMipSize(texture.Depth, mipLevel);
-
-                UpdateSubResource(resource, subResourceIndex, databox, new ResourceRegion(left: 0, top: 0, front: 0, width, height, depth));
-            }
-            else
-            {
-                if (resource is Buffer buffer)
-                {
-                    UpdateSubResource(resource, subResourceIndex, databox, new ResourceRegion(left: 0, top: 0, front: 0, buffer.SizeInBytes, bottom: 1, back: 1));
-                }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
-            }
+            var region = GetWholeSubResourceRegion(resource, subResourceIndex);
+            UpdateSubResource(resource, subResourceIndex, databox, region);
         }
 
         /// <summary>
@@ -1877,7 +1861,8 @@ namespace Stride.Graphics
 
             fixed (byte* sourceDataPtr = sourceData)
             {
-                UpdateSubResource(resource, subResourceIndex, new DataBox((nint)sourceDataPtr, sourceData.Length, 0), region);
+                var sourceDataBox = GetSpanDataBox(resource, (nint) sourceDataPtr, sourceData.Length, region);
+                UpdateSubResource(resource, subResourceIndex, sourceDataBox, region);
             }
         }
 

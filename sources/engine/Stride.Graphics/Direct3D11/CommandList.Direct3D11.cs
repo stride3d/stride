@@ -1379,8 +1379,16 @@ namespace Stride.Graphics
             if (sourceData.IsEmpty)
                 return;
 
+            int rowPitch = 0;
+            int slicePitch = 0;
+            if (resource is Texture texture)
+            {
+                var region = GetWholeSubResourceRegion(resource, subResourceIndex);
+                GetPackedPitches(texture, region, sourceData.Length, out rowPitch, out slicePitch);
+            }
+
             nativeDeviceContext->UpdateSubresource(resource.NativeResource, (uint)subResourceIndex, pDstBox: null,
-                                                   in sourceData[0], SrcRowPitch: 0, SrcDepthPitch: 0);
+                                                   in sourceData[0], (uint) rowPitch, (uint) slicePitch);
         }
 
         /// <summary>
@@ -1426,10 +1434,15 @@ namespace Stride.Graphics
             if (sourceData.IsEmpty)
                 return;
 
+            int rowPitch = 0;
+            int slicePitch = 0;
+            if (resource is Texture texture)
+                GetPackedPitches(texture, region, sourceData.Length, out rowPitch, out slicePitch);
+
             ref Box destBox = ref region.As<ResourceRegion, Box>();
 
             nativeDeviceContext->UpdateSubresource(resource.NativeResource, (uint) subResourceIndex, in destBox,
-                                                   in sourceData[0], SrcRowPitch: 0, SrcDepthPitch: 0);
+                                                   in sourceData[0], (uint) rowPitch, (uint) slicePitch);
         }
 
         /// <summary>
