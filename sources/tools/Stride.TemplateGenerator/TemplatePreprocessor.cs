@@ -1398,6 +1398,7 @@ Cache/
         var displayName = JsonEscape(Sdtpl?.Name ?? shortName);
         var description = JsonEscape(Sdtpl?.Description ?? string.Empty);
         var defaultName = JsonEscape(Sdtpl?.DefaultOutputName ?? "MyGame");
+        var type = Sdtpl?.Type == SdtplMetadata.TemplateType.Sample ? "solution" : "project";
         // Classifications: split "Samples/Graphics" into ["Samples", "Graphics"]; falls back to
         // a flat ["Stride", "Game"] tag when no Group is declared.
         var classifications = Sdtpl?.Group is { Length: > 0 } g
@@ -1415,7 +1416,7 @@ Cache/
         if (description.Length > 0)
             sb.AppendLine($"  \"description\": \"{description}\",");
         sb.AppendLine($"  \"defaultName\": \"{defaultName}\",");
-        sb.AppendLine("  \"tags\": { \"language\": \"C#\", \"type\": \"project\" },");
+        sb.AppendLine($"  \"tags\": {{ \"language\": \"C#\", \"type\": \"{type}\" }},");
         sb.AppendLine("  \"preferNameDirectory\": true,");
         // sourceName: every literal occurrence of "MyTemplate" in template content + file paths
         // gets replaced with the user's -n value at instantiation. The source tree uses

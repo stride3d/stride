@@ -18,7 +18,7 @@ namespace Stride.Assets.Templates;
 internal sealed class SdtplMetadata
 {
     /// <summary>Type of tempalte based on the starting tag (e.g. !Template).</summary>
-    public TemplateType Type { get; set; }
+    public TemplateType? Type { get; set; }
 
     public Guid? Id { get; set; }
     public string? Name { get; set; }
