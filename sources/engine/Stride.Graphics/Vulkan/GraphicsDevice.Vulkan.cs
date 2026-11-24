@@ -348,7 +348,6 @@ namespace Stride.Graphics
         // Called once per frame: the buffers are trimmed outside the registry lock, as they take their own lock then the registry's
         private void TrimRetiredBufferAllocations()
         {
-            // Copied out of the lock: trimming takes each buffer's own lock, which is taken before this one elsewhere
             lock (buffersWithRetiredAllocations)
             {
                 if (buffersWithRetiredAllocations.Count == 0)

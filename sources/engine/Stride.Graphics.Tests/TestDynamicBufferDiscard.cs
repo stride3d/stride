@@ -199,7 +199,7 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
         const int DiscardsPerFrame = 3;
         const int FrameCount = 50;
 
-        var game = (GameTestBase) Activator.CreateInstance(GetType());
+        var game = new TestDynamicBufferDiscard();
         game.FrameGameSystem.IsUnitTestFeeding = true;
 
         Buffer buffer = null;
@@ -231,7 +231,7 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
         const int IdleFrameCount = 20;
         const int BufferSize = 16 * 1024;
 
-        var game = (GameTestBase) Activator.CreateInstance(GetType());
+        var game = new TestDynamicBufferDiscard();
         game.FrameGameSystem.IsUnitTestFeeding = true;
 
         Buffer buffer = null;
