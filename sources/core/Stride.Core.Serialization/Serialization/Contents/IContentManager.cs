@@ -52,9 +52,10 @@ public interface IContentManager
     bool IsLoaded(string url, bool loadedManuallyOnly = false);
 
     /// <summary>
-    /// Unloads the specified object.
+    /// Unloads the specified asset.
     /// </summary>
-    /// <param name="obj">The object to unload.</param>
+    /// <param name="obj">The loaded asset or a reference to its URL.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="obj"/> is an empty URL reference.</exception>
     void Unload(object obj);
 
     /// <summary>

@@ -195,6 +195,25 @@ public class TestContentManager
     }
 
     [Fact]
+    public void UnloadByUrlReference()
+    {
+        const string url = "reference-unload";
+        var databaseProvider = CreateDatabaseProvider();
+        new ContentManager(databaseProvider).Save(url, new A { I = 18 });
+        IContentManager contentManager = new ContentManager(databaseProvider);
+        var reference = new UrlReference<A>(url);
+
+        contentManager.Load(reference);
+        contentManager.Load(reference);
+
+        contentManager.Unload(reference);
+        Assert.True(contentManager.IsLoaded(reference));
+
+        contentManager.Unload(reference);
+        Assert.False(contentManager.IsLoaded(reference));
+    }
+
+    [Fact]
     public void SimpleReloadData()
     {
         var a1 = new A { I = 18 };

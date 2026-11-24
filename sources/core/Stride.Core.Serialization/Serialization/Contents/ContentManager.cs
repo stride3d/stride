@@ -232,18 +232,25 @@ public sealed partial class ContentManager : IContentManager
     /// <summary>
     /// Unloads the specified asset.
     /// </summary>
-    /// <param name="obj">The object to unload.</param>
+    /// <param name="obj">The loaded asset or a reference to its URL.</param>
     /// <exception cref="InvalidOperationException">Content not loaded through this ContentManager.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="obj"/> is an empty URL reference.</exception>
     public void Unload(object obj)
     {
         lock (LoadedAssetUrls)
         {
-            if (!LoadedAssetReferences.TryGetValue(obj, out var reference))
-                throw new InvalidOperationException("Content not loaded through this ContentManager.");
-
-            // Release reference
-            DecrementReference(reference, true);
+            if (LoadedAssetReferences.TryGetValue(obj, out var reference))
+            {
+                // Release reference
+                DecrementReference(reference, true);
+                return;
+            }
         }
+
+        if (obj is IUrlReference urlReference)
+            UrlReferenceContentManagerExtenstions.Unload(this, urlReference);
+        else
+            throw new InvalidOperationException("Content not loaded through this ContentManager.");
     }
 
     /// <summary>
