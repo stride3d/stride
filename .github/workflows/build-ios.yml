@@ -36,6 +36,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
           exclude: samples
+      - uses: ./.github/actions/unpublished-packages
       - name: Install .NET iOS Workload
         uses: ./.github/actions/stride-workload
         with:

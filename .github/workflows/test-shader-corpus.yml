@@ -35,6 +35,7 @@ on:
         default: Direct3D11
 
 permissions:
+  actions: read # the unpublished-packages action downloads the packages of dep runs
   contents: read
 
 jobs:
@@ -62,6 +63,7 @@ jobs:
           ref: ${{ inputs.commit }}
           fetch-depth: 2
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/unpublished-packages
       - name: Cache keys
         id: keys
         env:

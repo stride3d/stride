@@ -1,0 +1,17 @@
+name: Unpublished packages
+description: >-
+  When deps/unpublished-packages.txt lists dep-* runs (one run id or run URL per line), every restore of the job takes
+  the packages that those runs built instead of nuget.org: the restores of the repository, and those outside it that read
+  the user NuGet config, such as the games that tests create. A PR tests dependency packages this way while their publish
+  waits for approval, with sources/Directory.Packages.props pinning their versions. Gate fails while the file exists.
+  Use it after the checkout, before the first restore. The job needs the actions: read permission.
+
+runs:
+  using: composite
+  steps:
+    - name: Restore the packages of unpublished dep runs
+      if: hashFiles('deps/unpublished-packages.txt') != ''
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: '& "${{ github.action_path }}/unpublished-packages.ps1"'

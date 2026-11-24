@@ -36,6 +36,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
           exclude: samples
+      - uses: ./.github/actions/unpublished-packages
       - name: Build
         run: |
           dotnet build sources\Stride.Runtime.slnf `

@@ -104,6 +104,7 @@ jobs:
           fetch-tags: true
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || github.ref }}
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/unpublished-packages
 
       - uses: ./.github/actions/effect-cache
         with:
@@ -295,6 +296,7 @@ jobs:
           submodules: true
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || github.ref }}
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/unpublished-packages
 
       - name: Install build dependencies (Linux)
         if: runner.os == 'Linux'

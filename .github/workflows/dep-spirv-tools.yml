@@ -17,6 +17,12 @@ name: "Dep: Build & Deploy SPIRV-Tools"
 #
 # RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64, ios-arm64,
 #               iossimulator-arm64, android-arm64, android-x64.
+#
+# Debug files: every build compiles with debug info, and the package gets the libraries without it and without their
+# local symbols. The debug files (.pdb, .so.debug, .dSYM) go to the symbols pre-release (dep-symbols.yml), as
+# symbols-spirv-tools-<rid> artifacts, outside the pack job's spirv-tools-* pattern.
+# CFLAGS, CXXFLAGS and LDFLAGS add to CMake's default flags: /Z7 and -g don't change the generated code, and
+# /DEBUG needs /OPT:REF and /OPT:ICF to link as a Release build does.
 
 on:
   workflow_dispatch:
@@ -30,18 +36,50 @@ on:
         default: main
         required: false
       version:
-        description: NuGet package version (leave empty for date-based)
+        description: NuGet package version (leave empty for the SPIRV-Tools version and the next build number)
         required: false
 
 jobs:
+  # The builds fetch this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve SPIRV-Tools ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
+      source: ${{ steps.version.outputs.source }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q spirv-tools-src
+          git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+          git -C spirv-tools-src fetch -q --depth 1 --filter=tree:0 origin "${{ github.event.inputs.ref || 'main' }}"
+          echo "commit=$(git -C spirv-tools-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      # SPIRV-Tools' utils/update_build_version.py takes its version from the first version line of CHANGES
+      - name: Package version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $line = git -C spirv-tools-src show "${commit}:CHANGES" | Where-Object { $_ -match '^v\d' } | Select-Object -First 1
+          if ($line -notmatch '^v(?<version>\d+\.\d+) \d{4}-\d{2}-\d{2}$') { throw "The first version line of CHANGES isn't 'v<year>.<n> <date>': '$line'" }
+          stride-src/.github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.SPIRVTools -Official $Matches.version `
+            -Source spirv-tools-src -Commit $commit -Upstream https://github.com/KhronosGroup/SPIRV-Tools.git `
+            -TagPrefix v -Override '${{ github.event.inputs.version }}'
+
   # ---------------------------------------------------------------------------
   # Windows x64
   # ---------------------------------------------------------------------------
   build-windows-x64:
     name: Build SPIRV-Tools (Windows x64)
+    needs: resolve
     runs-on: windows-2025-vs2026
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -50,23 +88,19 @@ jobs:
         shell: pwsh
         run: |
           $url = "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          $ref = "${{ github.event.inputs.ref || 'main' }}"
+          $commit = "${{ needs.resolve.outputs.commit }}"
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin $url
-          git -C spirv-tools-src fetch --depth 1 origin $ref
+          git -C spirv-tools-src fetch --depth 1 origin $commit
           git -C spirv-tools-src checkout FETCH_HEAD
           python spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - uses: ilammy/msvc-dev-cmd@v1
         with: { arch: x64 }
 
       - name: Configure & build stride_spirv_tools
         shell: cmd
+        env: { CFLAGS: /Z7, CXXFLAGS: /Z7, LDFLAGS: /DEBUG /OPT:REF /OPT:ICF }
         run: |
           cmake -S stride-src/deps/spirv-tools -B _build -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
@@ -76,20 +110,23 @@ jobs:
       - name: Collect output
         shell: pwsh
         run: |
-          mkdir spirv-tools-out
+          mkdir spirv-tools-out, spirv-tools-symbols
           Copy-Item _build/stride_spirv_tools.dll spirv-tools-out/
+          Copy-Item _build/stride_spirv_tools.pdb spirv-tools-symbols/
 
       - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-win-x64, path: spirv-tools-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-spirv-tools-win-x64, path: spirv-tools-symbols/ }
 
   # ---------------------------------------------------------------------------
   # Windows ARM64 — same host, MSVC ARM64 cross-compile.
   # ---------------------------------------------------------------------------
   build-windows-arm64:
     name: Build SPIRV-Tools (Windows ARM64)
+    needs: resolve
     runs-on: windows-2025-vs2026
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -99,20 +136,16 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - uses: ilammy/msvc-dev-cmd@v1
         with: { arch: amd64_arm64 }
 
       - name: Configure & build stride_spirv_tools
         shell: cmd
+        env: { CFLAGS: /Z7, CXXFLAGS: /Z7, LDFLAGS: /DEBUG /OPT:REF /OPT:ICF }
         run: |
           cmake -S stride-src/deps/spirv-tools -B _build -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
@@ -122,20 +155,23 @@ jobs:
       - name: Collect output
         shell: pwsh
         run: |
-          mkdir spirv-tools-out
+          mkdir spirv-tools-out, spirv-tools-symbols
           Copy-Item _build/stride_spirv_tools.dll spirv-tools-out/
+          Copy-Item _build/stride_spirv_tools.pdb spirv-tools-symbols/
 
       - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-win-arm64, path: spirv-tools-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-spirv-tools-win-arm64, path: spirv-tools-symbols/ }
 
   # ---------------------------------------------------------------------------
   # Linux x64
   # ---------------------------------------------------------------------------
   build-linux-x64:
     name: Build SPIRV-Tools (Linux x64)
+    needs: resolve
     runs-on: ubuntu-24.04
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -144,41 +180,43 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python3 spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y ninja-build cmake
 
       - name: Configure & build stride_spirv_tools
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           cmake -S stride-src/deps/spirv-tools -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
+      # The .debug file keeps the debug info and the symbol table. The shipped library names it in its .gnu_debuglink,
+      # where gdb and lldb look for it.
       - name: Collect output
         run: |
-          mkdir -p spirv-tools-out
-          cp _build/libstride_spirv_tools.so spirv-tools-out/
+          mkdir -p spirv-tools-out spirv-tools-symbols
+          objcopy --only-keep-debug _build/libstride_spirv_tools.so spirv-tools-symbols/libstride_spirv_tools.so.debug
+          objcopy --strip-unneeded --add-gnu-debuglink=spirv-tools-symbols/libstride_spirv_tools.so.debug \
+            _build/libstride_spirv_tools.so spirv-tools-out/libstride_spirv_tools.so
 
       - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-linux-x64, path: spirv-tools-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-spirv-tools-linux-x64, path: spirv-tools-symbols/ }
 
   # ---------------------------------------------------------------------------
   # macOS ARM64
   # ---------------------------------------------------------------------------
   build-macos-arm64:
     name: Build SPIRV-Tools (macOS ARM64)
+    needs: resolve
     runs-on: macos-15
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -187,16 +225,12 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python3 spirv-tools-src/utils/git-sync-deps
 
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
-
       - name: Configure & build stride_spirv_tools
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           cmake -S stride-src/deps/spirv-tools -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -204,13 +238,20 @@ jobs:
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
+      # The DWARF stays in the object files: dsymutil collects it. strip -S removes the debug map that points to them,
+      # and -x the local symbols. strip breaks the signature, and arm64 needs one: codesign adds an ad-hoc one.
       - name: Collect output
         run: |
-          mkdir -p spirv-tools-out
-          cp _build/libstride_spirv_tools.dylib spirv-tools-out/
+          mkdir -p spirv-tools-out spirv-tools-symbols
+          dsymutil _build/libstride_spirv_tools.dylib -o spirv-tools-symbols/libstride_spirv_tools.dylib.dSYM
+          strip -S -x -o spirv-tools-out/libstride_spirv_tools.dylib _build/libstride_spirv_tools.dylib
+          codesign -f -s - spirv-tools-out/libstride_spirv_tools.dylib
 
       - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-osx-arm64, path: spirv-tools-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-spirv-tools-osx-arm64, path: spirv-tools-symbols/ }
 
   # ---------------------------------------------------------------------------
   # iOS ARM64 — cross-compiled on macOS.
@@ -219,9 +260,8 @@ jobs:
   # ---------------------------------------------------------------------------
   build-ios-arm64:
     name: Build SPIRV-Tools (iOS ARM64)
+    needs: resolve
     runs-on: macos-15
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -230,16 +270,12 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python3 spirv-tools-src/utils/git-sync-deps
 
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
-
       - name: Configure & build stride_spirv_tools
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           # Ninja, not Xcode: SPIRV-Tools' build-version.inc custom command is
           # attached to both SPIRV-Tools-shared and SPIRV-Tools-static, which
@@ -255,13 +291,19 @@ jobs:
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
+      # As on macOS
       - name: Collect output
         run: |
-          mkdir -p spirv-tools-out
-          cp _build/libstride_spirv_tools.dylib spirv-tools-out/
+          mkdir -p spirv-tools-out spirv-tools-symbols
+          dsymutil _build/libstride_spirv_tools.dylib -o spirv-tools-symbols/libstride_spirv_tools.dylib.dSYM
+          strip -S -x -o spirv-tools-out/libstride_spirv_tools.dylib _build/libstride_spirv_tools.dylib
+          codesign -f -s - spirv-tools-out/libstride_spirv_tools.dylib
 
       - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-ios-arm64, path: spirv-tools-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-spirv-tools-ios-arm64, path: spirv-tools-symbols/ }
 
   # ---------------------------------------------------------------------------
   # iOS Simulator ARM64 — cross-compiled on macOS. Same source as ios-arm64 but
@@ -272,9 +314,8 @@ jobs:
   # ---------------------------------------------------------------------------
   build-iossimulator-arm64:
     name: Build SPIRV-Tools (iOS Simulator ARM64)
+    needs: resolve
     runs-on: macos-15
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -283,16 +324,12 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python3 spirv-tools-src/utils/git-sync-deps
 
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
-
       - name: Configure & build stride_spirv_tools
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           cmake -S stride-src/deps/spirv-tools -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -303,22 +340,27 @@ jobs:
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
+      # As on macOS
       - name: Collect output
         run: |
-          mkdir -p spirv-tools-out
-          cp _build/libstride_spirv_tools.dylib spirv-tools-out/
+          mkdir -p spirv-tools-out spirv-tools-symbols
+          dsymutil _build/libstride_spirv_tools.dylib -o spirv-tools-symbols/libstride_spirv_tools.dylib.dSYM
+          strip -S -x -o spirv-tools-out/libstride_spirv_tools.dylib _build/libstride_spirv_tools.dylib
+          codesign -f -s - spirv-tools-out/libstride_spirv_tools.dylib
 
       - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-iossimulator-arm64, path: spirv-tools-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-spirv-tools-iossimulator-arm64, path: spirv-tools-symbols/ }
 
   # ---------------------------------------------------------------------------
   # Android — one job per ABI, cross-compiled via NDK toolchain file.
   # ---------------------------------------------------------------------------
   build-android:
     name: Build SPIRV-Tools (Android ${{ matrix.abi }})
+    needs: resolve
     runs-on: ubuntu-24.04
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     strategy:
       fail-fast: false
       matrix:
@@ -333,14 +375,9 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python3 spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y ninja-build cmake
@@ -355,22 +392,32 @@ jobs:
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
+      # The NDK toolchain already compiles with -g. As on Linux, with the NDK's objcopy.
       - name: Collect output
         run: |
-          mkdir -p spirv-tools-out
-          cp _build/libstride_spirv_tools.so spirv-tools-out/
+          mkdir -p spirv-tools-out spirv-tools-symbols
+          objcopy=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
+          $objcopy --only-keep-debug _build/libstride_spirv_tools.so spirv-tools-symbols/libstride_spirv_tools.so.debug
+          $objcopy --strip-unneeded --add-gnu-debuglink=spirv-tools-symbols/libstride_spirv_tools.so.debug \
+            _build/libstride_spirv_tools.so spirv-tools-out/libstride_spirv_tools.so
 
       - uses: actions/upload-artifact@v7
         with:
           name: spirv-tools-${{ matrix.rid }}
           path: spirv-tools-out/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-spirv-tools-${{ matrix.rid }}
+          path: spirv-tools-symbols/
+
   # ---------------------------------------------------------------------------
   # Pack NuGet from all artifacts.
   # ---------------------------------------------------------------------------
   pack:
-    name: Pack NuGet
+    name: Pack NuGet ${{ needs.resolve.outputs.number }}
     needs:
+      - resolve
       - build-windows-x64
       - build-windows-arm64
       - build-linux-x64
@@ -400,28 +447,22 @@ jobs:
       - name: Write VERSION.txt and README.md
         shell: pwsh
         run: |
-          $commits = [ordered]@{
-            'win-x64'            = '${{ needs.build-windows-x64.outputs.commit }}'
-            'win-arm64'          = '${{ needs.build-windows-arm64.outputs.commit }}'
-            'linux-x64'          = '${{ needs.build-linux-x64.outputs.commit }}'
-            'osx-arm64'          = '${{ needs.build-macos-arm64.outputs.commit }}'
-            'ios-arm64'          = '${{ needs.build-ios-arm64.outputs.commit }}'
-            'iossimulator-arm64' = '${{ needs.build-iossimulator-arm64.outputs.commit }}'
-            'android'            = '${{ needs.build-android.outputs.commit }}'
-          }
-          $unique = @($commits.Values | Select-Object -Unique)
           $lines = @(
             "SPIRV-Tools (ref ${{ github.event.inputs.ref || 'main' }})"
             "Repository: ${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+            "Commit: ${{ needs.resolve.outputs.commit }}"
           )
-          if ($unique.Count -eq 1) { $lines += "Commit: $($unique[0])" }
-          else { $lines += ""; $lines += $commits.GetEnumerator() | ForEach-Object { "{0}: {1}" -f $_.Key, $_.Value } }
+          if ('${{ needs.resolve.outputs.source }}') { $lines += '${{ needs.resolve.outputs.source }}' }
           $lines += @(
             ""
             "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
             "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           )
+          # The symbols job creates this pre-release on stride3d/stride only
+          if ('${{ github.repository }}' -eq 'stride3d/stride') {
+            $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/spirv-tools/${{ needs.resolve.outputs.number }}"
+          }
           New-Item -ItemType Directory -Force deps/spirv-tools/tools | Out-Null
           $lines | Set-Content deps/spirv-tools/tools/VERSION.txt
           $block = @('```') + $lines + @('```')
@@ -438,23 +479,39 @@ jobs:
       - name: Pack NuGet (dotnet pack)
         shell: pwsh
         run: |
-          $version = "${{ github.event.inputs.version }}"
-          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
           dotnet pack deps/spirv-tools/Stride.Dependencies.SPIRVTools.csproj `
             -c Release `
-            -p:PackageVersion=$version `
+            -p:PackageVersion=${{ needs.resolve.outputs.version }} `
             -p:RepositoryCommit=${{ github.sha }} `
             -o nupkg
 
       - uses: actions/upload-artifact@v7
         with: { name: Stride.Dependencies.SPIRVTools.nupkg, path: nupkg/*.nupkg }
 
+      - uses: actions/upload-artifact@v7
+        with: { name: version-spirv-tools, path: deps/spirv-tools/tools/VERSION.txt }
+
   # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
-    needs: pack
+    name: Publish ${{ needs.resolve.outputs.number }}
+    needs: [resolve, pack]
     permissions:
+      actions: read
       contents: read
       id-token: write
     uses: ./.github/workflows/dep-publish.yml
+    secrets: inherit # without it, the called job gets no secret, not even those of its environment
     with:
       artifact: Stride.Dependencies.SPIRVTools.nupkg
+
+  # After publish: a package that was not published gets no debug files
+  symbols:
+    needs: [resolve, pack, publish]
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: spirv-tools
+      version: ${{ needs.resolve.outputs.number }}
+      notes-artifact: version-spirv-tools

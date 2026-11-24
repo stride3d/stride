@@ -11,6 +11,12 @@ name: "Dep: Build & Deploy Lavapipe"
 #   Linux:    libvulkan_lvp.so      + lvp_icd.x86_64.json
 #   macOS:    libvulkan_lvp.dylib   + lvp_icd.x86_64.json
 # The ICD JSON's `library_path` may need rewriting to a side-by-side path.
+#
+# Debug files: Mesa compiles with debug info, and the package gets the libraries without it and without their local
+# symbols. The debug files (.pdb, .so.debug, .dSYM) go to the symbols pre-release (dep-symbols.yml), as
+# symbols-lavapipe-<rid> artifacts. LLVM is a Release build without debug info: its frames have function names only.
+# The flags go in c_args, cpp_args and the link args, not in buildtype, which also sets NDEBUG: /Z7 and -g don't change
+# the generated code, and /DEBUG needs /OPT:REF and /OPT:ICF to link as a Release build does.
 
 on:
   workflow_dispatch:
@@ -24,19 +30,54 @@ on:
         default: mesa-26.2.4
         required: false
       version:
-        description: NuGet package version (leave empty for date-based)
+        description: NuGet package version (leave empty for the Mesa version and the next build number)
         required: false
 
 env:
+  MESA_REPOSITORY: ${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}
   MESA_REF: ${{ github.event.inputs.ref || 'mesa-26.2.4' }}
 
 jobs:
+  # The builds fetch this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve Mesa ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      official: ${{ steps.version.outputs.official }}
+      version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
+      source: ${{ steps.version.outputs.source }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q mesa-src
+          git -C mesa-src remote add origin "$MESA_REPOSITORY"
+          git -C mesa-src fetch -q --depth 1 --filter=tree:0 origin "$MESA_REF"
+          echo "commit=$(git -C mesa-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      # Mesa's meson.build reads its version from the VERSION file
+      - name: Package version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $file = git -C mesa-src show "${commit}:VERSION"
+          if ($file.Count -ne 1 -or $file -notmatch '^\d+\.\d+\.\d+(-devel|-rc\d+)?$') { throw "VERSION isn't one line 'N.N.N[-devel|-rcN]': '$file'" }
+          "official=$file" >> $env:GITHUB_OUTPUT
+          stride-src/.github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.Lavapipe -Official $file `
+            -Source mesa-src -Commit $commit -Upstream https://gitlab.freedesktop.org/mesa/mesa.git `
+            -TagPrefix mesa- -Override '${{ github.event.inputs.version }}'
+
   build-windows:
     name: Build Lavapipe (Windows x64)
     runs-on: windows-2025-vs2026
+    needs: resolve
     outputs:
-      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
-      mesa-version: ${{ steps.info.outputs.mesa-version }}
       llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
@@ -48,11 +89,9 @@ jobs:
       - name: Clone Mesa
         shell: pwsh
         run: |
-          $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          $ref = "${{ env.MESA_REF }}"
           git init mesa-src
-          git -C mesa-src remote add origin $url
-          git -C mesa-src fetch --depth 1 origin $ref
+          git -C mesa-src remote add origin $env:MESA_REPOSITORY
+          git -C mesa-src fetch --depth 1 origin ${{ needs.resolve.outputs.commit }}
           git -C mesa-src checkout FETCH_HEAD
 
       - name: Install build dependencies
@@ -117,8 +156,6 @@ jobs:
         id: info
         shell: pwsh
         run: |
-          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
-          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
           "llvm-version=$(& '${{ github.workspace }}\llvm-install\bin\llvm-config.exe' --version)" >> $env:GITHUB_OUTPUT
 
       - name: Configure Mesa (Lavapipe only, static LLVM)
@@ -143,8 +180,10 @@ jobs:
             -Dvulkan-drivers=swrast ^
             -Dgallium-drivers=llvmpipe ^
             -Dplatforms=windows ^
-            -Dc_args="/wd4189" ^
-            -Dcpp_args="/wd4189" ^
+            -Dc_args="/wd4189 /Z7" ^
+            -Dcpp_args="/wd4189 /Z7" ^
+            -Dc_link_args="/DEBUG /OPT:REF /OPT:ICF" ^
+            -Dcpp_link_args="/DEBUG /OPT:REF /OPT:ICF" ^
             -Dglx=disabled -Degl=disabled ^
             -Dopengl=false -Dgles1=disabled -Dgles2=disabled ^
             -Dgallium-extra-hud=false ^
@@ -163,10 +202,9 @@ jobs:
       - name: Collect output
         shell: pwsh
         run: |
-          mkdir lavapipe-out
-          $dll = Get-ChildItem -Recurse mesa-src/_build -Filter vulkan_lvp.dll | Select-Object -First 1
-          if (-not $dll) { throw "vulkan_lvp.dll not found in build output" }
-          Copy-Item $dll.FullName lavapipe-out/
+          mkdir lavapipe-out, lavapipe-symbols
+          Copy-Item mesa-src/_build/src/gallium/targets/lavapipe/vulkan_lvp.dll lavapipe-out/
+          Copy-Item mesa-src/_build/src/gallium/targets/lavapipe/vulkan_lvp.pdb lavapipe-symbols/
           # ICD manifest with relative library_path. Windows Vulkan loader requires a
           # backslash here — forward-slash `./vulkan_lvp.dll` loads the DLL but every
           # subsequent Vulkan call returns VK_ERROR_OUT_OF_HOST_MEMORY.
@@ -178,14 +216,16 @@ jobs:
           name: lavapipe-win-x64
           path: lavapipe-out/
 
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-lavapipe-win-x64, path: lavapipe-symbols/ }
+
   build-windows-arm64:
     name: Build Lavapipe (Windows ARM64)
     # GitHub-hosted native Windows-on-ARM runner. Switch to a custom runner image
     # if you have one (mirror the x64 job's "windows-2025-vs2026" naming).
     runs-on: windows-11-arm
+    needs: resolve
     outputs:
-      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
-      mesa-version: ${{ steps.info.outputs.mesa-version }}
       llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
@@ -197,11 +237,9 @@ jobs:
       - name: Clone Mesa
         shell: pwsh
         run: |
-          $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          $ref = "${{ env.MESA_REF }}"
           git init mesa-src
-          git -C mesa-src remote add origin $url
-          git -C mesa-src fetch --depth 1 origin $ref
+          git -C mesa-src remote add origin $env:MESA_REPOSITORY
+          git -C mesa-src fetch --depth 1 origin ${{ needs.resolve.outputs.commit }}
           git -C mesa-src checkout FETCH_HEAD
 
       - name: Install build dependencies
@@ -260,8 +298,6 @@ jobs:
         id: info
         shell: pwsh
         run: |
-          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
-          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
           "llvm-version=$(& '${{ github.workspace }}\llvm-install\bin\llvm-config.exe' --version)" >> $env:GITHUB_OUTPUT
 
       - name: Configure Mesa (Lavapipe only, static LLVM)
@@ -284,8 +320,10 @@ jobs:
             -Dvulkan-drivers=swrast ^
             -Dgallium-drivers=llvmpipe ^
             -Dplatforms=windows ^
-            -Dc_args="/wd4189" ^
-            -Dcpp_args="/wd4189" ^
+            -Dc_args="/wd4189 /Z7" ^
+            -Dcpp_args="/wd4189 /Z7" ^
+            -Dc_link_args="/DEBUG /OPT:REF /OPT:ICF" ^
+            -Dcpp_link_args="/DEBUG /OPT:REF /OPT:ICF" ^
             -Dglx=disabled -Degl=disabled ^
             -Dopengl=false -Dgles1=disabled -Dgles2=disabled ^
             -Dgallium-extra-hud=false ^
@@ -304,10 +342,9 @@ jobs:
       - name: Collect output
         shell: pwsh
         run: |
-          mkdir lavapipe-out
-          $dll = Get-ChildItem -Recurse mesa-src/_build -Filter vulkan_lvp.dll | Select-Object -First 1
-          if (-not $dll) { throw "vulkan_lvp.dll not found in build output" }
-          Copy-Item $dll.FullName lavapipe-out/
+          mkdir lavapipe-out, lavapipe-symbols
+          Copy-Item mesa-src/_build/src/gallium/targets/lavapipe/vulkan_lvp.dll lavapipe-out/
+          Copy-Item mesa-src/_build/src/gallium/targets/lavapipe/vulkan_lvp.pdb lavapipe-symbols/
           Set-Content -NoNewline -Path lavapipe-out/lvp_icd.json -Value '{"file_format_version":"1.0.0","ICD":{"library_path":".\\vulkan_lvp.dll","api_version":"1.3.0"}}'
 
       - name: Upload artifact
@@ -316,12 +353,14 @@ jobs:
           name: lavapipe-win-arm64
           path: lavapipe-out/
 
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-lavapipe-win-arm64, path: lavapipe-symbols/ }
+
   build-linux:
     name: Build Lavapipe (Linux x64)
     runs-on: ubuntu-24.04
+    needs: resolve
     outputs:
-      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
-      mesa-version: ${{ steps.info.outputs.mesa-version }}
       llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
@@ -332,11 +371,9 @@ jobs:
 
       - name: Clone Mesa
         run: |
-          url="${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          ref="${{ env.MESA_REF }}"
           git init mesa-src
-          git -C mesa-src remote add origin "$url"
-          git -C mesa-src fetch --depth 1 origin "$ref"
+          git -C mesa-src remote add origin "$MESA_REPOSITORY"
+          git -C mesa-src fetch --depth 1 origin ${{ needs.resolve.outputs.commit }}
           git -C mesa-src checkout FETCH_HEAD
 
       - name: Install build dependencies
@@ -402,8 +439,6 @@ jobs:
         id: info
         shell: pwsh
         run: |
-          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
-          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
           "llvm-version=$(& '${{ github.workspace }}/llvm-install/bin/llvm-config' --version)" >> $env:GITHUB_OUTPUT
 
       - name: Configure & build
@@ -417,22 +452,31 @@ jobs:
             -Dopengl=false -Dgles1=disabled -Dgles2=disabled \
             -Dgallium-extra-hud=false -Dvideo-codecs= \
             -Dllvm=enabled -Dshared-llvm=disabled \
+            -Dc_args=-g -Dcpp_args=-g \
             -Dbuildtype=release
           ninja -C _build src/gallium/targets/lavapipe/libvulkan_lvp.so
 
+      # The .debug file keeps the debug info and the symbol table. The shipped library names it in its .gnu_debuglink,
+      # where gdb and lldb look for it.
       - name: Collect output
         run: |
-          mkdir -p lavapipe-out
-          find mesa-src/_build -name "libvulkan_lvp.so*" -exec cp {} lavapipe-out/ \;
+          mkdir -p lavapipe-out lavapipe-symbols
+          lib=mesa-src/_build/src/gallium/targets/lavapipe/libvulkan_lvp.so
+          objcopy --only-keep-debug $lib lavapipe-symbols/libvulkan_lvp.so.debug
+          objcopy --strip-unneeded --add-gnu-debuglink=lavapipe-symbols/libvulkan_lvp.so.debug \
+            $lib lavapipe-out/libvulkan_lvp.so
           # ICD manifest with relative library_path
           printf '%s' '{"file_format_version":"1.0.0","ICD":{"library_path":"./libvulkan_lvp.so","api_version":"1.3.0"}}' > lavapipe-out/lvp_icd.json
-          ls -la lavapipe-out/
+          ls -la lavapipe-out/ lavapipe-symbols/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: lavapipe-linux-x64
           path: lavapipe-out/
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-lavapipe-linux-x64, path: lavapipe-symbols/ }
 
       # Second Linux build: no-dma_buf variant for the Android emulator host. The emulator's
       # gfxstream renderer aborts headless ("Failed to find memory type for ColorBuffers")
@@ -453,14 +497,18 @@ jobs:
             -Dopengl=false -Dgles1=disabled -Dgles2=disabled \
             -Dgallium-extra-hud=false -Dvideo-codecs= \
             -Dllvm=enabled -Dshared-llvm=disabled \
+            -Dc_args=-g -Dcpp_args=-g \
             -Dbuildtype=release
           ninja -C _build_nodmabuf src/gallium/targets/lavapipe/libvulkan_lvp.so
 
       - name: Collect no-dma_buf output
         run: |
-          mkdir -p lavapipe-out-nodmabuf
-          find mesa-src/_build_nodmabuf -name "libvulkan_lvp.so*" -exec cp {} lavapipe-out-nodmabuf/ \;
-          ls -la lavapipe-out-nodmabuf/
+          mkdir -p lavapipe-out-nodmabuf lavapipe-symbols-nodmabuf
+          lib=mesa-src/_build_nodmabuf/src/gallium/targets/lavapipe/libvulkan_lvp.so
+          objcopy --only-keep-debug $lib lavapipe-symbols-nodmabuf/libvulkan_lvp.so.debug
+          objcopy --strip-unneeded --add-gnu-debuglink=lavapipe-symbols-nodmabuf/libvulkan_lvp.so.debug \
+            $lib lavapipe-out-nodmabuf/libvulkan_lvp.so
+          ls -la lavapipe-out-nodmabuf/ lavapipe-symbols-nodmabuf/
 
       - name: Upload no-dma_buf artifact
         uses: actions/upload-artifact@v7
@@ -468,12 +516,14 @@ jobs:
           name: lavapipe-linux-x64-nodmabuf
           path: lavapipe-out-nodmabuf/
 
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-lavapipe-linux-x64-nodmabuf, path: lavapipe-symbols-nodmabuf/ }
+
   build-macos:
     name: Build Lavapipe (macOS ARM64)
     runs-on: macos-15
+    needs: resolve
     outputs:
-      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
-      mesa-version: ${{ steps.info.outputs.mesa-version }}
       llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
@@ -484,11 +534,9 @@ jobs:
 
       - name: Clone Mesa
         run: |
-          url="${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          ref="${{ env.MESA_REF }}"
           git init mesa-src
-          git -C mesa-src remote add origin "$url"
-          git -C mesa-src fetch --depth 1 origin "$ref"
+          git -C mesa-src remote add origin "$MESA_REPOSITORY"
+          git -C mesa-src fetch --depth 1 origin ${{ needs.resolve.outputs.commit }}
           git -C mesa-src checkout FETCH_HEAD
 
       - name: Install build dependencies
@@ -500,8 +548,6 @@ jobs:
         id: info
         shell: pwsh
         run: |
-          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
-          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
           "llvm-version=$(& '/opt/homebrew/opt/llvm/bin/llvm-config' --version)" >> $env:GITHUB_OUTPUT
 
       - name: Configure & build
@@ -522,13 +568,19 @@ jobs:
             -Dopengl=false -Dgles1=disabled -Dgles2=disabled \
             -Dgallium-extra-hud=false -Dvideo-codecs= \
             -Dllvm=enabled -Dshared-llvm=disabled \
+            -Dc_args=-g -Dcpp_args=-g \
             -Dbuildtype=release
           ninja -C _build src/gallium/targets/lavapipe/libvulkan_lvp.dylib
 
+      # The DWARF stays in the object files: dsymutil collects it. strip -S removes the debug map that points to them,
+      # and -x the local symbols. strip breaks the signature, and arm64 needs one: codesign adds an ad-hoc one.
       - name: Collect output
         run: |
-          mkdir -p lavapipe-out
-          find mesa-src/_build -name "libvulkan_lvp*.dylib" -exec cp {} lavapipe-out/ \;
+          mkdir -p lavapipe-out lavapipe-symbols
+          dsymutil mesa-src/_build/src/gallium/targets/lavapipe/libvulkan_lvp.dylib -o lavapipe-symbols/libvulkan_lvp.dylib.dSYM
+          strip -S -x -o lavapipe-out/libvulkan_lvp.dylib \
+            mesa-src/_build/src/gallium/targets/lavapipe/libvulkan_lvp.dylib
+          codesign -f -s - lavapipe-out/libvulkan_lvp.dylib
           # ICD manifest with relative library_path
           printf '%s' '{"file_format_version":"1.0.0","ICD":{"library_path":"./libvulkan_lvp.dylib","api_version":"1.3.0"}}' > lavapipe-out/lvp_icd.json
           ls -la lavapipe-out/
@@ -539,9 +591,12 @@ jobs:
           name: lavapipe-osx-arm64
           path: lavapipe-out/
 
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-lavapipe-osx-arm64, path: lavapipe-symbols/ }
+
   pack:
-    name: Pack NuGet
-    needs: [build-windows, build-windows-arm64, build-linux, build-macos]
+    name: Pack NuGet ${{ needs.resolve.outputs.number }}
+    needs: [resolve, build-windows, build-windows-arm64, build-linux, build-macos]
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout
@@ -593,18 +648,26 @@ jobs:
         shell: pwsh
         run: |
           $lines = @(
-            "Mesa ${{ needs.build-linux.outputs.mesa-version }} (ref ${{ env.MESA_REF }})"
-            "Repository: ${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
+            "Mesa ${{ needs.resolve.outputs.official }} (ref ${{ env.MESA_REF }})"
+            "Repository: ${{ env.MESA_REPOSITORY }}"
+            "Commit: ${{ needs.resolve.outputs.commit }}"
+          )
+          if ('${{ needs.resolve.outputs.source }}') { $lines += '${{ needs.resolve.outputs.source }}' }
+          $lines += @(
             ""
-            "win-x64:   Mesa ${{ needs.build-windows.outputs.mesa-commit }}, LLVM ${{ needs.build-windows.outputs.llvm-version }}"
-            "win-arm64: Mesa ${{ needs.build-windows-arm64.outputs.mesa-commit }}, LLVM ${{ needs.build-windows-arm64.outputs.llvm-version }}"
-            "linux-x64: Mesa ${{ needs.build-linux.outputs.mesa-commit }}, LLVM ${{ needs.build-linux.outputs.llvm-version }} (also linux-x64-nodmabuf)"
-            "osx-arm64: Mesa ${{ needs.build-macos.outputs.mesa-commit }}, LLVM ${{ needs.build-macos.outputs.llvm-version }}"
+            "win-x64:   LLVM ${{ needs.build-windows.outputs.llvm-version }}"
+            "win-arm64: LLVM ${{ needs.build-windows-arm64.outputs.llvm-version }}"
+            "linux-x64: LLVM ${{ needs.build-linux.outputs.llvm-version }} (also linux-x64-nodmabuf)"
+            "osx-arm64: LLVM ${{ needs.build-macos.outputs.llvm-version }}"
             ""
             "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
             "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           )
+          # The symbols job creates this pre-release on stride3d/stride only
+          if ('${{ github.repository }}' -eq 'stride3d/stride') {
+            $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/lavapipe/${{ needs.resolve.outputs.number }}"
+          }
           New-Item -ItemType Directory -Force deps/lavapipe/tools | Out-Null
           $lines | Set-Content deps/lavapipe/tools/VERSION.txt
           $block = @('```') + $lines + @('```')
@@ -621,14 +684,11 @@ jobs:
       - name: Pack NuGet (dotnet pack)
         shell: pwsh
         run: |
-          $version = "${{ github.event.inputs.version }}"
-          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
           dotnet pack deps/lavapipe/Stride.Dependencies.Lavapipe.csproj `
             -c Release `
-            -p:PackageVersion=$version `
+            -p:PackageVersion=${{ needs.resolve.outputs.version }} `
             -p:RepositoryCommit=${{ github.sha }} `
             -o nupkg
-          echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v7
@@ -636,12 +696,30 @@ jobs:
           name: Stride.Dependencies.Lavapipe.nupkg
           path: nupkg/*.nupkg
 
+      - uses: actions/upload-artifact@v7
+        with: { name: version-lavapipe, path: deps/lavapipe/tools/VERSION.txt }
+
   # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
-    needs: pack
+    name: Publish ${{ needs.resolve.outputs.number }}
+    needs: [resolve, pack]
     permissions:
+      actions: read
       contents: read
       id-token: write
     uses: ./.github/workflows/dep-publish.yml
+    secrets: inherit # without it, the called job gets no secret, not even those of its environment
     with:
       artifact: Stride.Dependencies.Lavapipe.nupkg
+
+  # After publish: a package that was not published gets no debug files
+  symbols:
+    needs: [resolve, pack, publish]
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: lavapipe
+      version: ${{ needs.resolve.outputs.number }}
+      notes-artifact: version-lavapipe

@@ -48,6 +48,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
           exclude: samples
+      - uses: ./.github/actions/unpublished-packages
       - name: Install Android Workload
         uses: ./.github/actions/stride-workload
         with:

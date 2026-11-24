@@ -72,6 +72,7 @@ jobs:
           submodules: true
           ref: ${{ github.ref }}
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/unpublished-packages
       - name: Install dependencies
         if: runner.os == 'Linux'
         # lld links the native code the filter builds (Stride.Native.targets, Stride.CrashReport); the Vulkan

@@ -41,6 +41,7 @@ on:
         default: true
 
 permissions:
+  actions: read # the unpublished-packages action downloads the packages of dep runs
   checks: write
   contents: read
   pull-requests: read
@@ -481,3 +482,17 @@ jobs:
         run: |
           echo "$NEEDS" | jq -r 'to_entries[] | "\(.value.result)\t\(.key)"'
           test "$(echo "$NEEDS" | jq '[.[] | select(.result=="failure" or .result=="cancelled")] | length')" -eq 0
+
+      # The lanes test the packages of the dep runs that the file lists (unpublished-packages action): their PR merges once they are on nuget.org
+      - name: Fail while the lanes test unpublished packages
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if out=$(gh api "repos/$GITHUB_REPOSITORY/contents/deps/unpublished-packages.txt?ref=$GITHUB_SHA" --jq .path 2>&1); then
+            echo "::error title=Unpublished packages::deps/unpublished-packages.txt makes CI test packages that are not on nuget.org. Once their publish is approved, remove the file."
+            exit 1
+          elif [[ "$out" != *"HTTP 404"* ]]; then
+            echo "$out"
+            exit 1
+          fi

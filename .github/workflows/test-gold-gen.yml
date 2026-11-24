@@ -94,6 +94,7 @@ on:
         default: false
 
 permissions:
+  actions: read # the unpublished-packages action downloads the packages of dep runs
   checks: write
   contents: read
 

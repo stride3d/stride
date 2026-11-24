@@ -101,18 +101,9 @@ Key inputs — all four platforms default to on:
 
 Generating brand-new gold makes the platform jobs go **red** ("reference image missing") — that's expected. The `gather` job always runs; download its `gold-images` artifact (or point CompareGold at the run) to review. Promotion is tolerance-aware — the same per-pixel compare the tests use — so a render within tolerance of a higher-priority API's gold is covered by fallback instead of committed as near-identical gold.
 
-### Linux Gold Images
+### Linux
 
-```powershell
-# Build on Windows, test on Linux via WSL2
-.\tests\infra\linux\run-linux-tests.ps1
-
-# Skip rebuild, just re-run tests
-.\tests\infra\linux\run-linux-tests.ps1 -SkipBuild
-
-# Review results visually
-tests\compare-gold.cmd
-```
+Linux gold images come from the workflow above, like the others. To run the tests on Linux yourself, build and run them in a clone inside WSL: see [Building and Testing on Linux (WSL)](../docs/build/README.md#building-and-testing-on-linux-wsl).
 
 ## Dealing with Flaky Tests
 
