@@ -101,6 +101,7 @@ jobs:
         with:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
+      - uses: ./.github/actions/unpublished-packages
       # Not the Linux lane's name: the key has the runner's OS, Linux on both.
       - uses: ./.github/actions/effect-cache
         with:

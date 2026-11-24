@@ -5,7 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
+using System.Linq;
+using System.Xml.Linq;
 using Xunit;
 
 namespace Stride.Packaging.Tests;
@@ -16,11 +17,11 @@ internal sealed record ExtraFeed(string Key, string Path, params string[] Patter
 internal static class NuGetConsumerFeed
 {
     /// <summary>
-    /// nuget.config resolving Stride.* only from the workspace bin/packages feed — no public
+    /// nuget.config resolving Stride.* only from the workspace bin/packages feed, with no public
     /// fallback for first-party packages, so a missing-from-pack package fails as NU1101
-    /// instead of silently resolving a public version. Mirrors the workspace's own
-    /// packageSourceMapping (Stride.Dependencies.* etc. still flow from nuget.org). Extra
-    /// feeds (e.g. a freshly packed plugin) are mapped to their own patterns. The packages go to the case's own
+    /// instead of silently resolving a public version. It takes the packageSourceMapping of the repository's
+    /// nuget.config: Stride.Dependencies.* and the like come from nuget.org, except the unpublished packages that CI maps to bin/packages.
+    /// Extra feeds (e.g. a freshly packed plugin) are mapped to their own patterns. The packages go to the case's own
     /// folder, the engine's come from the shared one (<see cref="TestEnvironment.SharedPackagesFolder"/>).
     /// </summary>
     public static void WriteStrictNuGetConfig(string consumerDir, IReadOnlyList<ExtraFeed>? extraFeeds = null)
@@ -30,54 +31,28 @@ internal static class NuGetConsumerFeed
     /// <remarks>The companion packages a session restores go to that folder too: the session reads this nuget.config.</remarks>
     public static void WriteStrictNuGetConfig(string consumerDir, string packagesFolder, string? fallbackFolder, IReadOnlyList<ExtraFeed>? extraFeeds = null)
     {
-        var binPackages = TestEnvironment.BinPackages();
-        var fallback = fallbackFolder is not null ? $"""<add key="shared" value="{fallbackFolder}" />""" : "";
+        static XElement Add(string key, string value) => new("add", new XAttribute("key", key), new XAttribute("value", value));
 
-        var sources = new StringBuilder();
-        var mappings = new StringBuilder();
-        if (extraFeeds is not null)
+        // The mapping of the repository names the sources nuget.org and stride-local, the keys of the sources below
+        var mapping = new XElement(XDocument.Load(Path.Combine(TestEnvironment.WorktreeRoot(), "nuget.config")).Root!.Element("packageSourceMapping")!);
+        var sources = new XElement("packageSources",
+            new XElement("clear"),
+            Add("nuget.org", "https://api.nuget.org/v3/index.json"),
+            Add("stride-local", TestEnvironment.BinPackages()));
+        foreach (var feed in extraFeeds ?? [])
         {
-            foreach (var feed in extraFeeds)
-            {
-                sources.AppendLine($"""    <add key="{feed.Key}" value="{feed.Path}" />""");
-                mappings.AppendLine($"""    <packageSource key="{feed.Key}">""");
-                foreach (var pattern in feed.Patterns)
-                    mappings.AppendLine($"""      <package pattern="{pattern}" />""");
-                mappings.AppendLine("""    </packageSource>""");
-            }
+            sources.Add(Add(feed.Key, feed.Path));
+            mapping.Add(new XElement("packageSource", new XAttribute("key", feed.Key),
+                feed.Patterns.Select(pattern => new XElement("package", new XAttribute("pattern", pattern)))));
         }
 
-        File.WriteAllText(Path.Combine(consumerDir, "nuget.config"), $"""
-            <?xml version="1.0" encoding="utf-8"?>
-            <configuration>
-              <config>
-                <add key="globalPackagesFolder" value="{packagesFolder}" />
-              </config>
-              <fallbackPackageFolders>
-                <clear />
-                {fallback}
-              </fallbackPackageFolders>
-              <packageSources>
-                <clear />
-                <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-                <add key="stride-local" value="{binPackages}" />
-            {sources.ToString().TrimEnd()}
-              </packageSources>
-              <packageSourceMapping>
-                <packageSource key="nuget.org">
-                  <package pattern="*" />
-                  <package pattern="Stride.GNU.*" />
-                  <package pattern="Stride.Mono.*" />
-                  <package pattern="Stride.Dependencies.*" />
-                </packageSource>
-                <packageSource key="stride-local">
-                  <package pattern="Stride" />
-                  <package pattern="Stride.*" />
-                </packageSource>
-            {mappings.ToString().TrimEnd()}
-              </packageSourceMapping>
-            </configuration>
-            """);
+        new XDocument(new XElement("configuration",
+            new XElement("config", Add("globalPackagesFolder", packagesFolder)),
+            new XElement("fallbackPackageFolders",
+                new XElement("clear"),
+                fallbackFolder is not null ? Add("shared", fallbackFolder) : null),
+            sources,
+            mapping)).Save(Path.Combine(consumerDir, "nuget.config"));
     }
 }
 

@@ -3,6 +3,8 @@ name: "Dep: Sign & Publish"
 # Signs a dependency package built by the calling dep-* workflow and pushes it to nuget.org.
 # nuget.org's trusted publishing matches the workflow file of the job (job_workflow_ref), which is this file
 # when called: one policy for this file covers every dependency.
+# Before the approval, a PR can test the package in all of CI: it pins the version in sources/Directory.Packages.props
+# and lists the run in deps/unpublished-packages.txt (the unpublished-packages action). Gate fails until the file is removed.
 
 on:
   workflow_call:

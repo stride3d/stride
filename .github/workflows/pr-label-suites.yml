@@ -22,6 +22,7 @@ on:
     types: [reopened, synchronize, ready_for_review, labeled]
 
 permissions:
+  actions: read # the unpublished-packages action downloads the packages of dep runs
   contents: read
   pull-requests: read
 

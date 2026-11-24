@@ -47,6 +47,7 @@ jobs:
           submodules: true
           ref: ${{ github.ref }}
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/unpublished-packages
       - name: Build
         run: |
           dotnet build sources\Stride.Tests.Simple.slnf `

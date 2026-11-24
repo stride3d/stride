@@ -80,6 +80,7 @@ jobs:
       - uses: ./.github/actions/stride-checkout
         with:
           ref: ${{ github.ref }}
+      - uses: ./.github/actions/unpublished-packages
 
       - name: Configure crash dumps
         shell: pwsh

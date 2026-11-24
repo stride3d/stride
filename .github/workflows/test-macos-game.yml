@@ -101,6 +101,7 @@ jobs:
         with:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
+      - uses: ./.github/actions/unpublished-packages
       - uses: ./.github/actions/effect-cache
         with:
           mode: restore
