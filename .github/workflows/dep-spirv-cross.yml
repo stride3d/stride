@@ -10,6 +10,10 @@ on:
         description: stride3d/SPIRV-Cross ref to build (branch, tag or SHA)
         required: true
 
+# Debug files: the builds compile with debug info, and the .pdb goes to the symbols pre-release (dep-symbols.yml).
+# CFLAGS, CXXFLAGS and LDFLAGS add to CMake's default flags: /Z7 doesn't change the generated code, and /DEBUG needs
+# /OPT:REF and /OPT:ICF to link as a Release build does.
+
 env:
   SPIRV_CROSS_REF: ${{ github.event.inputs.ref }}
 
@@ -21,6 +25,7 @@ jobs:
     outputs:
       commit: ${{ steps.resolve.outputs.commit }}
       version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
       source: ${{ steps.version.outputs.source }}
     steps:
       - uses: actions/checkout@v7
@@ -62,6 +67,7 @@ jobs:
 
       - name: Build
         shell: pwsh
+        env: { CFLAGS: /Z7, CXXFLAGS: /Z7, LDFLAGS: /DEBUG /OPT:REF /OPT:ICF }
         run: |
           cmake -S spirv-cross-src -B spirv-cross-build -Thost=x64 `
             -DSPIRV_CROSS_SHARED=ON `
@@ -74,6 +80,11 @@ jobs:
         with:
           name: spirv-cross-win-x64
           path: spirv-cross-build/Release/spirv-cross-c-shared.dll
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-spirv-cross-win-x64
+          path: spirv-cross-build/Release/spirv-cross-c-shared.pdb
 
   # Windows ARM64 — same host, MSVC ARM64 cross-compile (as in dep-spirv-tools.yml).
   build-windows-arm64:
@@ -90,6 +101,7 @@ jobs:
 
       - name: Build
         shell: pwsh
+        env: { CFLAGS: /Z7, CXXFLAGS: /Z7, LDFLAGS: /DEBUG /OPT:REF /OPT:ICF }
         run: |
           cmake -S spirv-cross-src -B spirv-cross-build -A ARM64 -Thost=x64 `
             -DSPIRV_CROSS_SHARED=ON `
@@ -102,6 +114,11 @@ jobs:
         with:
           name: spirv-cross-win-arm64
           path: spirv-cross-build/Release/spirv-cross-c-shared.dll
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-spirv-cross-win-arm64
+          path: spirv-cross-build/Release/spirv-cross-c-shared.pdb
 
   pack:
     name: Pack NuGet ${{ needs.resolve.outputs.number }}
@@ -146,6 +163,10 @@ jobs:
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
             "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           )
+          # The symbols job creates this pre-release on stride3d/stride only
+          if ('${{ github.repository }}' -eq 'stride3d/stride') {
+            $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/spirv-cross/${{ needs.resolve.outputs.number }}"
+          }
           New-Item -ItemType Directory -Force deps/spirv-cross/tools | Out-Null
           $lines | Set-Content deps/spirv-cross/tools/VERSION.txt
           $block = @('```') + $lines + @('```')
@@ -174,6 +195,9 @@ jobs:
           name: Stride.Dependencies.SpirvCross.nupkg
           path: nupkg/*.nupkg
 
+      - uses: actions/upload-artifact@v7
+        with: { name: version-spirv-cross, path: deps/spirv-cross/tools/VERSION.txt }
+
   # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
     name: Publish ${{ needs.resolve.outputs.number }}
@@ -184,3 +208,14 @@ jobs:
     uses: ./.github/workflows/dep-publish.yml
     with:
       artifact: Stride.Dependencies.SpirvCross.nupkg
+
+  # After publish: a package that was not published gets no debug files
+  symbols:
+    needs: [resolve, pack, publish]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: spirv-cross
+      version: ${{ needs.resolve.outputs.number }}
+      notes-artifact: version-spirv-cross

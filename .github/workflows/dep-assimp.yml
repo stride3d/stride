@@ -2,6 +2,10 @@ name: "Dep: Build & Deploy Assimp"
 
 # Builds the Assimp of Stride.Dependencies.Assimp: upstream at a tag, plus the patches in deps/assimp.
 # The managed bindings stay Silk.NET.Assimp, so a new Assimp must keep the struct layouts those bindings expect.
+#
+# Debug files: the package gets the libraries without debug info, and the debug files (.pdb, full .so, .dSYM) go to
+# the symbols pre-release (dep-symbols.yml), as symbols-assimp-<rid> artifacts. On Windows, Assimp's own
+# ASSIMP_INSTALL_PDB (on by default) makes the .pdb of its Release build; Linux and macOS add -g to CMake's flags.
 
 on:
   workflow_dispatch:
@@ -25,6 +29,7 @@ jobs:
     outputs:
       commit: ${{ steps.resolve.outputs.commit }}
       version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -89,13 +94,17 @@ jobs:
       - name: Collect output
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force assimp-out | Out-Null
-          # Silk.NET expects the DLL named "Assimp64"
+          New-Item -ItemType Directory -Force assimp-out, assimp-symbols | Out-Null
+          # Silk.NET expects the DLL named "Assimp64". The .pdb keeps its name: the DLL names it.
           Copy-Item (Get-Item _build/bin/Release/assimp-*-mt.dll).FullName assimp-out/Assimp64.dll
+          Copy-Item (Get-Item _build/bin/Release/assimp-*-mt.pdb).FullName assimp-symbols/
           Copy-Item assimp-src/LICENSE assimp-out/LICENSE
 
       - uses: actions/upload-artifact@v7
         with: { name: 'assimp-${{ matrix.rid }}', path: assimp-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: 'symbols-assimp-${{ matrix.rid }}', path: assimp-symbols/ }
 
   build-linux:
     name: Build Assimp (Linux x64)
@@ -115,19 +124,24 @@ jobs:
         run: for patch in stride-src/deps/assimp/*.patch; do git -C assimp-src apply --verbose "$PWD/$patch"; done
 
       - name: Build
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           sudo apt-get update && sudo apt-get install -y cmake ninja-build
           cmake -S assimp-src -B _build -G Ninja $CMAKE_OPTIONS
           cmake --build _build
 
+      # The symbol table stays, as in the other libraries Stride builds for Linux
       - name: Collect output
         run: |
-          mkdir -p assimp-out
-          cp -L _build/bin/libassimp.so.6 assimp-out/libassimp.so.6
-          strip assimp-out/libassimp.so.6
+          mkdir -p assimp-out assimp-symbols
+          cp -L _build/bin/libassimp.so.6 assimp-symbols/libassimp.so.6
+          strip --strip-debug -o assimp-out/libassimp.so.6 assimp-symbols/libassimp.so.6
 
       - uses: actions/upload-artifact@v7
         with: { name: assimp-linux-x64, path: assimp-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-assimp-linux-x64, path: assimp-symbols/ }
 
   build-macos:
     name: Build Assimp (macOS ARM64)
@@ -147,19 +161,27 @@ jobs:
         run: for patch in stride-src/deps/assimp/*.patch; do git -C assimp-src apply --verbose "$PWD/$patch"; done
 
       - name: Build
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           brew install ninja || true
           # The system zlib: Assimp's bundled one doesn't compile against the macOS SDK's stdio.h
           cmake -S assimp-src -B _build -G Ninja -DCMAKE_OSX_ARCHITECTURES=arm64 $CMAKE_OPTIONS -DASSIMP_BUILD_ZLIB=OFF
           cmake --build _build
 
+      # The DWARF stays in the object files: dsymutil collects it, and strip -S removes the debug map that points to
+      # them. strip changes the file, so it gets a new ad-hoc signature, which arm64 needs to load it.
       - name: Collect output
         run: |
-          mkdir -p assimp-out
-          cp -L _build/bin/libassimp.6.dylib assimp-out/libassimp.6.dylib
+          mkdir -p assimp-out assimp-symbols
+          dsymutil _build/bin/libassimp.6.dylib -o assimp-symbols/libassimp.6.dylib.dSYM
+          strip -S -o assimp-out/libassimp.6.dylib _build/bin/libassimp.6.dylib
+          codesign -f -s - assimp-out/libassimp.6.dylib
 
       - uses: actions/upload-artifact@v7
         with: { name: assimp-osx-arm64, path: assimp-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-assimp-osx-arm64, path: assimp-symbols/ }
 
   pack:
     name: Pack NuGet ${{ needs.resolve.outputs.number }}
@@ -194,6 +216,10 @@ jobs:
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
             "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           )
+          # The symbols job creates this pre-release on stride3d/stride only
+          if ('${{ github.repository }}' -eq 'stride3d/stride') {
+            $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/assimp/${{ needs.resolve.outputs.number }}"
+          }
           $lines | Set-Content deps/assimp/tools/VERSION.txt
           $block = @('```') + $lines + @('```')
           $block | Add-Content $env:GITHUB_STEP_SUMMARY
@@ -218,6 +244,9 @@ jobs:
       - uses: actions/upload-artifact@v7
         with: { name: Stride.Dependencies.Assimp.nupkg, path: nupkg/*.nupkg }
 
+      - uses: actions/upload-artifact@v7
+        with: { name: version-assimp, path: deps/assimp/tools/VERSION.txt }
+
   # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
     name: Publish ${{ needs.resolve.outputs.number }}
@@ -228,3 +257,14 @@ jobs:
     uses: ./.github/workflows/dep-publish.yml
     with:
       artifact: Stride.Dependencies.Assimp.nupkg
+
+  # After publish: a package that was not published gets no debug files
+  symbols:
+    needs: [resolve, pack, publish]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: assimp
+      version: ${{ needs.resolve.outputs.number }}
+      notes-artifact: version-assimp
