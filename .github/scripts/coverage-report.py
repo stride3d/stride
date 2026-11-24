@@ -32,7 +32,11 @@ LANES = {
     "game-Vulkan": "Vulkan",
     "editor-wpf": "WPF editor",
     "editor-avalonia": "Avalonia editor",
+    "samples": "Samples",
+    "editor-screenshots": "Game Studio screenshots",
 }
+# Lanes only pushes run (main.yml): a PR that doesn't run them isn't missing them
+PUSH_LANES = {"samples", "editor-screenshots"}
 NOT_MEASURED = "Linux, macOS, iOS, Android"
 # An assembly the PR doesn't change is listed when its covered lines change by more than this: two runs of the same
 # commit differ by up to 32 lines in one assembly (timing).
@@ -487,7 +491,7 @@ def report(args):
         lines.append("Not loaded by any test that ran: " + ", ".join(
             f"{a} ({n} changed line{'s' if n != 1 else ''})" for a, n in sorted(not_loaded.items())))
     measured = f"Measured on Windows: {ran} · not measured: {NOT_MEASURED}"
-    if missing:
+    if any(key not in current and key not in PUSH_LANES for key in LANES):
         measured += ", lanes this PR didn't start"
     lines.append(measured)
     lines.append(change_source(args, baseline, common, failed, current))
