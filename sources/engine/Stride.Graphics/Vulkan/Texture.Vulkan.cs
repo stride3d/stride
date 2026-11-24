@@ -611,6 +611,11 @@ namespace Stride.Graphics
             var viewUsage = default(VkImageUsageFlags);
             if (IsShaderResource && !cubeAsStorageArray) viewUsage |= VkImageUsageFlags.Sampled;
             if (IsUnorderedAccess && (cubeAsStorageArray || !hasCubeStorageArrayView)) viewUsage |= VkImageUsageFlags.Storage;
+
+            // A cube that is only a storage image has nothing to sample: its storage goes through the 2D-array view
+            if (viewUsage == default)
+                return VkImageView.Null;
+
             var viewUsageInfo = new VkImageViewUsageCreateInfo
             {
                 sType = VkStructureType.ImageViewUsageCreateInfo,

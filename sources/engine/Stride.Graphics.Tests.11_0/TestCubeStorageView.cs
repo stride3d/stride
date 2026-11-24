@@ -18,12 +18,14 @@ public class TestCubeStorageView : GraphicTestGameBase
 
     private ComputeEffectShader computeEffect;
     private Texture cube;
+    private Texture storageOnlyCube;
 
     protected override void RegisterTests()
     {
         base.RegisterTests();
 
         FrameGameSystem.Draw(ComputeShaderWritesAllCubeFaces);
+        FrameGameSystem.Draw(ComputeShaderWritesAllFacesOfStorageOnlyCube);
     }
 
     protected override async Task LoadContent()
@@ -31,6 +33,7 @@ public class TestCubeStorageView : GraphicTestGameBase
         await base.LoadContent();
 
         cube = Texture.NewCube(GraphicsDevice, FaceSize, PixelFormat.R32G32B32A32_Float, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess).DisposeBy(this);
+        storageOnlyCube = Texture.NewCube(GraphicsDevice, FaceSize, PixelFormat.R32G32B32A32_Float, TextureFlags.UnorderedAccess).DisposeBy(this);
 
         computeEffect = new ComputeEffectShader(RenderContext.GetShared(Services))
         {
@@ -41,7 +44,11 @@ public class TestCubeStorageView : GraphicTestGameBase
         computeEffect.DisposeBy(this);
     }
 
-    private void ComputeShaderWritesAllCubeFaces()
+    private void ComputeShaderWritesAllCubeFaces() => WriteAndCheckAllFaces(cube);
+
+    private void ComputeShaderWritesAllFacesOfStorageOnlyCube() => WriteAndCheckAllFaces(storageOnlyCube);
+
+    private void WriteAndCheckAllFaces(Texture cube)
     {
         var commandList = GraphicsContext.CommandList;
         var renderDrawContext = new RenderDrawContext(Services, RenderContext.GetShared(Services), GraphicsContext);
