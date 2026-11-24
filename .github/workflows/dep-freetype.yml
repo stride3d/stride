@@ -359,6 +359,7 @@ jobs:
   symbols:
     needs: collect
     permissions:
+      actions: read
       contents: write
     uses: ./.github/workflows/dep-symbols.yml
     with:
