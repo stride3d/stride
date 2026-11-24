@@ -5,10 +5,24 @@ name: "Dep: Sign & Publish"
 # when called: one policy for this file covers every dependency.
 # Before the approval, a PR can test the package in all of CI: it pins the version in sources/Directory.Packages.props
 # and lists the run in deps/unpublished-packages.txt (the unpublished-packages action). Gate fails until the file is removed.
+# When that publish fails, run this workflow by hand with the run id: it publishes the package CI tested, without a rebuild.
+# Then run dep-symbols.yml the same way for the debug files.
+
+run-name: Publish ${{ inputs.artifact }} of run ${{ inputs.run-id }}
 
 on:
   workflow_call:
     inputs:
+      artifact:
+        description: Name of the artifact that holds the .nupkg
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      run-id:
+        description: Run of the dep-* workflow that built the package
+        required: true
+        type: string
       artifact:
         description: Name of the artifact that holds the .nupkg
         required: true
@@ -24,9 +38,25 @@ jobs:
     runs-on: windows-2025-vs2026
     environment: production
     permissions:
+      actions: read # the artifact of another run
       contents: read
       id-token: write # nuget.org trusted publishing
     steps:
+      # Run by hand, the package must come from a dep-* run of this repository and branch: the branch policy of the
+      # production environment then covers the commit it was built from, as when the dep workflow publishes it.
+      - name: Check the run
+        if: inputs.run-id
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run-id }}
+        run: |
+          $run = gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:RUN_ID" | ConvertFrom-Json
+          if ($run.head_repository.full_name -ne $env:GITHUB_REPOSITORY -or $run.head_branch -ne $env:GITHUB_REF_NAME -or $run.path -notlike '.github/workflows/dep-*.yml') {
+            Write-Output "::error::Run $($env:RUN_ID) is $($run.path) on $($run.head_repository.full_name) $($run.head_branch), not a dep-* run of $($env:GITHUB_REPOSITORY) $($env:GITHUB_REF_NAME)"
+            exit 1
+          }
+
       # The sign tool version is pinned in build/package/dotnet-tools.json: check out only that file
       - uses: actions/checkout@v7
         with:
@@ -44,6 +74,8 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.artifact }}
+          run-id: ${{ inputs.run-id || github.run_id }}
+          github-token: ${{ github.token }}
 
       - name: Sign NuGet package
         shell: pwsh

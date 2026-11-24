@@ -255,9 +255,11 @@ jobs:
     name: Publish ${{ needs.resolve.outputs.number }}
     needs: [resolve, pack]
     permissions:
+      actions: read
       contents: read
       id-token: write
     uses: ./.github/workflows/dep-publish.yml
+    secrets: inherit # without it, the called job gets no secret, not even those of its environment
     with:
       artifact: Stride.Dependencies.Assimp.nupkg
 
@@ -265,6 +267,7 @@ jobs:
   symbols:
     needs: [resolve, pack, publish]
     permissions:
+      actions: read
       contents: write
     uses: ./.github/workflows/dep-symbols.yml
     with:
