@@ -24,19 +24,53 @@ on:
         default: mesa-26.2.4
         required: false
       version:
-        description: NuGet package version (leave empty for date-based)
+        description: NuGet package version (leave empty for the Mesa version and the next build number)
         required: false
 
 env:
+  MESA_REPOSITORY: ${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}
   MESA_REF: ${{ github.event.inputs.ref || 'mesa-26.2.4' }}
 
 jobs:
+  # The builds fetch this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve Mesa ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      official: ${{ steps.version.outputs.official }}
+      version: ${{ steps.version.outputs.version }}
+      source: ${{ steps.version.outputs.source }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q mesa-src
+          git -C mesa-src remote add origin "$MESA_REPOSITORY"
+          git -C mesa-src fetch -q --depth 1 --filter=tree:0 origin "$MESA_REF"
+          echo "commit=$(git -C mesa-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      # Mesa's meson.build reads its version from the VERSION file
+      - name: Package version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $file = git -C mesa-src show "${commit}:VERSION"
+          if ($file.Count -ne 1 -or $file -notmatch '^\d+\.\d+\.\d+(-devel|-rc\d+)?$') { throw "VERSION isn't one line 'N.N.N[-devel|-rcN]': '$file'" }
+          "official=$file" >> $env:GITHUB_OUTPUT
+          stride-src/.github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.Lavapipe -Official $file `
+            -Source mesa-src -Commit $commit -Upstream https://gitlab.freedesktop.org/mesa/mesa.git `
+            -TagPrefix mesa- -Override '${{ github.event.inputs.version }}'
+
   build-windows:
     name: Build Lavapipe (Windows x64)
     runs-on: windows-2025-vs2026
+    needs: resolve
     outputs:
-      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
-      mesa-version: ${{ steps.info.outputs.mesa-version }}
       llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
@@ -48,11 +82,9 @@ jobs:
       - name: Clone Mesa
         shell: pwsh
         run: |
-          $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          $ref = "${{ env.MESA_REF }}"
           git init mesa-src
-          git -C mesa-src remote add origin $url
-          git -C mesa-src fetch --depth 1 origin $ref
+          git -C mesa-src remote add origin $env:MESA_REPOSITORY
+          git -C mesa-src fetch --depth 1 origin ${{ needs.resolve.outputs.commit }}
           git -C mesa-src checkout FETCH_HEAD
 
       - name: Install build dependencies
@@ -117,8 +149,6 @@ jobs:
         id: info
         shell: pwsh
         run: |
-          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
-          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
           "llvm-version=$(& '${{ github.workspace }}\llvm-install\bin\llvm-config.exe' --version)" >> $env:GITHUB_OUTPUT
 
       - name: Configure Mesa (Lavapipe only, static LLVM)
@@ -183,9 +213,8 @@ jobs:
     # GitHub-hosted native Windows-on-ARM runner. Switch to a custom runner image
     # if you have one (mirror the x64 job's "windows-2025-vs2026" naming).
     runs-on: windows-11-arm
+    needs: resolve
     outputs:
-      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
-      mesa-version: ${{ steps.info.outputs.mesa-version }}
       llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
@@ -197,11 +226,9 @@ jobs:
       - name: Clone Mesa
         shell: pwsh
         run: |
-          $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          $ref = "${{ env.MESA_REF }}"
           git init mesa-src
-          git -C mesa-src remote add origin $url
-          git -C mesa-src fetch --depth 1 origin $ref
+          git -C mesa-src remote add origin $env:MESA_REPOSITORY
+          git -C mesa-src fetch --depth 1 origin ${{ needs.resolve.outputs.commit }}
           git -C mesa-src checkout FETCH_HEAD
 
       - name: Install build dependencies
@@ -260,8 +287,6 @@ jobs:
         id: info
         shell: pwsh
         run: |
-          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
-          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
           "llvm-version=$(& '${{ github.workspace }}\llvm-install\bin\llvm-config.exe' --version)" >> $env:GITHUB_OUTPUT
 
       - name: Configure Mesa (Lavapipe only, static LLVM)
@@ -319,9 +344,8 @@ jobs:
   build-linux:
     name: Build Lavapipe (Linux x64)
     runs-on: ubuntu-24.04
+    needs: resolve
     outputs:
-      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
-      mesa-version: ${{ steps.info.outputs.mesa-version }}
       llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
@@ -332,11 +356,9 @@ jobs:
 
       - name: Clone Mesa
         run: |
-          url="${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          ref="${{ env.MESA_REF }}"
           git init mesa-src
-          git -C mesa-src remote add origin "$url"
-          git -C mesa-src fetch --depth 1 origin "$ref"
+          git -C mesa-src remote add origin "$MESA_REPOSITORY"
+          git -C mesa-src fetch --depth 1 origin ${{ needs.resolve.outputs.commit }}
           git -C mesa-src checkout FETCH_HEAD
 
       - name: Install build dependencies
@@ -402,8 +424,6 @@ jobs:
         id: info
         shell: pwsh
         run: |
-          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
-          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
           "llvm-version=$(& '${{ github.workspace }}/llvm-install/bin/llvm-config' --version)" >> $env:GITHUB_OUTPUT
 
       - name: Configure & build
@@ -471,9 +491,8 @@ jobs:
   build-macos:
     name: Build Lavapipe (macOS ARM64)
     runs-on: macos-15
+    needs: resolve
     outputs:
-      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
-      mesa-version: ${{ steps.info.outputs.mesa-version }}
       llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
@@ -484,11 +503,9 @@ jobs:
 
       - name: Clone Mesa
         run: |
-          url="${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          ref="${{ env.MESA_REF }}"
           git init mesa-src
-          git -C mesa-src remote add origin "$url"
-          git -C mesa-src fetch --depth 1 origin "$ref"
+          git -C mesa-src remote add origin "$MESA_REPOSITORY"
+          git -C mesa-src fetch --depth 1 origin ${{ needs.resolve.outputs.commit }}
           git -C mesa-src checkout FETCH_HEAD
 
       - name: Install build dependencies
@@ -500,8 +517,6 @@ jobs:
         id: info
         shell: pwsh
         run: |
-          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
-          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
           "llvm-version=$(& '/opt/homebrew/opt/llvm/bin/llvm-config' --version)" >> $env:GITHUB_OUTPUT
 
       - name: Configure & build
@@ -540,8 +555,8 @@ jobs:
           path: lavapipe-out/
 
   pack:
-    name: Pack NuGet
-    needs: [build-windows, build-windows-arm64, build-linux, build-macos]
+    name: Pack NuGet ${{ needs.resolve.outputs.number }}
+    needs: [resolve, build-windows, build-windows-arm64, build-linux, build-macos]
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout
@@ -593,13 +608,17 @@ jobs:
         shell: pwsh
         run: |
           $lines = @(
-            "Mesa ${{ needs.build-linux.outputs.mesa-version }} (ref ${{ env.MESA_REF }})"
-            "Repository: ${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
+            "Mesa ${{ needs.resolve.outputs.official }} (ref ${{ env.MESA_REF }})"
+            "Repository: ${{ env.MESA_REPOSITORY }}"
+            "Commit: ${{ needs.resolve.outputs.commit }}"
+          )
+          if ('${{ needs.resolve.outputs.source }}') { $lines += '${{ needs.resolve.outputs.source }}' }
+          $lines += @(
             ""
-            "win-x64:   Mesa ${{ needs.build-windows.outputs.mesa-commit }}, LLVM ${{ needs.build-windows.outputs.llvm-version }}"
-            "win-arm64: Mesa ${{ needs.build-windows-arm64.outputs.mesa-commit }}, LLVM ${{ needs.build-windows-arm64.outputs.llvm-version }}"
-            "linux-x64: Mesa ${{ needs.build-linux.outputs.mesa-commit }}, LLVM ${{ needs.build-linux.outputs.llvm-version }} (also linux-x64-nodmabuf)"
-            "osx-arm64: Mesa ${{ needs.build-macos.outputs.mesa-commit }}, LLVM ${{ needs.build-macos.outputs.llvm-version }}"
+            "win-x64:   LLVM ${{ needs.build-windows.outputs.llvm-version }}"
+            "win-arm64: LLVM ${{ needs.build-windows-arm64.outputs.llvm-version }}"
+            "linux-x64: LLVM ${{ needs.build-linux.outputs.llvm-version }} (also linux-x64-nodmabuf)"
+            "osx-arm64: LLVM ${{ needs.build-macos.outputs.llvm-version }}"
             ""
             "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
@@ -621,14 +640,11 @@ jobs:
       - name: Pack NuGet (dotnet pack)
         shell: pwsh
         run: |
-          $version = "${{ github.event.inputs.version }}"
-          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
           dotnet pack deps/lavapipe/Stride.Dependencies.Lavapipe.csproj `
             -c Release `
-            -p:PackageVersion=$version `
+            -p:PackageVersion=${{ needs.resolve.outputs.version }} `
             -p:RepositoryCommit=${{ github.sha }} `
             -o nupkg
-          echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v7
@@ -638,7 +654,8 @@ jobs:
 
   # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
-    needs: pack
+    name: Publish ${{ needs.resolve.outputs.number }}
+    needs: [resolve, pack]
     permissions:
       contents: read
       id-token: write

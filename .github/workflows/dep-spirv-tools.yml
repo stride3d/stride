@@ -30,17 +30,23 @@ on:
         default: main
         required: false
       version:
-        description: NuGet package version (leave empty for date-based)
+        description: NuGet package version (leave empty for the SPIRV-Tools version and the next build number)
         required: false
 
 jobs:
   # The builds fetch this one commit, so every RID gets the same sources even when the ref moves during the run.
   resolve:
-    name: Resolve SPIRV-Tools ref
+    name: Resolve SPIRV-Tools ref and version
     runs-on: ubuntu-24.04
     outputs:
       commit: ${{ steps.resolve.outputs.commit }}
+      version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
+      source: ${{ steps.version.outputs.source }}
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Resolve ref to a commit
         id: resolve
         run: |
@@ -48,6 +54,18 @@ jobs:
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
           git -C spirv-tools-src fetch -q --depth 1 --filter=tree:0 origin "${{ github.event.inputs.ref || 'main' }}"
           echo "commit=$(git -C spirv-tools-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      # SPIRV-Tools' utils/update_build_version.py takes its version from the first version line of CHANGES
+      - name: Package version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $line = git -C spirv-tools-src show "${commit}:CHANGES" | Where-Object { $_ -match '^v\d' } | Select-Object -First 1
+          if ($line -notmatch '^v(?<version>\d+\.\d+) \d{4}-\d{2}-\d{2}$') { throw "The first version line of CHANGES isn't 'v<year>.<n> <date>': '$line'" }
+          stride-src/.github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.SPIRVTools -Official $Matches.version `
+            -Source spirv-tools-src -Commit $commit -Upstream https://github.com/KhronosGroup/SPIRV-Tools.git `
+            -TagPrefix v -Override '${{ github.event.inputs.version }}'
 
   # ---------------------------------------------------------------------------
   # Windows x64
@@ -351,7 +369,7 @@ jobs:
   # Pack NuGet from all artifacts.
   # ---------------------------------------------------------------------------
   pack:
-    name: Pack NuGet
+    name: Pack NuGet ${{ needs.resolve.outputs.number }}
     needs:
       - resolve
       - build-windows-x64
@@ -362,18 +380,8 @@ jobs:
       - build-iossimulator-arm64
       - build-android
     runs-on: windows-2025-vs2026
-    outputs:
-      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v7
-
-      - name: Package version
-        id: version
-        shell: pwsh
-        run: |
-          $version = "${{ github.event.inputs.version }}"
-          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
-          "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Download artifacts
         uses: actions/download-artifact@v8
@@ -397,6 +405,9 @@ jobs:
             "SPIRV-Tools (ref ${{ github.event.inputs.ref || 'main' }})"
             "Repository: ${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
             "Commit: ${{ needs.resolve.outputs.commit }}"
+          )
+          if ('${{ needs.resolve.outputs.source }}') { $lines += '${{ needs.resolve.outputs.source }}' }
+          $lines += @(
             ""
             "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
@@ -404,7 +415,7 @@ jobs:
           )
           # The symbols job creates this pre-release on stride3d/stride only
           if ('${{ github.repository }}' -eq 'stride3d/stride') {
-            $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/spirv-tools/${{ steps.version.outputs.version }}"
+            $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/spirv-tools/${{ needs.resolve.outputs.number }}"
           }
           New-Item -ItemType Directory -Force deps/spirv-tools/tools | Out-Null
           $lines | Set-Content deps/spirv-tools/tools/VERSION.txt
@@ -424,7 +435,7 @@ jobs:
         run: |
           dotnet pack deps/spirv-tools/Stride.Dependencies.SPIRVTools.csproj `
             -c Release `
-            -p:PackageVersion=${{ steps.version.outputs.version }} `
+            -p:PackageVersion=${{ needs.resolve.outputs.version }} `
             -p:RepositoryCommit=${{ github.sha }} `
             -o nupkg
 
@@ -436,7 +447,8 @@ jobs:
 
   # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
-    needs: pack
+    name: Publish ${{ needs.resolve.outputs.number }}
+    needs: [resolve, pack]
     permissions:
       contents: read
       id-token: write
@@ -446,11 +458,11 @@ jobs:
 
   # After publish: a package that was not published gets no debug files
   symbols:
-    needs: [pack, publish]
+    needs: [resolve, pack, publish]
     permissions:
       contents: write
     uses: ./.github/workflows/dep-symbols.yml
     with:
       name: spirv-tools
-      version: ${{ needs.pack.outputs.version }}
+      version: ${{ needs.resolve.outputs.number }}
       notes-artifact: version-spirv-tools

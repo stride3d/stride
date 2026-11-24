@@ -15,7 +15,7 @@ on:
         default: 22.1.2
         required: true
       version:
-        description: Package version (blank = today's date)
+        description: Package version (blank = the LLVM version and the next build number)
         default: ''
 
 jobs:
@@ -26,7 +26,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          sparse-checkout: deps/llvm-windows
+          sparse-checkout: |
+            deps/llvm-windows
+            .github/scripts
+
+      # The LLVM version also names the release it downloads, so a wrong one fails the download
+      - name: Package version
+        id: version
+        shell: pwsh
+        run: |
+          .github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.LLVM.Windows -Official '${{ github.event.inputs.llvm-version }}' `
+            -Override '${{ github.event.inputs.version }}'
 
       - name: Download and extract official release
         shell: bash
@@ -55,14 +65,11 @@ jobs:
       - name: Pack NuGet
         shell: pwsh
         run: |
-          $version = "${{ github.event.inputs.version }}"
-          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
           nuget pack deps/llvm-windows/Stride.Dependencies.LLVM.Windows.nuspec `
-            -Version $version `
+            -Version "${{ steps.version.outputs.version }}" `
             -Properties "llvmVersion=${{ github.event.inputs.llvm-version }}" `
             -BasePath deps/llvm-windows `
             -OutputDirectory nupkg
-          echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v7

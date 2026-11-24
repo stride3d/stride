@@ -7,9 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: NuGet package version (Assimp's version, then a revision of ours, e.g. 6.0.5.1)
-        default: 6.0.5.1
-        required: true
+        description: NuGet package version (leave empty for the Assimp version and the next build number)
+        required: false
       ref:
         description: Assimp tag
         default: v6.0.5
@@ -19,8 +18,47 @@ env:
   CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DASSIMP_BUILD_ZLIB=ON -DASSIMP_WARNINGS_AS_ERRORS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_BUILD_ASSIMP_TOOLS=OFF
 
 jobs:
+  # The builds check out this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve Assimp ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: stride-src
+          sparse-checkout: |
+            deps/assimp
+            .github/scripts
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q assimp-src
+          git -C assimp-src remote add origin https://github.com/assimp/assimp.git
+          git -C assimp-src fetch -q --depth 1 --filter=tree:0 origin "${{ github.event.inputs.ref }}"
+          echo "commit=$(git -C assimp-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      # The patches of deps/assimp make it a build of ours: the metadata of the version counts them
+      - name: Package version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $cmake = (git -C assimp-src show "${commit}:CMakeLists.txt") -join "`n"
+          $found = [regex]::Matches($cmake, '(?m)^PROJECT\(Assimp VERSION (\d+\.\d+\.\d+)$')
+          if ($found.Count -ne 1) { throw "CMakeLists.txt doesn't have one line 'PROJECT(Assimp VERSION N.N.N'" }
+          $patches = @(Get-ChildItem stride-src/deps/assimp/*.patch).Count
+          $marker = @(if ($patches) { "patches-$patches" })
+          stride-src/.github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.Assimp -Official $found[0].Groups[1].Value `
+            -Source assimp-src -Commit $commit -Upstream https://github.com/assimp/assimp.git `
+            -TagPrefix v -Marker $marker -Override '${{ github.event.inputs.version }}'
+
   build-windows:
     name: Build Assimp (Windows ${{ matrix.arch }})
+    needs: resolve
     runs-on: windows-2025-vs2026
     strategy:
       fail-fast: false
@@ -28,8 +66,6 @@ jobs:
         include:
           - { arch: x64, rid: win-x64 }
           - { arch: ARM64, rid: win-arm64 }
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/assimp }
@@ -37,13 +73,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: assimp/assimp
-          ref: ${{ github.event.inputs.ref }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: assimp-src
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C assimp-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Apply patches
         shell: pwsh
@@ -68,6 +99,7 @@ jobs:
 
   build-linux:
     name: Build Assimp (Linux x64)
+    needs: resolve
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -76,7 +108,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: assimp/assimp
-          ref: ${{ github.event.inputs.ref }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: assimp-src
 
       - name: Apply patches
@@ -99,6 +131,7 @@ jobs:
 
   build-macos:
     name: Build Assimp (macOS ARM64)
+    needs: resolve
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v7
@@ -107,7 +140,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: assimp/assimp
-          ref: ${{ github.event.inputs.ref }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: assimp-src
 
       - name: Apply patches
@@ -129,8 +162,8 @@ jobs:
         with: { name: assimp-osx-arm64, path: assimp-out/ }
 
   pack:
-    name: Pack NuGet
-    needs: [build-windows, build-linux, build-macos]
+    name: Pack NuGet ${{ needs.resolve.outputs.number }}
+    needs: [resolve, build-windows, build-linux, build-macos]
     runs-on: windows-2025-vs2026
     steps:
       - uses: actions/checkout@v7
@@ -154,7 +187,7 @@ jobs:
           $lines = @(
             "Assimp ${{ github.event.inputs.ref }}"
             "Repository: https://github.com/assimp/assimp"
-            "Commit: ${{ needs.build-windows.outputs.commit }}"
+            "Commit: ${{ needs.resolve.outputs.commit }}"
             "Patches: $((Get-ChildItem deps/assimp/*.patch).Name -join ', ')"
             ""
             "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
@@ -176,9 +209,9 @@ jobs:
       - name: Pack NuGet
         shell: pwsh
         run: |
-          $commitHash = '${{ needs.build-windows.outputs.commit }}'.Substring(0, 7)
+          $commitHash = '${{ needs.resolve.outputs.commit }}'.Substring(0, 7)
           nuget pack deps/assimp/Stride.Dependencies.Assimp.nuspec `
-            -Version "${{ github.event.inputs.version }}" `
+            -Version "${{ needs.resolve.outputs.version }}" `
             -Properties "ref=${{ github.event.inputs.ref }};commit=$commitHash;strideCommit=${{ github.sha }}" `
             -OutputDirectory nupkg
 
@@ -187,7 +220,8 @@ jobs:
 
   # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
-    needs: pack
+    name: Publish ${{ needs.resolve.outputs.number }}
+    needs: [resolve, pack]
     permissions:
       contents: read
       id-token: write

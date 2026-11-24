@@ -4,34 +4,61 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: NuGet package version (leave empty for date-based)
+        description: NuGet package version (leave empty for the SPIRV-Cross version and the next build number)
         required: false
-      branch:
-        description: SPIRV-Cross branch to build
-        default: hlsl_tessel_shader
-        required: false
+      ref:
+        description: stride3d/SPIRV-Cross ref to build (branch, tag or SHA)
+        required: true
+
+env:
+  SPIRV_CROSS_REF: ${{ github.event.inputs.ref }}
 
 jobs:
+  # The builds check out this one commit, so every RID gets the same sources even when a branch moves during the run.
+  resolve:
+    name: Resolve SPIRV-Cross ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      version: ${{ steps.version.outputs.version }}
+      source: ${{ steps.version.outputs.source }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q spirv-cross-src
+          git -C spirv-cross-src remote add origin https://github.com/stride3d/SPIRV-Cross.git
+          git -C spirv-cross-src fetch -q --depth 1 --filter=tree:0 origin "$SPIRV_CROSS_REF"
+          echo "commit=$(git -C spirv-cross-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      # SPIRV-Cross has no release versions, only Vulkan SDK tags: its version is the ABI version of its C API
+      - name: Package version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $cmake = (git -C spirv-cross-src show "${commit}:CMakeLists.txt") -join "`n"
+          $found = [regex]::Matches($cmake, '(?m)^set\(spirv-cross-abi-major (\d+)\)\nset\(spirv-cross-abi-minor (\d+)\)\nset\(spirv-cross-abi-patch (\d+)\)$')
+          if ($found.Count -ne 1) { throw "CMakeLists.txt doesn't set spirv-cross-abi-major, -minor and -patch once, on three lines in a row" }
+          $groups = $found[0].Groups
+          stride-src/.github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.SpirvCross -Official "$($groups[1]).$($groups[2]).$($groups[3])" `
+            -Source spirv-cross-src -Commit $commit -Upstream https://github.com/KhronosGroup/SPIRV-Cross.git `
+            -Override '${{ github.event.inputs.version }}'
+
   build-windows:
     name: Build SPIRV-Cross (Windows x64)
+    needs: resolve
     runs-on: windows-2025-vs2026
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
-      - name: Checkout Stride
-        uses: actions/checkout@v7
-
       - name: Checkout SPIRV-Cross
         uses: actions/checkout@v7
         with:
           repository: stride3d/SPIRV-Cross
-          ref: ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: spirv-cross-src
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-cross-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Build
         shell: pwsh
@@ -51,24 +78,15 @@ jobs:
   # Windows ARM64 — same host, MSVC ARM64 cross-compile (as in dep-spirv-tools.yml).
   build-windows-arm64:
     name: Build SPIRV-Cross (Windows ARM64)
+    needs: resolve
     runs-on: windows-2025-vs2026
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
-      - name: Checkout Stride
-        uses: actions/checkout@v7
-
       - name: Checkout SPIRV-Cross
         uses: actions/checkout@v7
         with:
           repository: stride3d/SPIRV-Cross
-          ref: ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: spirv-cross-src
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-cross-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Build
         shell: pwsh
@@ -86,8 +104,8 @@ jobs:
           path: spirv-cross-build/Release/spirv-cross-c-shared.dll
 
   pack:
-    name: Pack NuGet
-    needs: [build-windows, build-windows-arm64]
+    name: Pack NuGet ${{ needs.resolve.outputs.number }}
+    needs: [resolve, build-windows, build-windows-arm64]
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout
@@ -118,18 +136,11 @@ jobs:
       - name: Write VERSION.txt and README.md
         shell: pwsh
         run: |
-          $commits = [ordered]@{
-            'win-x64'   = '${{ needs.build-windows.outputs.commit }}'
-            'win-arm64' = '${{ needs.build-windows-arm64.outputs.commit }}'
-          }
-          $unique = @($commits.Values | Select-Object -Unique)
           $lines = @(
-            "SPIRV-Cross (branch ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }})"
+            "SPIRV-Cross $env:SPIRV_CROSS_REF"
             "Repository: https://github.com/stride3d/SPIRV-Cross"
-          )
-          if ($unique.Count -eq 1) { $lines += "Commit: $($unique[0])" }
-          else { $lines += ""; $lines += $commits.GetEnumerator() | ForEach-Object { "{0}: {1}" -f $_.Key, $_.Value } }
-          $lines += @(
+            "Commit: ${{ needs.resolve.outputs.commit }}"
+            "${{ needs.resolve.outputs.source }}"
             ""
             "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
@@ -151,14 +162,11 @@ jobs:
       - name: Pack NuGet
         shell: pwsh
         run: |
-          $commitHash = '${{ needs.build-windows.outputs.commit }}'.Substring(0, 7)
-          $version = "${{ github.event.inputs.version }}"
-          if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
+          $commitHash = '${{ needs.resolve.outputs.commit }}'.Substring(0, 7)
           nuget pack deps/spirv-cross/Stride.Dependencies.SpirvCross.nuspec `
-            -Version $version `
+            -Version "${{ needs.resolve.outputs.version }}" `
             -Properties "commit=$commitHash;strideCommit=${{ github.sha }}" `
             -OutputDirectory nupkg
-          echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v7
@@ -168,7 +176,8 @@ jobs:
 
   # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
-    needs: pack
+    name: Publish ${{ needs.resolve.outputs.number }}
+    needs: [resolve, pack]
     permissions:
       contents: read
       id-token: write

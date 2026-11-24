@@ -64,6 +64,7 @@ jobs:
         with:
           user: ${{ vars.STRIDE_NUGET_USER }}
 
+      # No --skip-duplicate: two runs that read the same build number from nuget.org must not both look published
       - name: Publish
         run: |
-          dotnet nuget push *.nupkg --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push *.nupkg --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json
