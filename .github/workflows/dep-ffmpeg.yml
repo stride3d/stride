@@ -7,6 +7,7 @@ name: "Dep: Build & Deploy FFmpeg"
 #      Used by the editor's asset compiler via ToolLocator.LocateTool("ffmpeg").
 #      The GPL CLI does not contaminate the LGPL libs: they are produced from independent
 #      configure/build invocations against separate prefixes.
+# ffmpeg-version holds deps/FFmpeg/VERSION.txt: the commits of FFmpeg, x264 and nv-codec-headers it built.
 #
 # Slimming strategy: --disable-everything then explicit --enable-* per category.
 # Decoders + demuxers + parsers stay BROAD (covers ProRes/DNxHD/AC-3 etc. — anything
@@ -24,8 +25,15 @@ on:
         description: x264 ref (used by the CLI build only)
         default: stable
         required: false
+      nv_codec_headers_ref:
+        description: nv-codec-headers ref (used by the Windows x64 CLI only)
+        default: 33a9ede8d9914299d9262539c576a15bd0a19621
+        required: false
 
 env:
+  FFMPEG_REPOSITORY: https://git.ffmpeg.org/ffmpeg.git
+  X264_REPOSITORY: https://code.videolan.org/videolan/x264.git
+  NV_CODEC_HEADERS_REPOSITORY: https://github.com/FFmpeg/nv-codec-headers.git
   # YAML `>-` folds newlines into spaces, which would break FFmpeg's comma-separated
   # --enable-* lists. Keep each value on a single line.
   # Decoders: broad — covers anything an artist might import (ProRes/DNxHD/AC-3 etc.).
@@ -38,11 +46,61 @@ env:
   COMMON_BSFS: "h264_mp4toannexb,hevc_mp4toannexb,vp9_metadata,av1_metadata,extract_extradata,aac_adtstoasc"
 
 jobs:
+  # The builds fetch these commits, so every platform gets the same sources even when a ref moves during the run.
+  resolve:
+    name: Resolve source refs
+    runs-on: ubuntu-24.04
+    outputs:
+      ffmpeg: ${{ steps.resolve.outputs.ffmpeg }}
+      x264: ${{ steps.resolve.outputs.x264 }}
+      nvcodec: ${{ steps.resolve.outputs.nvcodec }}
+    steps:
+      - name: Resolve refs to commits
+        id: resolve
+        env:
+          FFMPEG_REF: ${{ github.event.inputs.ref || 'n7.1.1' }}
+          X264_REF: ${{ github.event.inputs.x264_ref || 'stable' }}
+          NVCODEC_REF: ${{ github.event.inputs.nv_codec_headers_ref || '33a9ede8d9914299d9262539c576a15bd0a19621' }}
+        run: |
+          # Prints the commit that a ref (branch, tag or SHA) of a repository points to
+          resolve() {
+            git init -q "$1"
+            git -C "$1" remote add origin "$2"
+            git -C "$1" fetch -q --depth 1 --filter=tree:0 origin "$3"
+            git -C "$1" rev-parse 'FETCH_HEAD^{commit}'
+          }
+          FFMPEG=$(resolve ffmpeg "$FFMPEG_REPOSITORY" "$FFMPEG_REF")
+          X264=$(resolve x264 "$X264_REPOSITORY" "$X264_REF")
+          NVCODEC=$(resolve nv-codec-headers "$NV_CODEC_HEADERS_REPOSITORY" "$NVCODEC_REF")
+          { echo "ffmpeg=$FFMPEG"; echo "x264=$X264"; echo "nvcodec=$NVCODEC"; } >> "$GITHUB_OUTPUT"
+          cat > VERSION.txt <<EOF
+          FFmpeg $FFMPEG_REF
+          Repository: $FFMPEG_REPOSITORY
+          Commit: $FFMPEG
+
+          x264 $X264_REF (CLI only)
+          Repository: $X264_REPOSITORY
+          Commit: $X264
+
+          nv-codec-headers $NVCODEC_REF (Windows x64 CLI only)
+          Repository: $NV_CODEC_HEADERS_REPOSITORY
+          Commit: $NVCODEC
+
+          Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}
+          Built: $(date -u +%Y-%m-%d)
+          Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          cat VERSION.txt
+
+      - uses: actions/upload-artifact@v7
+        with: { name: ffmpeg-version, path: VERSION.txt }
+
   # ====================================================================
   # Linux x64
   # ====================================================================
   linux-x64:
     name: Build FFmpeg (Linux x64)
+    needs: resolve
     runs-on: ubuntu-24.04
     steps:
       - name: Install build deps
@@ -55,14 +113,16 @@ jobs:
       - name: Clone FFmpeg
         run: |
           git init ffmpeg-src
-          git -C ffmpeg-src remote add origin https://git.ffmpeg.org/ffmpeg.git
-          git -C ffmpeg-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'n7.1.1' }}"
+          git -C ffmpeg-src remote add origin "$FFMPEG_REPOSITORY"
+          git -C ffmpeg-src fetch --depth 1 origin "${{ needs.resolve.outputs.ffmpeg }}"
           git -C ffmpeg-src checkout FETCH_HEAD
 
       - name: Clone & build x264 (static)
         run: |
-          git clone --depth 1 --branch "${{ github.event.inputs.x264_ref || 'stable' }}" \
-            https://code.videolan.org/videolan/x264.git x264-src
+          git init x264-src
+          git -C x264-src remote add origin "$X264_REPOSITORY"
+          git -C x264-src fetch --depth 1 origin "${{ needs.resolve.outputs.x264 }}"
+          git -C x264-src checkout FETCH_HEAD
           cd x264-src
           ./configure --enable-static --disable-shared --enable-pic --prefix="$PWD/../x264-install"
           make -j"$(nproc)"
@@ -144,6 +204,7 @@ jobs:
   # ====================================================================
   osx-arm64:
     name: Build FFmpeg (macOS arm64)
+    needs: resolve
     runs-on: macos-15
     steps:
       - name: Install build deps
@@ -152,14 +213,16 @@ jobs:
       - name: Clone FFmpeg
         run: |
           git init ffmpeg-src
-          git -C ffmpeg-src remote add origin https://git.ffmpeg.org/ffmpeg.git
-          git -C ffmpeg-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'n7.1.1' }}"
+          git -C ffmpeg-src remote add origin "$FFMPEG_REPOSITORY"
+          git -C ffmpeg-src fetch --depth 1 origin "${{ needs.resolve.outputs.ffmpeg }}"
           git -C ffmpeg-src checkout FETCH_HEAD
 
       - name: Clone & build x264 (static)
         run: |
-          git clone --depth 1 --branch "${{ github.event.inputs.x264_ref || 'stable' }}" \
-            https://code.videolan.org/videolan/x264.git x264-src
+          git init x264-src
+          git -C x264-src remote add origin "$X264_REPOSITORY"
+          git -C x264-src fetch --depth 1 origin "${{ needs.resolve.outputs.x264 }}"
+          git -C x264-src checkout FETCH_HEAD
           cd x264-src
           ./configure --enable-static --disable-shared --enable-pic --prefix="$PWD/../x264-install"
           make -j"$(sysctl -n hw.logicalcpu)"
@@ -244,6 +307,7 @@ jobs:
   # ====================================================================
   win-x64:
     name: Build FFmpeg (Windows x64)
+    needs: resolve
     runs-on: windows-2025-vs2026
     defaults:
       run:
@@ -270,14 +334,16 @@ jobs:
       - name: Clone FFmpeg
         run: |
           git init ffmpeg-src
-          git -C ffmpeg-src remote add origin https://git.ffmpeg.org/ffmpeg.git
-          git -C ffmpeg-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'n7.1.1' }}"
+          git -C ffmpeg-src remote add origin "$FFMPEG_REPOSITORY"
+          git -C ffmpeg-src fetch --depth 1 origin "${{ needs.resolve.outputs.ffmpeg }}"
           git -C ffmpeg-src checkout FETCH_HEAD
 
       - name: Clone & build x264 (static)
         run: |
-          git clone --depth 1 --branch "${{ github.event.inputs.x264_ref || 'stable' }}" \
-            https://code.videolan.org/videolan/x264.git x264-src
+          git init x264-src
+          git -C x264-src remote add origin "$X264_REPOSITORY"
+          git -C x264-src fetch --depth 1 origin "${{ needs.resolve.outputs.x264 }}"
+          git -C x264-src checkout FETCH_HEAD
           cd x264-src
           ./configure --enable-static --disable-shared --enable-pic --prefix="$PWD/../x264-install"
           make -j"$(nproc)"
@@ -286,7 +352,10 @@ jobs:
       # Headers-only project providing ffnvcodec.pc for NVENC. Tiny, builds in seconds.
       - name: Clone & install nv-codec-headers
         run: |
-          git clone --depth 1 https://github.com/FFmpeg/nv-codec-headers.git nv-codec-src
+          git init nv-codec-src
+          git -C nv-codec-src remote add origin "$NV_CODEC_HEADERS_REPOSITORY"
+          git -C nv-codec-src fetch --depth 1 origin "${{ needs.resolve.outputs.nvcodec }}"
+          git -C nv-codec-src checkout FETCH_HEAD
           make -C nv-codec-src PREFIX="$PWD/nv-codec-install" install
 
       - name: Configure & build libs (LGPL shared, decode-focused)
@@ -375,6 +444,7 @@ jobs:
   # ====================================================================
   win-arm64:
     name: Build FFmpeg (Windows arm64)
+    needs: resolve
     runs-on: windows-11-arm
     defaults:
       run:
@@ -395,14 +465,16 @@ jobs:
       - name: Clone FFmpeg
         run: |
           git init ffmpeg-src
-          git -C ffmpeg-src remote add origin https://git.ffmpeg.org/ffmpeg.git
-          git -C ffmpeg-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'n7.1.1' }}"
+          git -C ffmpeg-src remote add origin "$FFMPEG_REPOSITORY"
+          git -C ffmpeg-src fetch --depth 1 origin "${{ needs.resolve.outputs.ffmpeg }}"
           git -C ffmpeg-src checkout FETCH_HEAD
 
       - name: Clone & build x264 (static)
         run: |
-          git clone --depth 1 --branch "${{ github.event.inputs.x264_ref || 'stable' }}" \
-            https://code.videolan.org/videolan/x264.git x264-src
+          git init x264-src
+          git -C x264-src remote add origin "$X264_REPOSITORY"
+          git -C x264-src fetch --depth 1 origin "${{ needs.resolve.outputs.x264 }}"
+          git -C x264-src checkout FETCH_HEAD
           cd x264-src
           CC=clang ./configure --enable-static --disable-shared --enable-pic --prefix="$PWD/../x264-install"
           make -j"$(nproc)"
