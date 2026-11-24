@@ -573,6 +573,9 @@ namespace Stride.Graphics
         /// </remarks>
         public unsafe void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
+            if (currentCommandList.Builder is null)
+                ThrowCommandListClosed();
+
             RecordDebugCounter(DebugCounterKind.Barrier);
 
             if (resource is Texture texture)

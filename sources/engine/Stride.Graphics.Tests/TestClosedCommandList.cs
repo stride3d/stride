@@ -29,7 +29,13 @@ public class TestClosedCommandList : GraphicTestGameBase
             device.ExecuteCommandList(commandList.Close());
 
             Assert.Throws<InvalidOperationException>(() => commandList.Clear(target, Color.Red));
+
+            var layoutBefore = buffer.LayoutTracker.Get(uint.MaxValue);
             Assert.Throws<InvalidOperationException>(() => buffer.SetData(commandList, new byte[64]));
+            Assert.Equal(layoutBefore, buffer.LayoutTracker.Get(uint.MaxValue));
+            Assert.Throws<InvalidOperationException>(() => commandList.ResourceBarrierTransition(buffer, BarrierLayout.ShaderResource));
+            Assert.Equal(layoutBefore, buffer.LayoutTracker.Get(uint.MaxValue));
+            Assert.Throws<InvalidOperationException>(() => commandList.ResourceBarrierTransition(target, BarrierLayout.ShaderResource));
             Assert.Throws<InvalidOperationException>(() => commandList.Close());
 
             commandList.Reset();
