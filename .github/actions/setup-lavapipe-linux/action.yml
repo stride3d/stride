@@ -23,7 +23,12 @@ runs:
     - name: Install Lavapipe and register its Vulkan ICD
       shell: bash
       run: |
-        # A throwaway project restore puts the package in the NuGet cache
+        # A throwaway project restore puts the package in the NuGet cache, at the version the commit pins
+        VERSION=$(pwsh -NoProfile -Command "(([xml](Get-Content -Raw sources/Directory.Packages.props)).GetElementsByTagName('PackageVersion') | Where-Object Include -eq 'Stride.Dependencies.Lavapipe').Version")
+        if [ -z "$VERSION" ]; then
+          echo "::error::sources/Directory.Packages.props pins no Stride.Dependencies.Lavapipe"
+          exit 1
+        fi
         tmpDir="${{ runner.temp }}/lavapipe-fetch"
         mkdir -p "$tmpDir"
         cat > "$tmpDir/LavapipeFetch.csproj" <<'EOF'
@@ -31,8 +36,8 @@ runs:
           <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
         </Project>
         EOF
-        dotnet add "$tmpDir/LavapipeFetch.csproj" package Stride.Dependencies.Lavapipe
-        LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
+        dotnet add "$tmpDir/LavapipeFetch.csproj" package Stride.Dependencies.Lavapipe --version "$VERSION"
+        LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe/$VERSION -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
         if [ -z "$LIB" ]; then
           echo "::error::Lavapipe libvulkan_lvp.so not found in NuGet cache"
           exit 1
