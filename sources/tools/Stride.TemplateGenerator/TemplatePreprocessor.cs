@@ -22,6 +22,29 @@ namespace Stride.TemplateGenerator;
 /// </summary>
 internal class TemplatePreprocessor
 {
+    private const string GitIgnoreContent = @"# Common files
+*.suo
+*.VC.db
+*.vshost.exe
+*.manifest
+*.sdf
+*.user
+*.lock
+*.lock.json
+
+# IDE files
+_ReSharper*
+.vs/
+
+# Building
+[Bb]in/
+[Oo]bj/
+
+# Backups and cache
+Cache/
+.stride-backup-*/
+";
+
     /// <summary>Standard dashed GUID format: 8-4-4-4-12 hex digits.</summary>
     private static readonly Regex GuidRegex = new(
         @"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b",
@@ -165,7 +188,7 @@ internal class TemplatePreprocessor
 
         // Asset packs (!TemplateAssetPack) are content drops, not projects — they take a reduced
         // pipeline: stage Assets/ + Resources/, emit an item-template template.json, done.
-        if (Sdtpl?.IsAssetPack == true)
+        if (Sdtpl?.Type == SdtplMetadata.TemplateType.AssetPack)
             return RunAssetPack(sdtplPath, logger);
 
         // Stage: recursively mirror input → output. Clean output first to avoid leftover files
@@ -223,12 +246,11 @@ internal class TemplatePreprocessor
         // platforms parameter at instantiation. No-op when the flag isn't set.
         InjectMissingPlatforms(logger);
 
-        // Generate MyTemplate.sln if absent. Samples typically don't include their sln (input is
-        // the inner dir, not the sample root); synthesize one referencing every csproj in staging,
-        // including any platform exec project injected above. Per-platform exec csprojs get wrapped
-        // in #if (XActive) conditional regions so template.json's SpecialCustomOperations strips
-        // unselected platforms at instantiation.
-        GenerateSlnxIfMissing(logger);
+        if (Sdtpl?.Type == SdtplMetadata.TemplateType.Sample)
+        {
+            GenerateSlnxIfMissing(logger);
+            GenerateGitignoreIfMissing(logger);
+        }
 
         // Inject a BasicCameraController placeholder component into the Camera entity, BEFORE
         // the GUID scan so the injected component's Id gets caught by the placeholder pass
@@ -866,6 +888,13 @@ internal class TemplatePreprocessor
         var slnxPath = Path.Combine(OutputDirectory!, "MyTemplate.slnx");
         File.WriteAllText(slnxPath, sb.ToString());
         logger.Info($"Generated MyTemplate.slnx with {projects.Count} project(s)");
+    }
+
+    private void GenerateGitignoreIfMissing(ILogger logger)
+    {
+        var gitignorePath = Path.Combine(OutputDirectory, ".gitignore");
+        if (!File.Exists(gitignorePath))
+            File.WriteAllText(gitignorePath, GitIgnoreContent);
     }
 
     /// <summary>

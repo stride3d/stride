@@ -16,24 +16,6 @@ namespace Stride.Core.Assets.Templates;
 /// </summary>
 public abstract class SessionTemplateGenerator : TemplateGeneratorBase<SessionTemplateGeneratorParameters>
 {
-    // TODO: move .gitignore content into an external file
-    private static readonly string GitIgnore = @"
-*.user
-*.lock
-*.lock.json
-.vs/
-_ReSharper*
-*.suo
-*.VC.db
-*.vshost.exe
-*.manifest
-*.sdf
-[Bb]in/
-obj/
-.stride-backup-*/
-Cache/
-"; //sadly templates and new games are different, the first ones are basically a copy the second is more programatically, so our best bet to have something easy to mantain is this for now.
-
     public sealed override bool Run(SessionTemplateGeneratorParameters parameters)
     {
         if (!Generate(parameters))
@@ -86,11 +68,5 @@ Cache/
     public virtual Task<bool> AfterSave(SessionTemplateGeneratorParameters parameters)
     {
         return Task.FromResult(true);
-    }
-
-    protected void WriteGitIgnore(SessionTemplateGeneratorParameters parameters)
-    {
-        var fileName = UFile.Combine(parameters.OutputDirectory, ".gitignore");
-        File.WriteAllText(fileName.ToOSPath(), GitIgnore);
     }
 }
