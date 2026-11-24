@@ -246,6 +246,9 @@ public class StrideGameTemplateSmokeTests
         Assert.True(newResult.exitCode == 0, $"dotnet new stride-plugin -n {pluginName} failed:\n{newResult.output}");
 
         var instantiated = Path.Combine(workspace, pluginName);
+        Assert.Empty(Directory.EnumerateFiles(instantiated, "*.sln", SearchOption.TopDirectoryOnly));
+        Assert.Empty(Directory.EnumerateFiles(instantiated, "*.slnx", SearchOption.TopDirectoryOnly));
+        Assert.Empty(Directory.EnumerateFiles(instantiated, ".gitignore", SearchOption.TopDirectoryOnly));
         var component = Path.Combine(instantiated, pluginName, $"{typeName}Component.cs");
         Assert.True(File.Exists(component), $"Expected the component at {component}");
         var componentText = File.ReadAllText(component);
