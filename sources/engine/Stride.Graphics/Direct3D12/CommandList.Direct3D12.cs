@@ -564,6 +564,9 @@ namespace Stride.Graphics
         /// </param>
         public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
+            if (currentCommandList.Builder is null)
+                ThrowCommandListClosed();
+
             Debug.Assert(resource is not null, "Resource must not be null.");
 
             RecordDebugCounter(DebugCounterKind.Barrier);
