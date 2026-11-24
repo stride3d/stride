@@ -8,10 +8,10 @@ on:
         default: VER-2-13-3
         required: true
 
-# Debug files: every build compiles with debug info, and the libraries ship without it. The debug files (.pdb, full .so,
-# .dSYM, iOS .a with DWARF) go to the symbols pre-release (dep-symbols.yml). CFLAGS and LDFLAGS add to CMake's default
-# flags: /Z7 and -g don't change the generated code, and /DEBUG needs /OPT:REF and /OPT:ICF to link as a Release build
-# does.
+# Debug files: every build compiles with debug info, and the shared libraries ship without it and without their local
+# symbols. The debug files (.pdb, .so.debug, .dSYM, iOS .a with DWARF) go to the symbols pre-release (dep-symbols.yml).
+# CFLAGS and LDFLAGS add to CMake's default flags: /Z7 and -g don't change the generated code, and /DEBUG needs /OPT:REF
+# and /OPT:ICF to link as a Release build does.
 
 jobs:
   build-windows:
@@ -93,12 +93,15 @@ jobs:
             -DFT_DISABLE_ZLIB=ON
           cmake --build freetype-build -- -j$(nproc)
 
-      # The actual shared library (not the symlinks), with a versionless name. The symbol table stays.
+      # The actual shared library (not the symlinks), with a versionless name. The .debug file keeps the debug info and
+      # the symbol table. The shipped library names it in its .gnu_debuglink, where gdb and lldb look for it.
       - name: Collect output
         run: |
           mkdir -p out/linux-x64 symbols/linux-x64
-          cp $(readlink -f freetype-build/libfreetype.so) symbols/linux-x64/libfreetype.so
-          strip --strip-debug -o out/linux-x64/libfreetype.so symbols/linux-x64/libfreetype.so
+          lib=$(readlink -f freetype-build/libfreetype.so)
+          objcopy --only-keep-debug $lib symbols/linux-x64/libfreetype.so.debug
+          objcopy --strip-unneeded --add-gnu-debuglink=symbols/linux-x64/libfreetype.so.debug \
+            $lib out/linux-x64/libfreetype.so
 
       - name: Upload
         uses: actions/upload-artifact@v7
@@ -145,14 +148,14 @@ jobs:
           cmake --build freetype-build -- -j$(sysctl -n hw.ncpu)
 
       # The actual dylib (not the symlinks), with a versionless name. The DWARF stays in the object files: dsymutil
-      # collects it, and strip -S removes the debug map that points to them. strip changes the file, so it gets a new
-      # ad-hoc signature, which arm64 needs to load it.
+      # collects it. strip -S removes the debug map that points to them, and -x the local symbols. strip changes the
+      # file, so it gets a new ad-hoc signature, which arm64 needs to load it.
       - name: Collect output
         run: |
           mkdir -p out/${{ matrix.rid }} symbols/${{ matrix.rid }}
           dylib=$(readlink -f freetype-build/libfreetype.dylib)
           dsymutil "$dylib" -o symbols/${{ matrix.rid }}/libfreetype.dylib.dSYM
-          strip -S -o out/${{ matrix.rid }}/libfreetype.dylib "$dylib"
+          strip -S -x -o out/${{ matrix.rid }}/libfreetype.dylib "$dylib"
           codesign -f -s - out/${{ matrix.rid }}/libfreetype.dylib
 
       - name: Upload
@@ -204,13 +207,14 @@ jobs:
             -DFT_DISABLE_ZLIB=ON
           cmake --build freetype-build -- -j$(nproc)
 
-      # The NDK toolchain already compiles with -g. The symbol table stays.
+      # The NDK toolchain already compiles with -g. As on Linux, with the NDK's objcopy.
       - name: Collect output
         run: |
           mkdir -p out/${{ matrix.rid }} symbols/${{ matrix.rid }}
-          cp freetype-build/libfreetype.so symbols/${{ matrix.rid }}/
-          $ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip --strip-debug \
-            -o out/${{ matrix.rid }}/libfreetype.so freetype-build/libfreetype.so
+          objcopy=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
+          $objcopy --only-keep-debug freetype-build/libfreetype.so symbols/${{ matrix.rid }}/libfreetype.so.debug
+          $objcopy --strip-unneeded --add-gnu-debuglink=symbols/${{ matrix.rid }}/libfreetype.so.debug \
+            freetype-build/libfreetype.so out/${{ matrix.rid }}/libfreetype.so
 
       - name: Upload
         uses: actions/upload-artifact@v7

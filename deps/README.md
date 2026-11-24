@@ -24,8 +24,9 @@ To test a package in CI before it is published, see the header of `.github/workf
 
 ## Debug files
 
-The libraries that Stride ships have no debug info: ELF files are stripped with `--strip-debug` (the symbol table
-stays), Mach-O files with `strip -S`, and the `.pdb` of a DLL isn't shipped.
+The libraries that Stride ships have no debug info and no local symbols: ELF files are stripped
+with `objcopy --strip-unneeded`, Mach-O dylibs with `strip -S -x`, and the `.pdb` of a DLL isn't shipped. Only the
+exported functions keep their names.
 
 Don't commit debug files here. This folder is in Git LFS, and every clone downloads all of it. The workflow keeps them
 instead, as a GitHub pre-release named `deps/<name>/<version>` (`dep-symbols.yml`): the `Debug files:` line of the
@@ -36,9 +37,9 @@ To debug with them, download the zip of the platform from the pre-release:
 
 - Windows: add the folder of the `.pdb` to the symbol path of the debugger (in Visual Studio, Tools > Options >
   Debugging > Symbols), or put it next to the DLL.
-- macOS: put the `.dSYM` next to the `.dylib`, or load it in lldb with `target symbols add <file>`.
-- Linux and Android: load the full library in lldb with `target symbols add <file>`, or put it in place of the
-  stripped one.
+- macOS and iOS: put the `.dSYM` next to the `.dylib`, or load it in lldb with `target symbols add <file>`.
+- Linux and Android: put the `.so.debug` next to the `.so`: its `.gnu_debuglink` names it, so gdb and lldb load it. Or
+  load it in lldb with `target symbols add <file>`, or look up an offset with `llvm-symbolizer --obj=<file> <offset>`.
 - iOS (FreeType's static `.a`): the game's `.dSYM` names the function of a frame and the offset in it, but has no
   file and line. The pre-release has the `.a` with DWARF. `ZERO_AR_DATE=1 strip -S -o shipped.a libfreetype.a` gives
   the shipped archive byte for byte, and `libfreetype.a.sha256` is its checksum. Take the object file of the function
