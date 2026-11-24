@@ -34,14 +34,28 @@ on:
         required: false
 
 jobs:
+  # The builds fetch this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve SPIRV-Tools ref
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+    steps:
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q spirv-tools-src
+          git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
+          git -C spirv-tools-src fetch -q --depth 1 --filter=tree:0 origin "${{ github.event.inputs.ref || 'main' }}"
+          echo "commit=$(git -C spirv-tools-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
   # ---------------------------------------------------------------------------
   # Windows x64
   # ---------------------------------------------------------------------------
   build-windows-x64:
     name: Build SPIRV-Tools (Windows x64)
+    needs: resolve
     runs-on: windows-2025-vs2026
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -50,17 +64,12 @@ jobs:
         shell: pwsh
         run: |
           $url = "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          $ref = "${{ github.event.inputs.ref || 'main' }}"
+          $commit = "${{ needs.resolve.outputs.commit }}"
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin $url
-          git -C spirv-tools-src fetch --depth 1 origin $ref
+          git -C spirv-tools-src fetch --depth 1 origin $commit
           git -C spirv-tools-src checkout FETCH_HEAD
           python spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - uses: ilammy/msvc-dev-cmd@v1
         with: { arch: x64 }
@@ -87,9 +96,8 @@ jobs:
   # ---------------------------------------------------------------------------
   build-windows-arm64:
     name: Build SPIRV-Tools (Windows ARM64)
+    needs: resolve
     runs-on: windows-2025-vs2026
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -99,14 +107,9 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - uses: ilammy/msvc-dev-cmd@v1
         with: { arch: amd64_arm64 }
@@ -133,9 +136,8 @@ jobs:
   # ---------------------------------------------------------------------------
   build-linux-x64:
     name: Build SPIRV-Tools (Linux x64)
+    needs: resolve
     runs-on: ubuntu-24.04
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -144,14 +146,9 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python3 spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y ninja-build cmake
@@ -176,9 +173,8 @@ jobs:
   # ---------------------------------------------------------------------------
   build-macos-arm64:
     name: Build SPIRV-Tools (macOS ARM64)
+    needs: resolve
     runs-on: macos-15
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -187,14 +183,9 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python3 spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Configure & build stride_spirv_tools
         run: |
@@ -219,9 +210,8 @@ jobs:
   # ---------------------------------------------------------------------------
   build-ios-arm64:
     name: Build SPIRV-Tools (iOS ARM64)
+    needs: resolve
     runs-on: macos-15
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -230,14 +220,9 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python3 spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Configure & build stride_spirv_tools
         run: |
@@ -272,9 +257,8 @@ jobs:
   # ---------------------------------------------------------------------------
   build-iossimulator-arm64:
     name: Build SPIRV-Tools (iOS Simulator ARM64)
+    needs: resolve
     runs-on: macos-15
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: deps/spirv-tools }
@@ -283,14 +267,9 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python3 spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Configure & build stride_spirv_tools
         run: |
@@ -316,9 +295,8 @@ jobs:
   # ---------------------------------------------------------------------------
   build-android:
     name: Build SPIRV-Tools (Android ${{ matrix.abi }})
+    needs: resolve
     runs-on: ubuntu-24.04
-    outputs:
-      commit: ${{ steps.info.outputs.commit }}
     strategy:
       fail-fast: false
       matrix:
@@ -333,14 +311,9 @@ jobs:
         run: |
           git init spirv-tools-src
           git -C spirv-tools-src remote add origin "${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          git -C spirv-tools-src fetch --depth 1 origin "${{ github.event.inputs.ref || 'main' }}"
+          git -C spirv-tools-src fetch --depth 1 origin "${{ needs.resolve.outputs.commit }}"
           git -C spirv-tools-src checkout FETCH_HEAD
           python3 spirv-tools-src/utils/git-sync-deps
-
-      - name: Record build info
-        id: info
-        shell: pwsh
-        run: '"commit=$(git -C spirv-tools-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y ninja-build cmake
@@ -380,6 +353,7 @@ jobs:
   pack:
     name: Pack NuGet
     needs:
+      - resolve
       - build-windows-x64
       - build-windows-arm64
       - build-linux-x64
@@ -419,23 +393,10 @@ jobs:
       - name: Write VERSION.txt and README.md
         shell: pwsh
         run: |
-          $commits = [ordered]@{
-            'win-x64'            = '${{ needs.build-windows-x64.outputs.commit }}'
-            'win-arm64'          = '${{ needs.build-windows-arm64.outputs.commit }}'
-            'linux-x64'          = '${{ needs.build-linux-x64.outputs.commit }}'
-            'osx-arm64'          = '${{ needs.build-macos-arm64.outputs.commit }}'
-            'ios-arm64'          = '${{ needs.build-ios-arm64.outputs.commit }}'
-            'iossimulator-arm64' = '${{ needs.build-iossimulator-arm64.outputs.commit }}'
-            'android'            = '${{ needs.build-android.outputs.commit }}'
-          }
-          $unique = @($commits.Values | Select-Object -Unique)
           $lines = @(
             "SPIRV-Tools (ref ${{ github.event.inputs.ref || 'main' }})"
             "Repository: ${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
-          )
-          if ($unique.Count -eq 1) { $lines += "Commit: $($unique[0])" }
-          else { $lines += ""; $lines += $commits.GetEnumerator() | ForEach-Object { "{0}: {1}" -f $_.Key, $_.Value } }
-          $lines += @(
+            "Commit: ${{ needs.resolve.outputs.commit }}"
             ""
             "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
