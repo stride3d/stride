@@ -101,9 +101,9 @@ public class StrideGameTemplateSmokeTests
                 {
                     if (shortName.Length == 0)
                         continue;
-                    InstantiateAndValidate(workspace, templateShortName: shortName, projectName: projectName);
+                    InstantiateAndValidate(workspace, templateShortName: shortName, projectName: projectName, isSample: true);
                 }
-                InstantiateAndValidate(workspace, templateShortName: "stride-library", projectName: "SmokeLibrary");
+                InstantiateAndValidate(workspace, templateShortName: "stride-library", projectName: "SmokeLibrary", isSample: false);
 
                 InstantiateUpdateOnlyAndValidate(workspace, projectName: "SmokeUpdateOnly");
                 InstantiateSpacedNameAndValidate(workspace, projectName: "Smoke Spaced Game");
@@ -133,7 +133,7 @@ public class StrideGameTemplateSmokeTests
     /// The library is the package-bearing project in every Stride template variant;
     /// per-platform exec projects may not exist (e.g. CSharpBeginner has Windows-only).
     /// </summary>
-    private void InstantiateAndValidate(string workspace, string templateShortName, string projectName)
+    private void InstantiateAndValidate(string workspace, string templateShortName, string projectName, bool isSample)
     {
         var newResult = RunDotnet(workspace, "new", templateShortName, "-n", projectName);
         Assert.True(newResult.exitCode == 0, $"dotnet new {templateShortName} failed:\n{newResult.output}");
@@ -164,7 +164,31 @@ public class StrideGameTemplateSmokeTests
             $"Generated {Path.GetFileName(libraryCsproj)} has no version on its Stride.Engine PackageReference:\n{csprojText}");
         Assert.DoesNotContain("+", version.Groups[1].Value);
 
+        AssertSolutionAndGitIgnore(instantiated, isSample);
         AssertRecordsStrideVersion(instantiated);
+    }
+
+    /// <summary>
+    /// A sample (<c>!TemplateSample</c>) is a whole solution: it gets a solution and a .gitignore at its root. Other
+    /// templates (library, plugin) are added to an existing solution, so they get neither.
+    /// </summary>
+    private static void AssertSolutionAndGitIgnore(string instantiated, bool isSample)
+    {
+        var solutions = Directory.EnumerateFiles(instantiated, "*.sln", SearchOption.TopDirectoryOnly)
+            .Concat(Directory.EnumerateFiles(instantiated, "*.slnx", SearchOption.TopDirectoryOnly))
+            .Select(Path.GetFileName)
+            .ToList();
+        var hasGitIgnore = File.Exists(Path.Combine(instantiated, ".gitignore"));
+        if (isSample)
+        {
+            Assert.True(solutions.Count == 1, $"Expected one solution under {instantiated}, found [{string.Join(", ", solutions)}]");
+            Assert.True(hasGitIgnore, $"Expected a .gitignore under {instantiated}");
+        }
+        else
+        {
+            Assert.True(solutions.Count == 0, $"Expected no solution under {instantiated}, found [{string.Join(", ", solutions)}]");
+            Assert.False(hasGitIgnore, $"Expected no .gitignore under {instantiated}");
+        }
     }
 
     private static Version NumberPart(string version) => Version.Parse(version.Split('-', '+')[0]);
@@ -246,9 +270,7 @@ public class StrideGameTemplateSmokeTests
         Assert.True(newResult.exitCode == 0, $"dotnet new stride-plugin -n {pluginName} failed:\n{newResult.output}");
 
         var instantiated = Path.Combine(workspace, pluginName);
-        Assert.Empty(Directory.EnumerateFiles(instantiated, "*.sln", SearchOption.TopDirectoryOnly));
-        Assert.Empty(Directory.EnumerateFiles(instantiated, "*.slnx", SearchOption.TopDirectoryOnly));
-        Assert.Empty(Directory.EnumerateFiles(instantiated, ".gitignore", SearchOption.TopDirectoryOnly));
+        AssertSolutionAndGitIgnore(instantiated, isSample: false);
         var component = Path.Combine(instantiated, pluginName, $"{typeName}Component.cs");
         Assert.True(File.Exists(component), $"Expected the component at {component}");
         var componentText = File.ReadAllText(component);
