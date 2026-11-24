@@ -22,6 +22,7 @@ namespace Stride.TemplateGenerator;
 /// </summary>
 internal class TemplatePreprocessor
 {
+    /// <summary>The default content of sample .gitignore files</summary>
     private const string GitIgnoreContent = @"# Common files
 *.suo
 *.VC.db
@@ -890,11 +891,15 @@ Cache/
         logger.Info($"Generated MyTemplate.slnx with {projects.Count} project(s)");
     }
 
+    /// <summary>Generates a .gitignore file if it's missing.</summary>
     private void GenerateGitignoreIfMissing(ILogger logger)
     {
-        var gitignorePath = Path.Combine(OutputDirectory, ".gitignore");
+        var gitignorePath = Path.Combine(OutputDirectory!, ".gitignore");
         if (!File.Exists(gitignorePath))
+        {
             File.WriteAllText(gitignorePath, GitIgnoreContent);
+            logger.Info($"Added .gitignore file.");
+        }
     }
 
     /// <summary>
