@@ -71,6 +71,7 @@ public class NuGetConsumerTests
     [Fact]
     public void RebuildWithAnotherGraphicsApiRegeneratesDepsFile()
     {
+        TestEnvironment.EnsureSharedPackages();
         var caseDir = Path.Combine(TestEnvironment.CasesRoot, $"graphics-api-deps-{Guid.NewGuid():N}");
         try
         {
@@ -96,7 +97,7 @@ public class NuGetConsumerTests
             string Build(string api)
             {
                 var result = ConsumerBuild.Run(project, caseDir, output, timeoutMin: 10,
-                    $"-p:StrideGraphicsApi={api}", $"-p:StrideEngineVersion={version}", $"-p:RestorePackagesPath={TestEnvironment.RunPackagesFolder}");
+                    $"-p:StrideGraphicsApi={api}", $"-p:StrideEngineVersion={version}");
                 Assert.True(result.ExitCode == 0, $"Consumer build with {api} exited with {result.ExitCode}");
                 return File.ReadAllText(depsFile);
             }
