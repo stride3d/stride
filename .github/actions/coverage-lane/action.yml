@@ -27,6 +27,7 @@ runs:
       env:
         RESULTS_DIRECTORY: ${{ inputs.results-directory }}
         REPORT_TITLE: ${{ inputs.title }}
+        JOB_STATUS: ${{ job.status }}
         REPORTGENERATOR_VERSION: 5.4.18
       run: |
         $reports = @(Get-ChildItem $env:RESULTS_DIRECTORY -Recurse -Filter *.cobertura.xml -ErrorAction SilentlyContinue)
@@ -40,6 +41,15 @@ runs:
           "-targetdir:$output" `
           "-reporttypes:Cobertura;MarkdownSummaryGithub"
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        # The commit the lane tested: on a PR, the merge commit, whose first parent is the base coverage-report.yml
+        # compares with
+        git rev-parse HEAD | Set-Content (Join-Path $output commit.txt)
+        # The effect cache files the lane restored (.github/actions/effect-cache), when it has one: with none, the
+        # tests compile every shader, which covers more of the compiler. The lane table of the report shows it.
+        if ($env:STRIDE_EFFECT_CACHE_FILES) { $env:STRIDE_EFFECT_CACHE_FILES | Set-Content (Join-Path $output effect-cache.txt) }
+        # Whether the steps before this one, the tests among them, succeeded: the report compares a base run's lane
+        # only when they did
+        $env:JOB_STATUS | Set-Content (Join-Path $output job-status.txt)
         $summary = Get-Content (Join-Path $output SummaryGithub.md) | Select-Object -Skip 1 | Where-Object { $_ -notmatch 'Method coverage:' }
         @("## Coverage: $env:REPORT_TITLE") + $summary | Add-Content $env:GITHUB_STEP_SUMMARY
         "directory=$output" >> $env:GITHUB_OUTPUT

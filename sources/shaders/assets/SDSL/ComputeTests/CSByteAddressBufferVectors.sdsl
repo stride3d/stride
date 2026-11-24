@@ -1,0 +1,29 @@
+// CSMain(structuredbuffer.Input="4: 1 2 3 4 5 6 7 8 9 10", structuredbuffer.Output="4: 0 0 0 0 0 0 0 0 0 0", expected.Output="7 8 9 10 4 5 6 2 3 1")
+
+namespace Stride.Shaders.Tests;
+
+// ByteAddressBuffer.Load2 to Load4 and RWByteAddressBuffer.Store2 to Store4: consecutive 4-byte words from a byte offset.
+// The input holds floats and the output the uints they convert to, in another order, so a wrong offset or count shows
+shader CSByteAddressBufferVectors
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    ByteAddressBuffer Input;
+    RWByteAddressBuffer Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        if (streams.DispatchThreadId.x == 0 && streams.DispatchThreadId.y == 0)
+        {
+            uint one = (uint)asfloat(Input.Load(0));
+            uint2 two = (uint2)asfloat(Input.Load2(4));
+            uint3 three = (uint3)asfloat(Input.Load3(12));
+            uint4 four = (uint4)asfloat(Input.Load4(24));
+            Output.Store4(0, four);
+            Output.Store3(16, three);
+            Output.Store2(28, two);
+            Output.Store(36, one);
+        }
+    }
+}

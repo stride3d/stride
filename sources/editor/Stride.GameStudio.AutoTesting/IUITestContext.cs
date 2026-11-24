@@ -150,6 +150,12 @@ public interface IUITestContext
     Task<bool> AddEntityToScene(string entityName, Guid modelAssetId, Stride.Core.Mathematics.Vector3 position);
 
     /// <summary>
+    /// Waits until the preview panel shows the initialized preview of the asset <paramref name="assetId"/>. Returns false on
+    /// timeout.
+    /// </summary>
+    Task<bool> WaitForPreview(Guid assetId, double timeoutSeconds = 60);
+
+    /// <summary>
     /// Walks the loaded session's assets and returns how many objects failed to deserialize (were
     /// replaced with <c>IUnloadable</c> placeholders) — e.g. a script component whose type/assembly
     /// couldn't be resolved. Returns 0 when no project/session is loaded. Call after the project's

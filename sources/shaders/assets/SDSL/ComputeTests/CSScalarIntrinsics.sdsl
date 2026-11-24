@@ -1,0 +1,32 @@
+// CSMain(structuredbuffer.Input="4: 1 0.5 -1.25 4 12 0.75", structuredbuffer.Output="4: 0 0 0 0 0 0 0 0 0", expected.Output="1065353216 464 -1 25 15360 3 2 11 3")
+
+namespace Stride.Shaders.Tests;
+
+// Intrinsics on scalars, the postfix decrement, and a one-component swizzle of a scalar value
+shader CSScalarIntrinsics
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    StructuredBuffer<float> Input;
+    RWStructuredBuffer<int> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        if (streams.DispatchThreadId.x == 0 && streams.DispatchThreadId.y == 0)
+        {
+            float one = Input[0];
+            Output[0] = (int)asuint(one);
+            Output[1] = (int)round(atan2(Input[1], one) * 1000);
+            Output[2] = (int)ceil(Input[2]);
+            Output[3] = (int)round(rcp(Input[3]) * 100);
+            Output[4] = (int)f32tof16(one);
+            Output[5] = (int)round(f16tof32(f32tof16(Input[5])) * 4);
+            uint twelve = (uint)Input[4];
+            Output[6] = (int)firstbitlow(twelve);
+            twelve--;
+            Output[7] = (int)twelve;
+            Output[8] = (int)(Input[5] * 4).x;
+        }
+    }
+}

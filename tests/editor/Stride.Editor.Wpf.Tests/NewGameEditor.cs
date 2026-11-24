@@ -58,6 +58,8 @@ public class NewGameEditor : IUITest
         var capsuleId = await ctx.AddAssetFromTemplate(ProceduralModelFactoryTemplateGenerator.TemplateId, "Capsule");
         await pickerTask;
         if (capsuleId == Guid.Empty) { ctx.Exit(1); return; }
+        // The new asset is selected, so its preview builds: let it show before the new entity takes the selection
+        await ctx.WaitForPreview(capsuleId);
         await ctx.AddEntityToScene("Capsule", capsuleId, new Vector3(0, 0.8f, -1.2f));
         await ctx.WaitIdle();
         await ctx.CapturePanel(GameSettingsAsset.DefaultSceneLocation, "scene-with-capsule", 1400, 900);

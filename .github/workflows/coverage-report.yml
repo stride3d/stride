@@ -1,0 +1,211 @@
+name: Coverage
+
+# Coverage report of a CI run. On a PR: the coverage of its changed lines, with a warning on each range that no test
+# runs (a neutral check run, never required), and of the assemblies it changes against the master run of its base
+# commit (one comment, edited on each push). On a master push: the totals, in the step summary.
+# On workflow_run so that fork PRs get a write token: it runs only the default branch's script, never PR code, and
+# reads the run's coverage artifacts and the PR's diff as data (.github/scripts/coverage-report.py).
+# tests/COVERAGE.md says what is measured.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  # The report of a CI run again, with the script of the chosen branch
+  workflow_dispatch:
+    inputs:
+      run-id:
+        description: Id of the CI run (a manual CI run gets the totals, as a push)
+        required: true
+        type: string
+
+permissions:
+  actions: read         # artifacts of the CI runs
+  checks: write         # the Coverage check run
+  contents: read
+  pull-requests: write  # the comment
+
+# A newer run of the same branch replaces the report
+concurrency:
+  group: coverage-${{ github.event.workflow_run.head_repository.full_name || 'run' }}-${{ github.event.workflow_run.head_branch || inputs.run-id }}
+  cancel-in-progress: true
+
+jobs:
+  Report:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      # The default branch's script (a manual run: its branch's), never the PR's: nothing of the PR is checked out
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || github.event.repository.default_branch }}
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      - name: Report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id || inputs.run-id }}
+        run: |
+          repo="$GITHUB_REPOSITORY"
+          run_url="$GITHUB_SERVER_URL/$repo/actions/runs/$GITHUB_RUN_ID"
+          # The CI run, from the API for both triggers (no space in any of these fields)
+          read -r EVENT CONCLUSION WORKFLOW_ID HEAD_SHA HEAD_OWNER HEAD_BRANCH CI_URL <<< "$(gh api "repos/$repo/actions/runs/$RUN_ID" \
+            --jq '"\(.event) \(.conclusion) \(.workflow_id) \(.head_sha) \(.head_repository.owner.login) \(.head_branch) \(.html_url)"')"
+          case "$EVENT" in
+            pull_request | push) ;;
+            workflow_dispatch) EVENT=push ;;
+            *) echo "No report for a CI run of a $EVENT event."; exit 0 ;;
+          esac
+
+          # The comment of the PR, edited on each push
+          find_comment() {
+            gh api "repos/$repo/issues/$number/comments" --paginate \
+              --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- coverage-report -->"))) | .id' | awk 'NR == 1'
+          }
+          # On a PR that has a comment of an earlier push, says at its top that this push got no report, and why ($1)
+          mark_not_updated() {
+            local comment
+            [ -n "$number" ] && comment=$(find_comment) && [ -n "$comment" ] || return 0
+            gh api "repos/$repo/issues/comments/$comment" --jq .body > previous.md
+            python3 .github/scripts/coverage-report.py --not-updated "$1" --previous previous.md --head "$HEAD_SHA" \
+              --run-url "$run_url" --out not-updated
+            if [ -f not-updated/comment.md ]; then
+              gh api -X PATCH "repos/$repo/issues/comments/$comment" -F body=@not-updated/comment.md > /dev/null
+            fi
+          }
+          # No report for this run: why ($1), in the log (as an annotation of level $2, if given), the step summary
+          # and the comment of the PR
+          no_report() {
+            echo "${2:+::$2::}No coverage report: $1"
+            echo "No coverage report: $1" >> "$GITHUB_STEP_SUMMARY"
+            mark_not_updated "$1"
+          }
+
+          # On a PR, the open PR whose head this run tested: none when the PR was closed or got a newer push, whose
+          # run reports
+          number=
+          if [ "$EVENT" = pull_request ]; then
+            pr=$(gh api -X GET "repos/$repo/pulls" -f head="$HEAD_OWNER:$HEAD_BRANCH" -f state=open -f per_page=100 \
+              --jq "[.[] | select(.head.sha == \"$HEAD_SHA\")][0] | select(. != null) | \"\(.number) \(.base.sha)\"")
+            if [ -z "$pr" ]; then
+              no_report "no open PR has \`${HEAD_SHA:0:10}\` as its head (closed, or a newer push reports)."
+              exit 0
+            fi
+            read -r number pr_base <<< "$pr"
+          fi
+          # Only a manual run gets here for a cancelled CI run: the job doesn't start for one, which is most often
+          # cancelled by a newer push whose run reports
+          if [ "$CONCLUSION" = cancelled ] || [ "$CONCLUSION" = skipped ]; then
+            no_report "the [CI run]($CI_URL) was $CONCLUSION."
+            exit 0
+          fi
+          if ! gh run download "$RUN_ID" -R "$repo" -p 'coverage-*' -D current 2>/dev/null || [ -z "$(ls -A current 2>/dev/null)" ]; then
+            no_report "no Windows test lane ran in the [CI run]($CI_URL)."
+            exit 0
+          fi
+
+          # The push run of $1, or of its nearest ancestor that CI ran (the commits it skips change no code), named $2:
+          # its coverage in base/ and base_sha, base_url set, or no_baseline says why there is none. A run that failed
+          # or was cancelled is a base too: the report leaves out the lanes that failed in it.
+          find_base() {
+            baseline=() no_baseline= base_sha= base_url=
+            local found= base_run= conclusion=
+            for base_sha in $(gh api "repos/$repo/commits?sha=$1&per_page=30" --jq '.[].sha'); do
+              found=$(gh api "repos/$repo/actions/workflows/$WORKFLOW_ID/runs?head_sha=$base_sha&event=push&per_page=1" \
+                --jq '.workflow_runs[0] | select(. != null) | "\(.id) \(.conclusion) \(.html_url)"')
+              if [ -n "$found" ]; then break; fi
+            done
+            read -r base_run conclusion base_url <<< "$found"
+            if [ -z "$found" ]; then
+              no_baseline="no $2 of \`${1:0:10}\` or of its last 30 ancestors."
+            elif [ "$conclusion" = null ]; then
+              no_baseline="the [$2]($base_url) of \`${base_sha:0:10}\` hasn't finished."
+            elif ! gh run download "$base_run" -R "$repo" -p 'coverage-*' -D base 2>/dev/null || [ -z "$(ls -A base 2>/dev/null)" ]; then
+              no_baseline="the [$2]($base_url) of \`${base_sha:0:10}\` has no coverage ($([ "$conclusion" = success ] && echo "expired?" || echo "it ended in $conclusion"))."
+            else
+              baseline=(--baseline base)
+            fi
+          }
+
+          if [ "$EVENT" = push ]; then
+            parent=$(gh api "repos/$repo/commits/$HEAD_SHA" --jq '.parents[0].sha // empty')
+            if [ -n "$parent" ]; then
+              find_base "$parent" "CI run"
+            else
+              baseline=() no_baseline="the commit has no parent."
+            fi
+            python3 .github/scripts/coverage-report.py --current current "${baseline[@]}" \
+              --ci-label "[CI run]($CI_URL) of \`${HEAD_SHA:0:10}\` on \`$HEAD_BRANCH\`" \
+              --base-label "the [CI run]($base_url) of \`${base_sha:0:10}\`" --no-baseline "$no_baseline" --out out
+            cat out/summary.md >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # The lanes tested the merge commit of the PR into its base (commit.txt of the coverage artifacts): its first
+          # parent is the base to compare with, and its diff has the line numbers of the coverage. Without it, the
+          # PR's own diff against its base.
+          merge=$({ cat current/coverage-*/commit.txt 2>/dev/null || true; } | tr -d '\r' | awk '/^[0-9a-f]{40}$/' | sort | uniq -c | sort -rn | awk 'NR == 1 { print $2 }')
+          parents=$([ -n "$merge" ] && gh api "repos/$repo/commits/$merge" --jq '[.parents[].sha] | join(" ")' 2>/dev/null || true)
+          read -r base second <<< "$parents"
+          if [ -n "$base" ] && [ "$second" = "$HEAD_SHA" ]; then
+            tested="$merge"
+          else
+            echo "::notice::No merge commit of the PR in the coverage artifacts: using the PR's diff against its base."
+            base="$pr_base"
+            tested="$HEAD_SHA"
+          fi
+          if ! gh api -H 'Accept: application/vnd.github.diff' "repos/$repo/compare/$base...$tested" > pr.diff; then
+            no_report "the diff of the PR could not be read (too large?)." warning
+            exit 0
+          fi
+          gh api "repos/$repo/git/trees/$tested?recursive=1" --jq '.tree[].path' > tree.txt
+
+          find_base "$base" "master run"
+          python3 .github/scripts/coverage-report.py --current current "${baseline[@]}" --diff pr.diff --projects tree.txt \
+            --base-label "master [\`${base_sha:0:10}\`]($base_url)" --no-baseline "$no_baseline" --run-url "$run_url" \
+            --scope-url "$GITHUB_SERVER_URL/$repo/blob/$base/tests/COVERAGE.md" --out out
+          cat out/summary.md >> "$GITHUB_STEP_SUMMARY"
+          kind=$(python3 -c 'import json; print(json.load(open("out/result.json"))["kind"])')
+          if [ "$kind" = none ]; then
+            mark_not_updated "the PR no longer changes any C# file."
+            exit 0
+          fi
+
+          # Check run on the PR head, with the warnings 50 per call
+          python3 - "$HEAD_SHA" "$run_url" > check.jsonl <<'EOF'
+          import json, sys
+          check = json.load(open("out/result.json"))["check"]
+          annotations = check["annotations"]
+          for i in range(0, max(len(annotations), 1), 50):
+              output = {"title": check["title"], "summary": check["summary"], "annotations": annotations[i:i + 50]}
+              body = {"output": output}
+              if i == 0:
+                  body.update(name="Coverage", head_sha=sys.argv[1], status="completed", conclusion="neutral",
+                              details_url=sys.argv[2])
+              print(json.dumps(body))
+          EOF
+          check_id=
+          while IFS= read -r body; do
+            if [ -z "$check_id" ]; then
+              check_id=$(gh api -X POST "repos/$repo/check-runs" --input - --jq .id <<< "$body")
+            else
+              gh api -X PATCH "repos/$repo/check-runs/$check_id" --input - > /dev/null <<< "$body"
+            fi
+          done < check.jsonl
+
+          comment=$(find_comment)
+          if [ -n "$comment" ]; then
+            gh api -X PATCH "repos/$repo/issues/comments/$comment" -F body=@out/comment.md > /dev/null
+          else
+            gh api -X POST "repos/$repo/issues/$number/comments" -F body=@out/comment.md > /dev/null
+          fi
+
+      # The report as files, for tools: `gh run download <id> -n coverage-report` (a step summary has no API)
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-report
+          path: out/
+          if-no-files-found: ignore

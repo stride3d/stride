@@ -1062,6 +1062,25 @@ internal sealed class UITestHost
                 return true;
             }).Task;
 
+        public async Task<bool> WaitForPreview(Guid assetId, double timeoutSeconds = 60)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            string? previewed = null;
+            while (DateTime.UtcNow < deadline)
+            {
+                var asset = await host.dispatcher.InvokeAsync(() => TryGetSession()?.ServiceProvider.TryGet<GameStudioPreviewService>()?.PreviewedAsset).Task.ConfigureAwait(false);
+                if (asset is not null && (Guid)asset.Id == assetId)
+                {
+                    host.Log($"WaitForPreview: preview of '{asset.Url}' shown");
+                    return true;
+                }
+                previewed = asset?.Url;
+                await Task.Delay(100).ConfigureAwait(false);
+            }
+            host.Log($"WaitForPreview: timed out after {timeoutSeconds}s waiting for the preview of id={assetId} (shown: {previewed ?? "none"})");
+            return false;
+        }
+
         private static SceneEditorViewModel TryGetOpenSceneEditor()
         {
             var session = TryGetSession();

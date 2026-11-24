@@ -60,6 +60,7 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
     private readonly IDebugPage? loggerDebugPage;
     private IAssetPreview? currentPreview;
     private object? previewView;
+    private volatile AssetViewModel? previewedAsset;
 
     private AssetViewModel? previewBuildQueue;
     private readonly SemaphoreSlim previewChangeLock = new(1, 1);
@@ -125,6 +126,11 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
     public PreviewGame PreviewGame { get; private set; } = null!;
 
     public event EventHandler<EventArgs>? PreviewAssetUpdated;
+
+    /// <summary>
+    /// Gets the asset whose preview is initialized and shown, or <c>null</c> while none is.
+    /// </summary>
+    public AssetViewModel? PreviewedAsset => previewedAsset;
 
     /// <summary>
     /// Starts the preview game thread and follows the session. A derived constructor calls it once.
@@ -337,6 +343,7 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
         {
             if (currentPreview != null)
             {
+                previewedAsset = null;
                 IAssetPreview? previousPreview;
                 // Ensure that the current preview won't be disposed twice with a lock
                 lock (previewLock)
@@ -364,7 +371,10 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
             {
                 previewView = await nextPreview.Initialize(asset, this);
                 if (previewView != null)
+                {
+                    previewedAsset = asset;
                     Logger.Info($"Initialized preview of {nextPreview.AssetViewModel.Url}.");
+                }
             }
             else
             {
