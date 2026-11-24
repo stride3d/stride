@@ -5,6 +5,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Xml.Linq;
 using Stride.Assets.Templates;
@@ -102,6 +104,24 @@ internal static class TestEnvironment
 
     /// <summary>The temp folder that holds one tree per case.</summary>
     public static string CasesRoot => Path.Combine(Path.GetTempPath(), "stride-packaging-tests");
+
+    private static readonly Lazy<string> globalJson = new(() =>
+    {
+        var options = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
+        var repo = JsonNode.Parse(File.ReadAllText(Path.Combine(WorktreeRoot(), "global.json")), documentOptions: options)!;
+        return new JsonObject { ["sdk"] = repo["sdk"]!.DeepClone() }.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+    });
+
+    /// <summary>
+    /// Writes in a case tree the SDK selection of the repo's global.json, so its builds run on the SDK the repo builds with,
+    /// not on the newest SDK of the machine, which the temp folder would get.
+    /// </summary>
+    public static void WriteGlobalJson(string caseDir)
+    {
+        var path = Path.Combine(caseDir, "global.json");
+        if (!File.Exists(path))
+            File.WriteAllText(path, globalJson.Value);
+    }
 
     /// <summary>The case tree, directly under <see cref="CasesRoot"/>, that holds <paramref name="path"/>.</summary>
     public static string CaseDirectory(string path)

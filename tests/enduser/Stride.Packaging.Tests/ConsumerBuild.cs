@@ -63,10 +63,13 @@ internal static class Dotnet
 {
     /// <summary>
     /// Run a <c>dotnet</c> command in a case's temp tree, streaming output to the test log; returns exit code + captured output.
-    /// The asset compilers it starts hash files into the case's own file version cache, not the machine's.
+    /// It runs on the SDK the repo's global.json selects, and the asset compilers it starts hash files into the case's own
+    /// file version cache, not the machine's.
     /// </summary>
     public static ExecResult Exec(IEnumerable<string> args, string workingDir, ITestOutputHelper output, int timeoutMin)
     {
+        var caseDir = TestEnvironment.CaseDirectory(workingDir);
+        TestEnvironment.WriteGlobalJson(caseDir);
         var psi = new ProcessStartInfo("dotnet")
         {
             UseShellExecute = false,
@@ -74,7 +77,12 @@ internal static class Dotnet
             RedirectStandardOutput = true,
             WorkingDirectory = workingDir,
         };
-        psi.Environment["STRIDE_FILE_VERSION_CACHE"] = Path.Combine(TestEnvironment.CaseDirectory(workingDir), "FileVersionTracker.cache");
+        // The test process holds the paths of the SDK that runs it (from `dotnet test`, and from FindAndSetMSBuildVersion):
+        // a child build would load parts of that SDK into the one it runs on
+        psi.Environment.Remove("MSBUILD_EXE_PATH");
+        psi.Environment.Remove("MSBuildExtensionsPath");
+        psi.Environment.Remove("MSBuildSDKsPath");
+        psi.Environment["STRIDE_FILE_VERSION_CACHE"] = Path.Combine(caseDir, "FileVersionTracker.cache");
         foreach (var arg in args)
             psi.ArgumentList.Add(arg);
 
