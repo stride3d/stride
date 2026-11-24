@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Xml.Linq;
 using Xunit;
 
@@ -61,6 +62,10 @@ internal sealed record ExecResult(int ExitCode, string Output);
 
 internal static class Dotnet
 {
+    // When set, every build, pack and restore writes a binlog to this folder
+    private static readonly string? BinlogDir = Environment.GetEnvironmentVariable("STRIDE_PACKAGING_BINLOG_DIR");
+    private static int binlogCount;
+
     /// <summary>
     /// Run a <c>dotnet</c> command in a case's temp tree, streaming output to the test log; returns exit code + captured output.
     /// It runs on the SDK the repo's global.json selects, and the asset compilers it starts hash files into the case's own
@@ -85,6 +90,14 @@ internal static class Dotnet
         psi.Environment["STRIDE_FILE_VERSION_CACHE"] = Path.Combine(caseDir, "FileVersionTracker.cache");
         foreach (var arg in args)
             psi.ArgumentList.Add(arg);
+        if (!string.IsNullOrEmpty(BinlogDir) && psi.ArgumentList is [("build" or "pack" or "restore") and var verb, ..])
+        {
+            Directory.CreateDirectory(BinlogDir);
+            var test = TestContext.Current.TestMethod?.MethodName ?? "none";
+            var binlog = Path.Combine(BinlogDir, $"{Environment.ProcessId}-{Interlocked.Increment(ref binlogCount):D3}-{test}-{verb}.binlog");
+            psi.ArgumentList.Add($"-bl:{binlog}");
+            output.WriteLine($"Binlog: {binlog}");
+        }
 
         var captured = new List<string>();
         void Sink(string tag, string? data)
