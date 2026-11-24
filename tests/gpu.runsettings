@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Run settings for GPU rendering tests (real hardware).
-  Tests default to software rendering (WARP / SwiftShader). Use this runsettings
+  Tests default to software rendering (WARP / Lavapipe). Use this runsettings
   to force tests onto your GPU instead.
   Select this in Visual Studio via Test > Configure Run Settings > Select Solution Wide runsettings File.
 -->
