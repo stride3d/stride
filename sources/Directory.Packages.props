@@ -104,11 +104,11 @@
     <!-- 3.2.2 is the minimum for Avalonia.Headless.XUnit 12.1 (xunit.v3.extensibility.core 3.2.2) -->
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="Stride.Dependencies.Assimp" Version="6.0.5.2" />
-    <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.10.17" />
-    <PackageVersion Include="Stride.Dependencies.SPIRVTools" Version="2026.6.3" />
-    <PackageVersion Include="Stride.Dependencies.Lavapipe" Version="2026.10.12" />
-    <PackageVersion Include="Stride.Dependencies.LLVM.Windows" Version="2026.6.11" />
+    <PackageVersion Include="Stride.Dependencies.Assimp" Version="6.0.5.3" />
+    <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="0.68.0.1" />
+    <PackageVersion Include="Stride.Dependencies.SPIRVTools" Version="2026.2.1" />
+    <PackageVersion Include="Stride.Dependencies.Lavapipe" Version="26.2.4.1" />
+    <PackageVersion Include="Stride.Dependencies.LLVM.Windows" Version="22.1.2.1" />
   </ItemGroup>
   <!-- Avalonia dependencies -->
   <PropertyGroup>
