@@ -139,6 +139,32 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
         });
     }
 
+    [SkippableFact]
+    public void DiscardOnAClosedCommandListDoesNotRebind()
+    {
+        PerformTest(game =>
+        {
+            var device = game.GraphicsDevice;
+            Skip.IfNot(GraphicsDevice.Platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12, "Only these track the bound buffers.");
+
+            using var vertexBuffer = Buffer.Vertex.New(device, 4 * sizeof(uint), GraphicsResourceUsage.Dynamic);
+            using var indexBuffer = Buffer.Index.New(device, 4 * sizeof(ushort), GraphicsResourceUsage.Dynamic);
+            using var commandList = CommandList.New(device);
+
+            commandList.SetVertexBuffer(0, vertexBuffer, 0, 4);
+            commandList.SetIndexBuffer(indexBuffer, 0, false);
+            device.ExecuteCommandList(commandList.Close());
+
+            // Between Close and Reset there is no native command list to record the binding in
+            vertexBuffer.SetData(commandList, new[] { Color.Red });
+            indexBuffer.SetData(commandList, new ushort[] { 0, 1, 2 });
+
+            commandList.Reset();
+            vertexBuffer.SetData(commandList, new[] { Color.Blue });
+            device.ExecuteCommandList(commandList.Close());
+        });
+    }
+
     [Fact]
     public void DiscardAfterBindingAnIndexBufferChangesWhatLaterDrawsRead()
     {

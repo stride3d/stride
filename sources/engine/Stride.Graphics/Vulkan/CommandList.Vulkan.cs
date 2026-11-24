@@ -163,6 +163,7 @@ namespace Stride.Graphics
             }
 
             activePipeline = null;
+            ClearBoundBuffers();
 
             var result = currentCommandList;
             currentCommandList = default;

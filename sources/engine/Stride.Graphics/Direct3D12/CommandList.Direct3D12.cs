@@ -244,6 +244,8 @@ namespace Stride.Graphics
             ResetSrvHeap(createNewHeap: false);
             ResetSamplerHeap(createNewHeap: false);
 
+            ClearBoundBuffers();
+
             var commandList = currentCommandList;
             currentCommandList = default;
             return commandList;
