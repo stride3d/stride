@@ -21,13 +21,13 @@ Stride is an open-source C# game engine designed for realistic rendering and VR.
 
 ![Stride Editor](https://stride3d.net/images/external/script-editor.png)
 
-This README is intended for users who want to build the Stride engine from source or contribute to its development. If your goal is to create games using Stride, we recommend visiting the [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html) guide. There, you'll find detailed instructions on downloading, installing, and getting started with game development in Stride.
+This README is intended for users who want to build the Stride engine from source or contribute to its development. If your goal is to create games using Stride, we recommend visiting the [Get started](https://doc.stride3d.net/latest/en/manual/get-started/index.html) section of our manual.
 
 ## 🚀 Try Stride from the command line
 
-Create and manage Stride projects from the command line — no editor required.
+Create and manage Stride projects from the command line, no editor required!
 
-The **Stride CLI tool** installs and manages Stride engine versions, creates projects from templates, and opens Game Studio:
+The **Stride CLI tool** provides many utility commands for managing installations, creating projects, opening the editor and more, without having to leave the terminal.
 
 ```bash
 dotnet tool install -g Stride.Cli
@@ -39,7 +39,7 @@ cd MyShooter && dotnet run --project MyShooter.Windows
 stride studio                        # open Game Studio, the visual editor
 ```
 
-`stride new` with no template lists what's available, `stride sdk` manages installed engine versions (`list`, `install`, `uninstall`, `update`), and `stride upgrade` moves a project to a newer engine. See [`sources/launcher/README.md`](sources/launcher/README.md).
+For more information on how to use the CLI tool, see [Stride CLI](https://doc.stride3d.net/latest/en/manual/get-started/stride-cli.html).
 
 Prefer standard .NET templating? The same templates are available through `dotnet new`:
 
@@ -49,53 +49,49 @@ dotnet new stride-game -n MyGame
 cd MyGame && dotnet run --project MyGame.Windows
 ```
 
-See [`sources/templates/README.md`](sources/templates/README.md) for the full template catalog (genre starters, 18 feature demos, tutorials) and the local-development workflow.
+See [`sources/templates/README.md`](sources/templates/README.md) for a full list of templates.
 
 ## 🤝 Contributing
 
-Want to get involved? See our [Contributing section](.github/CONTRIBUTING.md) for how to ask questions, report bugs, submit pull requests (including good first issues), and how you can earn money by contributing via funded tasks/bug bounties.
+Want to get involved? Check out the [Contributing tab](.github/CONTRIBUTING.md) for how to ask questions, report bugs, submit pull requests, and how you can earn money by contributing via funded tasks.
 
 ## 🗺️ Roadmap
 
 Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) communicates upcoming changes to the Stride engine.
 
-## 🛠️ Building from Source
+## 🛠️ Building from source
 
 ### Prerequisites
 
-1. **Latest [Git](https://git-scm.com/downloads)** — the Windows installer includes Git LFS by default; make sure it stays enabled. For convenience, you can also use a UI client like [GitExtensions](https://gitextensions.github.io/).
+1. **Latest [Git](https://git-scm.com/downloads) with LFS** - the Windows installer includes LFS by default. For convenience, you can also use a UI client like [GitExtensions](https://gitextensions.github.io/).
 2. **[Visual Studio 2026](https://visualstudio.microsoft.com/downloads/)** (Community edition is free), with these two workloads:
    - **.NET desktop development** (bundles the .NET 10 SDK)
    - **Desktop development with C++**
 
-> See [docs/build/README.md](docs/build/README.md) for detailed prerequisites (specific MSVC toolset versions, optional iOS/Android/ARM64/VSIX components, command-line builds without VS, and troubleshooting).
+> See [docs/build/README.md](docs/build/README.md) for a detailed list of prerequisites (specific MSVC toolset versions, optional iOS/Android/ARM64/VSIX components, command-line builds without Visual Studio, and troubleshooting).
 
 ### Build Stride
 
 1. `git clone https://github.com/stride3d/stride.git`
-2. Open `Stride.slnx` in Visual Studio 2026.
-3. Build the `Stride.GameStudio` project (default startup, in the `60-Editor` folder) or run it directly from the toolbar.
+2. Open `Stride.slnx` in Visual Studio.
+3. Build either `Stride.GameStudio` (old WPF editor, located in `60-Editor`) or `Stride.GameStudio.Avalonia.Desktop` (new experimental Avalonia editor, located in `60-Editor/Avalonia`) project. The first one should be selected by default.
 
 ### Repository layout
 
 | Folder | What it holds |
 |---|---|
-| `Stride.slnx` | The main solution: open this one |
-| `sources/` | What ships, by area (`core`, `engine`, `editor`, `assets`, `shaders`, `presentation`, `launcher`, `tools`...). Unit tests sit next to their code. The `Stride.*.slnf` filters are the slices CI builds |
-| `tests/` | Test-only projects and data: editor and end-user suites, GPU gold images, device scripts. See [tests/README.md](tests/README.md) |
-| `samples/` | Sample games and templates, built like user projects (`samples/StrideSamples.slnx`) |
-| `deps/` | Third-party code: committed binaries, and the recipes that build them or the `Stride.Dependencies.*` packages |
-| `build/` | How CI and releases build, sign and pack (`package.proj`), and your local settings (`Stride.Local.props`) |
-| `docs/` | Contributor docs: build, debugging, editor, launcher, asset system |
-| `bin/` | Build output and local packages (ignored by git) |
+| `Stride.slnx` | The main solution (open this one). |
+| `sources/` | Source code organized by area, including unit tests. The `Stride.*.slnf` files are for CI. |
+| `tests/` | Tests for multi-assembly areas (see [tests/README.md](tests/README.md)) and data. Normal unit tests are in `sources/`. |
+| `samples/` | Sample games and templates. |
+| `deps/` | Third-party dependencies. |
+| `build/` | Tools for creating release builds. It also contains customizable local settings (`Stride.Local.props`). |
+| `docs/` | Engine architecture docs. User and contributor documentation can be found on the [`stride-docs` repository](https://github.com/stride3d/stride-docs). |
+| `bin/` | Build output and local packages (ignored by git). |
 
 There is no `Directory.Build.props` at the root on purpose: `sources/` and `tests/` have their own, and samples must build like a user's project.
 
-### Contribution Guidelines
-
-Please check our [Contributing Guidelines](https://doc.stride3d.net/latest/en/contributors/index.html).
-
-## 🔬 Build Status
+## 🔬 Build status
 
 | Build | Status |
 |:--|:--:|
@@ -105,29 +101,14 @@ Please check our [Contributing Guidelines](https://doc.stride3d.net/latest/en/co
 | Tests (Simple) | [![](https://github.com/stride3d/stride/actions/workflows/test-windows.yml/badge.svg?branch=master)](https://github.com/stride3d/stride/actions/workflows/test-windows.yml) |
 | Tests (Game/WARP) | [![](https://github.com/stride3d/stride/actions/workflows/test-windows.yml/badge.svg?branch=master)](https://github.com/stride3d/stride/actions/workflows/test-windows.yml) |
 
-## 📖 Stride Documentation Landscape
+## 🚧 Stride repository landscape
 
-The Stride documentation is organized across different locations. Here's how it's structured:
+Stride is divided across multiple repositories:
 
-1. [Stride Game Engine](https://github.com/stride3d/stride) - The main repository for Stride.
-   - [Contributing to Stride](https://doc.stride3d.net/latest/en/contributors/engine/index.html) - A guide for developers interested in contributing to or developing the Stride engine.
-1. [Stride Website](https://www.stride3d.net/) - The official site showcasing Stride, featuring:
-   - [Features](https://www.stride3d.net/features/) 
-   - [Blog](https://www.stride3d.net/blog/)
-   - [Community](https://www.stride3d.net/community/)
-   - [Download](https://www.stride3d.net/download/)
-   - [Sponsor](https://www.stride3d.net/sponsor/)
-   - [Contributing to the Website](https://doc.stride3d.net/latest/en/contributors/website/index.html) - Guide for contributing to the Stride website.
-2. [Stride Docs](https://doc.stride3d.net/) - The official documentation, including:
-   - [Manual](https://doc.stride3d.net/latest/en/manual/index.html)
-   - [Tutorials](https://doc.stride3d.net/latest/en/tutorials/index.html)
-   - [Release Notes](https://doc.stride3d.net/en/release-notes/index.html)
-   - [Ways to contribute](https://doc.stride3d.net/latest/en/contributors/index.html)
-   - [API Reference](https://doc.stride3d.net/latest/en/api/index.html)
-   - [Community Resources](https://doc.stride3d.net/latest/en/community-resources/index.html) - Demos, articles, shaders, physics examples, and more.
-   - [Contributing to the Docs](https://doc.stride3d.net/latest/en/contributors/documentation/index.html) - Guide for contributing to the Stride documentation.
-4. [Stride Community Toolkit](https://stride3d.github.io/stride-community-toolkit/index.html) - A set of C# helpers and extensions to enhance your experience with the Stride game engine.
-   - [Contributing to Toolkit](https://github.com/stride3d/stride-community-toolkit) - Contribute to or explore the toolkit's source code.
+1. [`stride3d/stride`](https://github.com/stride3d/stride) - the main repository for Stride, containing its source code, tests and architecture documentation.
+1. [`stride3d/stride-website`](https://github.com/stride3d/stride-website) ([website link](https://www.stride3d.net/)) - repository for the official Stride website.
+2. [`stride3d/stride-docs`](https://github.com/stride3d/stride-docs) ([website link](https://doc.stride3d.net/)) - repository for the documentation website. API documentation and architecture docs are generated from `stride3d/stride`.
+4. [`stride3d/stride-community-toolkit`](https://github.com/stride3d/stride-community-toolkit) ([website link](https://stride3d.github.io/stride-community-toolkit/index.html)) - repository for the community toolkit, a set of C# helpers and extensions to enhance your experience with the engine.
 
 ## 🌐 .NET Foundation
 
