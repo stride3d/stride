@@ -18,8 +18,8 @@ name: "Dep: Build & Deploy SPIRV-Tools"
 # RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64, ios-arm64,
 #               iossimulator-arm64, android-arm64, android-x64.
 #
-# Debug files: the Windows, Linux, macOS and Android builds compile with debug info, and the package gets the
-# libraries without it. The debug files (.pdb, full .so, .dSYM) go to the symbols pre-release (dep-symbols.yml), as
+# Debug files: every build compiles with debug info, and the package gets the libraries without it and without their
+# local symbols. The debug files (.pdb, .so.debug, .dSYM) go to the symbols pre-release (dep-symbols.yml), as
 # symbols-spirv-tools-<rid> artifacts, outside the pack job's spirv-tools-* pattern.
 # CFLAGS, CXXFLAGS and LDFLAGS add to CMake's default flags: /Z7 and -g don't change the generated code, and
 # /DEBUG needs /OPT:REF and /OPT:ICF to link as a Release build does.
@@ -195,12 +195,14 @@ jobs:
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
-      # The symbol table stays, as in the other libraries Stride builds for Linux
+      # The .debug file keeps the debug info and the symbol table. The shipped library names it in its .gnu_debuglink,
+      # where gdb and lldb look for it.
       - name: Collect output
         run: |
           mkdir -p spirv-tools-out spirv-tools-symbols
-          cp _build/libstride_spirv_tools.so spirv-tools-symbols/
-          strip --strip-debug -o spirv-tools-out/libstride_spirv_tools.so _build/libstride_spirv_tools.so
+          objcopy --only-keep-debug _build/libstride_spirv_tools.so spirv-tools-symbols/libstride_spirv_tools.so.debug
+          objcopy --strip-unneeded --add-gnu-debuglink=spirv-tools-symbols/libstride_spirv_tools.so.debug \
+            _build/libstride_spirv_tools.so spirv-tools-out/libstride_spirv_tools.so
 
       - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-linux-x64, path: spirv-tools-out/ }
@@ -236,13 +238,13 @@ jobs:
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
-      # The DWARF stays in the object files: dsymutil collects it, and strip -S removes the debug map that points to
-      # them. strip changes the file, so it gets a new ad-hoc signature, which arm64 needs to load it.
+      # The DWARF stays in the object files: dsymutil collects it. strip -S removes the debug map that points to them,
+      # and -x the local symbols. strip breaks the signature, and arm64 needs one: codesign adds an ad-hoc one.
       - name: Collect output
         run: |
           mkdir -p spirv-tools-out spirv-tools-symbols
           dsymutil _build/libstride_spirv_tools.dylib -o spirv-tools-symbols/libstride_spirv_tools.dylib.dSYM
-          strip -S -o spirv-tools-out/libstride_spirv_tools.dylib _build/libstride_spirv_tools.dylib
+          strip -S -x -o spirv-tools-out/libstride_spirv_tools.dylib _build/libstride_spirv_tools.dylib
           codesign -f -s - spirv-tools-out/libstride_spirv_tools.dylib
 
       - uses: actions/upload-artifact@v7
@@ -273,6 +275,7 @@ jobs:
           python3 spirv-tools-src/utils/git-sync-deps
 
       - name: Configure & build stride_spirv_tools
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           # Ninja, not Xcode: SPIRV-Tools' build-version.inc custom command is
           # attached to both SPIRV-Tools-shared and SPIRV-Tools-static, which
@@ -288,13 +291,19 @@ jobs:
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
+      # As on macOS
       - name: Collect output
         run: |
-          mkdir -p spirv-tools-out
-          cp _build/libstride_spirv_tools.dylib spirv-tools-out/
+          mkdir -p spirv-tools-out spirv-tools-symbols
+          dsymutil _build/libstride_spirv_tools.dylib -o spirv-tools-symbols/libstride_spirv_tools.dylib.dSYM
+          strip -S -x -o spirv-tools-out/libstride_spirv_tools.dylib _build/libstride_spirv_tools.dylib
+          codesign -f -s - spirv-tools-out/libstride_spirv_tools.dylib
 
       - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-ios-arm64, path: spirv-tools-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-spirv-tools-ios-arm64, path: spirv-tools-symbols/ }
 
   # ---------------------------------------------------------------------------
   # iOS Simulator ARM64 — cross-compiled on macOS. Same source as ios-arm64 but
@@ -320,6 +329,7 @@ jobs:
           python3 spirv-tools-src/utils/git-sync-deps
 
       - name: Configure & build stride_spirv_tools
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           cmake -S stride-src/deps/spirv-tools -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -330,13 +340,19 @@ jobs:
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
+      # As on macOS
       - name: Collect output
         run: |
-          mkdir -p spirv-tools-out
-          cp _build/libstride_spirv_tools.dylib spirv-tools-out/
+          mkdir -p spirv-tools-out spirv-tools-symbols
+          dsymutil _build/libstride_spirv_tools.dylib -o spirv-tools-symbols/libstride_spirv_tools.dylib.dSYM
+          strip -S -x -o spirv-tools-out/libstride_spirv_tools.dylib _build/libstride_spirv_tools.dylib
+          codesign -f -s - spirv-tools-out/libstride_spirv_tools.dylib
 
       - uses: actions/upload-artifact@v7
         with: { name: spirv-tools-iossimulator-arm64, path: spirv-tools-out/ }
+
+      - uses: actions/upload-artifact@v7
+        with: { name: symbols-spirv-tools-iossimulator-arm64, path: spirv-tools-symbols/ }
 
   # ---------------------------------------------------------------------------
   # Android — one job per ABI, cross-compiled via NDK toolchain file.
@@ -376,13 +392,14 @@ jobs:
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
 
-      # The NDK toolchain already compiles with -g. The symbol table stays.
+      # The NDK toolchain already compiles with -g. As on Linux, with the NDK's objcopy.
       - name: Collect output
         run: |
           mkdir -p spirv-tools-out spirv-tools-symbols
-          cp _build/libstride_spirv_tools.so spirv-tools-symbols/
-          $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip --strip-debug \
-            -o spirv-tools-out/libstride_spirv_tools.so _build/libstride_spirv_tools.so
+          objcopy=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
+          $objcopy --only-keep-debug _build/libstride_spirv_tools.so spirv-tools-symbols/libstride_spirv_tools.so.debug
+          $objcopy --strip-unneeded --add-gnu-debuglink=spirv-tools-symbols/libstride_spirv_tools.so.debug \
+            _build/libstride_spirv_tools.so spirv-tools-out/libstride_spirv_tools.so
 
       - uses: actions/upload-artifact@v7
         with:

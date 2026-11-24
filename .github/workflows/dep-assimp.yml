@@ -3,9 +3,10 @@ name: "Dep: Build & Deploy Assimp"
 # Builds the Assimp of Stride.Dependencies.Assimp: upstream at a tag, plus the patches in deps/assimp.
 # The managed bindings stay Silk.NET.Assimp, so a new Assimp must keep the struct layouts those bindings expect.
 #
-# Debug files: the package gets the libraries without debug info, and the debug files (.pdb, full .so, .dSYM) go to
-# the symbols pre-release (dep-symbols.yml), as symbols-assimp-<rid> artifacts. On Windows, Assimp's own
-# ASSIMP_INSTALL_PDB (on by default) makes the .pdb of its Release build; Linux and macOS add -g to CMake's flags.
+# Debug files: the package gets the libraries without debug info and local symbols, and the debug files (.pdb,
+# .so.debug, .dSYM) go to the symbols pre-release (dep-symbols.yml), as symbols-assimp-<rid> artifacts. On Windows,
+# Assimp's own ASSIMP_INSTALL_PDB (on by default) makes the .pdb of its Release build; Linux and macOS add -g to CMake's
+# flags.
 
 on:
   workflow_dispatch:
@@ -130,12 +131,14 @@ jobs:
           cmake -S assimp-src -B _build -G Ninja $CMAKE_OPTIONS
           cmake --build _build
 
-      # The symbol table stays, as in the other libraries Stride builds for Linux
+      # The .debug file keeps the debug info and the symbol table. The shipped library names it in its .gnu_debuglink,
+      # where gdb and lldb look for it.
       - name: Collect output
         run: |
           mkdir -p assimp-out assimp-symbols
-          cp -L _build/bin/libassimp.so.6 assimp-symbols/libassimp.so.6
-          strip --strip-debug -o assimp-out/libassimp.so.6 assimp-symbols/libassimp.so.6
+          objcopy --only-keep-debug _build/bin/libassimp.so.6 assimp-symbols/libassimp.so.6.debug
+          objcopy --strip-unneeded --add-gnu-debuglink=assimp-symbols/libassimp.so.6.debug \
+            _build/bin/libassimp.so.6 assimp-out/libassimp.so.6
 
       - uses: actions/upload-artifact@v7
         with: { name: assimp-linux-x64, path: assimp-out/ }
@@ -168,13 +171,13 @@ jobs:
           cmake -S assimp-src -B _build -G Ninja -DCMAKE_OSX_ARCHITECTURES=arm64 $CMAKE_OPTIONS -DASSIMP_BUILD_ZLIB=OFF
           cmake --build _build
 
-      # The DWARF stays in the object files: dsymutil collects it, and strip -S removes the debug map that points to
-      # them. strip changes the file, so it gets a new ad-hoc signature, which arm64 needs to load it.
+      # The DWARF stays in the object files: dsymutil collects it. strip -S removes the debug map that points to them,
+      # and -x the local symbols. strip breaks the signature, and arm64 needs one: codesign adds an ad-hoc one.
       - name: Collect output
         run: |
           mkdir -p assimp-out assimp-symbols
           dsymutil _build/bin/libassimp.6.dylib -o assimp-symbols/libassimp.6.dylib.dSYM
-          strip -S -o assimp-out/libassimp.6.dylib _build/bin/libassimp.6.dylib
+          strip -S -x -o assimp-out/libassimp.6.dylib _build/bin/libassimp.6.dylib
           codesign -f -s - assimp-out/libassimp.6.dylib
 
       - uses: actions/upload-artifact@v7

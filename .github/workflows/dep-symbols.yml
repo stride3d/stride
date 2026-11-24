@@ -1,6 +1,6 @@
 name: "Dep: Symbols Pre-release"
 
-# Keeps the debug files of a dependency build (.pdb, full-debug libraries, .dSYM) as a GitHub pre-release, after the
+# Keeps the debug files of a dependency build (.pdb, .so.debug, .dSYM) as a GitHub pre-release, after the
 # run's artifacts expire. The shipped binaries are stripped, and a later rebuild gives debug files that don't match them.
 # The calling workflow uploads them as artifacts named symbols-<name>-<rid>, and its VERSION.txt in another artifact.
 
