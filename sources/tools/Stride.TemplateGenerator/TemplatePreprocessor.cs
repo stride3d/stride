@@ -25,17 +25,16 @@ internal class TemplatePreprocessor
     /// <summary>The default content of sample .gitignore files</summary>
     private const string GitIgnoreContent = @"# Common files
 *.suo
-*.VC.db
-*.vshost.exe
-*.manifest
-*.sdf
 *.user
+*.VC.db
+*.sdf
 *.lock
-*.lock.json
+*.log
 
 # IDE files
 _ReSharper*
 .vs/
+.idea/
 
 # Building
 [Bb]in/
