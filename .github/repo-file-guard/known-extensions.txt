@@ -1,19 +1,13 @@
 # Known file extensions (lowercase, no leading dot) — one per line. Committed allowlist.
 #
-# The "PR Repo Hygiene" workflow (.github/workflows/pr-repo-hygiene.yml) BLOCKS any PR
+# The "Repo File Guard" workflow (.github/workflows/repo-file-guard.yml) BLOCKS any PR
 # that ADDS a file whose extension is not listed here, so an unfamiliar or binary file
 # type cannot land unreviewed. To introduce a new extension on purpose, add it here in
 # the same PR — and if the type is binary, also add a `filter=lfs` rule to .gitattributes.
-# (A maintainer can instead override with the `allow-new-extension` label.)
 #
 # Glob patterns are allowed: `*` matches any run of characters, `?` any single one.
 # e.g. `sd*` covers the whole Stride asset family (sdscene, sdpkg, sdprefab, ...).
 # Lines starting with # and blank lines are ignored. Keep sorted.
-10
-5
-59
-61
-8
 a
 aic
 aip
