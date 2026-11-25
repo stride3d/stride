@@ -155,6 +155,10 @@ jobs:
               - 'tests/**'
               - 'sources/Stride.Runtime.slnf'
               - 'sources/Stride.Tests.Simple*.slnf'
+              # The build inputs of every project: package versions, MSBuild settings, the SDK and the package sources
+              - 'sources/Directory.*'
+              - 'global.json'
+              - 'nuget.config'
               # The workflows of the jobs it gates, their actions and the auditor the ApiNeutral job runs: an
               # edit runs them
               - '.github/workflows/test-windows-game-api-neutral.yml'
@@ -185,6 +189,9 @@ jobs:
               - 'sources/sdk/**'
               - 'deps/**'
               - 'sources/Stride.iOS.slnf'
+              - 'sources/Directory.*'
+              - 'global.json'
+              - 'nuget.config'
             # Strictly iOS-specific paths: shared engine / MoltenVK / AVFoundation code is
             # already covered per-PR by macOS-Tests-Game on the cheaper macOS-vs-iOS surface.
             ios-tests:
@@ -210,6 +217,9 @@ jobs:
               - 'tests/infra/android/**'
               - 'tests/**/Android.Vulkan/**'
               - 'sources/Stride.Tests.Game.Android.slnf'
+              - 'sources/Directory.*'
+              - 'global.json'
+              - 'nuget.config'
               - '.github/workflows/test-android-game.yml'
               - '.github/actions/effect-cache/**'
               - '.github/actions/lfs-pull/**'
