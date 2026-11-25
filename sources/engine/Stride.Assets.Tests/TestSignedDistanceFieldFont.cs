@@ -56,17 +56,7 @@ namespace Stride.Assets.Tests
             };
 
             var importer = new SignedDistanceFieldFontImporter();
-            try
-            {
-                importer.Import(asset, Expected.Select(e => e.Character).ToList());
-            }
-            catch (Exception e) when (e is EntryPointNotFoundException or DllNotFoundException)
-            {
-                // The bundled stride_msdfgen native library predates the msdfgenGenerateGlyph
-                // entry point; rebuild it via the dep-msdfgen.yml workflow to run this test.
-                output.WriteLine($"Skipped: {e.Message}");
-                return;
-            }
+            importer.Import(asset, Expected.Select(e => e.Character).ToList());
 
             var glyphs = importer.Glyphs.Cast<Glyph>().ToDictionary(g => g.Character);
 
