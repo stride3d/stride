@@ -4,6 +4,8 @@
 using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.Tests.Helpers;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Diagnostics;
 using Stride.Core.Settings;
 using Stride.Core.Assets.Presentation.ViewModels;
 
@@ -236,6 +238,142 @@ public sealed class GameCodeReloadViewModelTests
         Assert.Single(test.Watchers, x => x.IsDisposed);
     }
 
+    [Fact]
+    public async Task WithAReloaderTheBuiltAssembliesReloadInPlaceWithoutRestarting()
+    {
+        await using var test = await ReloadTest.CreateAsync();
+        var reloader = test.RegisterReloader(GameCodeReloadResult.InPlace);
+        test.Dialogs.PickButton = _ => ReloadButton;
+
+        test.Change("Player.cs");
+        await test.Reload.Question;
+
+        // The question doesn't say that the editor restarts
+        Assert.Equal(Question, Assert.Single(test.Dialogs.Messages));
+        var call = Assert.Single(reloader.Calls);
+        Assert.Same(test.Fixture.Session, call.Session);
+        Assert.Equal(test.Builder.AssemblyPath, call.BuiltAssemblies[test.ProjectPath]);
+        Assert.Equal(0, test.Restarts);
+        Assert.False(test.Reload.HasPendingChanges);
+        Assert.False(test.Reload.ReloadCommand.IsEnabled);
+    }
+
+    [Fact]
+    public async Task AChangeTheReloaderCannotReloadInPlaceRestartsAndSaysWhy()
+    {
+        await using var test = await ReloadTest.CreateAsync();
+        test.RegisterReloader(GameCodeReloadResult.Restart("[Game.Editor] has views of the editor"));
+        test.Dialogs.PickButton = _ => ReloadButton;
+
+        test.Change("Player.cs");
+        await test.Reload.Question;
+
+        Assert.Equal(1, test.Restarts);
+        test.Build.BuildLog.Flush();
+        Assert.Contains(test.Build.BuildLog.Messages, x => x.Text.StartsWith("[Game.Editor] has views of the editor", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task AnUndoneReloadMakesTheChangesPendingAgainWithoutAsking()
+    {
+        await using var test = await ReloadTest.CreateAsync();
+        var reloader = test.RegisterReloader(GameCodeReloadResult.InPlace);
+        test.Dialogs.PickButton = _ => ReloadButton;
+        test.Change("Player.cs");
+        await test.Reload.Question;
+        Assert.False(test.Reload.HasPendingChanges);
+
+        Assert.Single(reloader.Calls).Undone();
+
+        Assert.True(test.Reload.HasPendingChanges);
+        Assert.True(test.Reload.ReloadCommand.IsEnabled);
+        Assert.Equal([test.ProjectPath], test.Reload.ChangedProjects);
+        Assert.Single(test.Dialogs.Messages);
+
+        // Redone: nothing waits, and the next change asks again
+        reloader.Calls[0].Redone();
+        Assert.False(test.Reload.HasPendingChanges);
+        Assert.False(test.Reload.ReloadCommand.IsEnabled);
+        test.Change("Player.cs");
+        await test.Reload.Question;
+        Assert.Equal(2, test.Dialogs.Messages.Count);
+    }
+
+    [Fact]
+    public async Task ARedoKeepsPendingAChangeMadeAfterItsUndo()
+    {
+        await using var test = await ReloadTest.CreateAsync();
+        var reloader = test.RegisterReloader(GameCodeReloadResult.InPlace);
+        test.Dialogs.PickButton = _ => ReloadButton;
+        test.Change("Player.cs");
+        await test.Reload.Question;
+        var reload = Assert.Single(reloader.Calls);
+
+        reload.Undone();
+        test.Change("Player.cs");
+        reload.Redone();
+
+        // The redone reload doesn't have that change
+        Assert.True(test.Reload.HasPendingChanges);
+        Assert.True(test.Reload.ReloadCommand.IsEnabled);
+        Assert.Equal([test.ProjectPath], test.Reload.ChangedProjects);
+    }
+
+    [Fact]
+    public async Task RedoingAnEarlierReloadKeepsTheCodeOfALaterOnePending()
+    {
+        await using var test = await ReloadTest.CreateAsync();
+        var reloader = test.RegisterReloader(GameCodeReloadResult.InPlace);
+        test.Dialogs.PickButton = _ => ReloadButton;
+        test.Change("Player.cs");
+        await test.Reload.Question;
+        test.Change("Player.cs");
+        await test.Reload.Question;
+        Assert.Equal(2, reloader.Calls.Count);
+
+        reloader.Calls[1].Undone();
+        reloader.Calls[0].Undone();
+        reloader.Calls[0].Redone();
+        Assert.True(test.Reload.HasPendingChanges);
+
+        reloader.Calls[1].Redone();
+        Assert.False(test.Reload.HasPendingChanges);
+    }
+
+    [Fact]
+    public async Task AProjectWhoseFileChangedRestoresBeforeItBuilds()
+    {
+        await using var test = await ReloadTest.CreateAsync();
+        test.RegisterReloader(GameCodeReloadResult.InPlace);
+        test.Dialogs.PickButton = _ => ReloadButton;
+
+        test.Change("Player.cs");
+        await test.Reload.Question;
+        Assert.Empty(test.Restored);
+
+        test.Reload.OnCodeChanged([new GameCodeChange(test.ProjectPath, test.ProjectPath)]);
+        await test.Reload.Question;
+        Assert.Equal([test.ProjectPath], test.Restored);
+        Assert.Equal(2, test.Builder.Requests.Count);
+    }
+
+    [Fact]
+    public async Task AFailedBuildShowsTheErrorsOfTheRestoreBeforeIt()
+    {
+        await using var test = await ReloadTest.CreateAsync();
+        test.RegisterReloader(GameCodeReloadResult.InPlace);
+        test.Dialogs.PickButton = _ => ReloadButton;
+        test.Builder.Succeed = false;
+        test.RestoreError = "Unable to find package Missing.Package";
+
+        test.Reload.OnCodeChanged([new GameCodeChange(test.ProjectPath, test.ProjectPath)]);
+        await test.Reload.Question;
+
+        Assert.Equal([test.ProjectPath], test.Restored);
+        test.Build.BuildLog.Flush();
+        Assert.Contains(test.Build.BuildLog.Messages, x => x.Text.Contains("Unable to find package Missing.Package", StringComparison.Ordinal));
+    }
+
     private static async Task WaitForAsync(Func<bool> condition)
     {
         var timeout = DateTime.UtcNow + TimeSpan.FromSeconds(30);
@@ -276,6 +414,16 @@ public sealed class GameCodeReloadViewModelTests
                 },
                 SettingsProfile = Settings,
                 SaveSettings = () => ++SettingsSaved,
+                RestoreProject = (log, projectPath) =>
+                {
+                    Restored.Add(projectPath);
+                    if (RestoreError is null)
+                        return Task.CompletedTask;
+
+                    // As VSProjectHelper.RestoreNugetPackages: the errors go to the log, then it throws
+                    log.Error(RestoreError);
+                    return Task.FromException(new InvalidOperationException(RestoreError));
+                },
             };
             Reload.Session = fixture.Session;
         }
@@ -300,6 +448,23 @@ public sealed class GameCodeReloadViewModelTests
 
         public int SettingsSaved { get; private set; }
 
+        public List<string> Restored { get; } = [];
+
+        /// <summary>
+        /// The error that fails the restore of a project, if any.
+        /// </summary>
+        public string? RestoreError { get; set; }
+
+        /// <summary>
+        /// Registers a reloader in the session, as the Stride editor plugin does, which answers every reload with this result.
+        /// </summary>
+        public FakeGameCodeReloader RegisterReloader(GameCodeReloadResult result)
+        {
+            var reloader = new FakeGameCodeReloader(result);
+            Fixture.Session.ServiceProvider.RegisterService(reloader);
+            return reloader;
+        }
+
         public static async DispatcherTask<ReloadTest> CreateAsync(bool restarts = true)
         {
             return new ReloadTest(await EditorSessionFixture.OpenAsync(), restarts);
@@ -319,6 +484,17 @@ public sealed class GameCodeReloadViewModelTests
             Reload.Destroy();
             Build.Destroy();
             await Fixture.DisposeAsync();
+        }
+    }
+
+    private sealed class FakeGameCodeReloader(GameCodeReloadResult result) : IGameCodeReloader
+    {
+        public List<(SessionViewModel Session, IReadOnlyDictionary<string, string> BuiltAssemblies, Action Undone, Action Redone)> Calls { get; } = [];
+
+        public Task<GameCodeReloadResult> ReloadAsync(SessionViewModel session, IReadOnlyDictionary<string, string> builtAssemblies, ILogger log, Action undone, Action redone)
+        {
+            Calls.Add((session, builtAssemblies, undone, redone));
+            return Task.FromResult(result);
         }
     }
 }

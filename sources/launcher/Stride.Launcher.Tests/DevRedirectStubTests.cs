@@ -83,11 +83,56 @@ public sealed class DevRedirectStubTests : IDisposable
     }
 
     [Fact]
+    public void TryGetDevRedirectOutputDirectory_SkipsCommentedOutElements()
+    {
+        var package = WriteStub("Release");
+        var props = Path.Combine(package, "build", "Stride.AssetCompiler.props");
+        File.WriteAllText(props, File.ReadAllText(props).Replace("<PropertyGroup>",
+            "<!-- <StrideDevConfiguration>Debug</StrideDevConfiguration> --><PropertyGroup>", StringComparison.Ordinal));
+        Directory.CreateDirectory(ProjectOutput("Debug"));
+        Directory.CreateDirectory(ProjectOutput("Release"));
+
+        Assert.Equal(ProjectOutput("Release"), NugetStore.TryGetDevRedirectOutputDirectory(package, "Stride.AssetCompiler"));
+    }
+
+    [Fact]
     public void TryGetDevRedirectOutputDirectory_NullForARealPackage()
     {
         var package = Path.Combine(root, "packages", "stride.assetcompiler", "4.4.1");
         Directory.CreateDirectory(Path.Combine(package, "tools", "net10.0"));
 
         Assert.Null(NugetStore.TryGetDevRedirectOutputDirectory(package, "Stride.AssetCompiler"));
+    }
+
+    [Fact]
+    public void GetDevRedirectAssemblies_ReadsTheReferencesOfTheStubAsXml()
+    {
+        var package = Path.Combine(root, "packages", "stride.native", "4.5.0-dev");
+        Directory.CreateDirectory(Path.Combine(package, "build"));
+        var assembly = Path.Combine(root, "checkout", "sources", "Stride.Native", "bin", "Release", "net10.0", "Stride.Native.dll");
+        var commentedOut = Path.Combine(root, "checkout", "Old.dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(assembly)!);
+        File.WriteAllText(assembly, "");
+        File.WriteAllText(commentedOut, "");
+        // A comment, an attribute and a value on several lines, as an edited props file may have
+        File.WriteAllText(Path.Combine(package, "build", "Stride.Native.props"), $"""
+            <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+              <PropertyGroup>
+                <StrideDevRedirect>true</StrideDevRedirect>
+                <StrideDevRoot Condition="'$(StrideDevRoot)' == ''">{Path.Combine(root, "checkout")}</StrideDevRoot>
+                <StrideDevConfiguration Condition="'$(StrideDevConfiguration)' == ''">
+                  Release
+                </StrideDevConfiguration>
+              </PropertyGroup>
+              <!-- <Reference Include="Old"><HintPath>$(StrideDevRoot)/Old.dll</HintPath></Reference> -->
+              <ItemGroup Condition="false">
+                <Reference Include="Stride.Native">
+                  <HintPath Condition="true">$(StrideDevRoot)/sources/Stride.Native/bin/$(StrideDevConfiguration)/net10.0/Stride.Native.dll</HintPath>
+                </Reference>
+              </ItemGroup>
+            </Project>
+            """);
+
+        Assert.Equal([assembly], NugetStore.GetDevRedirectAssemblies(package, "Stride.Native"));
     }
 }

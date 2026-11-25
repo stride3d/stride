@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System;
 using System.Collections;
@@ -10,12 +11,11 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Stride.Assets.Editor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Rendering;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Quantum;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
@@ -37,11 +37,20 @@ using Stride.Engine.Gizmos;
 using Stride.Core.Assets.Presentation.Quantum;
 using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Assets.Presentation.AssemblyReloading
+namespace Stride.Assets.Editor.AssemblyReloading
 {
     /// <summary>
-    /// Helper to reload game assemblies within the editor.
+    /// Reloads the game assemblies of a session in the editor's process: the live objects of the outgoing copies go through
+    /// YAML to the incoming ones, as undoable changes of their assets.
     /// </summary>
+    /// <remarks>
+    /// An open editor follows an assembly change in place: its asset's objects are swapped through the property graph, its
+    /// game replaces the components and drops the processors and systems of the unloaded types (EditorServiceGame). It is
+    /// reopened at its place, with the new code, when it can't follow: its asset is restored as a whole, or the editor, its
+    /// controller, its game or an editor game service runs code of an outgoing assembly (nothing replaces those), or an
+    /// outgoing or incoming assembly declares gizmos (the existing ones aren't recreated) or render features (its compositor
+    /// isn't rebuilt). Its changes are the asset's, which stay in the session.
+    /// </remarks>
     public static class GameStudioAssemblyReloader
     {
         /// <param name="addedAssemblies">Assemblies loaded before this call (a project the editor loads now): they bring no
@@ -55,15 +64,16 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 // Every assembly the operation swaps: an object of one left out would keep the types of the unloaded copy
                 var loadedAssembliesSet = new HashSet<Assembly>(modifiedAssemblies.Select(x => x.Key.Assembly).NotNull());
 
-                // Read while they are in the container: the copies that go, and those loaded before this call
-                var outgoingEditorCode = DeclaresGameEditorCode(session, loadedAssembliesSet.Concat(addedAssemblies ?? new HashSet<Assembly>()));
+                // Read from the files before the swap: the copies that go, those loaded before this call, and the ones that come
+                var editorCode = DeclaresGameEditorCode(session, loadedAssembliesSet.Concat(addedAssemblies ?? new HashSet<Assembly>()))
+                                 || modifiedAssemblies.Values.Any(DeclaresGameEditorCode);
 
-                // Serialize types from unloaded assemblies as Yaml, and unset them
+                // Serialize types from unloaded assemblies as Yaml
                 var unloadingVisitor = new UnloadingVisitor(log, loadedAssembliesSet);
                 Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload;
                 try
                 {
-                    assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, loadedAssembliesSet, outgoingEditorCode, session.UndoRedoService, log);
+                    assetItemsToReload = CollectItemsToReload(session, unloadingVisitor);
                 }
                 catch (Exception e)
                 {
@@ -71,43 +81,54 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     throw;
                 }
 
-                var reloadOperation = new ReloadAssembliesOperation(assemblyContainer, modifiedAssemblies, []);
-                session.UndoRedoService.SetName(reloadOperation, "Reload assemblies");
-
-                // Reload assemblies. The editors that can't follow close before the swap, on a redo as above
-                var newCopies = new HashSet<Assembly>();
-                var incomingEditorCode = false;
-                PushCloseEditorsBeforeSwap(session, null, () => CloseEditorsThatCannotFollow(session, loadedAssembliesSet, outgoingEditorCode || incomingEditorCode, [], null));
-                reloadOperation.Execute(log);
-                session.UndoRedoService.PushOperation(reloadOperation);
-                newCopies.UnionWith(modifiedAssemblies.Keys.Select(x => x.Assembly).NotNull());
-                // The new copies can bring gizmos or render features the old ones didn't have
-                incomingEditorCode = DeclaresGameEditorCode(session, newCopies);
-                if (incomingEditorCode)
-                    CloseEditorsThatCannotFollow(session, new HashSet<Assembly>(), true, [], log);
-                // On an undo, the reloaded copies are the ones that go
-                PushCloseEditorsBeforeSwap(session, () => CloseEditorsThatCannotFollow(session, newCopies, outgoingEditorCode || incomingEditorCode, [], null), null);
-
-                postReloadAction();
-                var postReloadOperation = new AnonymousDirtyingOperation([], postReloadAction, postReloadAction);
-                session.UndoRedoService.PushOperation(postReloadOperation);
-                session.UndoRedoService.SetName(postReloadOperation, "Post reload action");
-
-                // Restore deserialized objects (or IUnloadable if it didn't work)
-                try
+                var editors = new ReloadedEditors(session);
+                var reopened = FindEditorsThatCannotFollow(session, loadedAssembliesSet, editorCode, WholeAssets(assetItemsToReload));
+                editors.ReopenAround(reopened, log, () =>
                 {
-                    PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, log, assetItemsToReload);
-                }
-                catch (Exception e)
-                {
-                    log.Error("Could not restore asset after assembly reload", e);
-                    throw;
-                }
+                    // On an undo, the reloaded copies are the ones that go
+                    var newCopies = new HashSet<Assembly>();
+                    editors.PushCloseBeforeSwap(loadedAssembliesSet, newCopies, editorCode);
 
-                var undoOperation = new AnonymousDirtyingOperation(Enumerable.Empty<IDirtiable>(), undoAction, null);
-                session.UndoRedoService.PushOperation(undoOperation);
-                session.UndoRedoService.SetName(undoOperation, "Undo action");
+                    // Unset the objects of the unloaded assemblies
+                    try
+                    {
+                        ClearNodes(session, editors, assetItemsToReload);
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error("Could not prepare asset for assembly reload", e);
+                        throw;
+                    }
 
+                    // Reload assemblies
+                    var reloadOperation = new ReloadAssembliesOperation(assemblyContainer, modifiedAssemblies, []);
+                    session.UndoRedoService.SetName(reloadOperation, "Reload assemblies");
+                    reloadOperation.Execute(log);
+                    session.UndoRedoService.PushOperation(reloadOperation);
+                    newCopies.UnionWith(modifiedAssemblies.Keys.Select(x => x.Assembly).NotNull());
+
+                    postReloadAction();
+                    var postReloadOperation = new AnonymousDirtyingOperation([], postReloadAction, postReloadAction);
+                    session.UndoRedoService.PushOperation(postReloadOperation);
+                    session.UndoRedoService.SetName(postReloadOperation, "Post reload action");
+
+                    // Restore deserialized objects (or IUnloadable if it didn't work)
+                    try
+                    {
+                        PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, editors, log, assetItemsToReload);
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error("Could not restore asset after assembly reload", e);
+                        throw;
+                    }
+
+                    var undoOperation = new AnonymousDirtyingOperation(Enumerable.Empty<IDirtiable>(), undoAction, null);
+                    session.UndoRedoService.PushOperation(undoOperation);
+                    session.UndoRedoService.SetName(undoOperation, "Undo action");
+
+                    editors.PushReopenAfterSwap();
+                });
             }
 
             session.ActiveProperties.RefreshSelectedPropertiesAsync().Forget();
@@ -127,12 +148,12 @@ namespace Stride.Assets.Presentation.AssemblyReloading
 
                 var editorCode = DeclaresGameEditorCode(session, unloadedAssembliesSet);
 
-                // Serialize live instances of the assembly's types as Yaml, and unset them
+                // Serialize live instances of the assembly's types as Yaml
                 var unloadingVisitor = new UnloadingVisitor(log, unloadedAssembliesSet);
                 Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload;
                 try
                 {
-                    assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, unloadedAssembliesSet, editorCode, session.UndoRedoService, log);
+                    assetItemsToReload = CollectItemsToReload(session, unloadingVisitor);
                 }
                 catch (Exception e)
                 {
@@ -140,39 +161,57 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     throw;
                 }
 
-                var unloadOperation = new UnloadAssembliesOperation(session.AssemblyContainer, package, unloadedAssembly, []);
-                session.UndoRedoService.SetName(unloadOperation, "Unload assemblies");
-                PushCloseEditorsBeforeSwap(session, null, () => CloseEditorsThatCannotFollow(session, unloadedAssembliesSet, editorCode, [], null));
-                unloadOperation.Execute(log);
-                session.UndoRedoService.PushOperation(unloadOperation);
-                // On an undo, the assembly comes back with what it declares
-                PushCloseEditorsBeforeSwap(session, () => CloseEditorsThatCannotFollow(session, new HashSet<Assembly>(), editorCode, [], null), null);
-
-                postUnloadAction();
-                var postUnloadOperation = new AnonymousDirtyingOperation([], postUnloadAction, postUnloadAction);
-                session.UndoRedoService.PushOperation(postUnloadOperation);
-                session.UndoRedoService.SetName(postUnloadOperation, "Post unload action");
-
-                // Restore the cleared items: with the assembly gone they deserialize as IUnloadable
-                try
+                var editors = new ReloadedEditors(session);
+                var reopened = FindEditorsThatCannotFollow(session, unloadedAssembliesSet, editorCode, WholeAssets(assetItemsToReload));
+                editors.ReopenAround(reopened, log, () =>
                 {
-                    PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, log, assetItemsToReload);
-                }
-                catch (Exception e)
-                {
-                    log.Error("Could not restore asset after assembly unload", e);
-                    throw;
-                }
+                    // On an undo, the assembly comes back with what it declares
+                    editors.PushCloseBeforeSwap(unloadedAssembliesSet, new HashSet<Assembly>(), editorCode);
 
-                var undoOperation = new AnonymousDirtyingOperation(Enumerable.Empty<IDirtiable>(), undoAction, null);
-                session.UndoRedoService.PushOperation(undoOperation);
-                session.UndoRedoService.SetName(undoOperation, "Undo action");
+                    // Unset the objects of the unloaded assembly
+                    try
+                    {
+                        ClearNodes(session, editors, assetItemsToReload);
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error("Could not prepare asset for assembly unload", e);
+                        throw;
+                    }
+
+                    var unloadOperation = new UnloadAssembliesOperation(session.AssemblyContainer, package, unloadedAssembly, []);
+                    session.UndoRedoService.SetName(unloadOperation, "Unload assemblies");
+                    unloadOperation.Execute(log);
+                    session.UndoRedoService.PushOperation(unloadOperation);
+
+                    postUnloadAction();
+                    var postUnloadOperation = new AnonymousDirtyingOperation([], postUnloadAction, postUnloadAction);
+                    session.UndoRedoService.PushOperation(postUnloadOperation);
+                    session.UndoRedoService.SetName(postUnloadOperation, "Post unload action");
+
+                    // Restore the cleared items: with the assembly gone they deserialize as IUnloadable
+                    try
+                    {
+                        PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, editors, log, assetItemsToReload);
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error("Could not restore asset after assembly unload", e);
+                        throw;
+                    }
+
+                    var undoOperation = new AnonymousDirtyingOperation(Enumerable.Empty<IDirtiable>(), undoAction, null);
+                    session.UndoRedoService.PushOperation(undoOperation);
+                    session.UndoRedoService.SetName(undoOperation, "Undo action");
+
+                    editors.PushReopenAfterSwap();
+                });
             }
 
             session.ActiveProperties.RefreshSelectedPropertiesAsync().Forget();
         }
 
-        private static Dictionary<AssetViewModel, List<ItemToReload>> PrepareAssemblyReloading(SessionViewModel session, UnloadingVisitor visitor, IReadOnlySet<Assembly> outgoingAssemblies, bool editorCode, IUndoRedoService actionService, ILogger log)
+        private static Dictionary<AssetViewModel, List<ItemToReload>> CollectItemsToReload(SessionViewModel session, UnloadingVisitor visitor)
         {
             var assetItemsToReload = new Dictionary<AssetViewModel, List<ItemToReload>>();
 
@@ -195,64 +234,62 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     assetItemsToReload.Add(asset, new List<ItemToReload>(itemsToReload));
             }
 
-            // An asset restored as a whole gets a new property graph, which its editor isn't bound to
-            var wholeAssets = assetItemsToReload.Where(x => x.Value.Any(item => item.ExpectedType == typeof(Asset))).Select(x => x.Key);
-            CloseEditorsThatCannotFollow(session, outgoingAssemblies, editorCode, wholeAssets, log);
-
             foreach (var (asset, itemsToReload) in assetItemsToReload)
             {
                 var rootNode = session.AssetNodeContainer.GetNode(asset.Asset);
-
-                // We apply changes in opposite visit order so that indices remains valid when we remove objects while iterating
-                for (int index = itemsToReload.Count - 1; index >= 0; index--)
+                foreach (var itemToReload in itemsToReload)
                 {
-                    var itemToReload = itemsToReload[index];
-
                     // Transform path to Quantum
                     itemToReload.GraphPath = GraphNodePath.From(rootNode, itemToReload.Path, out itemToReload.GraphPathIndex);
-
-                    // Remove (collections) or replace nodes with null (members) so that we can unload assemblies
-                    ClearNode(actionService, asset, itemToReload);
                 }
             }
 
             return assetItemsToReload;
         }
 
-        // An open editor follows an assembly change in place: its asset's objects are swapped through the property graph,
-        // its game replaces the components and drops the processors and systems of the unloaded types (EditorServiceGame).
-        // It closes only when it can't follow: its asset is restored as a whole, or the editor, its controller, its game or
-        // an editor game service runs code of an outgoing assembly (nothing replaces those yet), or an outgoing or incoming
-        // assembly declares gizmos (the existing ones aren't recreated) or render features (its compositor isn't rebuilt):
-        // editorCode. Its changes are the asset's, which stay in the session.
-        private static void CloseEditorsThatCannotFollow(SessionViewModel session, IReadOnlySet<Assembly> outgoingAssemblies, bool editorCode, IEnumerable<AssetViewModel> wholeAssets, ILogger log)
+        // An asset restored as a whole gets a new property graph, which its editor isn't bound to
+        private static IEnumerable<AssetViewModel> WholeAssets(Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload)
+            => assetItemsToReload.Where(x => x.Value.Any(item => item.ExpectedType == typeof(Asset))).Select(x => x.Key);
+
+        private static void ClearNodes(SessionViewModel session, ReloadedEditors editors, Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload)
         {
-            var editorsManager = session.ServiceProvider.TryGet<IWpfAssetEditorsManager>();
-            if (editorsManager is null)
-                return;
-
-            var toClose = new HashSet<AssetViewModel>(wholeAssets);
-            foreach (var asset in session.AllAssets)
+            foreach (var (asset, itemsToReload) in assetItemsToReload)
             {
-                if (editorsManager.TryGetAssetEditor<IAssetEditorViewModel>(asset, out var editor) && RunsSwappedCode(editor, outgoingAssemblies, editorCode))
-                    toClose.Add(asset);
+                // We apply changes in opposite visit order so that indices remains valid when we remove objects while iterating
+                for (int index = itemsToReload.Count - 1; index >= 0; index--)
+                {
+                    // Remove (collections) or replace nodes with null (members) so that we can unload assemblies
+                    ClearNode(session.UndoRedoService, editors, asset, itemsToReload[index]);
+                }
             }
+        }
 
-            var closed = new List<string>();
-            foreach (var asset in toClose)
+        /// <summary>
+        /// The assets whose open editor can't follow the change (see the remarks of the class): those restored as a whole, and
+        /// those whose editor runs code of an outgoing assembly, or any game editor when <paramref name="editorCode"/>.
+        /// </summary>
+        private static List<AssetViewModel> FindEditorsThatCannotFollow(SessionViewModel session, IReadOnlySet<Assembly> outgoingAssemblies, bool editorCode, IEnumerable<AssetViewModel> wholeAssets)
+        {
+            var result = new List<AssetViewModel>();
+            if (session.ServiceProvider.TryGet<IAssetEditorsManager>() is not { } editorsManager)
+                return result;
+
+            foreach (var asset in wholeAssets.Concat(session.AllAssets).Distinct())
             {
-                if (editorsManager.TryGetAssetEditor<IAssetEditorViewModel>(asset, out _) && editorsManager.CloseAssetEditorWindow(asset, false))
-                    closed.Add(asset.Url);
+                if (editorsManager.TryGetAssetEditor<IAssetEditorViewModel>(asset, out var editor)
+                    && (wholeAssets.Contains(asset) || RunsSwappedCode(editor, outgoingAssemblies, editorCode)))
+                {
+                    result.Add(asset);
+                }
             }
-            if (closed.Count > 0)
-                log?.Warning($"Closed the editors of {string.Join(", ", closed)}: they can't follow the reloaded assemblies (the asset's own type, the editor, an editor game service, gizmos or render features). Their changes are kept; open them again to continue.");
+            return result;
         }
 
         private static bool RunsSwappedCode(IAssetEditorViewModel editor, IReadOnlySet<Assembly> swappedAssemblies, bool editorCode)
         {
             if (swappedAssemblies.Contains(editor.GetType().Assembly))
                 return true;
-            if (editor is not IGameEditorViewModel { GameHost.Controller: { } controller } || controller.GetService<WpfEditorGameHostService>()?.EditorGame is not { } game)
+            if (editor is not IGameEditorViewModel { GameHost.Controller: { } controller } || controller.EditorGame is not { } game)
                 return false;
 
             return editorCode
@@ -302,7 +339,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             }
             catch (Exception)
             {
-                // Not a readable assembly: nothing to close for
+                // Not a readable assembly: nothing to reopen for
             }
             return false;
         }
@@ -316,15 +353,104 @@ namespace Stride.Assets.Presentation.AssemblyReloading
         }
 
         /// <summary>
-        /// On an undo or redo of an assembly change, closes the editors that can't follow it before the assemblies are
-        /// swapped. Pushed before the swap for a redo, after it for an undo, as operations run in reverse on an undo.
+        /// The editors an assembly change reopens. The change itself reopens each at its place
+        /// (<see cref="IAssetEditorsManager.ReopenAssetEditorAsync"/>); its undo and redo close them before the swap and open
+        /// them again after it.
         /// </summary>
-        private static void PushCloseEditorsBeforeSwap(SessionViewModel session, Action beforeUndo, Action beforeRedo)
+        private sealed class ReloadedEditors
         {
-            session.UndoRedoService.PushOperation(new AnonymousDirtyingOperation([], beforeUndo, beforeRedo));
+            private readonly SessionViewModel session;
+            private readonly List<AssetViewModel> closed = [];
+            // What an undo swaps out, for the editors it closes
+            private IReadOnlySet<Assembly> undoOutgoingAssemblies = new HashSet<Assembly>();
+            private bool undoEditorCode;
+
+            public ReloadedEditors(SessionViewModel session)
+            {
+                this.session = session;
+            }
+
+            private IAssetEditorsManager EditorsManager => session.ServiceProvider.TryGet<IAssetEditorsManager>();
+
+            /// <summary>
+            /// Runs the change with the editors of these assets closed, and opens them again at their place afterwards, even
+            /// when the change failed.
+            /// </summary>
+            public void ReopenAround(IReadOnlyList<AssetViewModel> assets, ILogger log, Action change)
+            {
+                if (EditorsManager is not { } editorsManager || assets.Count == 0)
+                {
+                    change();
+                    return;
+                }
+
+                void Reopen(int index)
+                {
+                    if (index == assets.Count)
+                        change();
+                    else
+                        editorsManager.ReopenAssetEditorAsync(assets[index], () => Reopen(index + 1)).Forget();
+                }
+                Reopen(0);
+                log?.Info($"Reopened the editors of {string.Join(", ", assets.Select(x => x.Url))}: they can't follow the reloaded assemblies in place (the asset's own type, the editor, an editor game service, gizmos or render features).");
+            }
+
+            /// <summary>
+            /// Pushed before the swap: a redo closes the editors that can't follow the outgoing copies, an undo opens again the
+            /// ones it closed (operations run in reverse on an undo).
+            /// </summary>
+            public void PushCloseBeforeSwap(IReadOnlySet<Assembly> redoOutgoing, IReadOnlySet<Assembly> undoOutgoing, bool editorCode)
+            {
+                var operation = new AnonymousDirtyingOperation([], ReopenClosed, () => CloseThatCannotFollow(redoOutgoing, editorCode));
+                session.UndoRedoService.PushOperation(operation);
+                session.UndoRedoService.SetName(operation, "Close the editors that can't follow");
+                undoOutgoingAssemblies = undoOutgoing;
+                undoEditorCode = editorCode;
+            }
+
+            /// <summary>
+            /// Pushed after the swap: an undo closes the editors that can't follow its swap back, a redo opens again the ones
+            /// closed before its swap.
+            /// </summary>
+            public void PushReopenAfterSwap()
+            {
+                var operation = new AnonymousDirtyingOperation([], () => CloseThatCannotFollow(undoOutgoingAssemblies, undoEditorCode), ReopenClosed);
+                session.UndoRedoService.PushOperation(operation);
+                session.UndoRedoService.SetName(operation, "Open the editors again");
+            }
+
+            /// <summary>
+            /// Closes the editor of an asset replaced as a whole, on an undo or a redo; it opens again with the others.
+            /// </summary>
+            public void Close(AssetViewModel asset)
+            {
+                if (EditorsManager is not { } editorsManager || !editorsManager.TryGetAssetEditor<IAssetEditorViewModel>(asset, out _))
+                    return;
+
+                // Without saving, an editor of a game closes at once
+                var closing = editorsManager.CloseAssetEditorAsync(asset, false);
+                if (closing.IsCompletedSuccessfully && closing.Result && !closed.Contains(asset))
+                    closed.Add(asset);
+            }
+
+            private void CloseThatCannotFollow(IReadOnlySet<Assembly> outgoingAssemblies, bool editorCode)
+            {
+                foreach (var asset in FindEditorsThatCannotFollow(session, outgoingAssemblies, editorCode, []))
+                    Close(asset);
+            }
+
+            private void ReopenClosed()
+            {
+                if (EditorsManager is not { } editorsManager)
+                    return;
+
+                foreach (var asset in closed)
+                    editorsManager.OpenAssetEditorAsync(asset).Forget();
+                closed.Clear();
+            }
         }
 
-        private static void PostAssemblyReloading(IUndoRedoService actionService, SessionNodeContainer nodeContainer, ILogger log, Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload)
+        private static void PostAssemblyReloading(IUndoRedoService actionService, SessionNodeContainer nodeContainer, ReloadedEditors editors, ILogger log, Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload)
         {
             log?.Info("Updating components with newly loaded assemblies");
 
@@ -392,7 +518,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 foreach (var itemToReload in asset.Value)
                 {
                     // Set (members) or add nodes (collections) with values created using newly loaded assemblies
-                    ReplaceNode(actionService, asset.Key, itemToReload);
+                    ReplaceNode(actionService, editors, asset.Key, itemToReload);
                     if (itemToReload.Overrides != null)
                     {
                         var extendedPath = itemToReload.GraphPath.Clone();
@@ -416,7 +542,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             }
         }
 
-        private static void ClearNode(IUndoRedoService actionService, AssetViewModel asset, ItemToReload itemToReload)
+        private static void ClearNode(IUndoRedoService actionService, ReloadedEditors editors, AssetViewModel asset, ItemToReload itemToReload)
         {
             // Get the node we want to change
             var index = itemToReload.GraphPathIndex;
@@ -449,7 +575,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 unloadedAsset.Id = asset.Id;
                 var previousAsset = asset.Asset;
                 asset.UpdateAsset(unloadedAsset, new LoggerResult());
-                PushAssetChange(actionService, asset, previousAsset, unloadedAsset, $"Unload object {oldValue.GetType().Name} in asset {asset.Url}", Enumerable.Empty<IDirtiable>());
+                PushAssetChange(actionService, editors, asset, previousAsset, unloadedAsset, $"Unload object {oldValue.GetType().Name} in asset {asset.Url}", Enumerable.Empty<IDirtiable>());
                 return;
             }
             else
@@ -464,7 +590,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             actionService.SetName(operation, operationName);
         }
 
-        private static void ReplaceNode(IUndoRedoService actionService, AssetViewModel asset, ItemToReload itemToReload)
+        private static void ReplaceNode(IUndoRedoService actionService, ReloadedEditors editors, AssetViewModel asset, ItemToReload itemToReload)
         {
             // Get the node we want to change
             var graphPath = itemToReload.GraphPath;
@@ -491,7 +617,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 var updatedAsset = (Asset)itemToReload.UpdatedObject;
                 var previousAsset = asset.Asset;
                 asset.UpdateAsset(updatedAsset, new LoggerResult());
-                PushAssetChange(actionService, asset, previousAsset, updatedAsset, $"Reload object {updatedAsset.GetType().Name} in asset {asset.Url}", asset.Dirtiables);
+                PushAssetChange(actionService, editors, asset, previousAsset, updatedAsset, $"Reload object {updatedAsset.GetType().Name} in asset {asset.Url}", asset.Dirtiables);
                 return;
             }
             else
@@ -518,9 +644,9 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             return AssetMigration.MigrateAssetIfNeeded(context, itemToReload.ParsingEvents, assetItem.FullPath, itemToReload.ExpectedType) ?? itemToReload.ParsingEvents;
         }
 
-        private static void PushAssetChange(IUndoRedoService actionService, AssetViewModel asset, Asset previousAsset, Asset newAsset, string operationName, IEnumerable<IDirtiable> dirtiables)
+        private static void PushAssetChange(IUndoRedoService actionService, ReloadedEditors editors, AssetViewModel asset, Asset previousAsset, Asset newAsset, string operationName, IEnumerable<IDirtiable> dirtiables)
         {
-            var operation = new AssetChangeOperation(asset, previousAsset, newAsset, dirtiables);
+            var operation = new AssetChangeOperation(editors, asset, previousAsset, newAsset, dirtiables);
             actionService.PushOperation(operation);
             actionService.SetName(operation, operationName);
         }
@@ -529,15 +655,17 @@ namespace Stride.Assets.Presentation.AssemblyReloading
         /// The replacement of an asset as a whole, as <see cref="AssetViewModel.UpdateAsset"/> applies it. The asset's
         /// root node holds no value of its own, so a content change on it cannot be undone.
         /// </summary>
-        private class AssetChangeOperation : DirtyingOperation
+        private sealed class AssetChangeOperation : DirtyingOperation
         {
+            private ReloadedEditors editors;
             private AssetViewModel asset;
             private Asset previousAsset;
             private Asset newAsset;
 
-            public AssetChangeOperation(AssetViewModel asset, Asset previousAsset, Asset newAsset, IEnumerable<IDirtiable> dirtiables)
+            public AssetChangeOperation(ReloadedEditors editors, AssetViewModel asset, Asset previousAsset, Asset newAsset, IEnumerable<IDirtiable> dirtiables)
                 : base(dirtiables)
             {
+                this.editors = editors;
                 this.asset = asset;
                 this.previousAsset = previousAsset;
                 this.newAsset = newAsset;
@@ -545,28 +673,23 @@ namespace Stride.Assets.Presentation.AssemblyReloading
 
             protected override void FreezeContent()
             {
+                editors = null;
                 asset = null;
                 previousAsset = null;
                 newAsset = null;
             }
 
+            // The asset gets a new property graph, which its editor isn't bound to: the editor opens again after the swap
             protected override void Undo()
             {
-                CloseEditor();
+                editors.Close(asset);
                 asset.UpdateAsset(previousAsset, new LoggerResult());
             }
 
             protected override void Redo()
             {
-                CloseEditor();
+                editors.Close(asset);
                 asset.UpdateAsset(newAsset, new LoggerResult());
-            }
-
-            // The asset gets a new property graph, which its editor isn't bound to
-            private void CloseEditor()
-            {
-                if (asset.Session.ServiceProvider.TryGet<IWpfAssetEditorsManager>() is { } editorsManager && editorsManager.TryGetAssetEditor<IAssetEditorViewModel>(asset, out _))
-                    editorsManager.CloseAssetEditorWindow(asset, false);
             }
         }
 

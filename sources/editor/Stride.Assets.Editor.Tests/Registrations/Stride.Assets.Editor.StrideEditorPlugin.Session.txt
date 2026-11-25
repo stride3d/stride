@@ -4,6 +4,7 @@ Services:
   Stride.Assets.Editor.ViewModels.EditorViewToolbarFactory
   Stride.Editor.Build.GameStudioBuilderService
   Stride.Editor.Build.GameStudioDatabase
+  Stride.Assets.Editor.AssemblyReloading.GameCodeReloader
 NodePresenterCommands:
   Stride.Assets.Editor.Quantum.NodePresenters.Commands.FetchEntityCommand
   Stride.Assets.Editor.Quantum.NodePresenters.Commands.SetEntityReferenceCommand

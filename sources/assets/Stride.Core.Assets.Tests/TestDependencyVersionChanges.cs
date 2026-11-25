@@ -142,6 +142,48 @@ public class TestDependencyVersionChanges : IDisposable
     }
 
     [Fact]
+    public void LibraryOfACheckoutIsTheCheckoutsBuild()
+    {
+        // A dev-redirect stub keeps the copy packed with it; the checkout was built again since, and a plugin's output holds
+        // a copy of that build
+        var name = "Stride.LibraryProbe" + Guid.NewGuid().ToString("N");
+        var checkoutBuild = MoveToCheckout(name, EmitLibrary(name, "1.0.4", typeCount: 2));
+        EmitLibrary(name, "1.0.4", typeCount: 1);
+        WriteDevRedirectProps(name, "1.0.4");
+        var pluginCopy = Path.Combine(directory, "Plugin", name + ".dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(pluginCopy)!);
+        File.Copy(checkoutBuild, pluginCopy);
+        var library = session.AssemblyContainer.LoadAssemblyFromPath(pluginCopy);
+        Assert.NotNull(library);
+        WriteLockFile((name, "1.0.4", [name + ".dll"]));
+
+        Assert.Empty(session.FindDependencyVersionChanges(gameProject));
+        session.AssemblyContainer.UnloadAssembly(library);
+    }
+
+    [Fact]
+    public void LibraryOfACheckoutBuiltAgainLoadsTheNewBuild()
+    {
+        var name = "Stride.LibraryProbe" + Guid.NewGuid().ToString("N");
+        var oldBuild = Path.Combine(directory, "Plugin", name + ".dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(oldBuild)!);
+        File.Move(EmitLibrary(name, "1.0.4", typeCount: 1), oldBuild);
+        var checkoutBuild = MoveToCheckout(name, EmitLibrary(name, "1.0.4", typeCount: 2));
+        File.Copy(oldBuild, PackageFile(name, "1.0.4", name + ".dll"));
+        WriteDevRedirectProps(name, "1.0.4");
+        var library = session.AssemblyContainer.LoadAssemblyFromPath(oldBuild);
+        Assert.NotNull(library);
+        WriteLockFile((name, "1.0.4", [name + ".dll"]));
+
+        // The stub's copy is the loaded one, but the game builds against the checkout's
+        var change = Assert.Single(session.FindDependencyVersionChanges(gameProject));
+        var (loadedAssembly, newPath) = Assert.Single(change.Libraries);
+        Assert.Same(library, loadedAssembly.Assembly);
+        Assert.Equal(checkoutBuild, newPath);
+        session.AssemblyContainer.UnloadAssembly(library);
+    }
+
+    [Fact]
     public void LibraryCopiedNextToTheGameIsNoChange()
     {
         var name = "Stride.LibraryProbe" + Guid.NewGuid().ToString("N");
@@ -171,9 +213,38 @@ public class TestDependencyVersionChanges : IDisposable
     private string PackageFile(string name, string version, string file)
         => Path.Combine(packagesFolder, name.ToLowerInvariant(), version, "lib", "net10.0", file);
 
+    private string MoveToCheckout(string name, string path)
+    {
+        var build = Path.Combine(directory, "checkout", name, "bin", "Debug", "net10.0", name + ".dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(build)!);
+        File.Move(path, build);
+        return build;
+    }
+
+    // The build/<name>.props of a dev-redirect stub, as build/redirect-packages.cs writes it
+    private void WriteDevRedirectProps(string name, string version)
+    {
+        var props = Path.Combine(packagesFolder, name.ToLowerInvariant(), version, "build", name + ".props");
+        Directory.CreateDirectory(Path.GetDirectoryName(props)!);
+        File.WriteAllText(props, $"""
+            <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+              <PropertyGroup>
+                <StrideDevRedirect>true</StrideDevRedirect>
+                <StrideDevRoot Condition="'$(StrideDevRoot)' == ''">{Path.Combine(directory, "checkout")}</StrideDevRoot>
+                <StrideDevConfiguration Condition="'$(StrideDevConfiguration)' == ''">Debug</StrideDevConfiguration>
+              </PropertyGroup>
+              <ItemGroup Condition="false">
+                <Reference Include="{name}">
+                  <HintPath>$(StrideDevRoot)/{name}/bin/$(StrideDevConfiguration)/net10.0/{name}.dll</HintPath>
+                </Reference>
+              </ItemGroup>
+            </Project>
+            """);
+    }
+
     private string EmitLibrary(string name, string version, int typeCount)
     {
-        var builder = new PersistedAssemblyBuilder(new AssemblyName(name), typeof(object).Assembly);
+        var builder = new PersistedAssemblyBuilder(new AssemblyName(name) { Version = new Version(version) }, typeof(object).Assembly);
         var module = builder.DefineDynamicModule(name);
         for (var i = 0; i < typeCount; i++)
             module.DefineType("LibraryType" + i, TypeAttributes.Public).CreateType();

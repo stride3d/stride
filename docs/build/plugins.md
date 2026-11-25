@@ -358,7 +358,7 @@ Game Studio reloads a plugin's assemblies while the session stays open. It asks 
 
 - **A plugin project of the solution**: an edit of its code (`.cs`), its views (`.axaml`, `.xaml`), its resources (`.resx`) or its `.csproj` builds it again, and it reloads.
 - **A dependency built locally** (a dev-redirect to a source tree, as `build/redirect-packages.cs` sets up): Game Studio watches the assemblies the checkout built. When they are rebuilt, they reload.
-- **A `PackageReference` version change** in a project of the solution: the project restores, and the dependency loads its new version.
+- **A `PackageReference` version change** in a project of the solution: the project restores, and the dependency loads its new version. In a source checkout (dev-redirect packages), a library is compared with the checkout's build, which the game builds against, not with the copy the redirect package keeps.
 
 With any of these, the loaded assemblies that reference a reloaded one reload too, whatever their package, dependencies first: a reference stays bound to the copy it loaded first. Each assembly gets a load context of its own. A reference resolves to the session's current copy first, then to Game Studio's own copy, then to the package's files. The whole set builds before anything reloads: if one build fails, nothing reloads, and the changes stay pending.
 
@@ -368,6 +368,8 @@ Some changes need a new session (*Reload session*). The Output panel says which 
 - An assembly Game Studio's own code is bound to: one it ships with (the engine's packages, at the version it was built with), or one that its code looked up by name. A new copy next to it would mix the types of both.
 
 A package from the NuGet cache never changes for its version, so it is only reloaded when another version replaces it.
+
+The Avalonia Game Studio reloads the game's code the same way, in its own process. Where a change can't reload in place, it opens the session again in a new process (after asking to save) instead: the cases above, an assembly with Avalonia views (a plugin's views, styles and templates stay registered with Avalonia), and an assembly the session could not load. The Output panel says why.
 
 The open editors follow a reload, its undo and its redo: the objects of the reloaded types are replaced in their assets, and each editor game (and the asset preview) replaces the components, drops the processors and `[GameSystem(Editor = true)]` systems of the old types and creates the new ones.
 

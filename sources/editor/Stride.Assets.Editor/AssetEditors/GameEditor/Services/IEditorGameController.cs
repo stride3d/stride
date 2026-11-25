@@ -10,6 +10,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
 using Stride.Editor.EditorGame.ContentLoader;
+using Stride.Editor.EditorGame.Game;
 using Stride.Editor.EditorGame.ViewModels;
 
 using Stride.Editor.Engine;
@@ -101,5 +102,11 @@ namespace Stride.Assets.Editor.AssetEditors.GameEditor.Services
         /// Triggers a re-evaluation of the active render stages.
         /// </summary>
         void TriggerActiveRenderStageReevaluation();
+
+        /// <summary>
+        /// Gets the game of the editor, to see which code it runs (a reload of the game assemblies); <c>null</c> when it has none.
+        /// </summary>
+        [CanBeNull]
+        EditorServiceGame EditorGame => null;
     }
 }

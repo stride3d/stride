@@ -6,6 +6,7 @@ using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
@@ -23,9 +24,10 @@ namespace Stride.Core.Assets.Editor.Components.Build;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Reloading builds the changed projects, so that an error shows in the Output pane and keeps the session as it is, then opens the
-/// session again in a fresh editor (the delegate given to the constructor, File &gt; Reload project): the new editor loads the new
-/// assemblies. The WPF editor reloads them in its process instead.
+/// Reloading builds the changed projects, so that an error shows in the Output pane and keeps the session as it is, then reloads
+/// their assemblies in the editor's process with the <see cref="IGameCodeReloader"/> service, as one change of the undo history.
+/// Without that service, or for a change it can't reload in place (it says why in the Output pane), the session opens again in a
+/// fresh editor (the delegate given to the constructor, File &gt; Reload project), which loads the new assemblies.
 /// </para>
 /// <para>
 /// The question honors the settings of the WPF editor: <see cref="EditorSettings.AskBeforeReloadingAssemblies"/> and, when it does not
@@ -41,6 +43,10 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
     private readonly Func<Task<bool>> reloadSession;
     // The project files of the changed projects
     private readonly HashSet<string> changedProjects = new(PathComparer);
+    // The changed projects whose project file itself changed: they restore before they build
+    private readonly HashSet<string> changedProjectFiles = new(PathComparer);
+    // For each undone reload, the projects its undo made pending, which its redo takes back unless their code changed since
+    private readonly List<HashSet<string>> pendingByUndo = [];
     private SessionViewModel? session;
     private GameCodeWatcher? watcher;
     private CancellationTokenSource? sessionCancellation;
@@ -91,7 +97,7 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
     public IReadOnlyCollection<string> ChangedProjects => [.. changedProjects];
 
     /// <summary>
-    /// Builds the changed projects and opens the session again in a fresh editor (WPF's Reload game assemblies).
+    /// Builds the changed projects and reloads them (WPF's Reload game assemblies): in the editor's process, or in a fresh editor.
     /// </summary>
     public ICommandBase ReloadCommand { get; }
 
@@ -106,6 +112,11 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
     internal SettingsProfile? SettingsProfile { get; init; }
 
     /// <summary>
+    /// Restores a project whose file changed, before it builds; the tests give one that restores nothing.
+    /// </summary>
+    internal Func<ILogger, string, Task> RestoreProject { get; init; } = (log, projectPath) => VSProjectHelper.RestoreNugetPackages(log, projectPath);
+
+    /// <summary>
     /// Saves the settings after the user checked "Don't ask again".
     /// </summary>
     internal Action SaveSettings { get; init; } = EditorSettings.Save;
@@ -116,6 +127,9 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
     internal Task Question { get; private set; } = Task.CompletedTask;
 
     private IEditorDialogService Dialogs => ServiceProvider.Get<IEditorDialogService>();
+
+    // A service of the session (the Stride editor plugin registers it): without it, a reload opens the session again in a fresh editor
+    private IGameCodeReloader? Reloader => session?.ServiceProvider.TryGet<IGameCodeReloader>();
 
     /// <inheritdoc/>
     public override void Destroy()
@@ -137,7 +151,13 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
         // One question while changes are pending, as in WPF: they can be reloaded later with the command
         var shouldAsk = !HasPendingChanges || askOnNextChange;
         foreach (var change in changes)
+        {
             changedProjects.Add(change.ProjectPath);
+            if (PathComparer.Equals(Path.GetFullPath(change.FilePath), Path.GetFullPath(change.ProjectPath)))
+                changedProjectFiles.Add(change.ProjectPath);
+            foreach (var madePending in pendingByUndo)
+                madePending.Remove(change.ProjectPath);
+        }
         HasPendingChanges = true;
         UpdateCommands();
         if (shouldAsk)
@@ -160,6 +180,8 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
         sessionCancellation?.Dispose();
         sessionCancellation = null;
         changedProjects.Clear();
+        changedProjectFiles.Clear();
+        pendingByUndo.Clear();
         HasPendingChanges = false;
         askOnNextChange = false;
         questionRequested = false;
@@ -215,8 +237,9 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
             bool reload;
             if (GetSetting(EditorSettings.AskBeforeReloadingAssemblies))
             {
-                var message = Tr._p("Message", "Some game code files have been modified. Do you want to reload the assemblies?") + Environment.NewLine + Environment.NewLine +
-                              Tr._p("Message", "The editor restarts on the project to load them.");
+                var message = Tr._p("Message", "Some game code files have been modified. Do you want to reload the assemblies?");
+                if (Reloader is null)
+                    message += Environment.NewLine + Environment.NewLine + Tr._p("Message", "The editor restarts on the project to load them.");
                 var buttons = DialogButtons.Create([Tr._p("Button", "Reload"), Tr._p("Button", "Don't reload")], 1, 2);
                 var result = await Dialogs.CheckedMessageBoxAsync(message, false, Tr._p("Settings", "Don't ask again"), buttons, MessageBoxImage.Question);
                 // Closed without an answer: the changes stay pending
@@ -257,8 +280,8 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
     }
 
     /// <summary>
-    /// Builds the changed projects, then opens the session again in a fresh editor. The changes stay pending when the build fails
-    /// (the next change asks again) or the user keeps the session.
+    /// Builds the changed projects, then reloads them in the editor's process, or opens the session again in a fresh editor. The
+    /// changes stay pending when the build fails (the next change asks again) or the user keeps the session.
     /// </summary>
     private async Task ReloadAsync()
     {
@@ -269,11 +292,52 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
         UpdateCommands();
         try
         {
-            var outcome = await build.BuildCodeAsync(GetProjectsToBuild(reloadedSession));
-            if (outcome == GameBuildOutcome.Failed)
+            var reloader = Reloader;
+            var projects = GetProjectsToBuild(reloadedSession);
+            // A change that comes during the build stays pending
+            var reloadedProjects = changedProjects.ToList();
+
+            // A project whose file changed restores first, so that it builds against the dependencies it now asks for (a fresh
+            // editor restores when it loads the session)
+            var restoreLog = new LoggerResult();
+            if (reloader is not null)
+            {
+                foreach (var projectFile in projects.Where(changedProjectFiles.Contains))
+                {
+                    try
+                    {
+                        await RestoreProject(restoreLog, projectFile);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // Its errors are in the restore log, which the build log shows after the build
+                    }
+                }
+            }
+
+            var result = await build.BuildCodeAssembliesAsync(projects);
+            // After the build, which clears its log: a failed restore explains a failed build
+            var log = new LoggerResult();
+            build.BuildLog.AddLogger(log);
+            restoreLog.CopyTo(log);
+            if (result.Outcome == GameBuildOutcome.Failed)
                 askOnNextChange = true;
-            if (outcome != GameBuildOutcome.Succeeded || session != reloadedSession)
+            if (result.Outcome != GameBuildOutcome.Succeeded || session != reloadedSession)
                 return;
+
+            if (reloader is not null)
+            {
+                var madePending = new HashSet<string>(PathComparer);
+                var reload = await reloader.ReloadAsync(reloadedSession, result.AssemblyPaths, log, () => OnReloadUndone(reloadedSession, reloadedProjects, madePending), () => OnReloadRedone(reloadedSession, madePending));
+                if (reload.Reloaded)
+                {
+                    changedProjects.ExceptWith(reloadedProjects);
+                    changedProjectFiles.ExceptWith(reloadedProjects);
+                    HasPendingChanges = changedProjects.Count > 0;
+                    return;
+                }
+                log.Warning($"{reload.RestartReason}: the editor restarts on the project to load the new code.");
+            }
 
             await reloadSession();
         }
@@ -282,6 +346,46 @@ public sealed class GameCodeReloadViewModel : DispatcherViewModel
             reloading = false;
             UpdateCommands();
         }
+    }
+
+    /// <summary>
+    /// The reload was undone: the session runs the previous code again, so the new code waits to be reloaded, without asking.
+    /// </summary>
+    /// <param name="reloadedSession">The session of the reload.</param>
+    /// <param name="reloadedProjects">The projects the reload brought the new code of.</param>
+    /// <param name="madePending">Receives the projects that this undo made pending, for the redo.</param>
+    private void OnReloadUndone(SessionViewModel reloadedSession, IReadOnlyList<string> reloadedProjects, HashSet<string> madePending)
+    {
+        if (session != reloadedSession)
+            return;
+
+        foreach (var project in reloadedProjects)
+        {
+            if (changedProjects.Add(project))
+                madePending.Add(project);
+        }
+        if (madePending.Count > 0 && !pendingByUndo.Contains(madePending))
+            pendingByUndo.Add(madePending);
+        HasPendingChanges = changedProjects.Count > 0;
+        UpdateCommands();
+    }
+
+    /// <summary>
+    /// The reload was redone: the session runs its new code again, so the projects its undo made pending no longer wait, unless
+    /// their code changed since; the next change asks again.
+    /// </summary>
+    /// <param name="reloadedSession">The session of the reload.</param>
+    /// <param name="madePending">The projects that the undo of this reload made pending.</param>
+    private void OnReloadRedone(SessionViewModel reloadedSession, HashSet<string> madePending)
+    {
+        if (session != reloadedSession)
+            return;
+
+        changedProjects.ExceptWith(madePending);
+        madePending.Clear();
+        pendingByUndo.Remove(madePending);
+        HasPendingChanges = changedProjects.Count > 0;
+        UpdateCommands();
     }
 
     /// <summary>
