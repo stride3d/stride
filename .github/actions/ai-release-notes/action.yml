@@ -702,12 +702,15 @@ runs:
         fi
 
         # A patch X.Y.Z links to the X.Y notes instead: they keep the highlights of X.Y and of its
-        # patches.
+        # patches. It also links to the X.Y upgrade guide, which has the upgrade steps of the patches.
         DOCS_LINK=""
         if [ -n "$DOCS_DIR" ] && [[ "${TO##*/}" =~ ^([0-9]+\.[0-9]+)\.[1-9][0-9]*$ ]] \
             && [ -s "$DOCS_DIR/master/en/release-notes/${BASH_REMATCH[1]}.md" ]; then
           MAJOR_MINOR="${BASH_REMATCH[1]}"
           DOCS_LINK="See the [Stride $MAJOR_MINOR release notes](https://doc.stride3d.net/en/release-notes/$MAJOR_MINOR.html) for the highlights of $MAJOR_MINOR and its patches."
+          if [ -s "$DOCS_DIR/master/en/upgrade/$MAJOR_MINOR.md" ]; then
+            DOCS_LINK="$DOCS_LINK To upgrade a project made with an older version, see the [Stride $MAJOR_MINOR upgrade guide](https://doc.stride3d.net/en/upgrade/$MAJOR_MINOR.html)."
+          fi
           echo "::notice::Release body links to $DOCS_REPO master:en/release-notes/$MAJOR_MINOR.md."
         fi
 
