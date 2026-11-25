@@ -3,14 +3,14 @@
 
 shader Effect : SpriteBase
 {
-    stage float2 Center;
-    stage float Frequency;
-    stage float Phase;
-    stage float Spread;
-    stage float Amplitude;
-    stage float InvAspectRatio;
+    module float2 Center;
+    module float Frequency;
+    module float Phase;
+    module float Spread;
+    module float Amplitude;
+    module float InvAspectRatio;
 
-    stage override float4 Shading()
+    module override float4 Shading()
     {
         float2 wave;
 

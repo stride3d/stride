@@ -32,7 +32,7 @@ public class EffectDebugFilesTests : IDisposable
         File.WriteAllText(shaderPath, $$"""
             shader {{shaderName}} : SpriteBase
             {
-                stage override float4 Shading()
+                module override float4 Shading()
                 {
                     return base.Shading().yxzw;
                 }

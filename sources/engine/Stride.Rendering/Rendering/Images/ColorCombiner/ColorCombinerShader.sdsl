@@ -13,7 +13,7 @@ namespace Stride.Rendering.Images
         [Color]
         float3 ModulateRGB[10];
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
 	        float3 color = 0;
             if (count > 0)

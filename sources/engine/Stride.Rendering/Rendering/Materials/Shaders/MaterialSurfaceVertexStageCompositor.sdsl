@@ -8,7 +8,7 @@ namespace Stride.Rendering.Materials
         compose IMaterialSurface materialVertexStage;
         compose IStreamInitializer streamInitializerVertexStage;
 
-        stage override void VSMain()
+        module override void VSMain()
         {
             base.VSMain();
 

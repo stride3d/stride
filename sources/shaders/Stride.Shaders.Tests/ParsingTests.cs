@@ -47,6 +47,47 @@ public class ParsingTests1
         Assert.Null(members[1].TypeName.ArraySize);
     }
 
+    // `module` marks a member of the shader's per-effect part; `stage` is the old spelling, still accepted
+    [Theory]
+    [InlineData("module")]
+    [InlineData("stage")]
+    public void ModuleModifierMarksEveryKindOfMember(string keyword)
+    {
+        var text = $$"""
+            shader S
+            {
+                {{keyword}} float A;
+                {{keyword}} stream float B;
+                {{keyword}} compose ComputeColor C;
+                {{keyword}} SamplerState D { Filter = MIN_MAG_MIP_LINEAR; };
+                cbuffer PerDraw { {{keyword}} float E; };
+                rgroup PerMaterial { {{keyword}} Texture2D F; };
+                {{keyword}} void G() { }
+                float H;
+            };
+            """;
+        var result = SDSLParser.Parse(text);
+        Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
+
+        var shader = Assert.IsType<ShaderClass>(Assert.Single(((ShaderFile)result.AST!).RootDeclarations));
+        var staged = new Dictionary<string, bool>();
+        foreach (var element in shader.Elements)
+        {
+            switch (element)
+            {
+                case ShaderMember member: staged[member.Name.Name] = member.IsStaged; break;
+                case ShaderCompose compose: staged[compose.Name.Name] = compose.IsStaged; break;
+                case ShaderSamplerState sampler: staged[sampler.Name.Name] = sampler.IsStaged; break;
+                case ShaderMethod method: staged[method.Name.Name] = method.IsStaged; break;
+                case ShaderBuffer buffer:
+                    foreach (var member in buffer.Members)
+                        staged[member.Name.Name] = member.IsStaged;
+                    break;
+            }
+        }
+        Assert.Equal(new Dictionary<string, bool> { ["A"] = true, ["B"] = true, ["C"] = true, ["D"] = true, ["E"] = true, ["F"] = true, ["G"] = true, ["H"] = false }, staged);
+    }
+
     // Regression test: a trailing-dot float literal (e.g. "1.") is valid per the HLSL grammar
     // (https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-appendix-grammar#floating-point-numbers),
     // but a garbage character directly following it (e.g. "1.q") should still be reported as a parse error.

@@ -7,13 +7,13 @@ shader FlattenLayers : ShaderBase, PositionStream4
 {
     compose ComputeColor outColor;
     
-    stage override void VSMain()
+    module override void VSMain()
     {
         base.VSMain();
         streams.ShadingPosition = streams.Position;
     }
     
-    stage override void PSMain()
+    module override void PSMain()
     {
         base.PSMain();
         streams.ColorTarget = outColor.Compute();

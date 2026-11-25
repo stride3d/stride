@@ -8,10 +8,10 @@ namespace Stride.Rendering
     {
         cbuffer PerDraw
         {
-            stage float4 HighlightColor;
+            module float4 HighlightColor;
         }
 
-        stage override void PSMain()
+        module override void PSMain()
         {
             streams.ColorTarget = HighlightColor;
         }

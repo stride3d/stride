@@ -3,7 +3,7 @@
 
 shader HammersleyTest : ComputeShaderBase
 {
-    stage int SamplesCount;
+    module int SamplesCount;
 
     RWTexture2D<float4> OutputTexture;
 

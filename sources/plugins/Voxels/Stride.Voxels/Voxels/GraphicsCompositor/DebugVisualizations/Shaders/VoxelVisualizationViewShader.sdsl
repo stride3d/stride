@@ -10,7 +10,7 @@ namespace Stride.Rendering.Voxels.Debug
         float4x4 view;
         float4x4 viewInv;
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             float2 screenPos = streams.TexCoord.xy;
             screenPos.y = 1.0 - screenPos.y;

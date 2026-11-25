@@ -7,7 +7,7 @@ namespace Stride.Shaders.Tests;
 
 shader CSBufferParameterNested
 {
-    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    module stream uint3 DispatchThreadId : SV_DispatchThreadID;
 
     StructuredBuffer<float4> Input;
     RWStructuredBuffer<float4> First;

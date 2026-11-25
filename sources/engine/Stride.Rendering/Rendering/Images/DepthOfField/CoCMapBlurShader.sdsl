@@ -22,7 +22,7 @@ namespace Stride.Rendering.Images
         // Weights of each tap
         float2 OffsetsWeights[TBlurCount];
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             float2 direction = Direction * Texture0TexelSize;
 

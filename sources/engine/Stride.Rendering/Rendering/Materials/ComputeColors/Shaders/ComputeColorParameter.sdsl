@@ -6,7 +6,7 @@
 shader ComputeColorParameter : ComputeColor
 {
     [Color]
-    stage float4 ColorParameter;
+    module float4 ColorParameter;
 
     override float4 Compute()
     {

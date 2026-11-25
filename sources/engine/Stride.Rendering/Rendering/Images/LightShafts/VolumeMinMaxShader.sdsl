@@ -3,16 +3,16 @@
 
 shader VolumeMinMaxShader : ShaderBase, PositionHStream4
 {
-    stage matrix WorldViewProjection;
-    stage stream float4 Position : POSITION;
+    module matrix WorldViewProjection;
+    module stream float4 Position : POSITION;
 
-    stage override void VSMain()
+    module override void VSMain()
     {
         streams.ShadingPosition = mul(streams.Position, WorldViewProjection);
         streams.PositionH = streams.ShadingPosition;
     }
 
-    stage override void PSMain()
+    module override void PSMain()
     {
         float depth = streams.PositionH.z / streams.PositionH.w;
         streams.ColorTarget = float4(depth, depth, 0, 1);

@@ -3,7 +3,7 @@
 
 shader SharedTextureCoordinate : ShaderBase, Texturing
 {
-    override stage void PSMain()
+    override module void PSMain()
     {
         // Remap all texture coords to TEXCOORD0
         streams.TexCoord1 = streams.TexCoord;
@@ -19,7 +19,7 @@ shader SharedTextureCoordinate : ShaderBase, Texturing
         base.PSMain();
     }
 
-    override stage void VSMain()
+    override module void VSMain()
     {
         base.VSMain();
     }

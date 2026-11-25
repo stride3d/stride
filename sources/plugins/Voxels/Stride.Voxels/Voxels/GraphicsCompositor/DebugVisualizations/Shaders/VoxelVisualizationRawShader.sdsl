@@ -9,7 +9,7 @@ namespace Stride.Rendering.Voxels.Debug
         float rangeOffset;
         float mip;
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             float2 offsetRange = range + float(abs(range.y-range.x) * rangeOffset).xx;
             float2 screenPos = streams.TexCoord.xy;

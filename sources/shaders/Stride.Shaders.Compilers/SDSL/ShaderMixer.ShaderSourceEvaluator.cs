@@ -290,7 +290,7 @@ public partial class ShaderMixer
             // so its value comes from the root source and lands in the root compositions, whichever node declares it
             var isStage = (variable.Flags & VariableFlagsMask.Stage) != 0;
             if (isStage && compositionPath != null && shaderMixinSource.Compositions.ContainsKey(variableName))
-                throw new InvalidOperationException($"'{variableName}' is a `stage compose` declared by '{shaderClassName}', so it is one slot for the whole effect and must be supplied at the root. It was supplied at '{compositionPath}'.");
+                throw new InvalidOperationException($"'{variableName}' is a `module compose` declared by '{shaderClassName}', so it is one slot for the whole effect and must be supplied at the root. It was supplied at '{compositionPath}'.");
 
             var valueSource = isStage ? rootMixinSource : shaderMixinSource;
             var valueCompositions = isStage ? rootCompositions : compositions;

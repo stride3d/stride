@@ -6,11 +6,11 @@ shader TransformationBendWorld : TransformationBase, PositionStream4
     cbuffer PerDraw
     {
         // Adjusting Parameters
-        stage float DeformFactorX = -0.001f;
-        stage float DeformFactorY = -0.0006f;
+        module float DeformFactorX = -0.001f;
+        module float DeformFactorY = -0.0006f;
     }
 
-    stage override void PreTransformPosition()
+    module override void PreTransformPosition()
     {
         base.PreTransformPosition();
         

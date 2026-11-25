@@ -8,16 +8,16 @@ namespace Stride.Rendering.Images
     /// </summary>
     internal shader OutlineEffect : ImageEffectShader
     {
-        stage float2 ScreenDiffs;  // .x = Width, .y = Height
+        module float2 ScreenDiffs;  // .x = Width, .y = Height
 
-        stage float zFar;
-        stage float zNear;
+        module float zFar;
+        module float zNear;
 
-        stage float NormalWeight;
-        stage float DepthWeight;
-        stage float NormalNearCutoff;
+        module float NormalWeight;
+        module float DepthWeight;
+        module float NormalNearCutoff;
 
-        stage Texture2D DepthTexture;
+        module Texture2D DepthTexture;
         
         float3 normal_from_depth(float depth, float2 texcoords) {
           const float2 offset1 = float2(0.0,ScreenDiffs.y);
@@ -52,7 +52,7 @@ namespace Stride.Rendering.Images
             return nd;
         }
 
-        stage override float4 Shading() {
+        module override float4 Shading() {
             float4 color = Texture0.Sample(PointSampler, streams.TexCoord);
 
             float4 n1 = fetchNormalDepth(streams.TexCoord + float2(-ScreenDiffs.x, -ScreenDiffs.y));

@@ -10,7 +10,7 @@ namespace Stride.Rendering.Images
     {
         float2 Coordinate;
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             return Texture0.Sample(Sampler, Coordinate).y;
         }

@@ -7,11 +7,11 @@ namespace Stride.Graphics.Tests
         cbuffer PerPass
         {
             [Link("MyCustomShader.ColorFactor2")]
-            stage float4 ColorFactor2;
+            module float4 ColorFactor2;
         };
 
         // Shading of the sprite with dual texturing
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             return base.Shading() * ColorFactor2;
         }

@@ -8,9 +8,9 @@ namespace Stride.Rendering.Images
     /// </summary>
     internal shader AmbientOcclusionBlurShader<int BlurCount, bool IsVertical, float BlurScale, float EdgeSharpness, bool IsOrthographic> : ImageEffectShader, Camera
     {
-        stage float  Weights[BlurCount];
+        module float  Weights[BlurCount];
 
-        stage float reconstructCSZ(float depth)
+        module float reconstructCSZ(float depth)
         {
             if (IsOrthographic) //near + z * (far - near)
                 return ZProjection.x + depth * ZProjection.y;
@@ -18,7 +18,7 @@ namespace Stride.Rendering.Images
                 return ZProjection.y / (depth - ZProjection.x);
         }
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             const float epsilon = 0.0001;
 

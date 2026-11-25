@@ -14,14 +14,14 @@ namespace Stride.Rendering.Shadows
         }
 
         // Used to write the distance from an object to the light to the depth buffer
-        stage stream float PixelDepth : SV_DEPTH;
+        module stream float PixelDepth : SV_DEPTH;
          
-        stage override void PostTransformPosition()
+        module override void PostTransformPosition()
         {
             streams.ShadingPosition = ComputeParaboloidProjection(streams.PositionWS, streams.DepthVS);
         }
 
-        stage override float4 ComputeShadingPosition(float4 world)
+        module override float4 ComputeShadingPosition(float4 world)
         {
             float dummy;
             return ComputeParaboloidProjection(world, dummy);
@@ -50,7 +50,7 @@ namespace Stride.Rendering.Shadows
             return float4(intermediate.xy, depthValues.y, 1);
         }
 
-        stage override void PSMain()
+        module override void PSMain()
         {
             base.PSMain();
 

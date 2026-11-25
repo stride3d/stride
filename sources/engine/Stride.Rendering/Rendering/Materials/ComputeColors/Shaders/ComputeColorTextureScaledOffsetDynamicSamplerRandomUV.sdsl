@@ -23,10 +23,10 @@ shader ComputeColorTextureScaledOffsetDynamicSamplerRandomUV<LinkType TTextureNa
     cbuffer PerMaterial
     {
         [Link("TScale")]
-        stage float2 scale;
+        module float2 scale;
 
         [Link("TOffset")]
-        stage float2 offset;
+        module float2 offset;
     }
     
     //------------------------------------------------------------------------------

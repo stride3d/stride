@@ -2057,7 +2057,7 @@ half4 FxaaPixelShader(
 /*==========================================================================*/
 #endif
 
-    stage override float4 Shading()
+    module override float4 Shading()
     {
         var texCoord = streams.TexCoord;
 

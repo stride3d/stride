@@ -5,22 +5,22 @@ namespace Stride.Rendering.Materials
     shader MaterialPixelShadingStream : MaterialPixelStream, LightStream
     {
         // Output of shading a material surface
-        stage stream float3 shadingColor;
+        module stream float3 shadingColor;
 
         // Output of the shading color alpha
-        stage stream float  shadingColorAlpha;
+        module stream float  shadingColorAlpha;
 
         // Half vector (sum of normalWS + lightDirectionWS)
-        stage stream float3 H;
+        module stream float3 H;
 
         // normal dot half vector
-        stage stream float NdotH;
+        module stream float NdotH;
 
         // light dot half vector
-        stage stream float LdotH;
+        module stream float LdotH;
 
         // view dot half vector
-        stage stream float VdotH;
+        module stream float VdotH;
 
         override void ResetStream()
         {
@@ -29,7 +29,7 @@ namespace Stride.Rendering.Materials
         }
 
         // Computes material attributes per light
-        stage void PrepareMaterialPerDirectLight()
+        module void PrepareMaterialPerDirectLight()
         {
             // TODO: This is not plug-n-play
             // Used by microfacet

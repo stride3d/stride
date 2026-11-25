@@ -43,7 +43,7 @@ public class ShaderBackendLogTests : IDisposable
                     return color.yxzw;
                 }
 
-                stage override float4 Shading()
+                module override float4 Shading()
                 {
                     return Pick(base.Shading());
                 }
@@ -92,7 +92,7 @@ public class ShaderBackendLogTests : IDisposable
 
         var messages = Compile().Messages;
 
-        Assert.Contains(messages, m => m.Module == EffectCompileLog.EffectCompilerModule && m.Text.Contains("references non-stage method"));
+        Assert.Contains(messages, m => m.Module == EffectCompileLog.EffectCompilerModule && m.Text.Contains("references instance method"));
         Assert.All(messages, m => Assert.NotNull(m.Module));
     }
 

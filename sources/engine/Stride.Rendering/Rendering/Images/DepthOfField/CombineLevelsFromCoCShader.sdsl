@@ -20,9 +20,9 @@ namespace Stride.Rendering.Images
     shader CombineLevelsFromCoCShader<int TLevelCount> : ImageEffectShader
     {
         // The CoC corresponding to each level of blur
-        stage float CoCLevelValues[TLevelCount];
+        module float CoCLevelValues[TLevelCount];
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             // Need to be able to access blur textures by index
             //Texture2D dofTextureLevels[8] = 

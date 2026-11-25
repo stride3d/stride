@@ -18,19 +18,19 @@ shader TransformationMorph : TransformationBase, PositionStream4, NormalStream, 
 
     rgroup PerDraw.Morph
     {
-        stage StructuredBuffer<uint> MorphEntries;
-        stage StructuredBuffer<uint> MorphVertexOffsets;
-        stage StructuredBuffer<float> MorphWeights;
+        module StructuredBuffer<uint> MorphEntries;
+        module StructuredBuffer<uint> MorphVertexOffsets;
+        module StructuredBuffer<float> MorphWeights;
     }
 
     cbuffer PerDraw
     {
-        stage uint MorphTargetCount;
+        module uint MorphTargetCount;
     }
 
-    stage stream uint VertexID : SV_VertexID;
+    module stream uint VertexID : SV_VertexID;
 
-    override stage void PreTransformPosition()
+    override module void PreTransformPosition()
     {
         uint vertex = streams.VertexID;
         uint endItem = MorphVertexOffsets[vertex + 1];

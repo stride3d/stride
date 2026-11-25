@@ -4,20 +4,20 @@ namespace Stride.Rendering.Lights
 {
     shader LightClustered : ScreenPositionBase, ShaderBaseStream, Camera
     {
-        stage stream uint2 lightData;
-        stage stream int lightIndex;
+        module stream uint2 lightData;
+        module stream int lightIndex;
 
         rgroup PerView.Lighting
         {
-            stage Texture3D<uint2> LightClusters;
-            stage Buffer<uint> LightIndices;
+            module Texture3D<uint2> LightClusters;
+            module Buffer<uint> LightIndices;
         }
 
         cbuffer PerView.Lighting
         {
-            stage float ClusterDepthScale;
-            stage float ClusterDepthBias;
-            stage float2 ClusterStride;
+            module float ClusterDepthScale;
+            module float ClusterDepthBias;
+            module float2 ClusterStride;
         }
 
         void PrepareLightData()

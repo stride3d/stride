@@ -9,54 +9,54 @@ namespace Stride.Rendering.Materials
         // --------------------------------------------------
 
         // Surface attributes
-        stage stream float3 matNormal;
+        module stream float3 matNormal;
 
         // The color base attributes
-        stage stream float4 matColorBase;
+        module stream float4 matColorBase;
 
         // Diffuse attributes
-        stage stream float4 matDiffuse;
+        module stream float4 matDiffuse;
 
         // Microsurface attributes
-        stage stream float  matGlossiness;
+        module stream float  matGlossiness;
 
         // Specular attributes
-        stage stream float3 matSpecular;
+        module stream float3 matSpecular;
 
-        stage stream float  matSpecularIntensity;
+        module stream float  matSpecularIntensity;
         // Occlusion attributes
-        stage stream float  matAmbientOcclusion;
-        stage stream float  matAmbientOcclusionDirectLightingFactor;
-        stage stream float  matCavity;
-        stage stream float  matCavityDiffuse;
-        stage stream float  matCavitySpecular;
+        module stream float  matAmbientOcclusion;
+        module stream float  matAmbientOcclusionDirectLightingFactor;
+        module stream float  matCavity;
+        module stream float  matCavityDiffuse;
+        module stream float  matCavitySpecular;
 
         // Emissive attributes
-        stage stream float4  matEmissive;
-        stage stream float   matEmissiveIntensity;
+        module stream float4  matEmissive;
+        module stream float   matEmissiveIntensity;
 
         // Scattering attributes
-        stage stream float  matScatteringStrength;
+        module stream float  matScatteringStrength;
 
         // Transparent attributes
-        stage stream float2  matDiffuseSpecularAlphaBlend;
-        stage stream float3  matAlphaBlendColor;
-        stage stream float   matAlphaDiscard;
+        module stream float2  matDiffuseSpecularAlphaBlend;
+        module stream float3  matAlphaBlendColor;
+        module stream float   matAlphaDiscard;
 
         // Inputs while shading a material surface
-        stage stream float3 viewWS;
+        module stream float3 viewWS;
     
         // --------------------------------------------------
         // Values Precomputed before lighting
         // --------------------------------------------------
         
-        stage stream float3 matDiffuseVisible;
+        module stream float3 matDiffuseVisible;
         
-        stage stream float alphaRoughness; // disney-burley roughness
+        module stream float alphaRoughness; // disney-burley roughness
 
-        stage stream float3 matSpecularVisible;
+        module stream float3 matSpecularVisible;
         
-        stage stream float NdotV; // normal dot view
+        module stream float NdotV; // normal dot view
 
         override void ResetStream()
         {

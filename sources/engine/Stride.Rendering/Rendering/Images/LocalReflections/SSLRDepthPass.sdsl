@@ -8,7 +8,7 @@ namespace Stride.Rendering.Images
     /// </summary>
     shader SSLRDepthPass : ImageEffectShader
     {			
-		override stage float4 Shading()
+		override module float4 Shading()
 		{
 			float depth = Texture0.Sample(PointSampler, streams.TexCoord).r;
 			return depth.xxxx;

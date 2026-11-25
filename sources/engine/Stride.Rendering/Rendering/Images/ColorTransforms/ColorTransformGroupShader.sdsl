@@ -7,7 +7,7 @@ shader ColorTransformGroupShader : ImageEffectShader
 {
     compose ColorTransformShader Transforms[];
 
-    override stage float4 Shading()
+    override module float4 Shading()
     {
         float4 color = base.Shading();
 

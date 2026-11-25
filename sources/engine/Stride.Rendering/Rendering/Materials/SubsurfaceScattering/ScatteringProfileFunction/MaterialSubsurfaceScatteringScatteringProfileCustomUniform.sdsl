@@ -7,7 +7,7 @@ namespace Stride.Rendering.Materials
     {
         cbuffer PerMaterial
         {
-            stage float4 ScatteringProfile[6];
+            module float4 ScatteringProfile[6];
         }
         
         // TODO: This does not result in the exact same kind of profiles as the skin profile. But it's close.

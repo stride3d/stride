@@ -7,8 +7,8 @@ shader TestTexture : TestBase
     stream float4 ExtraColor : COLOR;
     stream float2 TexCoord : TEXCOORD;
 
-    stage SamplerState Sampler;
-    stage Texture2D Texture0;
+    module SamplerState Sampler;
+    module Texture2D Texture0;
 
     cbuffer Test123
     {

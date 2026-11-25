@@ -6,7 +6,7 @@ namespace Stride.Rendering.Materials
     shader MaterialDisplacementStream : IStreamInitializer
     {
         // Displacement height attribute
-        stage stream float matDisplacement;
+        module stream float matDisplacement;
 
         override void ResetStream()
         {

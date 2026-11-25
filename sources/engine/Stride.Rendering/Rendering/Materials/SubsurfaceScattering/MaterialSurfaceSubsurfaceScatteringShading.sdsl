@@ -14,8 +14,8 @@ namespace Stride.Rendering.Materials
     {
         cbuffer PerMaterial
         {
-            stage float Translucency;
-            stage float ScatteringWidth;
+            module float Translucency;
+            module float ScatteringWidth;
         }
         
         compose IMaterialSubsurfaceScatteringScatteringProfile scatteringProfileFunction;

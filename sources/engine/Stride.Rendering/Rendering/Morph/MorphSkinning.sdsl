@@ -31,45 +31,45 @@ shader MorphSkinning : ComputeShaderBase, MorphTargetUtil
     static const uint ByteBits = 8;
     static const uint ByteMask = 0xFF;
 
-    stage ByteAddressBuffer InputVertices;
+    module ByteAddressBuffer InputVertices;
     // Read as dword pairs: a 24-byte entry takes three 8-byte loads instead of six 4-byte ones.
-    stage StructuredBuffer<uint2> PackedEntries;
-    stage StructuredBuffer<uint> VertexOffsets;
+    module StructuredBuffer<uint2> PackedEntries;
+    module StructuredBuffer<uint> VertexOffsets;
     // Per-frame arenas shared by all dispatches: morph weights, skeleton node world matrices and instance records.
-    stage StructuredBuffer<float> Weights;
-    stage StructuredBuffer<float4> PoseRows;
-    stage StructuredBuffer<float4> InstanceRecords;
+    module StructuredBuffer<float> Weights;
+    module StructuredBuffer<float4> PoseRows;
+    module StructuredBuffer<float4> InstanceRecords;
     // Per mesh bone: the inverse bind matrix and the skeleton node it follows.
-    stage StructuredBuffer<float4> BoneBinds;
-    stage StructuredBuffer<uint> BoneNodes;
-    stage RWByteAddressBuffer OutputVertices;
+    module StructuredBuffer<float4> BoneBinds;
+    module StructuredBuffer<uint> BoneNodes;
+    module RWByteAddressBuffer OutputVertices;
 
     cbuffer PerDispatch
     {
-        stage uint VertexCount;
-        stage uint VertexStride;
-        stage uint PositionOffset;
-        stage int NormalOffset;
-        stage int TangentOffset;
-        stage int BlendIndicesOffset;
-        stage int BlendWeightsOffset;
-        stage uint BoneCount;
-        stage uint SkinningFlags;
-        stage uint MorphFlags;
-        stage uint Index16;
-        stage uint TargetCount;
-        stage uint ActiveCount;
-        stage uint InstanceCount;
+        module uint VertexCount;
+        module uint VertexStride;
+        module uint PositionOffset;
+        module int NormalOffset;
+        module int TangentOffset;
+        module int BlendIndicesOffset;
+        module int BlendWeightsOffset;
+        module uint BoneCount;
+        module uint SkinningFlags;
+        module uint MorphFlags;
+        module uint Index16;
+        module uint TargetCount;
+        module uint ActiveCount;
+        module uint InstanceCount;
         // First record row (float4) and first morph weight of this batch in the frame arenas.
-        stage uint RecordBase;
-        stage uint WeightBase;
+        module uint RecordBase;
+        module uint WeightBase;
         // Bytes per instance slot of the compact output: position, normal and tangent of every vertex.
-        stage uint OutputStride;
-        stage uint OutputVertexStride;
-        stage int OutputNormalOffset;
-        stage int OutputTangentOffset;
+        module uint OutputStride;
+        module uint OutputVertexStride;
+        module int OutputNormalOffset;
+        module int OutputTangentOffset;
         // The tangent is a float4: its w (bitangent handedness) is copied from the input.
-        stage uint TangentW;
+        module uint TangentW;
     }
 
     float3 TransformPoint(float3 position, float4 column0, float4 column1, float4 column2)

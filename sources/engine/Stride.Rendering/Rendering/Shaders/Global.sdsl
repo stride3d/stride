@@ -3,7 +3,7 @@
 shader Global
 {
     cbuffer PerFrame {
-        stage float Time;
-        stage float TimeStep;
+        module float Time;
+        module float TimeStep;
     };
 };

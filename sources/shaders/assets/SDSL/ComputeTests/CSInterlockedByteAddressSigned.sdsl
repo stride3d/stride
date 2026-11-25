@@ -6,7 +6,7 @@ namespace Stride.Shaders.Tests;
 // uint one, as in DXC. Direct3D 11 needs SPIRV-Cross to give the value the opcode's signedness (HLSL picks it from the value)
 shader CSInterlockedByteAddressSigned
 {
-    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    module stream uint3 DispatchThreadId : SV_DispatchThreadID;
 
     RWByteAddressBuffer Raw;
 

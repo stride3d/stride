@@ -15,7 +15,7 @@ namespace Stride.Rendering
         // -------------------------------------
         // uniforms
         // -------------------------------------        
-        stage stream float4 Color : COLOR;
+        module stream float4 Color : COLOR;
 
         override float4 Compute()
         {

@@ -51,7 +51,7 @@ public class EffectCompilerCacheBytecodeTests : IDisposable
     private void WriteShader(string path, string color) => File.WriteAllText(path, $$"""
         shader {{shaderName}} : SpriteBase
         {
-            stage override float4 Shading()
+            module override float4 Shading()
             {
                 return float4({{color}});
             }

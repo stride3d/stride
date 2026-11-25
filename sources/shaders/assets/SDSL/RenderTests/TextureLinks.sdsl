@@ -8,13 +8,13 @@ shader TextureLinks
     stream float2 TexCoord : TEXCOORD;
 
     [Link("Tex1")]
-    stage Texture2D<float4> Texture1;
-    stage SamplerState Sampler1;
+    module Texture2D<float4> Texture1;
+    module SamplerState Sampler1;
 
     rgroup Group1
     {
         [Link("Tex2")]
-        stage Texture2D<float4> Texture2;
+        module Texture2D<float4> Texture2;
     }
 
     void PSMain()

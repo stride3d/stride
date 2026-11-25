@@ -7,7 +7,7 @@ shader SwitchEveryCaseReturns
 {
     stream float4 ColorTarget : SV_Target0;
 
-    stage int Value;
+    module int Value;
 
     float Pick(int t)
     {

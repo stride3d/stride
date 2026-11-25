@@ -8,7 +8,7 @@ namespace Stride.Rendering.Voxels
     shader VoxelizeToFragments : Math, Transformation, ShaderBase, Texturing, NormalStream, PositionStream4, VoxelPositionStream, MaterialPixelStream, MaterialPixelShadingStream
     {
         compose VoxelStorageShader Storage;
-        override stage void PSMain()
+        override module void PSMain()
         {
             Storage.PrepareFragments();
             streams.IsFrontFace = true;
@@ -19,7 +19,7 @@ namespace Stride.Rendering.Voxels
                 streams.ColorTarget = float4(0,0,0,0);
             }
         }
-        override stage void VSMain()
+        override module void VSMain()
         {
             base.VSMain();
             Storage.PrepareVertex();

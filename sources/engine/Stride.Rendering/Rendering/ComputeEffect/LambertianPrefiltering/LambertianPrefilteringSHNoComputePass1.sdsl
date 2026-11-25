@@ -29,7 +29,7 @@ namespace Stride.Rendering.Images
             A4, A4, A4, A4, A4, A4, A4, A4, A4
         };
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
 			float3 result = 0;
 

@@ -14,7 +14,7 @@ namespace Stride.Rendering.Materials
         
         cbuffer PerMaterial // Changed to "PerMaterial" because otherwise PassID contains garbage, as we don't require nor execute the HairRenderFeature anymore.
         {
-            stage int PassID;   // 0 == Opaque, 1 == Transparent back, 2 = Transparent front
+            module int PassID;   // 0 == Opaque, 1 == Transparent back, 2 = Transparent front
         }
 
         float3 GetDebugColor(int passID)

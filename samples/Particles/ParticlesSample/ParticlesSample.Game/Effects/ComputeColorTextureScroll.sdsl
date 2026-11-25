@@ -8,7 +8,7 @@ shader ComputeColorTextureScroll<float UvSpeed, float colorIntensity> : ComputeC
     // -------------------------------------
     // streams
     // -------------------------------------
-    stage stream float4 Position : POSITION;
+    module stream float4 Position : POSITION;
 
     // Only works properly for ProceduralCylinder!
     // You will have to customize it to handle other shapes if they are required.

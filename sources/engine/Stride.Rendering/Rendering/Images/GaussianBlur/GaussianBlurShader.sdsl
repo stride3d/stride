@@ -8,9 +8,9 @@ namespace Stride.Rendering.Images
     /// </summary>
     internal shader GaussianBlurShader<int BlurCount, bool IsVertical> : ImageEffectShader
     {
-        stage float2 OffsetsWeights[BlurCount];
+        module float2 OffsetsWeights[BlurCount];
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             // Direction in texel size: (float2(1,0) or float2(0,1)) * texel size
             float2 direction = (IsVertical ? float2(0, 1) : float2(1, 0)) * Texture0TexelSize;

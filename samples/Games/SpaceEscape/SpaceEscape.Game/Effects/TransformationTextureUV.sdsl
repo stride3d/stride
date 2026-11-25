@@ -12,10 +12,10 @@ shader TransformationTextureUV : ShaderBase, Texturing
 
     cbuffer PerDraw
     {
-        stage float4 TextureRegion = float4(0,0,1,1);
+        module float4 TextureRegion = float4(0,0,1,1);
     }
 
-    stage void TransformUV_VS()
+    module void TransformUV_VS()
     {
         streams.TexCoord = TextureRegion.xy + TextureRegion.zw * streams.TexCoord;
     }

@@ -10,23 +10,23 @@ namespace Stride.Rendering.Images
     {	
 		cbuffer Data
         {
-            stage float MaxColorMiplevel;
-            stage float TraceSizeMax;
-            stage float MaxTraceSamples;
+            module float MaxColorMiplevel;
+            module float TraceSizeMax;
+            module float MaxTraceSamples;
             //stage float Padding0;
 
-            stage float RoughnessFade;
-            stage float TemporalTime;
-            stage float BRDFBias;
-            stage float ViewFarPlane;
+            module float RoughnessFade;
+            module float TemporalTime;
+            module float BRDFBias;
+            module float ViewFarPlane;
             
-            stage float4 ViewInfo;
+            module float4 ViewInfo;
 			
-            stage float3 CameraPosWS;
-            stage float WorldAntiSelfOcclusionBias;
+            module float3 CameraPosWS;
+            module float WorldAntiSelfOcclusionBias;
 
-            stage float4x4 V;
-            stage float4x4 IVP;
+            module float4x4 V;
+            module float4x4 IVP;
         };
 		
 		// Sample raw device depth buffer

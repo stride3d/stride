@@ -16,7 +16,7 @@ shader ParticleCustomShader : ParticleBase
     compose ComputeColor  baseIntensity;
 
     // Shading of the sprite - we override the base shader's Shading(), which only returns ColorScale
-    stage override float4 Shading()
+    module override float4 Shading()
     {
         // -----------------------------------------------
         // Base particle color RGB

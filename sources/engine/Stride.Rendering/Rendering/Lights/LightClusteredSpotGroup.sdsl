@@ -13,7 +13,7 @@ namespace Stride.Rendering.Lights
     {
         rgroup PerView.Lighting
         {
-            stage Buffer<float4> SpotLights;
+            module Buffer<float4> SpotLights;
         }
 
         override int GetMaxLightCount()

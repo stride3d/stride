@@ -65,7 +65,7 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        var isStaged = Tokens.Literal("stage", ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _);
+        var isStaged = Tokens.AnyOf(["module", "stage"], ref scanner, out _, advance: true) && Parsers.Spaces0(ref scanner, result, out _);
 
         if (SamplerState(ref scanner, result, out var samplerState))
         {

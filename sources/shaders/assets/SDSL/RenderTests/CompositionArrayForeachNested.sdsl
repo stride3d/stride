@@ -28,15 +28,15 @@ shader CompositionShaderB : CompositionBase
 
 shader CompositionTestArray
 {
-	stage compose CompositionBase CompsInheritedStage[];
+	module compose CompositionBase CompsInheritedStage[];
 }
  
 shader CompositionTest : CompositionTestArray
 {
     stream float4 ColorTarget : SV_Target0;
 
-	stage compose CompositionBase CompsStage[];
-	stage compose CompositionBase Comps[];
+	module compose CompositionBase CompsStage[];
+	module compose CompositionBase Comps[];
 
 	void PSMain()
 	{

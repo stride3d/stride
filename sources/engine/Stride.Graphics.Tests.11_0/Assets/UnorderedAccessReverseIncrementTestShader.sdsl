@@ -9,8 +9,8 @@ namespace Stride.Graphics.Tests
     /// </summary>
     internal shader UnorderedAccessReverseIncrementTestShader : ComputeShaderBase
     {
-        stage RWStructuredBuffer<uint> Data;
-        stage uint Count;
+        module RWStructuredBuffer<uint> Data;
+        module uint Count;
 
         override void Compute()
         {

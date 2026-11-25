@@ -4,12 +4,12 @@
 // Computes screen space velocity for backgrounds
 shader BackgroundVelocity : ShaderBase, VelocityStream, PositionStream4, ScreenPositionBase
 {
-    stage float4x4 DeltaMatrix;
+    module float4x4 DeltaMatrix;
 
-    stage stream float4 currentShadingPosition;
-    stage stream float4 previousShadingPosition;
+    module stream float4 currentShadingPosition;
+    module stream float4 previousShadingPosition;
 
-    stage override void VSMain()
+    module override void VSMain()
     {
         streams.ShadingPosition = float4(streams.Position.xyz, 1);
         streams.currentShadingPosition = streams.Position;
@@ -17,7 +17,7 @@ shader BackgroundVelocity : ShaderBase, VelocityStream, PositionStream4, ScreenP
         base.VSMain();
     }
 
-    stage override void PSMain()
+    module override void PSMain()
     {
         streams.currentShadingPosition /= streams.currentShadingPosition.w;
         streams.previousShadingPosition /= streams.previousShadingPosition.w;

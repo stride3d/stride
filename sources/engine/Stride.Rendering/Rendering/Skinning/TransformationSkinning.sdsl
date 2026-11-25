@@ -15,20 +15,20 @@ shader TransformationSkinning : TransformationBase, PositionStream4, Transformat
     cbuffer PerDraw
     {
         // TODO switch to float4x3 in a way compatible with ES 2.0
-        stage float4x4 BlendMatrixArray[SkinningMaxBones];
+        module float4x4 BlendMatrixArray[SkinningMaxBones];
     }
 
-    stage stream float4 BlendWeights : BLENDWEIGHT;
-    stage stream uint4 BlendIndices : BLENDINDICES;
+    module stream float4 BlendWeights : BLENDWEIGHT;
+    module stream uint4 BlendIndices : BLENDINDICES;
 
-    stage stream float4x4 skinningBlendMatrix;
+    module stream float4x4 skinningBlendMatrix;
 
     float4x4 GetBlendMatrix(int index)
     {
         return BlendMatrixArray[index];
     }
 
-    override stage void PreTransformPosition()
+    override module void PreTransformPosition()
     {
         base.PreTransformPosition();
 

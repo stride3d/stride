@@ -7,7 +7,7 @@ namespace Stride.Rendering.Shadows
     /// </summary>
     shader ShadowMapCasterNoPixelShader : Transformation, ShaderBase, PositionStream
     {
-        override stage void PSMain()
+        override module void PSMain()
         {
             // no code = null pixel shader, as we are outputing depth only
         }

@@ -8,8 +8,8 @@ namespace Stride.Graphics.Tests
     /// </summary>
     internal shader BufferBarrierReadTestShader : ComputeShaderBase
     {
-        stage StructuredBuffer<uint> Input;
-        stage RWStructuredBuffer<uint> Result;
+        module StructuredBuffer<uint> Input;
+        module RWStructuredBuffer<uint> Result;
 
         override void Compute()
         {

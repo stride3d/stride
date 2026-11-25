@@ -3,7 +3,7 @@
 shader GlobalVR
 {
     cbuffer PerView.GlobalVR {
-        stage int EyeIndex;
-        stage int EyeCount;
+        module int EyeIndex;
+        module int EyeCount;
     };
 };

@@ -209,7 +209,7 @@ public class StrideShaderTests
             && m.Text.Contains("[numthreads] parameter must be a constant integer expression"));
     }
 
-    // A `stage compose` is one slot for the whole effect: its declaring shader is promoted to the root,
+    // A `module compose` is one slot for the whole effect: its declaring shader is promoted to the root,
     // so a value supplied at a nested composition would have nothing to attach to.
     [Fact]
     public void StageCompositionSuppliedFromNestedIsReported()

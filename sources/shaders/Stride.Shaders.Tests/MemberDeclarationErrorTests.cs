@@ -52,8 +52,8 @@ public class MemberDeclarationErrorTests : IDisposable
 
     [Theory]
     // Stride3D_Demos' AtmosphereForwardRender
-    [InlineData("float BottomRadius; stage float4 Slices;")]
-    [InlineData("stage float4 Slices; float BottomRadius;")]
+    [InlineData("float BottomRadius; module float4 Slices;")]
+    [InlineData("module float4 Slices; float BottomRadius;")]
     public void CBufferWithStageAndNonStageMembersIsAnError(string members)
     {
         var message = CompileError("MixedStageCBuffer", $$"""
@@ -62,7 +62,7 @@ public class MemberDeclarationErrorTests : IDisposable
                 cbuffer PerView.Atmosphere { {{members}} }
             };
             """);
-        Assert.Contains("SDSL0174: cbuffer PerView.Atmosphere mixes stage and non-stage members (Slices is stage, BottomRadius is not).", message);
+        Assert.Contains("SDSL0174: cbuffer PerView.Atmosphere mixes module and instance members (Slices is a module member, BottomRadius is not).", message);
     }
 
     private void Compile(string name, string code)

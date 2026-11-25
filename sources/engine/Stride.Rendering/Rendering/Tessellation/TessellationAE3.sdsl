@@ -9,7 +9,7 @@ shader TessellationAE3<MemberName TStream> : TessellationBase, MaterialDomainStr
     stream float3 DomEdgeValue3[2];
     stream float3 DomVertValue3;
 
-    stage override void TessellateHull(InputPatch<Input, 12> input, uint uCPID, uint NextCPID)
+    module override void TessellateHull(InputPatch<Input, 12> input, uint uCPID, uint NextCPID)
     {
         base.TessellateHull(input, uCPID, NextCPID);
 
@@ -21,7 +21,7 @@ shader TessellationAE3<MemberName TStream> : TessellationBase, MaterialDomainStr
         streams.DomVertValue3    = input[DominantVertex].TStream;
     }
 
-    stage override void InterpolateBarycentric(const OutputPatch<Input, 3> input, in Constants constants, float3 f3BarycentricCoords)
+    module override void InterpolateBarycentric(const OutputPatch<Input, 3> input, in Constants constants, float3 f3BarycentricCoords)
     {
         base.InterpolateBarycentric(input, constants, f3BarycentricCoords);
 

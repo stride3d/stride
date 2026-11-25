@@ -8,10 +8,10 @@ namespace Stride.Rendering.Images
     /// </summary>
     shader SSLRTemporalPass : ImageEffectShader, Texturing
     {
-        stage float TemporalResponse;
-        stage float TemporalScale;
-        stage float4x4 IVP; // Current frame inverse view*projection matrix
-        stage float4x4 prevVP; // Previous frame view*projection matrix
+        module float TemporalResponse;
+        module float TemporalScale;
+        module float4x4 IVP; // Current frame inverse view*projection matrix
+        module float4x4 prevVP; // Previous frame view*projection matrix
         
         // 1:-1 to 0:1
         float2 ClipToUv(float2 clipPos)
@@ -38,7 +38,7 @@ namespace Stride.Rendering.Images
 			return ComputeWorldPosition(uv, rawDepth);
         }
 
-        override stage float4 Shading()
+        override module float4 Shading()
         {
 			// Inputs Mapping:
 			// Texture0 - Resolved reflections

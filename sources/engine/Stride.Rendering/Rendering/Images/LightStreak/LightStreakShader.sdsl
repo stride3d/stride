@@ -10,18 +10,18 @@ namespace Stride.Rendering.Images
     internal shader LightStreakShader<int TapCount, int AnamorphicCount> : ImageEffectShader
     {
         // Offset of the taps and their own weights
-        stage float2 TapOffsetsWeights[TapCount];
+        module float2 TapOffsetsWeights[TapCount];
 
         // Direction of the tap line
-        stage float2 Direction;
+        module float2 Direction;
 
         // Light aberration coefficients along the streak
-        stage float3 ColorAberrationCoefficients;
+        module float3 ColorAberrationCoefficients;
 
         // Count of anamorphic sub-streaks with offsets and strength (including the main streak)
-        stage float3 AnamorphicOffsetsWeight[AnamorphicCount];
+        module float3 AnamorphicOffsetsWeight[AnamorphicCount];
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             // Direction in texel size
             float2 direction = Direction * Texture0TexelSize;

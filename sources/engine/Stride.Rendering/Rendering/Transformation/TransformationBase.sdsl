@@ -9,26 +9,26 @@
 shader TransformationBase : ShaderBase
 {
     // End of the VS (usually skinning)
-    stage void PreTransformPosition() {}
+    module void PreTransformPosition() {}
 
     // End of tessellation (usually displacement mapping in world space, etc...)
-    stage void TransformPosition() {}
+    module void TransformPosition() {}
 
     // At the end of the geometry pipeline (to generate ShadingPosition)
-    stage void PostTransformPosition() {}
+    module void PostTransformPosition() {}
     
     // Used in cases where a shading position needs to be calculated from a given world position
     //  for example: in tesselation, which needs to determine the triangle size on the screen
-    stage float4 ComputeShadingPosition(float4 world) { return 0; }
+    module float4 ComputeShadingPosition(float4 world) { return 0; }
 
-    stage void BaseTransformVS()
+    module void BaseTransformVS()
     {
         this.PreTransformPosition();
         this.TransformPosition();
         this.PostTransformPosition();
     }
 
-    stage override void VSMain()
+    module override void VSMain()
     {
         base.VSMain();
         this.BaseTransformVS();

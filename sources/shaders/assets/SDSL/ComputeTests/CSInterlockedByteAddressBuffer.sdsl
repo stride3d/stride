@@ -5,7 +5,7 @@ namespace Stride.Shaders.Tests;
 // RWByteAddressBuffer.Interlocked*, from 1024 threads (32 x 32 groups of one). Thread 0 alone checks the original values
 shader CSInterlockedByteAddressBuffer
 {
-    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    module stream uint3 DispatchThreadId : SV_DispatchThreadID;
 
     RWByteAddressBuffer Raw;
 

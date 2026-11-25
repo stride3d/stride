@@ -9,8 +9,8 @@ shader TextureOffsetAfterUnroll
     stream float4 ColorTarget : SV_Target0;
     stream float2 TexCoord : TEXCOORD;
 
-    stage Texture2D<float4> Texture1;
-    stage SamplerState Sampler1;
+    module Texture2D<float4> Texture1;
+    module SamplerState Sampler1;
 
     static const int2 Neighbors[4] = { int2(1, 0), int2(-1, 0), int2(0, 1), int2(0, -1) };
 

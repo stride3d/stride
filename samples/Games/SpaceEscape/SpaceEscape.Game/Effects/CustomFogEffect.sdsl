@@ -5,19 +5,19 @@ shader CustomFogEffect : ShadingBase, TransformationBase, Camera
     {
         // Color of the fog
         [Color]
-        stage float4 FogColor = float4(1,1,1,1);
+        module float4 FogColor = float4(1,1,1,1);
 
-        stage float fogNearPlaneZ = 80.0f;//35.0f;
-        stage float fogFarPlaneZ = 250.0f;
+        module float fogNearPlaneZ = 80.0f;//35.0f;
+        module float fogFarPlaneZ = 250.0f;
 
-        stage float fogNearPlaneY = 0.0f;
-        stage float fogFarPlaneY = 120.0f;
+        module float fogNearPlaneY = 0.0f;
+        module float fogFarPlaneY = 120.0f;
     }
 
     // Varying FogFactor calculated from VS and passed to PS
-    stage stream float FogFactor : FOG;
+    module stream float FogFactor : FOG;
         
-    stage override void PostTransformPosition()
+    module override void PostTransformPosition()
     {
         base.PostTransformPosition();
         float depth;
@@ -28,7 +28,7 @@ shader CustomFogEffect : ShadingBase, TransformationBase, Camera
         streams.FogFactor = saturate( depthFactor + heightFactor );
     }
     
-    stage override float4 Shading() 
+    module override float4 Shading() 
     {
         float4 normalShade = base.Shading();
 

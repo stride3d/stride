@@ -11,6 +11,6 @@ shader DynamicTexture<LinkType TTexture, MemberName LocalResourceGroup>
     rgroup LocalResourceGroup
     {
         [Link("TTexture")]
-        stage Texture2D Texture;
+        module Texture2D Texture;
     }
 };

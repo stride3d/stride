@@ -13,8 +13,8 @@ shader TransformationInstancing : TransformationBase, Transformation
 
     rgroup PerDraw.Instancing
     {
-        stage StructuredBuffer<InstanceTransform> InstanceWorld;
-        stage StructuredBuffer<InstanceTransform> InstanceWorldInverse;
+        module StructuredBuffer<InstanceTransform> InstanceWorld;
+        module StructuredBuffer<InstanceTransform> InstanceWorldInverse;
     }
 
     float4x4 GetInstanceWorld(uint instanceId)

@@ -3,7 +3,7 @@
 
 shader SpriteSuperSampler : SpriteBase
 {
-    stage override float4 Shading()
+    module override float4 Shading()
     {
 		// "call of duty"-type of h4x4 checker box, but reduced to 9 picks instead of 13:
 		float2 jitters[] = {

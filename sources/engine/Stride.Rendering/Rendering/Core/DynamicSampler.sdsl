@@ -11,6 +11,6 @@ shader DynamicSampler<LinkType TSampler, MemberName LocalResourceGroup>
     rgroup LocalResourceGroup
     {
         [Link("TSampler")]
-        stage SamplerState Sampler;
+        module SamplerState Sampler;
     }
 };

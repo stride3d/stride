@@ -23,7 +23,7 @@ shader TemporalAntiAliasShader : ImageEffectShader
     // Texture1: depth
     // Texture2: velocity
     // Texture3: color previous frame (blurred)
-    stage override float4 Shading()
+    module override float4 Shading()
     {
         var texCoord = streams.TexCoord;
         

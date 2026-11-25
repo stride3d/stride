@@ -29,7 +29,7 @@ namespace Stride.Rendering.Shadows
             0.33333334,
         };
 
-        override stage void PSMain()
+        override module void PSMain()
         {
             // Generate the normal/tangent frame first: the material chain in Shading() reads
             // streams.tangentToWorld (via UpdateNormalFromTangentSpace), which is only produced here.

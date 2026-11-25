@@ -45,7 +45,7 @@ shader CompositionExternalStruct
 	compose CompositionBase Comp0;
 	compose CompositionBase Comp1;
 
-	stage float4 Shading()
+	module float4 Shading()
     {
         return Comp0.Compute() + Comp1.Compute();
     }

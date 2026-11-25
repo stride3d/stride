@@ -13,7 +13,7 @@
 
 shader TessellationFlat : TessellationBase
 {
-    stage override float ComputeClipping(InputPatch<Input, InputControlPointCount> input, const OutputPatch<Input2, 3> output, inout Constants constants)
+    module override float ComputeClipping(InputPatch<Input, InputControlPointCount> input, const OutputPatch<Input2, 3> output, inout Constants constants)
     {
         return ComputeClippingGroup3(input[0].PositionWS, input[1].PositionWS, input[2].PositionWS);
     }
@@ -36,7 +36,7 @@ shader TessellationFlat : TessellationBase
         return all(planeTests != 6.0f) ? 0.0 : 1.0;
     }
 
-    stage override void InterpolateBarycentric(const OutputPatch<Input, 3> input, in Constants constants, float3 f3BarycentricCoords)
+    module override void InterpolateBarycentric(const OutputPatch<Input, 3> input, in Constants constants, float3 f3BarycentricCoords)
     {
         //streams = input[0] * fU + input[1] * fV + input[2] * fW;
 

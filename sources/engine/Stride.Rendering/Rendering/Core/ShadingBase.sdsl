@@ -38,12 +38,12 @@ shader ShadingBase : ShaderBase
 #endif
 
     // method computing color
-    stage float4 Shading()
+    module float4 Shading()
     {
         return ShadingColor0.Compute();
     }
     
-    stage override void PSMain()
+    module override void PSMain()
     {
         base.PSMain();
         streams.ColorTarget = this.Shading();

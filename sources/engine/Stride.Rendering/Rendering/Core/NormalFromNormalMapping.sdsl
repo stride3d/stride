@@ -5,7 +5,7 @@
 /// </summary>
 shader NormalFromNormalMapping : Transformation, NormalBase, NormalStream
 {
-    override stage void GenerateNormal_PS()
+    override module void GenerateNormal_PS()
     {
         base.GenerateNormal_PS();
         UpdateTangentToWorld();

@@ -6,7 +6,7 @@ namespace Stride.Shaders.Tests;
 // passed as parameters
 shader CSInterlockedDestinations
 {
-    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    module stream uint3 DispatchThreadId : SV_DispatchThreadID;
 
     struct Entry
     {

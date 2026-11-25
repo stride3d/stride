@@ -13,14 +13,14 @@ shader VoxelStorageTextureClipmapShader<float voxelSizeT, float clipCountT, floa
         Texture3D mipMaps;
     }
 
-    stage SamplerState LinearBorderSampler3D
+    module SamplerState LinearBorderSampler3D
     {
         Filter = MIN_MAG_MIP_LINEAR;
         AddressU = Border;
         AddressV = Border;
         AddressW = Border;
     };
-    stage SamplerState LinearBorderSampler3D_NearestMip
+    module SamplerState LinearBorderSampler3D_NearestMip
     {
         Filter = MIN_MAG_LINEAR_MIP_POINT;
         AddressU = Border;

@@ -9,7 +9,7 @@ namespace Stride.Rendering.Lights
     {
         rgroup PerView.Lighting
         {
-            stage Buffer<float4> PointLights;
+            module Buffer<float4> PointLights;
         }
 
         override void PrepareDirectLights()

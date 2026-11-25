@@ -83,7 +83,7 @@ public static class SDSLErrorMessages
     public const string SDSL0171 = "SDSL0171: Attribute [{0}] on method {1} is not supported. Remove it.";
     public const string SDSL0172 = "SDSL0172: Stream {0} has an initial value ({1}), but a stream has none. Remove it, and assign the value in the stage that writes the stream first (streams.{0} = {1};).";
     public const string SDSL0173 = "SDSL0173: The initial value of member {0} ({1}) is not a constant. A member's initial value is its default value, set by the application, so it must be a constant. To compute it from other members, declare it static (static {2} {0} = {1};), or compute it where it is used.";
-    public const string SDSL0174 = "SDSL0174: cbuffer {0} mixes stage and non-stage members ({1} is stage, {2} is not). Split it: declare the stage members in a second cbuffer {0} block (blocks with the same name are merged into one cbuffer).";
+    public const string SDSL0174 = "SDSL0174: cbuffer {0} mixes module and instance members ({1} is a module member, {2} is not). Split it: declare the module members in a second cbuffer {0} block (blocks with the same name are merged into one cbuffer).";
     public const string SDSL0175 = "SDSL0175: {0}.{1}({2}) returns {3}, but the method it overrides, {4}.{1}({2}), returns {5}. Use the same return type.";
     public const string SDSL0176 = "SDSL0176: {0}.{1}({2}) is marked 'override', but no inherited method has this name and these parameters. Inherited: {3}. Use the parameters of the method to override, or remove 'override'.";
     public const string SDSL0177 = "SDSL0177: Not all code paths of {0}.{1} return a value. Add a return at the end of the method (a switch needs a default that returns).";

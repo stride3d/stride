@@ -694,7 +694,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
         {
             builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
         }
-        table.AddInfo(new(info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage variable '{varOwner?.Name ?? "?"}.{symbol.Id.Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
+        table.AddInfo(new(info, $"Module method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references instance variable '{varOwner?.Name ?? "?"}.{symbol.Id.Name}'. This will cause the shader to be fully imported at root level instead of only its module members when used in a composition."));
     }
 }
 
@@ -903,7 +903,7 @@ public partial class GenericIdentifier(Identifier name, ShaderExpressionList? ge
                 var whyNotModule = WhyNotModule(classes.Select(x => ShaderClass.LoadAndCacheExternalShaderDefinition(table, context, x)));
                 asModule = whyNotModule == null;
                 if (whyNotModule != null)
-                    table.AddInfo(new(info, $"Static reference to '{classSource.ToClassNameWithGenerics()}' from '{table.CurrentShader?.Name}' mixes it in like an inherited shader, because {whyNotModule}. Only a shader made of functions, constants and stage members is imported once per effect."));
+                    table.AddInfo(new(info, $"Static reference to '{classSource.ToClassNameWithGenerics()}' from '{table.CurrentShader?.Name}' mixes it in like an inherited shader, because {whyNotModule}. Only a shader made of functions, constants and module members is imported once per effect."));
             }
 
             var inheritedShaderCount = table.InheritedShaders.Count;
@@ -940,7 +940,7 @@ public partial class GenericIdentifier(Identifier name, ShaderExpressionList? ge
                 if ((flags & Specification.FunctionFlagsMask.Abstract) != 0)
                     return $"'{shader.Name}.{method.Id.Name}' is abstract";
                 if ((flags & Specification.FunctionFlagsMask.Stage) != 0)
-                    return $"'{shader.Name}.{method.Id.Name}' is a stage method";
+                    return $"'{shader.Name}.{method.Id.Name}' is a module method";
             }
 
             foreach (var (variable, flags) in shader.Variables)
@@ -952,7 +952,7 @@ public partial class GenericIdentifier(Identifier name, ShaderExpressionList? ge
                 if (variable.Type is PointerType { BaseType: ShaderSymbol or ArrayType { BaseType: ShaderSymbol } })
                     return $"'{shader.Name}.{variable.Id.Name}' is a composition";
                 if ((flags & Specification.VariableFlagsMask.Stage) == 0)
-                    return $"'{shader.Name}.{variable.Id.Name}' is not a stage member";
+                    return $"'{shader.Name}.{variable.Id.Name}' is not a module member";
             }
 
             foreach (var (structType, _) in shader.StructTypes)
