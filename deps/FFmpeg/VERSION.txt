@@ -1,4 +1,5 @@
 FFmpeg n9.1
+Version: 9.1.0.1+g74e4393595
 Repository: https://git.ffmpeg.org/ffmpeg.git
 Commit: 74e4393595cf2b5857f0da925c4e0dd74ea306e5
 
@@ -10,6 +11,7 @@ nv-codec-headers 33a9ede8d9914299d9262539c576a15bd0a19621 (Windows x64 CLI only)
 Repository: https://github.com/FFmpeg/nv-codec-headers.git
 Commit: 33a9ede8d9914299d9262539c576a15bd0a19621
 
-Stride: https://github.com/xen2/stride @ d10d051af7597e8f64978811c38597ff4128f312
+Stride: https://github.com/stride3d/stride @ 6a334bfb039ebac48a2bd863c4976bc85ec1db1f
 Built: 2026-11-25
-Workflow: https://github.com/xen2/stride/actions/runs/45570334076
+Workflow: https://github.com/stride3d/stride/actions/runs/45618471008
+Debug files: https://github.com/stride3d/stride/releases/tag/deps/ffmpeg/9.1.0.1
