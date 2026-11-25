@@ -52,10 +52,9 @@ public interface IContentManager
     bool IsLoaded(string url, bool loadedManuallyOnly = false);
 
     /// <summary>
-    /// Unloads the specified asset.
+    /// Unloads the specified object.
     /// </summary>
-    /// <param name="obj">The loaded asset or a reference to its URL.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="obj"/> is an empty URL reference.</exception>
+    /// <param name="obj">The object to unload.</param>
     void Unload(object obj);
 
     /// <summary>
@@ -63,6 +62,16 @@ public interface IContentManager
     /// </summary>
     /// <param name="url">The URL.</param>
     void Unload(string url);
+
+    /// <summary>
+    /// Unloads the asset at the referenced URL.
+    /// </summary>
+    /// <param name="urlReference">The URL reference.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="urlReference"/> is null or empty.</exception>
+    void Unload(IUrlReference urlReference)
+    {
+        UrlReferenceContentManagerExtenstions.Unload(this, urlReference);
+    }
 
     /// <summary>
     /// Gets the serializer.

@@ -200,7 +200,8 @@ public class TestContentManager
         const string url = "reference-unload";
         var databaseProvider = CreateDatabaseProvider();
         new ContentManager(databaseProvider).Save(url, new A { I = 18 });
-        IContentManager contentManager = new ContentManager(databaseProvider);
+        var manager = new ContentManager(databaseProvider);
+        IContentManager contentManager = manager;
         var reference = new UrlReference<A>(url);
 
         contentManager.Load(reference);
@@ -211,6 +212,17 @@ public class TestContentManager
 
         contentManager.Unload(reference);
         Assert.False(contentManager.IsLoaded(reference));
+
+        var asset = manager.Load(reference);
+        manager.Load(reference);
+
+        Assert.Throws<InvalidOperationException>(() => manager.Unload((object)reference));
+
+        manager.Unload(reference);
+        Assert.True(manager.IsLoaded(reference));
+
+        manager.Unload(asset);
+        Assert.False(manager.IsLoaded(reference));
     }
 
     [Fact]
