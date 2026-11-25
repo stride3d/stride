@@ -13,6 +13,9 @@ name: "Dep: Build astcenc"
 #   * win-arm64           -> NEON    (Windows on ARM)
 #   * osx-arm64           -> NEON    (Apple Silicon)
 # Only ONE ISA is built per binary; astcenc does not runtime-dispatch.
+#
+# Debug files: as in dep-freetype.yml, every build compiles with debug info, the libraries ship without it
+# (dep-split-debug.sh), and the debug files go to the symbols pre-release (dep-symbols.yml).
 
 on:
   workflow_dispatch:
@@ -23,8 +26,40 @@ on:
         required: true
 
 jobs:
+  # The builds check out this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve astcenc ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q astcenc-src
+          git -C astcenc-src remote add origin https://github.com/ARM-software/astc-encoder.git
+          git -C astcenc-src fetch -q --depth 1 --filter=tree:0 origin "${{ github.event.inputs.astcenc-version }}"
+          echo "commit=$(git -C astcenc-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $cmake = (git -C astcenc-src show "${commit}:CMakeLists.txt") -join "`n"
+          $found = [regex]::Matches($cmake, '(?m)^project\(astcencoder VERSION (\d+\.\d+\.\d+)\)\s*$')
+          if ($found.Count -ne 1) { throw "CMakeLists.txt doesn't have one line 'project(astcencoder VERSION N.N.N)'" }
+          stride-src/.github/scripts/dep-version.ps1 -Name astcenc -Official $found[0].Groups[1].Value `
+            -Source astcenc-src -Commit $commit -Upstream https://github.com/ARM-software/astc-encoder.git -TagPrefix ''
+
   build-windows:
     name: Build astcenc (Windows ${{ matrix.arch }})
+    needs: resolve
     runs-on: windows-2025-vs2026
     strategy:
       fail-fast: false
@@ -43,11 +78,12 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: ARM-software/astc-encoder
-          ref: ${{ github.event.inputs.astcenc-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: astcenc-src
 
       - name: Build
         shell: pwsh
+        env: { CFLAGS: /Z7, CXXFLAGS: /Z7, LDFLAGS: /DEBUG /OPT:REF /OPT:ICF }
         run: |
           cmake -S astcenc-src -B astcenc-build -A ${{ matrix.arch }} `
             -D${{ matrix.isa-flag }}=ON `
@@ -60,15 +96,15 @@ jobs:
       - name: Collect output
         shell: pwsh
         run: |
-          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force
+          New-Item -Path "out/${{ matrix.rid }}", "symbols/${{ matrix.rid }}" -ItemType Directory -Force
           # astcenc-shared.dll lands in build/Source/Release/ for the VS generator.
           # Single ISA build -> single shared lib; rename to astcenc.dll.
           $dll = Get-ChildItem astcenc-build -Recurse -Filter "astcenc-${{ matrix.isa-suffix }}-shared.dll" | Select-Object -First 1
           if (-not $dll) { $dll = Get-ChildItem astcenc-build -Recurse -Filter "astcenc-shared.dll" | Select-Object -First 1 }
           if (-not $dll) { throw "astcenc shared library not found under astcenc-build" }
           Copy-Item $dll.FullName "out/${{ matrix.rid }}/astcenc.dll"
-          $pdb = $dll.FullName -replace '\.dll$', '.pdb'
-          if (Test-Path $pdb) { Copy-Item $pdb "out/${{ matrix.rid }}/astcenc.pdb" }
+          # The .pdb keeps its name: the DLL names it. It isn't shipped.
+          Copy-Item ($dll.FullName -replace '\.dll$', '.pdb') "symbols/${{ matrix.rid }}/"
 
       - name: Upload
         uses: actions/upload-artifact@v7
@@ -76,35 +112,44 @@ jobs:
           name: astcenc-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
 
+      - name: Upload symbols
+        uses: actions/upload-artifact@v7
+        with:
+          name: symbols-astcenc-${{ matrix.rid }}
+          path: symbols/${{ matrix.rid }}/
+
   build-linux:
     name: Build astcenc (Linux x64)
+    needs: resolve
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Checkout astc-encoder
         uses: actions/checkout@v7
         with:
           repository: ARM-software/astc-encoder
-          ref: ${{ github.event.inputs.astcenc-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: astcenc-src
 
       - name: Build
+        env: { CXXFLAGS: -fPIC -g }
         run: |
           cmake -S astcenc-src -B astcenc-build \
             -DASTCENC_ISA_SSE41=ON \
             -DASTCENC_SHAREDLIB=ON \
             -DASTCENC_CLI=OFF \
             -DASTCENC_UNITTEST=OFF \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_FLAGS="-fPIC"
+            -DCMAKE_BUILD_TYPE=Release
           cmake --build astcenc-build -- -j$(nproc)
 
+      # The actual binary, not a soname link
       - name: Collect output
         run: |
-          mkdir -p out/linux-x64
           so=$(find astcenc-build -name "libastcenc-sse4.1-shared.so" -o -name "libastcenc-shared.so" | head -n1)
           if [ -z "$so" ]; then echo "astcenc shared library not found"; find astcenc-build -name '*.so'; exit 1; fi
-          # Resolve symlinks so we copy the actual binary, not a soname link.
-          cp "$(readlink -f "$so")" out/linux-x64/libastcenc.so
+          stride-src/.github/scripts/dep-split-debug.sh "$so" out/linux-x64 symbols/linux-x64 libastcenc.so
 
       - name: Upload
         uses: actions/upload-artifact@v7
@@ -112,18 +157,29 @@ jobs:
           name: astcenc-linux-x64
           path: out/linux-x64/
 
+      - name: Upload symbols
+        uses: actions/upload-artifact@v7
+        with:
+          name: symbols-astcenc-linux-x64
+          path: symbols/linux-x64/
+
   build-macos:
     name: Build astcenc (macOS arm64)
+    needs: resolve
     runs-on: macos-15
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Checkout astc-encoder
         uses: actions/checkout@v7
         with:
           repository: ARM-software/astc-encoder
-          ref: ${{ github.event.inputs.astcenc-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: astcenc-src
 
       - name: Build
+        env: { CXXFLAGS: -g }
         run: |
           cmake -S astcenc-src -B astcenc-build \
             -DASTCENC_ISA_NEON=ON \
@@ -136,10 +192,9 @@ jobs:
 
       - name: Collect output
         run: |
-          mkdir -p out/osx-arm64
           dylib=$(find astcenc-build -name "libastcenc-neon-shared.dylib" -o -name "libastcenc-shared.dylib" | head -n1)
           if [ -z "$dylib" ]; then echo "astcenc shared library not found"; find astcenc-build -name '*.dylib'; exit 1; fi
-          cp "$(readlink -f "$dylib")" out/osx-arm64/libastcenc.dylib
+          stride-src/.github/scripts/dep-split-debug.sh "$dylib" out/osx-arm64 symbols/osx-arm64 libastcenc.dylib
 
       - name: Upload
         uses: actions/upload-artifact@v7
@@ -147,16 +202,22 @@ jobs:
           name: astcenc-osx-arm64
           path: out/osx-arm64/
 
+      - name: Upload symbols
+        uses: actions/upload-artifact@v7
+        with:
+          name: symbols-astcenc-osx-arm64
+          path: symbols/osx-arm64/
+
   collect:
     name: Collect all platforms
-    needs: [build-windows, build-linux, build-macos]
+    needs: [resolve, build-windows, build-linux, build-macos]
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout astc-encoder (for version metadata + header)
         uses: actions/checkout@v7
         with:
           repository: ARM-software/astc-encoder
-          ref: ${{ github.event.inputs.astcenc-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: astcenc-src
           fetch-depth: 1
 
@@ -183,16 +244,19 @@ jobs:
           cp astcenc-src/LICENSE.txt $OUT/license.txt
 
           # Version metadata.
-          COMMIT=$(git -C astcenc-src rev-parse HEAD)
-          URL=$(git -C astcenc-src config --get remote.origin.url)
-          printf 'astcenc %s\nRepository: %s\nCommit: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+          printf 'astcenc %s\nVersion: %s\nRepository: %s\nCommit: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
             "${{ github.event.inputs.astcenc-version }}" \
-            "$URL" \
-            "$COMMIT" \
+            "${{ needs.resolve.outputs.version }}" \
+            https://github.com/ARM-software/astc-encoder \
+            "${{ needs.resolve.outputs.commit }}" \
             "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
             "$(date -u +%Y-%m-%d)" \
             "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             > $OUT/VERSION.txt
+          # The symbols job creates this pre-release on stride3d/stride only
+          if [ "${{ github.repository }}" = stride3d/stride ]; then
+            echo "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/astcenc/${{ needs.resolve.outputs.number }}" >> $OUT/VERSION.txt
+          fi
 
       - name: List contents
         run: find astcenc-out -type f | sort
@@ -202,3 +266,14 @@ jobs:
         with:
           name: astcenc-all-platforms
           path: astcenc-out/
+
+  symbols:
+    needs: [resolve, collect]
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: astcenc
+      version: ${{ needs.resolve.outputs.number }}
+      notes-artifact: astcenc-all-platforms

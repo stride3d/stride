@@ -58,7 +58,7 @@ jobs:
           if ($found.Count -ne 1) { throw "CMakeLists.txt doesn't have one line 'PROJECT(Assimp VERSION N.N.N'" }
           $patches = @(Get-ChildItem stride-src/deps/assimp/*.patch).Count
           $marker = @(if ($patches) { "patches-$patches" })
-          stride-src/.github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.Assimp -Official $found[0].Groups[1].Value `
+          stride-src/.github/scripts/dep-version.ps1 -Name assimp -PackageId Stride.Dependencies.Assimp -Official $found[0].Groups[1].Value `
             -Source assimp-src -Commit $commit -Upstream https://github.com/assimp/assimp.git `
             -TagPrefix v -Marker $marker -Override '${{ github.event.inputs.version }}'
 
@@ -211,6 +211,7 @@ jobs:
         run: |
           $lines = @(
             "Assimp ${{ github.event.inputs.ref }}"
+            "Version: ${{ needs.resolve.outputs.version }}"
             "Repository: https://github.com/assimp/assimp"
             "Commit: ${{ needs.resolve.outputs.commit }}"
             "Patches: $((Get-ChildItem deps/assimp/*.patch).Name -join ', ')"

@@ -1,0 +1,6 @@
+// Debug info for the Xcode builds of the dep workflows, set as XCODE_XCCONFIG_FILE: it overrides the build settings
+// of every target. dep-split-debug.sh then splits it off. A Release configuration can turn debug info off or strip
+// the products it copies, as MoltenVK's does.
+GCC_GENERATE_DEBUGGING_SYMBOLS = YES
+DEBUG_INFORMATION_FORMAT = dwarf
+COPY_PHASE_STRIP = NO

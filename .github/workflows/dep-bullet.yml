@@ -11,7 +11,7 @@ name: "Dep: Build Bullet"
 #   bumping the submodule pin in the fork.
 #
 # Output per OS — one shared lib per RID + one managed dll:
-#   Windows: libbulletc.dll (+ libbulletc.pdb)
+#   Windows: libbulletc.dll
 #   Linux:   libbulletc.so
 #   macOS:   libbulletc.dylib
 #   iOS:     libbulletc.a       (static, statically linked into the .app and
@@ -20,6 +20,9 @@ name: "Dep: Build Bullet"
 #
 # RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64, ios-arm64,
 #               iossimulator-arm64.
+#
+# Debug files: as in dep-freetype.yml, every build compiles with debug info, the libraries ship without it
+# (dep-split-debug.sh), and the debug files go to the symbols pre-release (dep-symbols.yml).
 
 on:
   workflow_dispatch:
@@ -34,8 +37,49 @@ on:
         required: true
 
 jobs:
+  # The builds check out this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve BulletSharpPInvoke ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      bullet-commit: ${{ steps.version.outputs.bullet-commit }}
+      version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
+      source: ${{ steps.version.outputs.source }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q bulletsharp-src
+          git -C bulletsharp-src remote add origin "https://github.com/${{ github.event.inputs.bulletsharp-repo }}.git"
+          git -C bulletsharp-src fetch -q --depth 1 --filter=tree:0 origin "${{ github.event.inputs.bulletsharp-ref }}"
+          echo "commit=$(git -C bulletsharp-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      # The version is bullet3's, from the VERSION file of the submodule pin: BulletSharpPInvoke has none of its own
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          git -C bulletsharp-src show "${commit}:.gitmodules" | Set-Content gitmodules
+          $url = git config -f gitmodules submodule.bullet.url
+          $pin = (git -C bulletsharp-src ls-tree $commit bullet) -split '\s+' | Select-Object -Index 2
+          git init -q bullet-src
+          git -C bullet-src remote add origin $url
+          git -C bullet-src fetch -q --depth 1 --filter=tree:0 origin $pin
+          $file = @(git -C bullet-src show "${pin}:VERSION")
+          if ($file.Count -ne 1) { throw "bullet3's VERSION isn't one line: '$file'" }
+          "bullet-commit=$pin" >> $env:GITHUB_OUTPUT
+          stride-src/.github/scripts/dep-version.ps1 -Name bullet -Official $file[0].Trim() `
+            -Source bulletsharp-src -Commit $commit -Upstream https://github.com/stride3d/BulletSharpPInvoke.git -UpstreamBranch master
+
   build-windows:
     name: Build libbulletc (Windows ${{ matrix.arch }})
+    needs: resolve
     runs-on: windows-2025-vs2026
     strategy:
       fail-fast: false
@@ -50,7 +94,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.bulletsharp-repo }}
-          ref: ${{ github.event.inputs.bulletsharp-ref }}
+          ref: ${{ needs.resolve.outputs.commit }}
           submodules: recursive
           path: BulletSharpPInvoke
 
@@ -74,6 +118,7 @@ jobs:
 
       - name: Configure & build libbulletc
         shell: pwsh
+        env: { CFLAGS: /Z7, CXXFLAGS: /Z7, LDFLAGS: /DEBUG /OPT:REF /OPT:ICF }
         run: |
           cmake -S BulletSharpPInvoke/libbulletc -B _build -A ${{ matrix.arch }} `
             "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" `
@@ -83,24 +128,33 @@ jobs:
       - name: Collect output
         shell: pwsh
         run: |
-          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
+          New-Item -Path "out/${{ matrix.rid }}", "symbols/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
           Copy-Item _build/lib/Release/libbulletc.dll "out/${{ matrix.rid }}/"
-          Copy-Item _build/lib/Release/libbulletc.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
+          Copy-Item _build/lib/Release/libbulletc.pdb "symbols/${{ matrix.rid }}/"
 
       - uses: actions/upload-artifact@v7
         with:
           name: libbulletc-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-bullet-${{ matrix.rid }}
+          path: symbols/${{ matrix.rid }}/
+
   build-linux:
     name: Build libbulletc (Linux x64)
+    needs: resolve
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Checkout BulletSharpPInvoke (+ bullet submodule)
         uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.bulletsharp-repo }}
-          ref: ${{ github.event.inputs.bulletsharp-ref }}
+          ref: ${{ needs.resolve.outputs.commit }}
           submodules: recursive
           path: BulletSharpPInvoke
 
@@ -112,6 +166,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
 
       - name: Configure & build libbulletc
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           cmake -S BulletSharpPInvoke/libbulletc -B _build -G Ninja \
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
@@ -119,26 +174,33 @@ jobs:
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
           cmake --build _build
 
+      # CMake adds 'lib' prefix on Unix to a target already named 'libbulletc' -> liblibbulletc.so
       - name: Collect output
-        run: |
-          mkdir -p out/linux-x64
-          # CMake adds 'lib' prefix on Unix to a target already named 'libbulletc' -> liblibbulletc.so
-          cp _build/liblibbulletc.so out/linux-x64/libbulletc.so
+        run: stride-src/.github/scripts/dep-split-debug.sh _build/liblibbulletc.so out/linux-x64 symbols/linux-x64 libbulletc.so
 
       - uses: actions/upload-artifact@v7
         with:
           name: libbulletc-linux-x64
           path: out/linux-x64/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-bullet-linux-x64
+          path: symbols/linux-x64/
+
   build-macos:
     name: Build libbulletc (macOS arm64)
+    needs: resolve
     runs-on: macos-15
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Checkout BulletSharpPInvoke (+ bullet submodule)
         uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.bulletsharp-repo }}
-          ref: ${{ github.event.inputs.bulletsharp-ref }}
+          ref: ${{ needs.resolve.outputs.commit }}
           submodules: recursive
           path: BulletSharpPInvoke
 
@@ -147,6 +209,7 @@ jobs:
         run: sed -i '' 's/BulletRobotics//g' BulletSharpPInvoke/bullet/Extras/CMakeLists.txt
 
       - name: Configure & build libbulletc
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           cmake -S BulletSharpPInvoke/libbulletc -B _build -G Ninja \
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
@@ -156,17 +219,21 @@ jobs:
           cmake --build _build
 
       - name: Collect output
-        run: |
-          mkdir -p out/osx-arm64
-          cp _build/liblibbulletc.dylib out/osx-arm64/libbulletc.dylib
+        run: stride-src/.github/scripts/dep-split-debug.sh _build/liblibbulletc.dylib out/osx-arm64 symbols/osx-arm64 libbulletc.dylib
 
       - uses: actions/upload-artifact@v7
         with:
           name: libbulletc-osx-arm64
           path: out/osx-arm64/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-bullet-osx-arm64
+          path: symbols/osx-arm64/
+
   build-ios:
     name: Build libbulletc (${{ matrix.rid }})
+    needs: resolve
     runs-on: macos-15
     strategy:
       fail-fast: false
@@ -177,11 +244,14 @@ jobs:
           - rid: iossimulator-arm64
             sysroot: iphonesimulator
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Checkout BulletSharpPInvoke (+ bullet submodule)
         uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.bulletsharp-repo }}
-          ref: ${{ github.event.inputs.bulletsharp-ref }}
+          ref: ${{ needs.resolve.outputs.commit }}
           submodules: recursive
           path: BulletSharpPInvoke
 
@@ -197,6 +267,7 @@ jobs:
         run: sed -i '' 's/\${BULLETC_LIB} SHARED/\${BULLETC_LIB} STATIC/' BulletSharpPInvoke/libbulletc/CMakeLists.txt
 
       - name: Configure & build libbulletc
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           # Cross-compile (CMAKE_SYSTEM_NAME=iOS) reroots find_path() PATHS through
           # the iOS sysroot, so libbulletc's "find btBulletCollisionCommon.h in
@@ -229,16 +300,21 @@ jobs:
           libtool -static -o _build/liblibbulletc-merged.a $ARCHIVES
           mv _build/liblibbulletc-merged.a _build/liblibbulletc.a
 
+      # CMake adds 'lib' prefix to target named 'libbulletc' → liblibbulletc.a
       - name: Collect output
         run: |
-          mkdir -p out/${{ matrix.rid }}
-          # CMake adds 'lib' prefix to target named 'libbulletc' → liblibbulletc.a
-          cp _build/liblibbulletc.a out/${{ matrix.rid }}/libbulletc.a
+          stride-src/.github/scripts/dep-split-debug.sh _build/liblibbulletc.a \
+            out/${{ matrix.rid }} symbols/${{ matrix.rid }} libbulletc.a
 
       - uses: actions/upload-artifact@v7
         with:
           name: libbulletc-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-bullet-${{ matrix.rid }}
+          path: symbols/${{ matrix.rid }}/
 
   # Managed BulletSharp.dll is built locally as part of Stride.Physics — the
   # stride3d fork's .csproj has a PackageReference to Stride.Core.Mathematics
@@ -246,18 +322,9 @@ jobs:
 
   collect:
     name: Collect all platforms
-    needs: [build-windows, build-linux, build-macos, build-ios]
+    needs: [resolve, build-windows, build-linux, build-macos, build-ios]
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout BulletSharpPInvoke (+ bullet submodule for hash)
-        uses: actions/checkout@v7
-        with:
-          repository: ${{ github.event.inputs.bulletsharp-repo }}
-          ref: ${{ github.event.inputs.bulletsharp-ref }}
-          submodules: recursive
-          path: bulletsharp-src
-          fetch-depth: 1
-
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
@@ -271,17 +338,23 @@ jobs:
             cp artifacts/libbulletc-$rid/* $OUT/Release/$rid/ 2>/dev/null || true
           done
 
-          SHARP_COMMIT=$(git -C bulletsharp-src rev-parse HEAD)
-          BULLET_COMMIT=$(git -C bulletsharp-src/bullet rev-parse HEAD)
-          printf 'BulletSharpPInvoke %s\nRepository: https://github.com/%s\nCommit: %s\n\nbullet3 (submodule pin)\nRepository: https://github.com/bulletphysics/bullet3\nCommit: %s\n\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
-            "${{ github.event.inputs.bulletsharp-ref }}" \
-            "${{ github.event.inputs.bulletsharp-repo }}" \
-            "$SHARP_COMMIT" \
-            "$BULLET_COMMIT" \
-            "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
-            "$(date -u +%Y-%m-%d)" \
-            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            > $OUT/VERSION.txt
+          {
+            printf 'BulletSharpPInvoke %s\nVersion: %s\nRepository: https://github.com/%s\nCommit: %s\n' \
+              "${{ github.event.inputs.bulletsharp-ref }}" \
+              "${{ needs.resolve.outputs.version }}" \
+              "${{ github.event.inputs.bulletsharp-repo }}" \
+              "${{ needs.resolve.outputs.commit }}"
+            if [ -n "${{ needs.resolve.outputs.source }}" ]; then echo "${{ needs.resolve.outputs.source }}"; fi
+            printf '\nbullet3 (submodule pin)\nRepository: https://github.com/bulletphysics/bullet3\nCommit: %s\n\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+              "${{ needs.resolve.outputs.bullet-commit }}" \
+              "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
+              "$(date -u +%Y-%m-%d)" \
+              "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            # The symbols job creates this pre-release on stride3d/stride only
+            if [ "${{ github.repository }}" = stride3d/stride ]; then
+              echo "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/bullet/${{ needs.resolve.outputs.number }}"
+            fi
+          } > $OUT/VERSION.txt
 
       - name: List contents
         run: find libbulletc-out -type f | sort
@@ -290,3 +363,14 @@ jobs:
         with:
           name: libbulletc-all-platforms
           path: libbulletc-out/
+
+  symbols:
+    needs: [resolve, collect]
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: bullet
+      version: ${{ needs.resolve.outputs.number }}
+      notes-artifact: libbulletc-all-platforms

@@ -15,6 +15,10 @@ name: "Dep: Build MoltenVK"
 #   iossimulator-arm64  libMoltenVK.a      (Apple Silicon simulator static)
 #
 # RIDs covered: osx-arm64, ios-arm64, iossimulator-arm64.
+#
+# Debug files: dep-debug-info.xcconfig turns on debug info for the Xcode builds, which MoltenVK's Release turns off.
+# The libraries ship without it (dep-split-debug.sh), and the debug files go to the symbols pre-release
+# (dep-symbols.yml).
 
 on:
   workflow_dispatch:
@@ -28,8 +32,14 @@ jobs:
   vendor:
     name: Build & repackage MoltenVK
     runs-on: macos-15
+    outputs:
+      number: ${{ steps.version.outputs.number }}
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Build MoltenVK from source
+        env: { XCODE_XCCONFIG_FILE: '${{ github.workspace }}/stride-src/.github/scripts/dep-debug-info.xcconfig' }
         run: |
           # Shallow init + fetch supports both refnames (tags/branches) and raw
           # SHAs uniformly, unlike `git clone --branch`.
@@ -49,36 +59,48 @@ jobs:
 
       - name: Repackage macOS dylib (osx-arm64)
         run: |
-          mkdir -p out/dotnet/osx-arm64
           # Slice arm64 out of the universal dylib, renaming to the Vulkan loader
           # leaf name so Vortice.Vulkan's dlopen("libvulkan.1.dylib") matches.
           lipo -thin arm64 mvk-src/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib \
-            -output out/dotnet/osx-arm64/libvulkan.1.dylib
+            -output libvulkan.1.dylib
           # Rewrite LC_ID_DYLIB so dyld's already-loaded match keys on the new
           # leaf name rather than the original "@rpath/libMoltenVK.dylib".
-          install_name_tool -id libvulkan.1.dylib out/dotnet/osx-arm64/libvulkan.1.dylib
-          # install_name_tool invalidates the ad-hoc signature; re-sign so macOS
-          # will load the dylib on Apple Silicon.
-          codesign --sign - --force out/dotnet/osx-arm64/libvulkan.1.dylib
+          install_name_tool -id libvulkan.1.dylib libvulkan.1.dylib
+          # Strips it, and signs it again, which install_name_tool requires too
+          stride-src/.github/scripts/dep-split-debug.sh libvulkan.1.dylib out/dotnet/osx-arm64 symbols/osx-arm64
 
       - name: Repackage iOS device static (ios-arm64)
         run: |
-          mkdir -p out/dotnet/ios-arm64
-          cp mvk-src/Package/Release/MoltenVK/static/MoltenVK.xcframework/ios-arm64/libMoltenVK.a \
-             out/dotnet/ios-arm64/libMoltenVK.a
+          stride-src/.github/scripts/dep-split-debug.sh \
+            mvk-src/Package/Release/MoltenVK/static/MoltenVK.xcframework/ios-arm64/libMoltenVK.a \
+            out/dotnet/ios-arm64 symbols/ios-arm64
 
       - name: Repackage iOS simulator static (iossimulator-arm64)
         run: |
-          mkdir -p out/dotnet/iossimulator-arm64
           # Upstream ships a fat arm64+x86_64 simulator slice; thin to arm64.
           lipo -thin arm64 \
             mvk-src/Package/Release/MoltenVK/static/MoltenVK.xcframework/ios-arm64_x86_64-simulator/libMoltenVK.a \
-            -output out/dotnet/iossimulator-arm64/libMoltenVK.a
+            -output libMoltenVK.a
+          stride-src/.github/scripts/dep-split-debug.sh libMoltenVK.a out/dotnet/iossimulator-arm64 symbols/iossimulator-arm64
+
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $header = (Get-Content mvk-src/MoltenVK/MoltenVK/API/mvk_private_api.h) -join "`n"
+          $parts = foreach ($part in 'MAJOR', 'MINOR', 'PATCH') {
+            $found = [regex]::Matches($header, "(?m)^#define MVK_VERSION_$part\s+(\d+)\s*$")
+            if ($found.Count -ne 1) { throw "MoltenVK/MoltenVK/API/mvk_private_api.h doesn't define MVK_VERSION_$part once" }
+            $found[0].Groups[1].Value
+          }
+          stride-src/.github/scripts/dep-version.ps1 -Name moltenvk -Official ($parts -join '.') `
+            -Source mvk-src -Commit HEAD -Upstream https://github.com/KhronosGroup/MoltenVK.git -TagPrefix v
 
       - name: Write VERSION.txt
         run: |
           {
             printf 'MoltenVK %s\n' "$MVK_BUILD_LABEL"
+            printf 'Version: %s\n' "${{ steps.version.outputs.version }}"
             printf 'Repository: https://github.com/KhronosGroup/MoltenVK\n'
             printf 'Source: built from git ref "%s" on the macos-15 runner\n' \
               "${{ github.event.inputs.moltenvk-version }}"
@@ -88,12 +110,43 @@ jobs:
             printf 'Built: %s\n' "$(date -u +%Y-%m-%d)"
             printf 'Workflow: %s/%s/actions/runs/%s\n' \
               "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}"
+            # The symbols job creates this pre-release on stride3d/stride only
+            if [ "${{ github.repository }}" = stride3d/stride ]; then
+              printf 'Debug files: %s/%s/releases/tag/deps/moltenvk/%s\n' \
+                "${{ github.server_url }}" "${{ github.repository }}" "${{ steps.version.outputs.number }}"
+            fi
           } > out/VERSION.txt
 
       - name: List contents
-        run: find out -type f | sort
+        run: find out symbols -type f | sort
 
       - uses: actions/upload-artifact@v7
         with:
           name: moltenvk-all-platforms
           path: out/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-moltenvk-osx-arm64
+          path: symbols/osx-arm64/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-moltenvk-ios-arm64
+          path: symbols/ios-arm64/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-moltenvk-iossimulator-arm64
+          path: symbols/iossimulator-arm64/
+
+  symbols:
+    needs: vendor
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: moltenvk
+      version: ${{ needs.vendor.outputs.number }}
+      notes-artifact: moltenvk-all-platforms

@@ -1,4 +1,5 @@
 NativePath master
+Version: 1.0.0+g78b3809bc5
 Repository: https://github.com/stride3d/NativePath
 Commit: 78b3809bc537290659bf1f631ab66f436ab0c429
 

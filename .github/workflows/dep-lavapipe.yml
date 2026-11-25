@@ -69,7 +69,7 @@ jobs:
           $file = git -C mesa-src show "${commit}:VERSION"
           if ($file.Count -ne 1 -or $file -notmatch '^\d+\.\d+\.\d+(-devel|-rc\d+)?$') { throw "VERSION isn't one line 'N.N.N[-devel|-rcN]': '$file'" }
           "official=$file" >> $env:GITHUB_OUTPUT
-          stride-src/.github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.Lavapipe -Official $file `
+          stride-src/.github/scripts/dep-version.ps1 -Name lavapipe -PackageId Stride.Dependencies.Lavapipe -Official $file `
             -Source mesa-src -Commit $commit -Upstream https://gitlab.freedesktop.org/mesa/mesa.git `
             -TagPrefix mesa- -Override '${{ github.event.inputs.version }}'
 
@@ -649,6 +649,7 @@ jobs:
         run: |
           $lines = @(
             "Mesa ${{ needs.resolve.outputs.official }} (ref ${{ env.MESA_REF }})"
+            "Version: ${{ needs.resolve.outputs.version }}"
             "Repository: ${{ env.MESA_REPOSITORY }}"
             "Commit: ${{ needs.resolve.outputs.commit }}"
           )

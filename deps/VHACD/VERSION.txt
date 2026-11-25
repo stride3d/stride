@@ -1,4 +1,5 @@
 V-HACD master
+Version: 4.1.0+gf900e42361
 Repository: https://github.com/kmammou/v-hacd
 Commit: f900e42361491f525262d4825e758845e4969897
 Stride: https://github.com/xen2/stride @ 4b12ccfef12f5568aae152e68a763827dbdcd159

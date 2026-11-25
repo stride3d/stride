@@ -10,11 +10,15 @@ name: "Dep: Build msdfgen"
 #   https://gitlab.freedesktop.org/freetype/freetype  (font loading dep)
 #
 # Output per OS — one self-contained shared lib per RID:
-#   Windows: stride_msdfgen.dll (+ stride_msdfgen.pdb)
+#   Windows: stride_msdfgen.dll
 #   Linux:   stride_msdfgen.so
 #   macOS:   stride_msdfgen.dylib
 #
 # RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64.
+#
+# Debug files: as in dep-freetype.yml, every build compiles with debug info, the libraries ship without it
+# (dep-split-debug.sh), and the debug files go to the symbols pre-release (dep-symbols.yml). The job-level flags also
+# give debug info to the static FreeType, which the wrapper links in.
 
 on:
   workflow_dispatch:
@@ -29,9 +33,41 @@ on:
         required: true
 
 jobs:
+  # The builds check out this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve msdfgen ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q msdfgen-src
+          git -C msdfgen-src remote add origin https://github.com/Chlumsky/msdfgen.git
+          git -C msdfgen-src fetch -q --depth 1 --filter=tree:0 origin "${{ github.event.inputs.msdfgen-version }}"
+          echo "commit=$(git -C msdfgen-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      # msdfgen's cmake/version.cmake reads its version from vcpkg.json
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $official = ((git -C msdfgen-src show "${commit}:vcpkg.json") -join "`n" | ConvertFrom-Json).version
+          stride-src/.github/scripts/dep-version.ps1 -Name msdfgen -Official $official `
+            -Source msdfgen-src -Commit $commit -Upstream https://github.com/Chlumsky/msdfgen.git -UpstreamBranch master -TagPrefix v
+
   build-windows:
     name: Build msdfgen (Windows ${{ matrix.arch }})
+    needs: resolve
     runs-on: windows-2025-vs2026
+    env: { CFLAGS: /Z7, CXXFLAGS: /Z7, LDFLAGS: /DEBUG /OPT:REF /OPT:ICF }
     strategy:
       fail-fast: false
       matrix:
@@ -50,7 +86,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: Chlumsky/msdfgen
-          ref: ${{ github.event.inputs.msdfgen-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: msdfgen-src
 
       - name: Checkout FreeType
@@ -90,29 +126,38 @@ jobs:
       - name: Collect output
         shell: pwsh
         run: |
-          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
+          New-Item -Path "out/${{ matrix.rid }}", "symbols/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
           Copy-Item _build/Release/stride_msdfgen.dll "out/${{ matrix.rid }}/"
-          Copy-Item _build/Release/stride_msdfgen.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
+          Copy-Item _build/Release/stride_msdfgen.pdb "symbols/${{ matrix.rid }}/"
 
       - uses: actions/upload-artifact@v7
         with:
           name: stride_msdfgen-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-msdfgen-${{ matrix.rid }}
+          path: symbols/${{ matrix.rid }}/
+
   build-linux:
     name: Build msdfgen (Linux x64)
+    needs: resolve
     runs-on: ubuntu-24.04
+    env: { CFLAGS: -g, CXXFLAGS: -g }
     steps:
       - uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper
+          sparse-checkout: |
+            sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper
+            .github/scripts
 
       - name: Checkout msdfgen
         uses: actions/checkout@v7
         with:
           repository: Chlumsky/msdfgen
-          ref: ${{ github.event.inputs.msdfgen-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: msdfgen-src
 
       - name: Checkout FreeType
@@ -150,29 +195,36 @@ jobs:
           cmake --build _build
 
       - name: Collect output
-        run: |
-          mkdir -p out/linux-x64
-          cp _build/stride_msdfgen.so out/linux-x64/
+        run: stride-src/.github/scripts/dep-split-debug.sh _build/stride_msdfgen.so out/linux-x64 symbols/linux-x64
 
       - uses: actions/upload-artifact@v7
         with:
           name: stride_msdfgen-linux-x64
           path: out/linux-x64/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-msdfgen-linux-x64
+          path: symbols/linux-x64/
+
   build-macos:
     name: Build msdfgen (macOS arm64)
+    needs: resolve
     runs-on: macos-15
+    env: { CFLAGS: -g, CXXFLAGS: -g }
     steps:
       - uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper
+          sparse-checkout: |
+            sources/tools/Stride.Assets.Wrappers/MsdfgenWrapper
+            .github/scripts
 
       - name: Checkout msdfgen
         uses: actions/checkout@v7
         with:
           repository: Chlumsky/msdfgen
-          ref: ${{ github.event.inputs.msdfgen-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: msdfgen-src
 
       - name: Checkout FreeType
@@ -209,28 +261,23 @@ jobs:
           cmake --build _build
 
       - name: Collect output
-        run: |
-          mkdir -p out/osx-arm64
-          cp _build/stride_msdfgen.dylib out/osx-arm64/
+        run: stride-src/.github/scripts/dep-split-debug.sh _build/stride_msdfgen.dylib out/osx-arm64 symbols/osx-arm64
 
       - uses: actions/upload-artifact@v7
         with:
           name: stride_msdfgen-osx-arm64
           path: out/osx-arm64/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-msdfgen-osx-arm64
+          path: symbols/osx-arm64/
+
   collect:
     name: Collect all platforms
-    needs: [build-windows, build-linux, build-macos]
+    needs: [resolve, build-windows, build-linux, build-macos]
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout msdfgen (for commit hash)
-        uses: actions/checkout@v7
-        with:
-          repository: Chlumsky/msdfgen
-          ref: ${{ github.event.inputs.msdfgen-version }}
-          path: msdfgen-src
-          fetch-depth: 1
-
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
@@ -244,15 +291,19 @@ jobs:
             cp artifacts/stride_msdfgen-$rid/* $OUT/Release/$rid/ 2>/dev/null || true
           done
 
-          COMMIT=$(git -C msdfgen-src rev-parse HEAD)
-          printf 'msdfgen %s\nRepository: https://github.com/Chlumsky/msdfgen\nCommit: %s\nFreeType: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+          printf 'msdfgen %s\nVersion: %s\nRepository: https://github.com/Chlumsky/msdfgen\nCommit: %s\nFreeType: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
             "${{ github.event.inputs.msdfgen-version }}" \
-            "$COMMIT" \
+            "${{ needs.resolve.outputs.version }}" \
+            "${{ needs.resolve.outputs.commit }}" \
             "${{ github.event.inputs.freetype-version }}" \
             "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
             "$(date -u +%Y-%m-%d)" \
             "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             > $OUT/VERSION.txt
+          # The symbols job creates this pre-release on stride3d/stride only
+          if [ "${{ github.repository }}" = stride3d/stride ]; then
+            echo "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/msdfgen/${{ needs.resolve.outputs.number }}" >> $OUT/VERSION.txt
+          fi
 
       - name: List contents
         run: find stride_msdfgen-out -type f | sort
@@ -261,3 +312,14 @@ jobs:
         with:
           name: stride_msdfgen-all-platforms
           path: stride_msdfgen-out/
+
+  symbols:
+    needs: [resolve, collect]
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: msdfgen
+      version: ${{ needs.resolve.outputs.number }}
+      notes-artifact: stride_msdfgen-all-platforms

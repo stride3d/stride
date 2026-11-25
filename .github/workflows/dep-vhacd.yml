@@ -8,11 +8,14 @@ name: "Dep: Build VHACD"
 #   https://github.com/kmammou/v-hacd
 #
 # Output per OS — one self-contained shared lib per RID:
-#   Windows: stride_vhacd.dll (+ stride_vhacd.pdb)
+#   Windows: stride_vhacd.dll
 #   Linux:   stride_vhacd.so
 #   macOS:   stride_vhacd.dylib
 #
 # RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64.
+#
+# Debug files: as in dep-freetype.yml, every build compiles with debug info, the libraries ship without it
+# (dep-split-debug.sh), and the debug files go to the symbols pre-release (dep-symbols.yml).
 
 on:
   workflow_dispatch:
@@ -23,8 +26,43 @@ on:
         required: true
 
 jobs:
+  # The builds check out this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve V-HACD ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q vhacd-src
+          git -C vhacd-src remote add origin https://github.com/kmammou/v-hacd.git
+          git -C vhacd-src fetch -q --depth 1 --filter=tree:0 origin "${{ github.event.inputs.vhacd-version }}"
+          echo "commit=$(git -C vhacd-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $header = (git -C vhacd-src show "${commit}:include/VHACD.h") -join "`n"
+          $parts = foreach ($part in 'MAJOR', 'MINOR') {
+            $found = [regex]::Matches($header, "(?m)^#\s*define VHACD_VERSION_$part\s+(\d+)\s*$")
+            if ($found.Count -ne 1) { throw "include/VHACD.h doesn't define VHACD_VERSION_$part once" }
+            $found[0].Groups[1].Value
+          }
+          stride-src/.github/scripts/dep-version.ps1 -Name vhacd -Official ($parts -join '.') `
+            -Source vhacd-src -Commit $commit -Upstream https://github.com/kmammou/v-hacd.git -UpstreamBranch master -TagPrefix v
+
   build-windows:
     name: Build VHACD (Windows ${{ matrix.arch }})
+    needs: resolve
     runs-on: windows-2025-vs2026
     strategy:
       fail-fast: false
@@ -44,11 +82,12 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: kmammou/v-hacd
-          ref: ${{ github.event.inputs.vhacd-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: vhacd-src
 
       - name: Configure & build wrapper
         shell: pwsh
+        env: { CFLAGS: /Z7, CXXFLAGS: /Z7, LDFLAGS: /DEBUG /OPT:REF /OPT:ICF }
         run: |
           cmake -S stride-src/sources/tools/Stride.Assets.Wrappers/VhacdWrapper -B _build -A ${{ matrix.arch }} `
             -DCMAKE_BUILD_TYPE=Release `
@@ -58,35 +97,44 @@ jobs:
       - name: Collect output
         shell: pwsh
         run: |
-          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
+          New-Item -Path "out/${{ matrix.rid }}", "symbols/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
           Copy-Item _build/Release/stride_vhacd.dll "out/${{ matrix.rid }}/"
-          Copy-Item _build/Release/stride_vhacd.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
+          Copy-Item _build/Release/stride_vhacd.pdb "symbols/${{ matrix.rid }}/"
 
       - uses: actions/upload-artifact@v7
         with:
           name: stride_vhacd-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-vhacd-${{ matrix.rid }}
+          path: symbols/${{ matrix.rid }}/
+
   build-linux:
     name: Build VHACD (Linux x64)
+    needs: resolve
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: sources/tools/Stride.Assets.Wrappers/VhacdWrapper
+          sparse-checkout: |
+            sources/tools/Stride.Assets.Wrappers/VhacdWrapper
+            .github/scripts
 
       - name: Checkout V-HACD
         uses: actions/checkout@v7
         with:
           repository: kmammou/v-hacd
-          ref: ${{ github.event.inputs.vhacd-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: vhacd-src
 
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
 
       - name: Configure & build wrapper
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           cmake -S stride-src/sources/tools/Stride.Assets.Wrappers/VhacdWrapper -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -95,32 +143,39 @@ jobs:
           cmake --build _build
 
       - name: Collect output
-        run: |
-          mkdir -p out/linux-x64
-          cp _build/stride_vhacd.so out/linux-x64/
+        run: stride-src/.github/scripts/dep-split-debug.sh _build/stride_vhacd.so out/linux-x64 symbols/linux-x64
 
       - uses: actions/upload-artifact@v7
         with:
           name: stride_vhacd-linux-x64
           path: out/linux-x64/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-vhacd-linux-x64
+          path: symbols/linux-x64/
+
   build-macos:
     name: Build VHACD (macOS arm64)
+    needs: resolve
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: sources/tools/Stride.Assets.Wrappers/VhacdWrapper
+          sparse-checkout: |
+            sources/tools/Stride.Assets.Wrappers/VhacdWrapper
+            .github/scripts
 
       - name: Checkout V-HACD
         uses: actions/checkout@v7
         with:
           repository: kmammou/v-hacd
-          ref: ${{ github.event.inputs.vhacd-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: vhacd-src
 
       - name: Configure & build wrapper
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           cmake -S stride-src/sources/tools/Stride.Assets.Wrappers/VhacdWrapper -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -130,28 +185,23 @@ jobs:
           cmake --build _build
 
       - name: Collect output
-        run: |
-          mkdir -p out/osx-arm64
-          cp _build/stride_vhacd.dylib out/osx-arm64/
+        run: stride-src/.github/scripts/dep-split-debug.sh _build/stride_vhacd.dylib out/osx-arm64 symbols/osx-arm64
 
       - uses: actions/upload-artifact@v7
         with:
           name: stride_vhacd-osx-arm64
           path: out/osx-arm64/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-vhacd-osx-arm64
+          path: symbols/osx-arm64/
+
   collect:
     name: Collect all platforms
-    needs: [build-windows, build-linux, build-macos]
+    needs: [resolve, build-windows, build-linux, build-macos]
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout V-HACD (for commit hash)
-        uses: actions/checkout@v7
-        with:
-          repository: kmammou/v-hacd
-          ref: ${{ github.event.inputs.vhacd-version }}
-          path: vhacd-src
-          fetch-depth: 1
-
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
@@ -165,14 +215,18 @@ jobs:
             cp artifacts/stride_vhacd-$rid/* $OUT/Release/$rid/ 2>/dev/null || true
           done
 
-          COMMIT=$(git -C vhacd-src rev-parse HEAD)
-          printf 'V-HACD %s\nRepository: https://github.com/kmammou/v-hacd\nCommit: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+          printf 'V-HACD %s\nVersion: %s\nRepository: https://github.com/kmammou/v-hacd\nCommit: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
             "${{ github.event.inputs.vhacd-version }}" \
-            "$COMMIT" \
+            "${{ needs.resolve.outputs.version }}" \
+            "${{ needs.resolve.outputs.commit }}" \
             "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
             "$(date -u +%Y-%m-%d)" \
             "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             > $OUT/VERSION.txt
+          # The symbols job creates this pre-release on stride3d/stride only
+          if [ "${{ github.repository }}" = stride3d/stride ]; then
+            echo "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/vhacd/${{ needs.resolve.outputs.number }}" >> $OUT/VERSION.txt
+          fi
 
       - name: List contents
         run: find stride_vhacd-out -type f | sort
@@ -181,3 +235,14 @@ jobs:
         with:
           name: stride_vhacd-all-platforms
           path: stride_vhacd-out/
+
+  symbols:
+    needs: [resolve, collect]
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: vhacd
+      version: ${{ needs.resolve.outputs.number }}
+      notes-artifact: stride_vhacd-all-platforms

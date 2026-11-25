@@ -1,4 +1,5 @@
 msdfgen v1.12
+Version: 1.12.0.0+g85e8b3d47b
 Repository: https://github.com/Chlumsky/msdfgen
 Commit: 85e8b3d47b3d1a42e4a5ebda0a24fb1cc2e669e0
 FreeType: VER-2-13-3

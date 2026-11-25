@@ -19,7 +19,8 @@ cd "$EXTERNALS_DIR"
 CELT_SOURCES="celt/bands.c celt/celt.c celt/celt_decoder.c celt/celt_encoder.c celt/celt_lpc.c celt/cwrs.c celt/entcode.c celt/entdec.c celt/entenc.c celt/kiss_fft.c celt/laplace.c celt/mathops.c celt/mdct.c celt/modes.c celt/pitch.c celt/quant_bands.c celt/rate.c celt/vq.c"
 # Stride-specific helpers compiled in alongside the upstream sources (see celt_extras.c).
 CELT_EXTRAS="$CELT_DIR/celt_extras.c"
-CFLAGS="-O2 -fPIC -DUSE_ALLOCA -DHAVE_LRINTF -DCUSTOM_MODES -DOPUS_BUILD -Iinclude -Icelt"
+# -g: dep-celt.yml ships the archives stripped, and keeps the debug info in the symbols pre-release
+CFLAGS="-O2 -g -fPIC -DUSE_ALLOCA -DHAVE_LRINTF -DCUSTOM_MODES -DOPUS_BUILD -Iinclude -Icelt"
 
 # Compile + archive Celt for one RID. Each (target, sdk) pair encodes the
 # deployment target via the triple (e.g. arm64-apple-ios12.0-simulator).

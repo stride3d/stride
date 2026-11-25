@@ -1,4 +1,5 @@
 DirectXTex may2026
+Version: 2.1.1.0+g4feb3e11a0
 Repository: https://github.com/microsoft/DirectXTex
 Commit: 4feb3e11a020f35b796fc769a74216a555d4f5ef
 DirectX-Headers: v1.619.1

@@ -1,4 +1,5 @@
 BulletSharpPInvoke master
+Version: 2.88.0+g0de0f3cd56
 Repository: https://github.com/stride3d/BulletSharpPInvoke
 Commit: 0de0f3cd564173474c58d57aad31c8aad82cb99d
 

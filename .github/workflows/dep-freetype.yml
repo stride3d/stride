@@ -8,14 +8,49 @@ on:
         default: VER-2-13-3
         required: true
 
-# Debug files: every build compiles with debug info, and the shared libraries ship without it and without their local
-# symbols. The debug files (.pdb, .so.debug, .dSYM, iOS .a with DWARF) go to the symbols pre-release (dep-symbols.yml).
-# CFLAGS and LDFLAGS add to CMake's default flags: /Z7 and -g don't change the generated code, and /DEBUG needs /OPT:REF
-# and /OPT:ICF to link as a Release build does.
+# Debug files: every build compiles with debug info, and the libraries ship without it and without their local
+# symbols (dep-split-debug.sh). The debug files (.pdb, .so.debug, .dSYM, iOS .a with DWARF) go to the symbols
+# pre-release (dep-symbols.yml). CFLAGS and LDFLAGS add to CMake's default flags: /Z7 and -g don't change the generated
+# code, and /DEBUG needs /OPT:REF and /OPT:ICF to link as a Release build does.
 
 jobs:
+  # The builds check out this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve FreeType ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q freetype-src
+          git -C freetype-src remote add origin https://github.com/freetype/freetype.git
+          git -C freetype-src fetch -q --depth 1 --filter=tree:0 origin "${{ github.event.inputs.freetype-version }}"
+          echo "commit=$(git -C freetype-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $header = (git -C freetype-src show "${commit}:include/freetype/freetype.h") -join "`n"
+          $parts = foreach ($part in 'MAJOR', 'MINOR', 'PATCH') {
+            $found = [regex]::Matches($header, "(?m)^#define FREETYPE_$part\s+(\d+)\s*$")
+            if ($found.Count -ne 1) { throw "include/freetype/freetype.h doesn't define FREETYPE_$part once" }
+            $found[0].Groups[1].Value
+          }
+          stride-src/.github/scripts/dep-version.ps1 -Name freetype -Official ($parts -join '.') `
+            -Source freetype-src -Commit $commit -Upstream https://github.com/freetype/freetype.git -TagPrefix VER-
+
   build-windows:
     name: Build FreeType (Windows)
+    needs: resolve
     runs-on: windows-2025-vs2026
     strategy:
       matrix:
@@ -32,7 +67,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: freetype/freetype
-          ref: ${{ github.event.inputs.freetype-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: freetype-src
 
       - name: Build
@@ -71,13 +106,17 @@ jobs:
 
   build-linux:
     name: Build FreeType (Linux x64)
+    needs: resolve
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Checkout FreeType
         uses: actions/checkout@v7
         with:
           repository: freetype/freetype
-          ref: ${{ github.event.inputs.freetype-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: freetype-src
 
       - name: Build
@@ -93,15 +132,9 @@ jobs:
             -DFT_DISABLE_ZLIB=ON
           cmake --build freetype-build -- -j$(nproc)
 
-      # The actual shared library (not the symlinks), with a versionless name. The .debug file keeps the debug info and
-      # the symbol table. The shipped library names it in its .gnu_debuglink, where gdb and lldb look for it.
+      # The actual shared library (not the symlinks), with a versionless name
       - name: Collect output
-        run: |
-          mkdir -p out/linux-x64 symbols/linux-x64
-          lib=$(readlink -f freetype-build/libfreetype.so)
-          objcopy --only-keep-debug $lib symbols/linux-x64/libfreetype.so.debug
-          objcopy --strip-unneeded --add-gnu-debuglink=symbols/linux-x64/libfreetype.so.debug \
-            $lib out/linux-x64/libfreetype.so
+        run: stride-src/.github/scripts/dep-split-debug.sh freetype-build/libfreetype.so out/linux-x64 symbols/linux-x64
 
       - name: Upload
         uses: actions/upload-artifact@v7
@@ -117,6 +150,7 @@ jobs:
 
   build-macos:
     name: Build FreeType (macOS)
+    needs: resolve
     runs-on: macos-15
     strategy:
       matrix:
@@ -126,11 +160,14 @@ jobs:
           - arch: x86_64
             rid: osx-x64
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Checkout FreeType
         uses: actions/checkout@v7
         with:
           repository: freetype/freetype
-          ref: ${{ github.event.inputs.freetype-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: freetype-src
 
       - name: Build
@@ -147,16 +184,11 @@ jobs:
             -DFT_DISABLE_ZLIB=ON
           cmake --build freetype-build -- -j$(sysctl -n hw.ncpu)
 
-      # The actual dylib (not the symlinks), with a versionless name. The DWARF stays in the object files: dsymutil
-      # collects it. strip -S removes the debug map that points to them, and -x the local symbols. strip changes the
-      # file, so it gets a new ad-hoc signature, which arm64 needs to load it.
+      # The actual dylib (not the symlinks), with a versionless name
       - name: Collect output
         run: |
-          mkdir -p out/${{ matrix.rid }} symbols/${{ matrix.rid }}
-          dylib=$(readlink -f freetype-build/libfreetype.dylib)
-          dsymutil "$dylib" -o symbols/${{ matrix.rid }}/libfreetype.dylib.dSYM
-          strip -S -x -o out/${{ matrix.rid }}/libfreetype.dylib "$dylib"
-          codesign -f -s - out/${{ matrix.rid }}/libfreetype.dylib
+          stride-src/.github/scripts/dep-split-debug.sh freetype-build/libfreetype.dylib \
+            out/${{ matrix.rid }} symbols/${{ matrix.rid }}
 
       - name: Upload
         uses: actions/upload-artifact@v7
@@ -172,6 +204,7 @@ jobs:
 
   build-android:
     name: Build FreeType (Android)
+    needs: resolve
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -185,11 +218,14 @@ jobs:
           - abi: x86_64
             rid: android-x64
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Checkout FreeType
         uses: actions/checkout@v7
         with:
           repository: freetype/freetype
-          ref: ${{ github.event.inputs.freetype-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: freetype-src
 
       - name: Build
@@ -207,14 +243,12 @@ jobs:
             -DFT_DISABLE_ZLIB=ON
           cmake --build freetype-build -- -j$(nproc)
 
-      # The NDK toolchain already compiles with -g. As on Linux, with the NDK's objcopy.
+      # The NDK toolchain already compiles with -g
       - name: Collect output
         run: |
-          mkdir -p out/${{ matrix.rid }} symbols/${{ matrix.rid }}
-          objcopy=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
-          $objcopy --only-keep-debug freetype-build/libfreetype.so symbols/${{ matrix.rid }}/libfreetype.so.debug
-          $objcopy --strip-unneeded --add-gnu-debuglink=symbols/${{ matrix.rid }}/libfreetype.so.debug \
-            freetype-build/libfreetype.so out/${{ matrix.rid }}/libfreetype.so
+          OBJCOPY=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy \
+            stride-src/.github/scripts/dep-split-debug.sh freetype-build/libfreetype.so \
+            out/${{ matrix.rid }} symbols/${{ matrix.rid }}
 
       - name: Upload
         uses: actions/upload-artifact@v7
@@ -230,6 +264,7 @@ jobs:
 
   build-ios:
     name: Build FreeType (${{ matrix.rid }})
+    needs: resolve
     runs-on: macos-15
     strategy:
       fail-fast: false
@@ -240,11 +275,14 @@ jobs:
           - rid: iossimulator-arm64
             sysroot: iphonesimulator
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Checkout FreeType
         uses: actions/checkout@v7
         with:
           repository: freetype/freetype
-          ref: ${{ github.event.inputs.freetype-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: freetype-src
 
       - name: Build
@@ -264,21 +302,10 @@ jobs:
             -DFT_DISABLE_ZLIB=ON
           cmake --build freetype-build -- -j$(sysctl -n hw.ncpu)
 
-      # The archive with the DWARF goes to the symbols pre-release, and the package gets a copy stripped with strip -S.
-      # ZERO_AR_DATE=1 writes 0 as the date of the table of contents, so strip -S of the debug archive gives the shipped
-      # one byte for byte: the second strip checks it, and libfreetype.a.sha256 records the shipped one.
       - name: Collect output
-        env: { ZERO_AR_DATE: 1 }
         run: |
-          mkdir -p out/${{ matrix.rid }} symbols/${{ matrix.rid }}
-          cp freetype-build/libfreetype.a symbols/${{ matrix.rid }}/
-          strip -S -o out/${{ matrix.rid }}/libfreetype.a freetype-build/libfreetype.a
-          sleep 1
-          strip -S -o restripped.a freetype-build/libfreetype.a
-          cmp out/${{ matrix.rid }}/libfreetype.a restripped.a
-          otool -l symbols/${{ matrix.rid }}/libfreetype.a | grep -q __debug_info
-          ! otool -l out/${{ matrix.rid }}/libfreetype.a | grep -q __debug_info
-          (cd out/${{ matrix.rid }} && shasum -a 256 libfreetype.a) > symbols/${{ matrix.rid }}/libfreetype.a.sha256
+          stride-src/.github/scripts/dep-split-debug.sh freetype-build/libfreetype.a \
+            out/${{ matrix.rid }} symbols/${{ matrix.rid }}
 
       - name: Upload
         uses: actions/upload-artifact@v7
@@ -294,22 +321,9 @@ jobs:
 
   collect:
     name: Collect all platforms
-    needs: [build-windows, build-linux, build-macos, build-android, build-ios]
+    needs: [resolve, build-windows, build-linux, build-macos, build-android, build-ios]
     runs-on: ubuntu-24.04
-    env:
-      # A FreeType version can be built more than once, as when only the build options change
-      SYMBOLS_VERSION: ${{ github.event.inputs.freetype-version }}-run${{ github.run_number }}
-    outputs:
-      symbols-version: ${{ env.SYMBOLS_VERSION }}
     steps:
-      - name: Checkout FreeType (for version info)
-        uses: actions/checkout@v7
-        with:
-          repository: freetype/freetype
-          ref: ${{ github.event.inputs.freetype-version }}
-          path: freetype-src
-          fetch-depth: 1
-
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
@@ -332,19 +346,18 @@ jobs:
           done
 
           # Version info
-          COMMIT=$(git -C freetype-src rev-parse HEAD)
-          URL=$(git -C freetype-src config --get remote.origin.url)
-          printf 'FreeType %s\nRepository: %s\nCommit: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+          printf 'FreeType %s\nVersion: %s\nRepository: %s\nCommit: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
             "${{ github.event.inputs.freetype-version }}" \
-            "$URL" \
-            "$COMMIT" \
+            "${{ needs.resolve.outputs.version }}" \
+            https://github.com/freetype/freetype \
+            "${{ needs.resolve.outputs.commit }}" \
             "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
             "$(date -u +%Y-%m-%d)" \
             "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             > $OUT/VERSION.txt
           # The symbols job creates this pre-release on stride3d/stride only
           if [ "${{ github.repository }}" = stride3d/stride ]; then
-            echo "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/freetype/$SYMBOLS_VERSION" >> $OUT/VERSION.txt
+            echo "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/freetype/${{ needs.resolve.outputs.number }}" >> $OUT/VERSION.txt
           fi
 
       - name: List contents
@@ -357,12 +370,12 @@ jobs:
           path: freetype-out/
 
   symbols:
-    needs: collect
+    needs: [resolve, collect]
     permissions:
       actions: read
       contents: write
     uses: ./.github/workflows/dep-symbols.yml
     with:
       name: freetype
-      version: ${{ needs.collect.outputs.symbols-version }}
+      version: ${{ needs.resolve.outputs.number }}
       notes-artifact: freetype-all-platforms

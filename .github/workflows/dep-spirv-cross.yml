@@ -49,7 +49,7 @@ jobs:
           $found = [regex]::Matches($cmake, '(?m)^set\(spirv-cross-abi-major (\d+)\)\nset\(spirv-cross-abi-minor (\d+)\)\nset\(spirv-cross-abi-patch (\d+)\)$')
           if ($found.Count -ne 1) { throw "CMakeLists.txt doesn't set spirv-cross-abi-major, -minor and -patch once, on three lines in a row" }
           $groups = $found[0].Groups
-          stride-src/.github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.SpirvCross -Official "$($groups[1]).$($groups[2]).$($groups[3])" `
+          stride-src/.github/scripts/dep-version.ps1 -Name spirv-cross -PackageId Stride.Dependencies.SpirvCross -Official "$($groups[1]).$($groups[2]).$($groups[3])" `
             -Source spirv-cross-src -Commit $commit -Upstream https://github.com/KhronosGroup/SPIRV-Cross.git `
             -Override '${{ github.event.inputs.version }}'
 
@@ -155,6 +155,7 @@ jobs:
         run: |
           $lines = @(
             "SPIRV-Cross $env:SPIRV_CROSS_REF"
+            "Version: ${{ needs.resolve.outputs.version }}"
             "Repository: https://github.com/stride3d/SPIRV-Cross"
             "Commit: ${{ needs.resolve.outputs.commit }}"
             "${{ needs.resolve.outputs.source }}"

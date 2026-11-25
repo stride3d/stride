@@ -35,7 +35,7 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          .github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.LLVM.Windows -Official '${{ github.event.inputs.llvm-version }}' `
+          .github/scripts/dep-version.ps1 -Name llvm-windows -PackageId Stride.Dependencies.LLVM.Windows -Official '${{ github.event.inputs.llvm-version }}' `
             -Override '${{ github.event.inputs.version }}'
 
       - name: Download and extract official release
@@ -53,6 +53,7 @@ jobs:
             "clang+llvm-$V-x86_64-pc-windows-msvc/bin/llvm-ar.exe"
           {
             printf 'LLVM %s (official upstream release, repackaged)\n' "$V"
+            printf 'Version: %s\n' "${{ steps.version.outputs.version }}"
             printf 'Source: https://github.com/llvm/llvm-project/releases/tag/llvmorg-%s\n' "$V"
             printf 'Package: clang+llvm-%s-x86_64-pc-windows-msvc.tar.xz (bin/clang.exe, bin/lld.exe, bin/llvm-ar.exe)\n' "$V"
             printf '\n'

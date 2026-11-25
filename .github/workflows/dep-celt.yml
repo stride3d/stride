@@ -11,6 +11,9 @@ name: "Dep: Build Celt"
 #   dotnet/iossimulator-arm64/libCelt.a (PLATFORM_IOSSIMULATOR)
 #
 # RIDs covered: osx-arm64, ios-arm64, iossimulator-arm64.
+#
+# Debug files: buildApple.sh compiles with -g. The archives ship stripped with strip -S (dep-split-debug.sh), and the
+# archives with DWARF go to the symbols pre-release (dep-symbols.yml).
 
 on:
   workflow_dispatch:
@@ -19,20 +22,30 @@ jobs:
   build:
     name: Build Celt (osx-arm64 + iOS device + simulator)
     runs-on: macos-15
+    outputs:
+      number: ${{ steps.version.outputs.number }}
     steps:
       - uses: actions/checkout@v7
 
       - name: Build
         run: bash deps/Celt/buildApple.sh
 
+      # The script writes directly into deps/NativePath/dotnet/<rid>/
       - name: Stage outputs under dotnet/<rid>/
-        # The script writes directly into deps/NativePath/dotnet/<rid>/; just
-        # collect the three resulting archives into a clean artifact tree.
         run: |
-          mkdir -p out/dotnet/osx-arm64 out/dotnet/ios-arm64 out/dotnet/iossimulator-arm64
-          cp deps/NativePath/dotnet/osx-arm64/libCelt.a          out/dotnet/osx-arm64/
-          cp deps/NativePath/dotnet/ios-arm64/libCelt.a          out/dotnet/ios-arm64/
-          cp deps/NativePath/dotnet/iossimulator-arm64/libCelt.a out/dotnet/iossimulator-arm64/
+          for rid in osx-arm64 ios-arm64 iossimulator-arm64; do
+            .github/scripts/dep-split-debug.sh deps/NativePath/dotnet/$rid/libCelt.a out/dotnet/$rid symbols/$rid
+          done
+
+      # Opus writes its version only in its release tags: buildApple.sh clones one
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = git -C externals/Celt describe --tags --exact-match
+          if ($tag -notmatch '^v(?<version>\d+\.\d+(\.\d+)?)$') { throw "The Opus commit has tag '$tag', not v<version>" }
+          .github/scripts/dep-version.ps1 -Name celt -Official $Matches.version `
+            -Source externals/Celt -Commit HEAD -Upstream https://github.com/xiph/opus.git -TagPrefix v
 
       - name: Write VERSION.txt
         run: |
@@ -40,6 +53,7 @@ jobs:
           OPUS_TAG=$(git -C externals/Celt describe --tags --always)
           {
             printf 'Celt (from Opus %s)\n' "$OPUS_TAG"
+            printf 'Version: %s\n' "${{ steps.version.outputs.version }}"
             printf 'Repository: https://github.com/xiph/opus\n'
             printf 'Commit: %s\n' "$OPUS_COMMIT"
             printf '\n'
@@ -48,12 +62,43 @@ jobs:
             printf 'Built: %s\n' "$(date -u +%Y-%m-%d)"
             printf 'Workflow: %s/%s/actions/runs/%s\n' \
               "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}"
+            # The symbols job creates this pre-release on stride3d/stride only
+            if [ "${{ github.repository }}" = stride3d/stride ]; then
+              printf 'Debug files: %s/%s/releases/tag/deps/celt/%s\n' \
+                "${{ github.server_url }}" "${{ github.repository }}" "${{ steps.version.outputs.number }}"
+            fi
           } > out/VERSION.txt
 
       - name: List contents
-        run: find out -type f | sort
+        run: find out symbols -type f | sort
 
       - uses: actions/upload-artifact@v7
         with:
           name: celt-all-platforms
           path: out/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-celt-osx-arm64
+          path: symbols/osx-arm64/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-celt-ios-arm64
+          path: symbols/ios-arm64/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-celt-iossimulator-arm64
+          path: symbols/iossimulator-arm64/
+
+  symbols:
+    needs: build
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: celt
+      version: ${{ needs.build.outputs.number }}
+      notes-artifact: celt-all-platforms

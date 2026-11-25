@@ -1,5 +1,8 @@
 name: "Dep: Build spirv_to_dxil (Mesa)"
 
+# Debug files: as in dep-freetype.yml, the build compiles with debug info (/Z7 and /DEBUG next to meson's release
+# flags), the DLL ships without its .pdb, and the .pdb goes to the symbols pre-release (dep-symbols.yml).
+
 on:
   workflow_dispatch:
     inputs:
@@ -16,12 +19,16 @@ jobs:
   build-windows:
     name: Build spirv_to_dxil (Windows x64)
     runs-on: windows-2025-vs2026
+    outputs:
+      number: ${{ steps.version.outputs.number }}
     steps:
       - name: Checkout Stride (for patch file)
         uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: deps/spirv-to-dxil
+          sparse-checkout: |
+            deps/spirv-to-dxil
+            .github/scripts
 
       - name: Clone Mesa
         shell: pwsh
@@ -36,6 +43,19 @@ jobs:
           git -C mesa-src remote add origin $url
           git -C mesa-src fetch --depth 1 origin $ref
           git -C mesa-src checkout FETCH_HEAD
+
+      # Mesa's meson.build reads its version from the VERSION file. The patches make it a build of ours: the metadata
+      # of the version counts them.
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $file = @(Get-Content mesa-src/VERSION)
+          if ($file.Count -ne 1 -or $file[0] -notmatch '^\d+\.\d+\.\d+(-devel|-rc\d+)?$') { throw "VERSION isn't one line 'N.N.N[-devel|-rcN]': '$file'" }
+          $patches = @(Get-ChildItem stride-src/deps/spirv-to-dxil/*.patch).Count
+          stride-src/.github/scripts/dep-version.ps1 -Name spirv-to-dxil -Official $file[0] `
+            -Source mesa-src -Commit HEAD -Upstream https://gitlab.freedesktop.org/mesa/mesa.git `
+            -TagPrefix mesa- -Marker "patches-$patches"
 
       - name: Apply Stride pipeline patch
         shell: pwsh
@@ -63,8 +83,10 @@ jobs:
             --default-library=shared ^
             --buildtype=release ^
             --wrap-mode=default ^
-            -Dc_args="/wd4189" ^
-            -Dcpp_args="/wd4189" ^
+            -Dc_args="/wd4189 /Z7" ^
+            -Dcpp_args="/wd4189 /Z7" ^
+            -Dc_link_args="/DEBUG /OPT:REF /OPT:ICF" ^
+            -Dcpp_link_args="/DEBUG /OPT:REF /OPT:ICF" ^
             -Dshared-glapi=disabled ^
             -Dgles1=disabled ^
             -Dgles2=disabled ^
@@ -91,22 +113,45 @@ jobs:
       - name: Collect DLL
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path out | Out-Null
+          New-Item -ItemType Directory -Force -Path out, symbols | Out-Null
           $dll = Get-ChildItem -Recurse mesa-src/_build -Filter spirv_to_dxil.dll | Select-Object -First 1
           Copy-Item $dll.FullName out/spirv_to_dxil.dll
-          $pdb = Get-ChildItem -Recurse mesa-src/_build -Filter spirv_to_dxil.pdb -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($pdb) { Copy-Item $pdb.FullName out/spirv_to_dxil.pdb }
+          Copy-Item ($dll.FullName -replace '\.dll$', '.pdb') symbols/
           # Record commits for traceability
           $mesaCommit = git -C mesa-src rev-parse HEAD
           $mesaUrl = git -C mesa-src config --get remote.origin.url
-          @(
+          $lines = @(
+            "Version: ${{ steps.version.outputs.version }}"
             "Mesa: $mesaUrl @ $mesaCommit"
-            "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }} (for workflow and deps/spirv-to-dxil/mesa-pipeline.patch)"
-          ) | Out-File out/VERSION.txt
-          Get-ChildItem out
+          )
+          if ('${{ steps.version.outputs.source }}') { $lines += '${{ steps.version.outputs.source }}' }
+          $lines += "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }} (for workflow and deps/spirv-to-dxil/mesa-pipeline.patch)"
+          # The symbols job creates this pre-release on stride3d/stride only
+          if ('${{ github.repository }}' -eq 'stride3d/stride') {
+            $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/spirv-to-dxil/${{ steps.version.outputs.number }}"
+          }
+          $lines | Out-File out/VERSION.txt
+          Get-ChildItem out, symbols
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: spirv_to_dxil-win-x64
           path: out/
+
+      - name: Upload symbols
+        uses: actions/upload-artifact@v7
+        with:
+          name: symbols-spirv-to-dxil-win-x64
+          path: symbols/
+
+  symbols:
+    needs: build-windows
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: spirv-to-dxil
+      version: ${{ needs.build-windows.outputs.number }}
+      notes-artifact: spirv_to_dxil-win-x64

@@ -1,4 +1,5 @@
 MoltenVK main@21dd02d
+Version: 1.4.2.0+g21dd02dfa2
 Repository: https://github.com/KhronosGroup/MoltenVK
 Source: built from git ref "main" on the macos-15 runner
 

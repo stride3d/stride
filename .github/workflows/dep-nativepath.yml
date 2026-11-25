@@ -12,6 +12,9 @@ name: "Dep: Build NativePath"
 #   dotnet/iossimulator-arm64/libNativePath.a (PLATFORM_IOSSIMULATOR)
 #
 # RIDs covered: osx-arm64, ios-arm64, iossimulator-arm64.
+#
+# Debug files: dep-debug-info.xcconfig turns on debug info for the Xcode build. The archives ship stripped with
+# strip -S (dep-split-debug.sh), and the archives with DWARF go to the symbols pre-release (dep-symbols.yml).
 
 on:
   workflow_dispatch:
@@ -29,7 +32,12 @@ jobs:
   build:
     name: Build NativePath (osx-arm64 + iOS device + simulator)
     runs-on: macos-15
+    outputs:
+      number: ${{ steps.version.outputs.number }}
     steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
       - name: Checkout NativePath
         uses: actions/checkout@v7
         with:
@@ -39,34 +47,75 @@ jobs:
 
       - name: Build
         working-directory: NativePath
+        env: { XCODE_XCCONFIG_FILE: '${{ github.workspace }}/stride-src/.github/scripts/dep-debug-info.xcconfig' }
         run: ./buildApple.sh
 
       - name: Stage outputs under dotnet/<rid>/
         run: |
-          mkdir -p out/dotnet/osx-arm64 out/dotnet/ios-arm64 out/dotnet/iossimulator-arm64
-          cp NativePath/build/osx-arm64/libNativePath.a          out/dotnet/osx-arm64/
-          cp NativePath/build/ios-arm64/libNativePath.a          out/dotnet/ios-arm64/
-          cp NativePath/build/iossimulator-arm64/libNativePath.a out/dotnet/iossimulator-arm64/
+          for rid in osx-arm64 ios-arm64 iossimulator-arm64; do
+            stride-src/.github/scripts/dep-split-debug.sh NativePath/build/$rid/libNativePath.a out/dotnet/$rid symbols/$rid
+          done
+
+      # NativePath has no version of its own: 1.0 until it has one
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          stride-src/.github/scripts/dep-version.ps1 -Name nativepath -Official 1.0 `
+            -Source NativePath -Commit HEAD -Upstream https://github.com/stride3d/NativePath.git -UpstreamBranch master
 
       - name: Write VERSION.txt
         run: |
           COMMIT=$(git -C NativePath rev-parse HEAD)
           {
             printf 'NativePath %s\n' "${{ github.event.inputs.nativepath-ref }}"
+            printf 'Version: %s\n' "${{ steps.version.outputs.version }}"
             printf 'Repository: https://github.com/%s\n' "${{ github.event.inputs.nativepath-repo }}"
             printf 'Commit: %s\n' "$COMMIT"
+            if [ -n "${{ steps.version.outputs.source }}" ]; then echo "${{ steps.version.outputs.source }}"; fi
             printf '\n'
             printf 'Stride: %s/%s @ %s\n' \
               "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}"
             printf 'Built: %s\n' "$(date -u +%Y-%m-%d)"
             printf 'Workflow: %s/%s/actions/runs/%s\n' \
               "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}"
+            # The symbols job creates this pre-release on stride3d/stride only
+            if [ "${{ github.repository }}" = stride3d/stride ]; then
+              printf 'Debug files: %s/%s/releases/tag/deps/nativepath/%s\n' \
+                "${{ github.server_url }}" "${{ github.repository }}" "${{ steps.version.outputs.number }}"
+            fi
           } > out/VERSION.txt
 
       - name: List contents
-        run: find out -type f | sort
+        run: find out symbols -type f | sort
 
       - uses: actions/upload-artifact@v7
         with:
           name: nativepath-all-platforms
           path: out/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-nativepath-osx-arm64
+          path: symbols/osx-arm64/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-nativepath-ios-arm64
+          path: symbols/ios-arm64/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-nativepath-iossimulator-arm64
+          path: symbols/iossimulator-arm64/
+
+  symbols:
+    needs: build
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: nativepath
+      version: ${{ needs.build.outputs.number }}
+      notes-artifact: nativepath-all-platforms

@@ -9,11 +9,14 @@ name: "Dep: Build directxtex"
 #   https://github.com/microsoft/DirectX-Headers   (non-Windows: provides DXGI)
 #
 # Output per OS — one self-contained shared lib per RID:
-#   Windows: stride_directxtex.dll (+ stride_directxtex.pdb)
+#   Windows: stride_directxtex.dll
 #   Linux:   stride_directxtex.so
 #   macOS:   stride_directxtex.dylib
 #
 # RIDs covered: win-x64, win-arm64, linux-x64, osx-arm64.
+#
+# Debug files: as in dep-freetype.yml, every build compiles with debug info, the libraries ship without it
+# (dep-split-debug.sh), and the debug files go to the symbols pre-release (dep-symbols.yml).
 
 on:
   workflow_dispatch:
@@ -32,8 +35,41 @@ on:
         required: true
 
 jobs:
+  # The builds check out this one commit, so every RID gets the same sources even when the ref moves during the run.
+  resolve:
+    name: Resolve DirectXTex ref and version
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+      version: ${{ steps.version.outputs.version }}
+      number: ${{ steps.version.outputs.number }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: .github/scripts }
+
+      - name: Resolve ref to a commit
+        id: resolve
+        run: |
+          git init -q directxtex-src
+          git -C directxtex-src remote add origin https://github.com/microsoft/DirectXTex.git
+          git -C directxtex-src fetch -q --depth 1 --filter=tree:0 origin "${{ github.event.inputs.directxtex-version }}"
+          echo "commit=$(git -C directxtex-src rev-parse 'FETCH_HEAD^{commit}')" >> "$GITHUB_OUTPUT"
+
+      # The release tags name a month (may2026), not the version
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $commit = '${{ steps.resolve.outputs.commit }}'
+          $cmake = (git -C directxtex-src show "${commit}:CMakeLists.txt") -join "`n"
+          $found = [regex]::Matches($cmake, '(?m)^set\(DIRECTXTEX_VERSION (\d+\.\d+\.\d+)\)\s*$')
+          if ($found.Count -ne 1) { throw "CMakeLists.txt doesn't have one line 'set(DIRECTXTEX_VERSION N.N.N)'" }
+          stride-src/.github/scripts/dep-version.ps1 -Name dxtwrapper -Official $found[0].Groups[1].Value `
+            -Source directxtex-src -Commit $commit -Upstream https://github.com/microsoft/DirectXTex.git
+
   build-windows:
     name: Build directxtex (Windows ${{ matrix.arch }})
+    needs: resolve
     runs-on: windows-2025-vs2026
     strategy:
       fail-fast: false
@@ -53,11 +89,12 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: microsoft/DirectXTex
-          ref: ${{ github.event.inputs.directxtex-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: directxtex-src
 
       - name: Configure & build
         shell: pwsh
+        env: { CFLAGS: /Z7, CXXFLAGS: /Z7, LDFLAGS: /DEBUG /OPT:REF /OPT:ICF }
         run: |
           cmake -S stride-src/sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper -B _build -A ${{ matrix.arch }} `
             -DCMAKE_BUILD_TYPE=Release `
@@ -67,29 +104,37 @@ jobs:
       - name: Collect output
         shell: pwsh
         run: |
-          New-Item -Path "out/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
+          New-Item -Path "out/${{ matrix.rid }}", "symbols/${{ matrix.rid }}" -ItemType Directory -Force | Out-Null
           Copy-Item _build/Release/stride_directxtex.dll "out/${{ matrix.rid }}/"
-          Copy-Item _build/Release/stride_directxtex.pdb "out/${{ matrix.rid }}/" -ErrorAction SilentlyContinue
+          Copy-Item _build/Release/stride_directxtex.pdb "symbols/${{ matrix.rid }}/"
 
       - uses: actions/upload-artifact@v7
         with:
           name: stride_directxtex-${{ matrix.rid }}
           path: out/${{ matrix.rid }}/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-dxtwrapper-${{ matrix.rid }}
+          path: symbols/${{ matrix.rid }}/
+
   build-linux:
     name: Build directxtex (Linux x64)
+    needs: resolve
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper
+          sparse-checkout: |
+            sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper
+            .github/scripts
 
       - name: Checkout DirectXTex
         uses: actions/checkout@v7
         with:
           repository: microsoft/DirectXTex
-          ref: ${{ github.event.inputs.directxtex-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: directxtex-src
 
       - name: Checkout DirectX-Headers
@@ -132,6 +177,7 @@ jobs:
           cmake --install _dxh-build
 
       - name: Configure & build
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           cmake -S stride-src/sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -141,29 +187,35 @@ jobs:
           cmake --build _build
 
       - name: Collect output
-        run: |
-          mkdir -p out/linux-x64
-          cp _build/stride_directxtex.so out/linux-x64/
+        run: stride-src/.github/scripts/dep-split-debug.sh _build/stride_directxtex.so out/linux-x64 symbols/linux-x64
 
       - uses: actions/upload-artifact@v7
         with:
           name: stride_directxtex-linux-x64
           path: out/linux-x64/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-dxtwrapper-linux-x64
+          path: symbols/linux-x64/
+
   build-macos:
     name: Build directxtex (macOS arm64)
+    needs: resolve
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper
+          sparse-checkout: |
+            sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper
+            .github/scripts
 
       - name: Checkout DirectXTex
         uses: actions/checkout@v7
         with:
           repository: microsoft/DirectXTex
-          ref: ${{ github.event.inputs.directxtex-version }}
+          ref: ${{ needs.resolve.outputs.commit }}
           path: directxtex-src
 
       - name: Checkout DirectX-Headers
@@ -205,6 +257,7 @@ jobs:
           cmake --install _dxh-build
 
       - name: Configure & build
+        env: { CFLAGS: -g, CXXFLAGS: -g }
         run: |
           cmake -S stride-src/sources/tools/Stride.TextureConverter.Wrappers/DxtWrapper -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -215,28 +268,23 @@ jobs:
           cmake --build _build
 
       - name: Collect output
-        run: |
-          mkdir -p out/osx-arm64
-          cp _build/stride_directxtex.dylib out/osx-arm64/
+        run: stride-src/.github/scripts/dep-split-debug.sh _build/stride_directxtex.dylib out/osx-arm64 symbols/osx-arm64
 
       - uses: actions/upload-artifact@v7
         with:
           name: stride_directxtex-osx-arm64
           path: out/osx-arm64/
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-dxtwrapper-osx-arm64
+          path: symbols/osx-arm64/
+
   collect:
     name: Collect all platforms
-    needs: [build-windows, build-linux, build-macos]
+    needs: [resolve, build-windows, build-linux, build-macos]
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout DirectXTex (for commit hash)
-        uses: actions/checkout@v7
-        with:
-          repository: microsoft/DirectXTex
-          ref: ${{ github.event.inputs.directxtex-version }}
-          path: directxtex-src
-          fetch-depth: 1
-
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
@@ -250,16 +298,20 @@ jobs:
             cp artifacts/stride_directxtex-$rid/* $OUT/Release/$rid/ 2>/dev/null || true
           done
 
-          COMMIT=$(git -C directxtex-src rev-parse HEAD)
-          printf 'DirectXTex %s\nRepository: https://github.com/microsoft/DirectXTex\nCommit: %s\nDirectX-Headers: %s\nDirectXMath: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
+          printf 'DirectXTex %s\nVersion: %s\nRepository: https://github.com/microsoft/DirectXTex\nCommit: %s\nDirectX-Headers: %s\nDirectXMath: %s\nStride: %s/%s @ %s\nBuilt: %s\nWorkflow: %s\n' \
             "${{ github.event.inputs.directxtex-version }}" \
-            "$COMMIT" \
+            "${{ needs.resolve.outputs.version }}" \
+            "${{ needs.resolve.outputs.commit }}" \
             "${{ github.event.inputs.directx-headers-version }}" \
             "${{ github.event.inputs.directxmath-version }}" \
             "${{ github.server_url }}" "${{ github.repository }}" "${{ github.sha }}" \
             "$(date -u +%Y-%m-%d)" \
             "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             > $OUT/VERSION.txt
+          # The symbols job creates this pre-release on stride3d/stride only
+          if [ "${{ github.repository }}" = stride3d/stride ]; then
+            echo "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/dxtwrapper/${{ needs.resolve.outputs.number }}" >> $OUT/VERSION.txt
+          fi
 
       - name: List contents
         run: find stride_directxtex-out -type f | sort
@@ -268,3 +320,14 @@ jobs:
         with:
           name: stride_directxtex-all-platforms
           path: stride_directxtex-out/
+
+  symbols:
+    needs: [resolve, collect]
+    permissions:
+      actions: read
+      contents: write
+    uses: ./.github/workflows/dep-symbols.yml
+    with:
+      name: dxtwrapper
+      version: ${{ needs.resolve.outputs.number }}
+      notes-artifact: stride_directxtex-all-platforms

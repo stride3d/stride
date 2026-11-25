@@ -1,4 +1,5 @@
 FreeType VER-2-13-3
+Version: 2.13.3.0+g42608f77f2
 Repository: https://github.com/freetype/freetype
 Commit: 42608f77f20749dd6ddc9e0536788eaad70ea4b5
 Stride: https://github.com/stride3d/stride @ 1d2983f4da31eca82490cdaaf1c64dda710348c6

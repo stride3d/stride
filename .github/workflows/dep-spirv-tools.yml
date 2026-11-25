@@ -69,7 +69,7 @@ jobs:
           $commit = '${{ steps.resolve.outputs.commit }}'
           $line = git -C spirv-tools-src show "${commit}:CHANGES" | Where-Object { $_ -match '^v\d' } | Select-Object -First 1
           if ($line -notmatch '^v(?<version>\d+\.\d+) \d{4}-\d{2}-\d{2}$') { throw "The first version line of CHANGES isn't 'v<year>.<n> <date>': '$line'" }
-          stride-src/.github/scripts/dep-version.ps1 -PackageId Stride.Dependencies.SPIRVTools -Official $Matches.version `
+          stride-src/.github/scripts/dep-version.ps1 -Name spirv-tools -PackageId Stride.Dependencies.SPIRVTools -Official $Matches.version `
             -Source spirv-tools-src -Commit $commit -Upstream https://github.com/KhronosGroup/SPIRV-Tools.git `
             -TagPrefix v -Override '${{ github.event.inputs.version }}'
 
@@ -449,6 +449,7 @@ jobs:
         run: |
           $lines = @(
             "SPIRV-Tools (ref ${{ github.event.inputs.ref || 'main' }})"
+            "Version: ${{ needs.resolve.outputs.version }}"
             "Repository: ${{ github.event.inputs.repository || 'https://github.com/KhronosGroup/SPIRV-Tools.git' }}"
             "Commit: ${{ needs.resolve.outputs.commit }}"
           )
