@@ -86,7 +86,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 | `samples/` | Sample games and templates. |
 | `deps/` | Third-party dependencies. |
 | `build/` | Tools for creating release builds. It also contains customizable local settings (`Stride.Local.props`). |
-| `docs/` | Engine architecture docs. User and contributor documentation can be found on the [`stride-docs` repository](https://github.com/stride3d/stride-docs). |
+| `docs/` | Engine architecture docs. User and contributor documentation can be found on the [docs website](https://doc.stride3d.net/latest/en/). |
 | `bin/` | Build output and local packages (ignored by git). |
 
 There is no `Directory.Build.props` at the root on purpose: `sources/` and `tests/` have their own, and samples must build like a user's project.
