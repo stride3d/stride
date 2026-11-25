@@ -269,6 +269,7 @@ public sealed partial class ContentManager : IContentManager
     /// </summary>
     /// <param name="urlReference">The URL reference.</param>
     /// <exception cref="ArgumentNullException"><paramref name="urlReference"/> is null or empty.</exception>
+    /// <exception cref="InvalidOperationException">Content not loaded through this ContentManager.</exception>
     public void Unload(IUrlReference urlReference)
     {
         UrlReferenceContentManagerExtenstions.Unload(this, urlReference);
