@@ -26,7 +26,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor IdentifierCollision = new(
         "STRDIAG012",
         "Asset constant identifier collision",
-        "The asset '{0}' maps to identifier '{1}' which is already taken; it was emitted as '{2}'",
+        "The asset '{0}' maps to identifier '{1}' which is already taken. It was emitted as '{2}'.",
         "Stride",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
@@ -34,7 +34,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor ClassNameConflict = new(
         "STRDIAG013",
         "Asset constants class name conflicts with a namespace",
-        "The asset constants class '{0}.{1}' conflicts with an existing namespace; set <StrideAssetConstantsClassName> (e.g. '{2}') to generate under a different name",
+        "The asset constants class '{0}.{1}' conflicts with an existing namespace. Try renaming your class or add <StrideAssetConstantsClassName> property to the .csproj file in order to generate the Assets class under a different name (e.g. '{2}').",
         "Stride",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
@@ -42,7 +42,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor UndeclaredFormerEngineExtension = new(
         "STRDIAG015",
         "Asset constants of a former engine asset type are untyped",
-        "The '{0}' asset constants are untyped: this asset type moved out of the engine; reference the {1} package to get typed constants",
+        "Asset constants for '{0}' files won't be generated. This asset type was moved out of the engine into an optional plugin {1}, so you'll have to add it as a dependency in order to use it in code.",
         "Stride",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
