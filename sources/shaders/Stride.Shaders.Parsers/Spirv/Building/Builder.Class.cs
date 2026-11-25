@@ -873,6 +873,7 @@ public partial class SpirvBuilder
     private static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, GenericResolver genericResolver, ReadOnlySpan<ShaderMacro> macros)
     {
         var shaderBuffers = GetOrLoadShader(shaderLoader, className, macros, out var hash, out var isFromCache);
+        CheckGenericArgumentCount(className, shaderBuffers.Context, genericResolver);
 
         if (genericResolver.GenericArgumentCount > 0)
         {
@@ -924,6 +925,33 @@ public partial class SpirvBuilder
         }
 
         return shaderBuffers;
+    }
+
+    /// <summary>
+    /// The generic parameters of a class as declared (its compiled, not instantiated, context), in order.
+    /// </summary>
+    public static List<string> GetGenericParameterNames(SpirvContext context)
+    {
+        var parameters = new SortedList<int, string>();
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpGenericParameterSDSL && (OpGenericParameterSDSL)i is { } genericParameter)
+                parameters[genericParameter.Index] = context.Names.TryGetValue(genericParameter.ResultId, out var name) ? name : $"#{genericParameter.Index}";
+        }
+        return [.. parameters.Values];
+    }
+
+    // Fewer values than generic parameters, e.g. an effect log written for an older version of the shader (SDSL0117)
+    private static void CheckGenericArgumentCount(string className, SpirvContext context, GenericResolver genericResolver)
+    {
+        var parameters = GetGenericParameterNames(context);
+        if (genericResolver.GenericArgumentCount >= parameters.Count)
+            return;
+        var given = genericResolver.GenericArgumentCount;
+        var values = genericResolver is GenericResolverFromValues && given > 0
+            ? $" ({string.Join(", ", Enumerable.Range(0, given).Select(genericResolver.ResolveGenericAsString))})"
+            : "";
+        throw new InvalidOperationException(string.Format(Parsing.SDSLErrorMessages.SDSL0117, className, parameters.Count, string.Join(", ", parameters), given, values));
     }
 
     public static SpirvBuffer CopyBuffer(SpirvBuffer shader)

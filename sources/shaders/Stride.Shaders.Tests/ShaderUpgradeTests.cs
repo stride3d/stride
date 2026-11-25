@@ -263,7 +263,8 @@ public class ShaderUpgradeTests
         "LightTiling",
     ];
 
-    // Every engine and sample shader compiles on its own, also those no known effect uses (the corpus doesn't see them)
+    // Every engine and sample shader compiles on its own, also those no known effect uses (the corpus doesn't see them), with no
+    // warning (the corpus loader reports them as errors)
     [Fact]
     public void EveryShaderCompiles()
     {

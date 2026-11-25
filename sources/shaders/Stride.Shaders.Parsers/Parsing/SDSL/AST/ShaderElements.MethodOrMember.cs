@@ -362,7 +362,7 @@ public sealed partial class ShaderMember(
         if (pointerType.BaseType is MatrixType or ArrayType { BaseType: MatrixType } && TypeModifier is TypeModifier.RowMajor or TypeModifier.ColumnMajor)
             context.Add(new OpDecorate(variable, TypeModifier == TypeModifier.RowMajor ? Specification.Decoration.ColMajor : Specification.Decoration.RowMajor, []));
 
-        RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
+        RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable, pointerType.BaseType);
     }
 
     public override string ToString()
@@ -498,7 +498,10 @@ public partial class ShaderMethod(
         if (!IsOverride)
             CheckMissingOverride(table, ftype);
         else
+        {
+            DefinitionChecks.CheckOverride(table, Name);
             CheckOverriddenMethod(table, ftype);
+        }
 
         var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), ftype, function.Id, MemberAccessWithImplicitThis: ftype, OwnerType: table.CurrentShader);
 

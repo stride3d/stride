@@ -148381,6 +148381,127 @@ public ref partial struct OpSwitchIdSDSL : IMemoryInstruction
     }
 }
 
+public ref partial struct OpDiagnosticSDSL : IMemoryInstruction
+{
+    // A detached instruction being edited, when not in a buffer
+    private ref OpData opData;
+    // An instruction in a buffer: its slot is looked up on each access, as the storage of the buffer moves when it grows
+    private SpirvBuffer? attachedBuffer;
+    private int attachedIndex;
+    // The buffer's StructureVersion when attached: an insert before the instruction, a removal or a sort may give its index to another one
+    private int attachedVersion;
+    public Memory<int> InstructionMemory
+    {
+        get
+        {
+            if (attachedBuffer is not null)
+            {
+                CheckAttached();
+                return attachedBuffer.GetData(attachedIndex).Memory;
+            }
+
+            if (!Unsafe.IsNullRef(ref opData))
+                return opData.Memory;
+            return field;
+        }
+
+        private set
+        {
+            if (!Unsafe.IsNullRef(ref opData))
+                opData.Memory = value;
+            else
+                field = value;
+        }
+    }
+
+    public OpDiagnosticSDSL()
+    {
+        InstructionMemory = new int[]
+        {
+            (int)Op.OpDiagnosticSDSL | (1 << 16)
+        };
+    }
+
+    public OpDiagnosticSDSL(OpDataIndex index)
+    {
+        InitializeProperties(index.Data);
+        Attach(index);
+    }
+
+    public OpDiagnosticSDSL(ref OpData data)
+    {
+        InitializeProperties(data);
+        opData = ref data;
+    }
+
+    public string Message
+    {
+        get;
+        set
+        {
+            field = value;
+            if (!InstructionMemory.IsEmpty)
+                UpdateInstructionMemory();
+        }
+    }
+
+    public OpDiagnosticSDSL(string message)
+    {
+        Message = message;
+        UpdateInstructionMemory();
+        opData = ref Unsafe.NullRef<OpData>();
+    }
+
+    public void Attach(OpDataIndex index)
+    {
+        attachedBuffer = index.Buffer;
+        attachedIndex = index.Index;
+        attachedVersion = index.Buffer.StructureVersion;
+    }
+
+    [Conditional("DEBUG")]
+    private readonly void CheckAttached()
+    {
+        if (attachedBuffer!.StructureVersion != attachedVersion)
+            throw new InvalidOperationException("This instruction was taken from a SpirvBuffer whose instructions moved since then: take it from the buffer again.");
+    }
+
+    public void UpdateInstructionMemory()
+    {
+        Span<int> instruction = [(int)Op.OpDiagnosticSDSL, ..Message.AsDisposableLiteralValue().Words];
+        instruction[0] |= instruction.Length << 16;
+        if (attachedBuffer is not null)
+        {
+            CheckAttached();
+            attachedBuffer.SetWords(attachedIndex, instruction);
+            return;
+        }
+
+        if (instruction.Length == InstructionMemory.Length)
+            instruction.CopyTo(InstructionMemory.Span);
+        else
+            InstructionMemory = instruction.ToArray();
+    }
+
+    private void InitializeProperties(OpData data)
+    {
+        foreach (var o in data)
+        {
+            switch (o.Name)
+            {
+                case "message":
+                    Message = o.ToLiteral<string>();
+                    break;
+                // We ignore unrecognized operands
+                default:
+                    break;
+            }
+        }
+    }
+
+    public static implicit operator OpDiagnosticSDSL(OpDataIndex odi) => new(odi);
+}
+
 public ref partial struct OpEffectSDFX : IMemoryInstruction
 {
     // A detached instruction being edited, when not in a buffer
