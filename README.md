@@ -32,11 +32,11 @@ The **Stride CLI tool** provides many utility commands for managing installation
 ```bash
 dotnet tool install -g Stride.Cli
 
-stride sdk install                   # install the latest Stride engine
-stride new fps -n MyShooter          # template: game, fps, platformer2d, topdownrpg, vrsandbox, ...
+stride sdk install                   # Install the latest version of Stride
+stride new fps -n MyShooter          # Create a new project from a template
 cd MyShooter && dotnet run --project MyShooter.Windows
 
-stride studio                        # open Game Studio, the visual editor
+stride studio                        # Open Game Studio (the editor)
 ```
 
 For more information on how to use the CLI tool, see [Stride CLI](https://doc.stride3d.net/latest/en/manual/get-started/stride-cli.html).
@@ -79,10 +79,10 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 ### Repository layout
 
 | Folder | What it holds |
-|---|---|
+| :-- | :-- |
 | `Stride.slnx` | The main solution (open this one). |
 | `sources/` | Source code organized by area, including unit tests. The `Stride.*.slnf` files are for CI. |
-| `tests/` | Tests for multi-assembly areas (see [tests/README.md](tests/README.md)) and data. Normal unit tests are in `sources/`. |
+| `tests/` | Multi-assembly tests (see [tests/README.md](tests/README.md)) and test data. Normal unit tests are in `sources/`. |
 | `samples/` | Sample games and templates. |
 | `deps/` | Third-party dependencies. |
 | `build/` | Tools for creating release builds. It also contains customizable local settings (`Stride.Local.props`). |
@@ -94,7 +94,7 @@ There is no `Directory.Build.props` at the root on purpose: `sources/` and `test
 ## 🔬 Build status
 
 | Build | Status |
-|:--|:--:|
+| :-- | :-- |
 | Windows | [![](https://github.com/stride3d/stride/actions/workflows/build-windows-runtime.yml/badge.svg?branch=master)](https://github.com/stride3d/stride/actions/workflows/build-windows-runtime.yml) |
 | Linux Vulkan/OpenGL | [![](https://github.com/stride3d/stride/actions/workflows/build-linux-runtime.yml/badge.svg?branch=master)](https://github.com/stride3d/stride/actions/workflows/build-linux-runtime.yml) |
 | iOS | [![](https://github.com/stride3d/stride/actions/workflows/build-ios.yml/badge.svg?branch=master)](https://github.com/stride3d/stride/actions/workflows/build-ios.yml) |
@@ -103,7 +103,7 @@ There is no `Directory.Build.props` at the root on purpose: `sources/` and `test
 
 ## 🚧 Stride repository landscape
 
-Stride is divided across multiple repositories:
+Stride is spread out across multiple repositories:
 
 1. [`stride3d/stride`](https://github.com/stride3d/stride) - the main repository for Stride, containing its source code, tests and architecture documentation.
 1. [`stride3d/stride-website`](https://github.com/stride3d/stride-website) ([website link](https://www.stride3d.net/)) - repository for the official Stride website.
