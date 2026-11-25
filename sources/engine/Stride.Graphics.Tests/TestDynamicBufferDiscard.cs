@@ -46,10 +46,10 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
             using var drawer = new Drawer(game, targetA);
 
             colorBuffer.SetData(commandList, new[] { Color.Red });
-            drawer.Draw(targetA, positionBuffer, colorBuffer, instance: 0);
+            drawer.Draw(targetA, positionBuffer, colorBuffer);
 
             colorBuffer.SetData(commandList, new[] { Color.Blue });
-            drawer.Draw(targetB, positionBuffer, colorBuffer, instance: 0);
+            drawer.Draw(targetB, positionBuffer, colorBuffer);
 
             Assert.Equal(Color.Red, ReadColor(commandList, targetA));
             Assert.Equal(Color.Blue, ReadColor(commandList, targetB));
@@ -71,7 +71,7 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
 
             using var drawer = new Drawer(game, targetA);
 
-            // Discard and write the first instance, then append the second one without discarding
+            // Discard and write the first color, then append the second one without discarding
             var discarded = commandList.MapSubResource(colorBuffer, 0, MapMode.WriteDiscard);
             ((Color*) discarded.DataBox.DataPointer)[0] = Color.Red;
             commandList.UnmapSubResource(discarded);
@@ -80,8 +80,8 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
             ((Color*) appended.DataBox.DataPointer)[1] = Color.Lime;
             commandList.UnmapSubResource(appended);
 
-            drawer.Draw(targetA, positionBuffer, colorBuffer, instance: 0);
-            drawer.Draw(targetB, positionBuffer, colorBuffer, instance: 1);
+            drawer.Draw(targetA, positionBuffer, colorBuffer, colorIndex: 0);
+            drawer.Draw(targetB, positionBuffer, colorBuffer, colorIndex: 1);
 
             Assert.Equal(Color.Red, ReadColor(commandList, targetA));
             Assert.Equal(Color.Lime, ReadColor(commandList, targetB));
@@ -107,7 +107,7 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
 
             // The buffer is bound already: the draw reads what the discard wrote
             colorBuffer.SetData(commandList, new[] { Color.Blue });
-            drawer.DrawBound(instance: 0);
+            drawer.DrawBound();
 
             Assert.Equal(Color.Blue, ReadColor(commandList, target));
         });
@@ -133,7 +133,7 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
             drawer.Bind(target, positionBuffer, colorBuffer);
 
             colorBuffer.SetData(commandList, new[] { Color.Blue });
-            drawer.DrawBound(instance: 0);
+            drawer.DrawBound();
 
             Assert.Equal(Color.Blue, ReadColor(commandList, target));
         });
@@ -387,13 +387,15 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
             pipelineState.Update();
         }
 
-        public void Draw(Texture target, Buffer positionBuffer, Buffer colorBuffer, int instance)
+        public void Draw(Texture target, Buffer positionBuffer, Buffer colorBuffer, int colorIndex = 0)
         {
-            Bind(target, positionBuffer, colorBuffer);
-            DrawBound(instance);
+            Bind(target, positionBuffer, colorBuffer, colorIndex);
+            DrawBound();
         }
 
-        public void Bind(Texture target, Buffer positionBuffer, Buffer colorBuffer)
+        // The color is selected by the offset of its binding, not by a start instance: the iOS simulator's Metal cannot draw
+        // with a base instance (MoltenVK fails the command buffer with VK_ERROR_FEATURE_NOT_PRESENT)
+        public void Bind(Texture target, Buffer positionBuffer, Buffer colorBuffer, int colorIndex = 0)
         {
             var commandList = game.GraphicsContext.CommandList;
 
@@ -403,16 +405,16 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
             commandList.SetVertexBuffer(0, positionBuffer, 0, 8);
             for (var slot = 1; slot < colorSlot; slot++)
                 commandList.SetVertexBuffer(slot, positionBuffer, 0, 8);
-            commandList.SetVertexBuffer(colorSlot, colorBuffer, 0, 4);
+            commandList.SetVertexBuffer(colorSlot, colorBuffer, colorIndex * sizeof(uint), 4);
         }
 
-        public void DrawBound(int instance)
+        public void DrawBound()
         {
             var commandList = game.GraphicsContext.CommandList;
 
             effect.Apply(game.GraphicsContext);
 
-            commandList.DrawInstanced(3, 1, startInstanceLocation: instance);
+            commandList.DrawInstanced(3, 1);
         }
 
         public void DrawBoundIndexed()
