@@ -5,7 +5,7 @@ Pre-built FreeType binaries for all Stride target platforms.
 ## Source
 
 - **Repository**: https://github.com/freetype/freetype
-- **Version**: 2.13.3 (tag `VER-2-13-3`)
+- **Version**: 2.15.0 (tag `VER-2-15-0`)
 - **License**: FreeType License (see LICENSE.txt)
 
 ## Build

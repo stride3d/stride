@@ -1,8 +1,9 @@
-msdfgen v1.12
-Version: 1.12.0.0+g85e8b3d47b
+msdfgen v1.13.1
+Version: 1.13.1.1+gec84cd5359
 Repository: https://github.com/Chlumsky/msdfgen
-Commit: 85e8b3d47b3d1a42e4a5ebda0a24fb1cc2e669e0
-FreeType: VER-2-13-3
-Stride: https://github.com/xen2/stride @ ba0d30302e6aa25f9f369d41781539747a09b133
-Built: 2026-06-09
-Workflow: https://github.com/xen2/stride/actions/runs/27241762173
+Commit: ec84cd53590bb114c5a7fa4fe7be5adafec6276a
+FreeType: VER-2-15-0
+Stride: https://github.com/stride3d/stride @ 0a2141a095bd3a4d144fd607080f31bd917b99fc
+Built: 2026-11-25
+Workflow: https://github.com/stride3d/stride/actions/runs/45553942321
+Debug files: https://github.com/stride3d/stride/releases/tag/deps/msdfgen/1.13.1.1
