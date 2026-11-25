@@ -21,12 +21,20 @@ on:
         description: Record every compiled mixin tree for the shader corpus (runs only the Windows Direct3D11 leg, artifact shader-corpus-samples)
         type: boolean
         default: false
+      coverage:
+        description: Collect code coverage on the Windows Direct3D11 samples leg (artifact coverage-samples)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
       capture-shader-corpus:
+        default: false
+        type: boolean
+      # Collect code coverage on the Windows Direct3D11 samples leg (main.yml), for coverage-report.yml
+      coverage:
         default: false
         type: boolean
     secrets:
@@ -79,6 +87,9 @@ jobs:
       # One cache folder for every sample of the lane, which ScreenshotRunner copies next to each game and back. Not in a
       # corpus capture: the capture records an effect when a game compiles it, not when it loads one an earlier game compiled.
       STRIDE_TESTS_EFFECT_CACHE: ${{ !inputs.capture-shader-corpus && format('{0}/samples-effect-cache', github.workspace) || '' }}
+      # Windows Direct3D11 only: the other legs run nearly the same code. The collector follows the processes the tests
+      # start (sample builds, asset compiler, games), which load the Stride assemblies and pdbs of bin/packages.
+      COVERAGE_SETTINGS: ${{ inputs.coverage && matrix.platform == 'Windows' && matrix.graphics-api == 'Direct3D11' && 'tests/coverage.runsettings' || '' }}
       # Stride.NuGetResolver re-verifies packages per synthetic project (unlike dotnet
       # restore which trusts cached results), tripping on legacy 4.3.0/4.7.0 BCL packages
       # whose timestamping CAs have expired.
@@ -178,7 +189,7 @@ jobs:
       # regenerated samples PackageReference: the engine, the asset compiler, the plugins, the templates and
       # the Stride.Games.AutoTesting harness. StrideGraphicsApis (plural) pins the engine to the matrix entry,
       # so the nupkgs only contain binaries for that API; StrideGraphicsApi (singular) selects the test SDK
-      # output path.
+      # output path. With coverage, ContinuousIntegrationBuild=false keeps the real source paths in the pdbs.
       - name: Build test project
         run: |
           dotnet build tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj \
@@ -187,7 +198,8 @@ jobs:
             -p:StridePlatforms=${{ matrix.platform }} \
             -p:StrideTestRuntimeIdentifier=${{ matrix.rid }} \
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} \
-            -p:StrideGraphicsApis=${{ matrix.graphics-api }}
+            -p:StrideGraphicsApis=${{ matrix.graphics-api }} \
+            ${{ env.COVERAGE_SETTINGS != '' && '-p:ContinuousIntegrationBuild=false' || '' }}
 
       - name: Run sample screenshot tests
         id: test
@@ -199,13 +211,16 @@ jobs:
           # Called by another workflow: the key it passes. Run on its own (dispatch): the screenshots key.
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
         run: |
+          COVERAGE_ARG=()
+          if [ -n "$COVERAGE_SETTINGS" ]; then COVERAGE_ARG=(--settings "$COVERAGE_SETTINGS"); fi
           dotnet test tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj \
             --no-build \
             --filter "FullyQualifiedName~Stride.Samples.Tests.SampleScreenshotTests" \
             --logger "trx;LogFileName=screenshots.trx" \
             --results-directory TestResults \
             -p:Configuration=${{ inputs.build-type || 'Debug' }} \
-            -p:StrideGraphicsApi=${{ matrix.graphics-api }}
+            -p:StrideGraphicsApi=${{ matrix.graphics-api }} \
+            "${COVERAGE_ARG[@]}"
 
       - uses: ./.github/actions/effect-cache
         if: success() || failure()
@@ -228,6 +243,13 @@ jobs:
         if: failure() && steps.test.outcome == 'failure'
         shell: pwsh
         run: ./.github/scripts/show-failed-tests.ps1
+
+      - name: Coverage
+        if: ${{ !cancelled() && env.COVERAGE_SETTINGS != '' }}
+        uses: ./.github/actions/coverage-lane
+        with:
+          lane: samples
+          title: Samples
 
       - name: Upload test artifacts (captures + done.json + TRX)
         if: always()

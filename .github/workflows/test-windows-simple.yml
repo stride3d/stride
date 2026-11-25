@@ -18,6 +18,10 @@ on:
         description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
         type: number
         default: 1
+      coverage:
+        description: Collect code coverage (artifact coverage-simple)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       build-type:
@@ -29,6 +33,10 @@ on:
       repeat:
         default: 1
         type: number
+      # Collect code coverage (main.yml), for coverage-report.yml
+      coverage:
+        default: false
+        type: boolean
 
 concurrency:
   group: test-windows-simple-${{ github.event.pull_request.number || github.sha }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -39,6 +47,8 @@ jobs:
     name: Windows (Simple, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
     timeout-minutes: 35
+    env:
+      COVERAGE_SETTINGS: ${{ inputs.coverage && 'tests/coverage.runsettings' || '' }}
     steps:
       # Full checkout: the Simple test solutions build Stride.Templates.*, which
       # preprocesses template content from samples/.
@@ -56,13 +66,15 @@ jobs:
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
-            -p:StrideGraphicsApis=Direct3D11
+            -p:StrideGraphicsApis=Direct3D11 `
+            ${{ inputs.coverage && '-p:ContinuousIntegrationBuild=false' || '' }}
       - name: Test
         id: test
         run: |
           $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
           $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")
           $filterArgs = if ($filter) { @('--filter', $filter) } else { @() }
+          $coverageArgs = if ($env:COVERAGE_SETTINGS) { @('--settings', $env:COVERAGE_SETTINGS) } else { @() }
           for ($i = 1; $i -le $repeat; $i++) {
             Write-Host "=== Test run $i / $repeat ==="
             dotnet test sources\Stride.Tests.Simple.slnf `
@@ -70,7 +82,8 @@ jobs:
               --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults `
               --blame-hang-timeout 5m --blame-hang-dump-type full `
               -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
-              @filterArgs
+              @filterArgs `
+              @coverageArgs
             if ($LASTEXITCODE -ne 0) {
               Write-Host "Run $i failed (exit $LASTEXITCODE); stopping."
               exit $LASTEXITCODE
@@ -89,10 +102,19 @@ jobs:
         if: failure() && steps.test.outcome == 'failure'
         shell: pwsh
         run: ./.github/scripts/show-failed-tests.ps1
+      - name: Coverage
+        if: ${{ !cancelled() && env.COVERAGE_SETTINGS != '' }}
+        uses: ./.github/actions/coverage-lane
+        with:
+          lane: simple
+          title: Windows Simple
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-results-simple
-          path: TestResults/
+          # The coverage files are in the coverage artifact
+          path: |
+            TestResults/
+            !TestResults/**/*.cobertura.xml
           if-no-files-found: ignore

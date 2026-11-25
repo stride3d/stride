@@ -119,7 +119,7 @@ public sealed class PreviewViewModel : DispatcherViewModel, IDisposable
             return;
 
         // A multiple selection has no preview
-        PreviewService?.SetAssetToPreview(assets.Count == 1 ? assets.First() : null!);
+        PreviewService?.SetAssetToPreview(assets.Count == 1 ? assets.First() : null);
     }
 
     private void SelectedAssetsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

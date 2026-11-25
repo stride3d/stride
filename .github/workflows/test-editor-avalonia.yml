@@ -1,7 +1,7 @@
 name: Test Editor (Avalonia)
 
 # Builds the cross-platform (Avalonia) editor and runs its test projects on Linux and Windows,
-# with a coverage report of the editor-side assemblies (no threshold: the summary is informative).
+# with the code coverage of the Windows run when asked (main.yml does, for coverage-report.yml).
 # The WPF editor stays covered by build-windows-full.yml (its build), test-editor-wpf.yml (its tests)
 # and test-gamestudio-screenshots.yml (its screenshots).
 
@@ -23,6 +23,10 @@ on:
         description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
         type: number
         default: 1
+      coverage:
+        description: Collect code coverage on Windows (artifact coverage-editor-avalonia)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       build-type:
@@ -34,6 +38,10 @@ on:
       repeat:
         default: 1
         type: number
+      # Collect code coverage on Windows (main.yml), for coverage-report.yml
+      coverage:
+        default: false
+        type: boolean
 
 concurrency:
   # A manual run never cancels or queues behind another one
@@ -43,9 +51,6 @@ concurrency:
 env:
   # The solution filter of the Avalonia editor and its tests (a subset of Stride.slnx).
   EDITOR_SOLUTION: sources/Stride.Editor.Avalonia.slnf
-  # Coverage restricted to the editor-side assemblies.
-  EDITOR_RUNSETTINGS: tests/editor-coverage.runsettings
-  REPORTGENERATOR_VERSION: 5.4.18
   BUILD_TYPE: ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
 
 jobs:
@@ -63,6 +68,9 @@ jobs:
           - name: Windows
             os: windows-2025-vs2026
             platform: Windows
+    env:
+      # Windows only: the Linux run would cover nearly the same lines
+      COVERAGE_SETTINGS: ${{ inputs.coverage && matrix.platform == 'Windows' && 'tests/coverage.runsettings' || '' }}
     defaults:
       run:
         shell: bash
@@ -73,8 +81,8 @@ jobs:
           ref: ${{ github.ref }}
       - uses: ./.github/actions/lfs-pull
       - uses: ./.github/actions/unpublished-packages
-      # ContinuousIntegrationBuild=false keeps the real source paths in the pdbs (CI=true maps them to /_/),
-      # so that the coverage report finds the sources; this job ships no package.
+      # With coverage, ContinuousIntegrationBuild=false keeps the real source paths in the pdbs (CI=true maps them
+      # to /_/), so that the coverage report finds the sources; this job ships no package.
       - name: Build
         run: |
           dotnet build "$EDITOR_SOLUTION" \
@@ -82,7 +90,7 @@ jobs:
             -v:m -p:WarningLevel=0 \
             -p:Configuration="$BUILD_TYPE" \
             -p:StridePlatforms=${{ matrix.platform }} \
-            -p:ContinuousIntegrationBuild=false
+            ${{ env.COVERAGE_SETTINGS != '' && '-p:ContinuousIntegrationBuild=false' || '' }}
       - name: Test
         id: test
         run: |
@@ -90,15 +98,16 @@ jobs:
           REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
           FILTER_ARG=()
           if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
+          COVERAGE_ARG=()
+          if [ -n "$COVERAGE_SETTINGS" ]; then COVERAGE_ARG=(--settings "$COVERAGE_SETTINGS"); fi
           for i in $(seq 1 "$REPEAT"); do
             echo "=== Test run $i / $REPEAT ==="
             dotnet test "$EDITOR_SOLUTION" \
               --no-build \
-              --settings "$EDITOR_RUNSETTINGS" \
               --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults \
               --blame-hang-timeout 5m --blame-hang-dump-type full \
               -p:Configuration="$BUILD_TYPE" \
-              "${FILTER_ARG[@]}" || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
+              "${FILTER_ARG[@]}" "${COVERAGE_ARG[@]}" || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
           done
       - name: Publish Test Report
         if: always()
@@ -113,38 +122,19 @@ jobs:
         if: failure() && steps.test.outcome == 'failure'
         shell: pwsh
         run: ./.github/scripts/show-failed-tests.ps1
-      # ReportGenerator as a pinned dotnet tool rather than its action: the same command runs locally,
-      # and no further third-party action is needed.
-      - name: Coverage report
-        if: always()
-        run: |
-          shopt -s globstar nullglob
-          REPORTS=(TestResults/**/*.cobertura.xml)
-          if [ ${#REPORTS[@]} -eq 0 ]; then echo "No coverage file found."; exit 0; fi
-          dotnet tool install dotnet-reportgenerator-globaltool --version "$REPORTGENERATOR_VERSION" --tool-path .tools
-          IFS=';'
-          .tools/reportgenerator \
-            "-reports:${REPORTS[*]}" \
-            -targetdir:CoverageReport \
-            "-reporttypes:Html;Cobertura;MarkdownSummaryGithub" \
-            "-filefilters:-*/obj/*" \
-            "-title:Editor Avalonia (${{ matrix.name }})"
-          # Generated sources (obj/) are left out above; the method coverage row only links to ReportGenerator Pro.
-          {
-            echo "## Coverage: ${{ matrix.name }} Editor Avalonia"
-            tail -n +2 CoverageReport/SummaryGithub.md | grep -v 'Method coverage:'
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Coverage
+        if: ${{ !cancelled() && env.COVERAGE_SETTINGS != '' }}
+        uses: ./.github/actions/coverage-lane
+        with:
+          lane: editor-avalonia
+          title: Windows Editor Avalonia
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-results-editor-avalonia-${{ matrix.platform }}
-          path: TestResults/
-          if-no-files-found: ignore
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-editor-avalonia-${{ matrix.platform }}
-          path: CoverageReport/
+          # The coverage files are in the coverage artifact
+          path: |
+            TestResults/
+            !TestResults/**/*.cobertura.xml
           if-no-files-found: ignore

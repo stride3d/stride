@@ -23,12 +23,20 @@ on:
         description: Record every compiled mixin tree for the shader corpus (runs only the Direct3D11 leg, artifact shader-corpus-editor)
         type: boolean
         default: false
+      coverage:
+        description: Collect code coverage on the Direct3D11 leg (artifact coverage-editor-screenshots)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
       capture-shader-corpus:
+        default: false
+        type: boolean
+      # Collect code coverage on the Direct3D11 leg (main.yml), for coverage-report.yml
+      coverage:
         default: false
         type: boolean
     secrets:
@@ -60,6 +68,9 @@ jobs:
       # Shader corpus refresh (sources/shaders/Stride.Shaders.Tests/Corpus/README.md): Game Studio and the asset builds
       # record their mixin trees. One leg is enough, the corpus test compiles each tree for every graphics API.
       STRIDE_SHADER_CORPUS_CAPTURE: ${{ inputs.capture-shader-corpus && matrix.graphics-api == 'Direct3D11' && format('{0}\shader-corpus', github.workspace) || '' }}
+      # Direct3D11 only: the other legs run the same editor code. The collector follows the Game Studio processes the
+      # fixtures start.
+      COVERAGE_SETTINGS: ${{ inputs.coverage && matrix.graphics-api == 'Direct3D11' && 'tests/coverage.runsettings' || '' }}
       # No STRIDE_VULKAN_SYNC_VALIDATION here: on Lavapipe it slows the thumbnails to about one per second, and the
       # fixtures time out. The game tests and the enduser samples run the same rendering code with it on.
       # MSBuild property (read from the environment): a fresh checkout only builds Direct3D11, so
@@ -121,12 +132,14 @@ jobs:
           fxc: ${{ matrix.graphics-api == 'Direct3D11' }}
           path: sources/editor/Stride.GameStudio.AutoTesting/bin/*/*/cache
 
-      # Also builds Stride.GameStudio.AutoTesting, the runner the tests start, through its ProjectReference
+      # Also builds Stride.GameStudio.AutoTesting, the runner the tests start, through its ProjectReference. With
+      # coverage, ContinuousIntegrationBuild=false keeps the real source paths in the pdbs.
       - name: Build Stride.Editor.Wpf.Tests
         run: |
           dotnet build tests\editor\Stride.Editor.Wpf.Tests\Stride.Editor.Wpf.Tests.csproj `
             -nr:false -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ inputs.build-type || 'Debug' }}
+            -p:Configuration=${{ inputs.build-type || 'Debug' }} `
+            ${{ env.COVERAGE_SETTINGS != '' && '-p:ContinuousIntegrationBuild=false' || '' }}
 
       # Pre-test snapshot of NuGet state: bin/packages timestamps+sizes (catches partial writes
       # or out-of-order packing), NuGet global cache extractions for Stride.*, and the user
@@ -161,12 +174,14 @@ jobs:
           # Called by another workflow: the key it passes. Run on its own (dispatch): the screenshots key.
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
         run: |
+          $coverageArgs = if ($env:COVERAGE_SETTINGS) { @('--settings', $env:COVERAGE_SETTINGS) } else { @() }
           dotnet test tests\editor\Stride.Editor.Wpf.Tests\Stride.Editor.Wpf.Tests.csproj `
             --no-build `
             --filter "FullyQualifiedName~Stride.Editor.Wpf.Tests.EditorScreenshotTests" `
             --logger "trx;LogFileName=editor-screenshots.trx" `
             --results-directory TestResults `
-            -p:Configuration=${{ inputs.build-type || 'Debug' }}
+            -p:Configuration=${{ inputs.build-type || 'Debug' }} `
+            @coverageArgs
 
       - uses: ./.github/actions/effect-cache
         if: success() || failure()
@@ -188,6 +203,13 @@ jobs:
         if: failure() && steps.test.outcome == 'failure'
         shell: pwsh
         run: ./.github/scripts/show-failed-tests.ps1
+
+      - name: Coverage
+        if: ${{ !cancelled() && env.COVERAGE_SETTINGS != '' }}
+        uses: ./.github/actions/coverage-lane
+        with:
+          lane: editor-screenshots
+          title: Game Studio screenshots
 
       # Named screenshots-* so the trusted vision gate's download pattern (screenshots-*) picks it up
       # alongside the enduser captures and re-judges any deferred frames.
