@@ -8,7 +8,7 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG000";
     private const string Title = "Attribute contradiction";
-    private const string MessageFormat = "Member '{0}' uses both [DataMember] and [DataMemberIgnore] attributes that work against each other. Doing this isn't supported., except if the member also has the [DataMemberUpdatable] attribute.";
+    private const string MessageFormat = "Member '{0}' uses both [DataMember] and [DataMemberIgnore] attributes, which specify contradictory behaviours. Doing this isn't supported, unless the member also has the [DataMemberUpdatable] attribute.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new(

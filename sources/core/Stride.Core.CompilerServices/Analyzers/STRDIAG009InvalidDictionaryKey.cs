@@ -9,8 +9,8 @@ namespace Stride.Core.CompilerServices.Analyzers;
 public class STRDIAG009InvalidDictionaryKey : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG009";
-    private const string Title = "Invalid Dictionary Key";
-    private const string MessageFormat = "The member '{0}' implements IDictionary<T,K> with an unsupported type for the key. Only primitive types ( like int,float,.. ) are supported or string or enums as the Dictionary Key in asset serialization. When used in other contexts the warning may not apply and can be suppressed.";
+    private const string Title = "Invalid dictionary key";
+    private const string MessageFormat = "The member '{0}' implements IDictionary<T,K> with an unsupported type for the key. Only primitive types (e.g. int, float, etc.), strings and enums are supported as a dictionary key in serialization. When used in other contexts the warning may not apply and can be suppressed.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new(
