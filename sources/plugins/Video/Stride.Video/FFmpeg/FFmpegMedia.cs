@@ -242,7 +242,8 @@ namespace Stride.Video.FFmpeg
         public bool IsStereoscopicVideo([NotNull] FFmpegStream stream)
         {
             // try first to get the side data information from the stream if available.
-            if (ffmpeg.av_stream_get_side_data(stream.AVStream, AVPacketSideDataType.AV_PKT_DATA_STEREO3D, null) != null)
+            var codecParameters = stream.AVStream->codecpar;
+            if (ffmpeg.av_packet_side_data_get(codecParameters->coded_side_data, codecParameters->nb_coded_side_data, AVPacketSideDataType.AV_PKT_DATA_STEREO3D) != null)
                 return true;
 
             // Unfortunately the side data was not present in the stream
@@ -409,7 +410,7 @@ namespace Stride.Video.FFmpeg
                     var width = pCodecContext->width;
                     var height = pCodecContext->height;
                     var sourcePixFmt = (AVPixelFormat)pFrame->format;
-                    pConvertContext = ffmpeg.sws_getCachedContext(pConvertContext, width, height, sourcePixFmt, width, height, DestinationPixelFormat, ffmpeg.SWS_FAST_BILINEAR, null, null, null);
+                    pConvertContext = ffmpeg.sws_getCachedContext(pConvertContext, width, height, sourcePixFmt, width, height, DestinationPixelFormat, (int)SwsFlags.SWS_FAST_BILINEAR, null, null, null);
                     if (pConvertContext == null)
                         throw new ApplicationException("Could not initialize the conversion context.");
 

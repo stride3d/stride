@@ -1,0 +1,15 @@
+FFmpeg n9.1
+Repository: https://git.ffmpeg.org/ffmpeg.git
+Commit: 74e4393595cf2b5857f0da925c4e0dd74ea306e5
+
+x264 stable (CLI only)
+Repository: https://code.videolan.org/videolan/x264.git
+Commit: b35605ace3ddf7c1a5d67a2eb553f034aef41d55
+
+nv-codec-headers 33a9ede8d9914299d9262539c576a15bd0a19621 (Windows x64 CLI only)
+Repository: https://github.com/FFmpeg/nv-codec-headers.git
+Commit: 33a9ede8d9914299d9262539c576a15bd0a19621
+
+Stride: https://github.com/xen2/stride @ d10d051af7597e8f64978811c38597ff4128f312
+Built: 2026-11-25
+Workflow: https://github.com/xen2/stride/actions/runs/45570334076

@@ -54,16 +54,17 @@ namespace Stride.Video.FFmpeg
         }
 
         // FFmpeg.AutoGen calls our resolver with these base names; map each to the version-stamped
-        // Windows file name. Order matters: dependencies first (avcodec needs avutil, etc.).
+        // Windows file name. The majors are constants, so reading them doesn't run ffmpeg's static ctor.
+        // Order matters: dependencies first (avcodec needs avutil, etc.).
         private static readonly (string Name, string WindowsName)[] Libraries =
         [
-            ("avutil", "avutil-59"),
-            ("swresample", "swresample-5"),
-            ("avcodec", "avcodec-61"),
-            ("avformat", "avformat-61"),
-            ("swscale", "swscale-8"),
-            ("avfilter", "avfilter-10"),
-            ("avdevice", "avdevice-61"),
+            ("avutil", $"avutil-{ffmpeg.LIBAVUTIL_VERSION_MAJOR}"),
+            ("swresample", $"swresample-{ffmpeg.LIBSWRESAMPLE_VERSION_MAJOR}"),
+            ("avcodec", $"avcodec-{ffmpeg.LIBAVCODEC_VERSION_MAJOR}"),
+            ("avformat", $"avformat-{ffmpeg.LIBAVFORMAT_VERSION_MAJOR}"),
+            ("swscale", $"swscale-{ffmpeg.LIBSWSCALE_VERSION_MAJOR}"),
+            ("avfilter", $"avfilter-{ffmpeg.LIBAVFILTER_VERSION_MAJOR}"),
+            ("avdevice", $"avdevice-{ffmpeg.LIBAVDEVICE_VERSION_MAJOR}"),
         ];
 
         private static readonly Dictionary<string, nint> libraryHandles = new();
@@ -101,7 +102,7 @@ namespace Stride.Video.FFmpeg
             DynamicallyLoadedBindings.FunctionResolver = StrideFunctionResolver.Instance;
 
             // Load in dependency order so each library's imports bind to the already-loaded modules.
-            // Windows files carry the version in the name (avutil-59.dll); Linux/macOS use the SONAME,
+            // Windows files carry the version in the name (avutil-61.dll); Linux/macOS use the SONAME,
             // which NativeLibraryHelper matches from the base name.
             var type = typeof(FFmpegUtils);
             foreach (var library in Libraries)
