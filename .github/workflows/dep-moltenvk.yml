@@ -24,8 +24,8 @@ on:
   workflow_dispatch:
     inputs:
       moltenvk-version:
-        description: MoltenVK git ref to build (tag like v1.4.1, branch like main, or a commit SHA)
-        default: v1.4.1
+        description: MoltenVK git ref to build (tag like v1.4.2, branch like main, or a commit SHA)
+        default: v1.4.2
         required: true
 
 jobs:
