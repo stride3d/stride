@@ -37,8 +37,9 @@ names.
 Don't commit debug files here. This folder is in Git LFS, and every clone downloads all of it. The workflow keeps them
 instead, as a GitHub pre-release named `deps/<name>/<version>` (`dep-symbols.yml`), where `<name>` is the one of its
 `dep-<name>.yml`: the `Debug files:` line of the `VERSION.txt` links to it. Every workflow that builds native code does
-this, except FFmpeg's. LLVM.Windows repackages upstream's release, which has no debug files. Binaries committed before
-a workflow did this have no pre-release.
+this. FFmpeg's does it for the libraries that games load, not for its `ffmpeg` command line, which is built without
+debug info. LLVM.Windows repackages upstream's release, which has no debug files. Binaries committed before a workflow
+did this have no pre-release.
 
 To debug with them, download the zip of the platform from the pre-release:
 

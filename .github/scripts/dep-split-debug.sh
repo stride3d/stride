@@ -6,7 +6,7 @@
 # The copy takes the name of <library> as given, so a symlink libfoo.so gives libfoo.so, not libfoo.so.6.20.1, or
 # <name> when given.
 #
-# - ELF .so (Linux, Android): <name>.debug keeps the debug info and the symbol table. The shipped library names it in
+# - ELF .so or .so.<major> (Linux, Android): <name>.debug keeps the debug info and the symbol table. The shipped library names it in
 #   its .gnu_debuglink, where gdb and lldb look for it. OBJCOPY picks the objcopy, such as the NDK's llvm-objcopy.
 # - Mach-O .dylib: the DWARF stays in the object files, and dsymutil collects it into <name>.dSYM. strip -S removes the
 #   debug map that points to them, and -x the local symbols. strip changes the file, so it gets a new ad-hoc
@@ -25,7 +25,7 @@ mkdir -p "$out" "$symbols"
 fail() { echo "::error::$name: $1"; exit 1; }
 
 case "$name" in
-  *.so)
+  *.so | *.so.[0-9]*)
     objcopy=${OBJCOPY:-objcopy}
     "$objcopy" --only-keep-debug "$library" "$symbols/$name.debug"
     [[ $(readelf -S "$symbols/$name.debug") == *.debug_info* ]] || fail "no debug info"
@@ -51,6 +51,6 @@ case "$name" in
     (cd "$out" && shasum -a 256 "$name") > "$symbols/$name.sha256"
     ;;
   *)
-    fail "not a .so, .dylib or .a"
+    fail "not a .so, .so.<major>, .dylib or .a"
     ;;
 esac
