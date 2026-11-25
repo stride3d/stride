@@ -19,7 +19,7 @@ on:
     inputs:
       ref:
         description: FFmpeg ref (must match FFmpeg.AutoGen NuGet major version)
-        default: n7.1.1
+        default: n9.1
         required: false
       x264_ref:
         description: x264 ref (used by the CLI build only)
@@ -58,7 +58,7 @@ jobs:
       - name: Resolve refs to commits
         id: resolve
         env:
-          FFMPEG_REF: ${{ github.event.inputs.ref || 'n7.1.1' }}
+          FFMPEG_REF: ${{ github.event.inputs.ref || 'n9.1' }}
           X264_REF: ${{ github.event.inputs.x264_ref || 'stable' }}
           NVCODEC_REF: ${{ github.event.inputs.nv_codec_headers_ref || '33a9ede8d9914299d9262539c576a15bd0a19621' }}
         run: |
@@ -107,7 +107,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            nasm yasm pkg-config diffutils \
+            nasm pkg-config diffutils \
             libva-dev libdrm-dev
 
       - name: Clone FFmpeg
@@ -174,7 +174,7 @@ jobs:
       - name: Collect lib artifact
         run: |
           mkdir -p out-libs
-          # Rename to SONAME (libavcodec.so.61.19.101 → libavcodec.so.61) so .NET
+          # Rename to SONAME (libavcodec.so.63.24.100 → libavcodec.so.63) so .NET
           # DllImport / dlopen finds them via the major-version name FFmpeg.AutoGen requests.
           for f in ffmpeg-libs-install/lib/libav*.so.* ffmpeg-libs-install/lib/libsw*.so.*; do
             [ -L "$f" ] && continue
@@ -275,7 +275,7 @@ jobs:
       - name: Collect lib artifact
         run: |
           mkdir -p out-libs
-          # Rename to install_name (libavcodec.61.19.101.dylib → libavcodec.61.dylib) so .NET
+          # Rename to install_name (libavcodec.63.24.100.dylib → libavcodec.63.dylib) so .NET
           # DllImport / dlopen finds them via the major-version name FFmpeg.AutoGen requests.
           for f in ffmpeg-libs-install/lib/libav*.[0-9]*.dylib ffmpeg-libs-install/lib/libsw*.[0-9]*.dylib; do
             [ -L "$f" ] && continue
@@ -326,7 +326,6 @@ jobs:
             base-devel
             mingw-w64-ucrt-x86_64-toolchain
             mingw-w64-ucrt-x86_64-nasm
-            mingw-w64-ucrt-x86_64-yasm
             mingw-w64-ucrt-x86_64-pkgconf
             diffutils
             git

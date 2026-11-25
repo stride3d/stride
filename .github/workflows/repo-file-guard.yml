@@ -111,9 +111,10 @@ jobs:
           fi
 
           # ---- Check 2: unknown file types --------------------------------------------
-          # Type-key logic MUST match how the allowlists were bootstrapped: split basename on
-          # '.', it's an extension only when the last dot has non-empty text on both sides
-          # (so dotfiles like .gitignore are extension-less), else the basename is the key.
+          # Type key, which the allowlists MUST match: split basename on '.', it's an extension
+          # only when the last dot has non-empty text on both sides (so dotfiles like .gitignore
+          # are extension-less), else the basename is the key. A versioned shared library
+          # (libavcodec.so.62) counts as .so: the numbers are its version, not its type.
           unknown=$(awk -F/ '
               # Allowlist entries may be exact keys or globs (`*`,`?`); globs become anchored regexes.
               function g2re(s,  i,c,r,special){
@@ -124,7 +125,7 @@ jobs:
                 return r "$"
               }
               NR==FNR { if ($0 ~ /[*?]/) pat[++np]=g2re($0); else allow[$0]=1; next }
-              { b=$NF; n=split(b,a,".");
+              { b=$NF; if (b ~ /\.so(\.[0-9]+)+$/) sub(/(\.[0-9]+)+$/, "", b); n=split(b,a,".");
                 if (n>=2 && a[1]!="" && a[n]!="") { key="ext:" tolower(a[n]); disp="." tolower(a[n]) }
                 else { key="noext:" b; disp="(no extension)" }
                 if (key in allow) next

@@ -1,4 +1,4 @@
-# Paths exempt from the oversized-non-LFS-blob check (.github/workflows/pr-repo-hygiene.yml).
+# Paths exempt from the oversized-non-LFS-blob check (.github/workflows/repo-file-guard.yml).
 # One exact repo-relative path per line. These are pre-existing large *text* files that are
 # legitimately tracked in git (not LFS). New oversized blobs must go to LFS instead of being
 # added here — only grandfather a path in after a deliberate decision that it belongs in git.

@@ -14,7 +14,7 @@
     <PackageVersion Include="DotRecast.Detour" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Recast" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Recast.Toolset" Version="2025.2.1" />
-    <PackageVersion Include="FFmpeg.AutoGen" Version="7.1.1" />
+    <PackageVersion Include="FFmpeg.AutoGen" Version="9.0.1.1" />
     <PackageVersion Include="K4os.Compression.LZ4.Legacy" Version="1.3.6" />
     <PackageVersion Include="Microsoft.Direct3D.WARP" Version="1.0.22" />
     <PackageVersion Include="Microsoft.Direct3D.D3D12" Version="1.619.3" />
