@@ -808,6 +808,9 @@ float4 main(vs_out input) : SV_TARGET {
     private unsafe void ApplyParameters(bool compute = false)
     {
         BufferDesc bufferDesc;
+        // UAVs share the render targets' slots in a pixel shader, and the output merger's UAVs are set together:
+        // a second OMSetRenderTargetsAndUnorderedAccessViews call unbinds the UAV of the first, so they are bound after the loop.
+        var outputMergerUavs = new List<(int Slot, ComPtr<ID3D11UnorderedAccessView> View)>();
         foreach (var (resourceReflection, resourceType, value) in MatchResourceParameters())
         {
             if (resourceType == "cbuffer")
@@ -928,13 +931,11 @@ float4 main(vs_out input) : SV_TARGET {
                     };
                     SilkMarshal.ThrowHResult(device.CreateUnorderedAccessView(buffer, in uavDesc, ref bufferUAV));
 
-                    // UAVs share the render targets' slots in a pixel shader: keep the bound render target.
                     // A UAV bound to the output merger is unbound from the compute stage, so only one of them.
-                    const uint keepRenderTargetsAndDepthStencil = 0xFFFFFFFF;
                     if (compute)
                         deviceContext.CSSetUnorderedAccessViews((uint)resourceReflection.SlotStart, 1U, &bufferUAV.Handle, (uint*)null);
                     else
-                        deviceContext.OMSetRenderTargetsAndUnorderedAccessViews(keepRenderTargetsAndDepthStencil, (ID3D11RenderTargetView**)null, (ID3D11DepthStencilView*)null, (uint)resourceReflection.SlotStart, 1U, &bufferUAV.Handle, (uint*)null);
+                        outputMergerUavs.Add((resourceReflection.SlotStart, bufferUAV));
                 }
                 else
                 {
@@ -1021,6 +1022,18 @@ float4 main(vs_out input) : SV_TARGET {
                 deviceContext.GSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &textureSRV.Handle);
                 deviceContext.PSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &textureSRV.Handle);
             }
+        }
+
+        if (outputMergerUavs.Count > 0)
+        {
+            // Keep the bound render target; slots between the UAVs stay empty.
+            const uint keepRenderTargetsAndDepthStencil = 0xFFFFFFFF;
+            var startSlot = outputMergerUavs.Min(x => x.Slot);
+            var views = new nint[outputMergerUavs.Max(x => x.Slot) - startSlot + 1];
+            foreach (var (slot, view) in outputMergerUavs)
+                views[slot - startSlot] = (nint)view.Handle;
+            fixed (nint* viewsPtr = views)
+                deviceContext.OMSetRenderTargetsAndUnorderedAccessViews(keepRenderTargetsAndDepthStencil, (ID3D11RenderTargetView**)null, (ID3D11DepthStencilView*)null, (uint)startSlot, (uint)views.Length, (ID3D11UnorderedAccessView**)viewsPtr, (uint*)null);
         }
     }
 }
