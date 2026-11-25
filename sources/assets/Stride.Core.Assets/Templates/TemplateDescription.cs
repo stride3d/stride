@@ -105,6 +105,11 @@ public class TemplateDescription : IFileSynchronizable
     [DefaultValue(TemplateStatus.None)]
     public TemplateStatus Status { get; set; }
 
+    /// <summary>The type of template (e.g. sample, asset pack or other).</summary>
+    [DataMember(70)]
+    [DefaultValue(TemplateType.Standard)]
+    public TemplateType TemplateType { get; set; }
+
     /// <inheritdoc/>
     [DataMemberIgnore]
     public bool IsDirty { get; set; }

@@ -13,6 +13,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Stride.Assets.Templates;
 using Stride.Core;
+using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.Yaml;
 using Stride.Core.Yaml.Serialization;
@@ -254,7 +255,7 @@ Cache/
         // platforms parameter at instantiation. No-op when the flag isn't set.
         InjectMissingPlatforms(logger);
 
-        if (Sdtpl?.Type == SdtplMetadata.TemplateType.Sample)
+        if (Sdtpl?.Type == TemplateType.Sample)
         {
             GenerateSlnxIfMissing(logger);
             GenerateGitignoreIfMissing(logger);
@@ -1524,7 +1525,7 @@ Cache/
         var displayName = JsonEscape(Sdtpl?.Name ?? shortName);
         var description = JsonEscape(Sdtpl?.Description ?? string.Empty);
         var defaultName = JsonEscape(Sdtpl?.DefaultOutputName ?? "MyGame");
-        var type = Sdtpl?.Type == SdtplMetadata.TemplateType.Sample ? "solution" : "project";
+        var type = Sdtpl?.Type == TemplateType.Sample ? "solution" : "project";
         // Classifications: split "Samples/Graphics" into ["Samples", "Graphics"]; falls back to
         // a flat ["Stride", "Game"] tag when no Group is declared.
         var classifications = Sdtpl?.Group is { Length: > 0 } g

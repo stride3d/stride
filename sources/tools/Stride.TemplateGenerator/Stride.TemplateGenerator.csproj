@@ -17,9 +17,11 @@
     <Compile Include="..\..\engine\Stride.Assets\Templates\SdtplMetadata.cs">
       <Link>SdtplMetadata.cs</Link>
     </Compile>
-    <!-- Inlines a referenced pack as `stride new` adds one: into the package's folders, its paths rewritten. -->
     <Compile Include="..\..\engine\Stride.Assets\Templates\AssetPackPlacement.cs">
       <Link>AssetPackPlacement.cs</Link>
+    </Compile>
+    <Compile Include="..\..\assets\Stride.Core.Assets\Templates\TemplateType.cs">
+      <Link>TemplateType.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

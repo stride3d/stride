@@ -128,6 +128,7 @@ public static class TestTemplatePackage
             DefaultOutputName = GameDefaultOutputName,
             Description = "A game for the tests",
             FullPath = new UFile(Path.Combine(directory, "TestGame" + TemplateDescription.FileExtension)),
+            TemplateType = TemplateType.Sample,
         });
         package.Templates.Add(new TemplateDescription
         {
@@ -146,7 +147,6 @@ public static class TestTemplatePackage
             Scope = TemplateScope.Session,
             Order = 30,
             DefaultOutputName = "MyTestPlugin",
-            Description = "A plugin for the tests",
             FullPath = new UFile(Path.Combine(directory, "TestPlugin" + TemplateDescription.FileExtension)),
         });
         package.Templates.Add(new TemplateDescription
