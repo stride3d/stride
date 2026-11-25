@@ -16,7 +16,7 @@ on:
         required: false
       ref:
         description: Assimp tag
-        default: v6.0.5
+        default: v6.0.6
         required: true
 
 env:
