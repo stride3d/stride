@@ -103,6 +103,20 @@ public record struct ShaderStructParser : IParser<ShaderStruct>
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderStruct parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
+        // `partial` and `extend` are keywords only before `struct`
+        var kind = ShaderStructKind.Plain;
+        if (Parsers.SequenceOf(ref scanner, ["partial", "struct"]))
+        {
+            Tokens.Literal("partial", ref scanner, advance: true);
+            Parsers.Spaces1(ref scanner, result, out _);
+            kind = ShaderStructKind.Partial;
+        }
+        else if (Parsers.SequenceOf(ref scanner, ["extend", "struct"]))
+        {
+            Tokens.Literal("extend", ref scanner, advance: true);
+            Parsers.Spaces1(ref scanner, result, out _);
+            kind = ShaderStructKind.Extend;
+        }
         if (
             Tokens.Literal("struct", ref scanner, advance: true)
             && Parsers.Spaces1(ref scanner, result, out _)
@@ -111,7 +125,7 @@ public record struct ShaderStructParser : IParser<ShaderStruct>
         )
         {
             Parsers.Spaces0(ref scanner, result, out _);
-            parsed = new ShaderStruct(identifier, scanner[position..]);
+            parsed = new ShaderStruct(identifier, scanner[position..]) { Kind = kind };
             Parsers.Repeat<TScanner, ShaderStructMemberParser, ShaderStructMember>(ref scanner, new ShaderStructMemberParser(), result, out var members, 0, withSpaces: true, separator: ";");
             Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true);
             if (members is not null)

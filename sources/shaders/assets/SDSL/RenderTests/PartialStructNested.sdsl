@@ -1,0 +1,63 @@
+// PSMain(ExpectedResult=#01020304)
+
+namespace Stride.Shaders.Tests;
+
+// A shader adds a field to a partial struct, and keeps it in an array inside a plain struct.
+// The module that reads z sees x, z (z is field 1); the effect's struct is x, y, z (z is field 2).
+
+module PartialNestedOwner
+{
+    partial struct PartialNested
+    {
+        float x;
+    };
+};
+
+module PartialNestedZ
+{
+    import PartialNestedOwner;
+
+    extend struct PartialNested
+    {
+        float z;
+    };
+
+    float GetZ(PartialNested p)
+    {
+        return p.z;
+    }
+};
+
+shader PartialNestedRoot
+{
+    import PartialNestedZ;
+
+    extend struct PartialNested
+    {
+        float y;
+    };
+
+    struct PartialNestedHolder
+    {
+        float pad;
+        PartialNested items[2];
+    };
+
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        PartialNestedHolder holder;
+        holder.pad = 1.0 / 255.0;
+        holder.items[1] = (PartialNested)0;
+        holder.items[1].y = 2.0 / 255.0;
+        holder.items[1].z = 3.0 / 255.0;
+        PartialNested copy = holder.items[1];
+        streams.ColorTarget = float4(holder.pad, copy.y, GetZ(copy), 4.0 / 255.0);
+    }
+};
+
+effect PartialStructNested
+{
+    mixin PartialNestedRoot;
+}

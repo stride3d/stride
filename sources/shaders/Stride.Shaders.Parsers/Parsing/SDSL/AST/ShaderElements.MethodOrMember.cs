@@ -249,6 +249,18 @@ public sealed partial class ShaderMember(
             return;
         }
 
+        if ((StreamKind, StorageClass) is not (StreamKind.None, StorageClass.Static))
+        {
+            var what = (memberType, StorageClass, StreamKind) switch
+            {
+                (_, _, StreamKind.Stream or StreamKind.PatchStream) => "stream member",
+                (_, StorageClass.GroupShared, _) => "groupshared variable",
+                (StructuredBufferType or AppendStructuredBufferType or ConsumeStructuredBufferType, _, _) => "buffer",
+                _ => "member (in the global cbuffer)",
+            };
+            PartialStructs.CheckFixedLayout(table, Name.Info, what, Name.Name, memberType);
+        }
+
         if (TypeModifier == TypeModifier.Const)
         {
             if (Value == null)

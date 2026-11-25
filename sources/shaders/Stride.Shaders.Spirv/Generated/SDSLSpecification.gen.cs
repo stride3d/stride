@@ -696,6 +696,8 @@ public static partial class Specification
         FunctionParameterDefaultValueSDSL = 8040,
         ShaderConstantSDSL = 8060,
         PatchConstantFuncSDSL = 8070,
+        PartialStructSDSL = 8080,
+        PartialFieldSDSL = 8081,
     }
 
     public enum BuiltIn
