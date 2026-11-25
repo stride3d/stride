@@ -24,12 +24,12 @@ on:
   workflow_dispatch:
     inputs:
       msdfgen-version:
-        description: msdfgen tag (e.g. v1.12)
-        default: v1.12
+        description: msdfgen tag (e.g. v1.13.1)
+        default: v1.13.1
         required: true
       freetype-version:
-        description: FreeType tag for the bundled static lib (e.g. VER-2-13-3)
-        default: VER-2-13-3
+        description: FreeType tag for the bundled static lib (e.g. VER-2-15-0)
+        default: VER-2-15-0
         required: true
 
 jobs:
@@ -245,6 +245,7 @@ jobs:
             -DFT_DISABLE_BZIP2=ON \
             -DFT_DISABLE_BROTLI=ON \
             -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_HVF=ON \
             -DFT_DISABLE_PNG=ON \
             -DFT_DISABLE_ZLIB=ON
           cmake --build _ft-build

@@ -62,7 +62,7 @@ namespace Stride.TextureConverter.AstcEncWrapper
         public const float QualityExhaustive = 100.0f;
 
         // Flags
-        public const uint FlagDecompressOnly = 1u << 1;
+        public const uint FlagDecompressOnly = 1u << 4;
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Swizzle
@@ -88,7 +88,7 @@ namespace Stride.TextureConverter.AstcEncWrapper
 
         // Public astcenc_config has many tuning knobs; we only need to construct it via astcenc_config_init
         // and let the encoder fill in defaults. Allocate it as an opaque byte blob sized generously.
-        // The struct is ~256 bytes in astcenc 5.x; we reserve 1024 for forward compat.
+        // The struct is 128 bytes in astcenc 5.x on 64-bit; we reserve 1024 for forward compat.
         public const int ConfigStructSize = 1024;
 
         [DllImport(LibraryName, EntryPoint = "astcenc_config_init", CallingConvention = CallingConvention.Cdecl)]
@@ -105,7 +105,8 @@ namespace Stride.TextureConverter.AstcEncWrapper
         public static extern unsafe AstcEncError ContextAlloc(
             void* config,
             uint threadCount,
-            out IntPtr context);
+            out IntPtr context,
+            IntPtr parentContext);
 
         [DllImport(LibraryName, EntryPoint = "astcenc_compress_image", CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe AstcEncError CompressImage(

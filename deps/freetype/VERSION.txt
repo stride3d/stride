@@ -1,8 +1,8 @@
-FreeType VER-2-13-3
-Version: 2.13.3.0+g42608f77f2
+FreeType VER-2-15-0
+Version: 2.15.0.1+g37515cf56b
 Repository: https://github.com/freetype/freetype
-Commit: 42608f77f20749dd6ddc9e0536788eaad70ea4b5
-Stride: https://github.com/stride3d/stride @ 1d2983f4da31eca82490cdaaf1c64dda710348c6
-Built: 2026-11-24
-Workflow: https://github.com/stride3d/stride/actions/runs/45389074658
-Debug files: https://github.com/stride3d/stride/releases/tag/deps/freetype/VER-2-13-3-run40
+Commit: 37515cf56ba3349656049edbed89ffc6f6466f2d
+Stride: https://github.com/stride3d/stride @ 0a2141a095bd3a4d144fd607080f31bd917b99fc
+Built: 2026-11-25
+Workflow: https://github.com/stride3d/stride/actions/runs/45553936830
+Debug files: https://github.com/stride3d/stride/releases/tag/deps/freetype/2.15.0.1
