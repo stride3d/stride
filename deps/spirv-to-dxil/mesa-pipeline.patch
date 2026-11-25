@@ -40,6 +40,20 @@ index beb2837bead..0a0b6626019 100644
 +  description : 'Stride: send the allocations of Mesa code to a static mimalloc (MSVC only). ' +
 +                'The Windows process heap serializes them when several threads compile at once.',
 +)
+diff --git a/src/compiler/nir/meson.build b/src/compiler/nir/meson.build
+index 436e3714b4a..d85205d8208 100644
+--- a/src/compiler/nir/meson.build
++++ b/src/compiler/nir/meson.build
+@@ -78,7 +78,8 @@ nir_intrinsics_c = custom_target(
+   depend_files : files('nir_intrinsics.py'),
+ )
+ 
+-with_nir_headers_only = not with_gfx_compute or (
++# Stride: spirv_to_dxil needs NIR without GL, Vulkan or CLC; the list below names it, but only when the gallium driver is d3d12.
++with_nir_headers_only = (not with_gfx_compute and not with_spirv_to_dxil) or (
+   gallium_drivers == ['d3d12'] and
+   get_option('gallium-d3d12-graphics').disabled() and
+   not [
 diff --git a/src/microsoft/spirv_to_dxil/meson.build b/src/microsoft/spirv_to_dxil/meson.build
 index a00ed9927bb..0791e458b37 100644
 --- a/src/microsoft/spirv_to_dxil/meson.build
