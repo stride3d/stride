@@ -887,14 +887,32 @@ public partial class GenericIdentifier(Identifier name, ShaderExpressionList? ge
             if (!table.ShaderLoader.Exists(classSource.ClassName))
                 throw new InvalidOperationException($"Symbol [{classSource.ClassName}] could not be found.");
 
-            // Shader is inherited (TODO: do we want to do something more "selective", i.e. import only the required variable if it's a cbuffer?)
+            // A class made of functions, constants and stage members (with its parents) is imported as a module: the mixer keeps
+            // one instance per effect, at the root, instead of mixing it into the node of this shader. Anything else is
+            // inherited, as the mixer can't tell a static use of its overrides, streams or compositions from a mixin.
+            bool asModule;
+            var existingIndex = table.InheritedShaders.IndexOf(classSource);
+            if (existingIndex >= 0)
+            {
+                asModule = table.InheritedShaders[existingIndex].IsModule;
+            }
+            else
+            {
+                var classes = new List<ShaderClassInstantiation>();
+                SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), classes, ResolveStep.Compile);
+                var whyNotModule = WhyNotModule(classes.Select(x => ShaderClass.LoadAndCacheExternalShaderDefinition(table, context, x)));
+                asModule = whyNotModule == null;
+                if (whyNotModule != null)
+                    table.AddInfo(new(info, $"Static reference to '{classSource.ToClassNameWithGenerics()}' from '{table.CurrentShader?.Name}' mixes it in like an inherited shader, because {whyNotModule}. Only a shader made of functions, constants and stage members is imported once per effect."));
+            }
+
             var inheritedShaderCount = table.InheritedShaders.Count;
-            classSource = SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
+            classSource = SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile, asModule);
             for (int i = inheritedShaderCount; i < table.InheritedShaders.Count; ++i)
             {
                 var shaderDefinition = ShaderClass.LoadAndCacheExternalShaderDefinition(table, context, table.InheritedShaders[i]);
                 table.InheritedShaders[i].Symbol = shaderDefinition;
-                ShaderClass.Inherit(table, context, shaderDefinition, false);
+                ShaderClass.Inherit(table, context, shaderDefinition, false, table.InheritedShaders[i].IsModule ? Specification.MixinInheritFlagsMask.Module : Specification.MixinInheritFlagsMask.None);
             }
 
             // We add the typename as a symbol (similar to static access in C#)
@@ -904,6 +922,47 @@ public partial class GenericIdentifier(Identifier name, ShaderExpressionList? ge
         }
 
         return symbol;
+    }
+
+    /// <summary>
+    ///   Checks that a class and its parents can be imported as a module: no override, abstract or stage method (another class
+    ///   in the effect could replace them), no stream, no composition, no struct, and no non-stage member (one per instance).
+    /// </summary>
+    /// <returns>Null if they can, otherwise why not.</returns>
+    internal static string? WhyNotModule(IEnumerable<ShaderDefinition> classes)
+    {
+        foreach (var shader in classes)
+        {
+            foreach (var (method, flags) in shader.Methods)
+            {
+                if ((flags & Specification.FunctionFlagsMask.Override) != 0)
+                    return $"'{shader.Name}.{method.Id.Name}' is an override";
+                if ((flags & Specification.FunctionFlagsMask.Abstract) != 0)
+                    return $"'{shader.Name}.{method.Id.Name}' is abstract";
+                if ((flags & Specification.FunctionFlagsMask.Stage) != 0)
+                    return $"'{shader.Name}.{method.Id.Name}' is a stage method";
+            }
+
+            foreach (var (variable, flags) in shader.Variables)
+            {
+                if (variable.Id.Kind == SymbolKind.Constant)
+                    continue;
+                if ((flags & Specification.VariableFlagsMask.Stream) != 0)
+                    return $"'{shader.Name}.{variable.Id.Name}' is a stream";
+                if (variable.Type is PointerType { BaseType: ShaderSymbol or ArrayType { BaseType: ShaderSymbol } })
+                    return $"'{shader.Name}.{variable.Id.Name}' is a composition";
+                if ((flags & Specification.VariableFlagsMask.Stage) == 0)
+                    return $"'{shader.Name}.{variable.Id.Name}' is not a stage member";
+            }
+
+            foreach (var (structType, _) in shader.StructTypes)
+            {
+                if (structType is not ConstantBufferSymbol)
+                    return $"'{shader.Name}' declares the struct '{structType.Name}'";
+            }
+        }
+
+        return null;
     }
 
     public override string ToString() => Generics != null ? $"{Name}<{string.Join(",", Generics.Values)}>" : Name.ToString();

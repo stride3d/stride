@@ -721,7 +721,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (i2.Op == Op.OpImportStructSDSL && new OpImportStructSDSL(ref i2) is { } importStruct)
                     {
                         var shaderName = globalContext.ExternalShaders[importStruct.Shader];
-                        var shader2 = mixinNode.ShadersByName[shaderName];
+                        // A module is only in the root node
+                        if (!mixinNode.ShadersByName.TryGetValue(shaderName, out var shader2)
+                            && (mixinNode.Stage == null || !mixinNode.Stage.ShadersByName.TryGetValue(shaderName, out shader2)))
+                            throw new InvalidOperationException($"Shader {shaderName} of struct {importStruct.StructName} not found");
                         if (!shader2.StructTypes.TryGetValue(importStruct.StructName, out var structId)
                             && (shader2.Stage == null || !shader2.Stage.StructTypes.TryGetValue(importStruct.StructName, out structId)))
                             throw new InvalidOperationException($"Struct {importStruct.StructName} not found in shader {shaderName}");
@@ -848,6 +851,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             shaderInfo.StructTypes.Add(structType.Key, structType.Value);
         shaderInfo.CompositionPath = mixinNode.CompositionPath;
         shaderInfo.ImportStageOnly = shaderClass.ImportStageOnly;
+        shaderInfo.IsModule = shaderClass.IsModule;
         if (mixinNode.Stage != null && mixinNode.Stage.ShadersByName.TryGetValue(shaderClass.ClassName, out var stageShaderInfo))
             shaderInfo.Stage = stageShaderInfo;
 
@@ -1118,10 +1122,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     var shaderName = globalContext.ExternalShaders[variable.ShaderId];
 
-                    var shaderInfo = instanceMixinGroup.ShadersByName[shaderName];
-                    if (!shaderInfo.Variables.TryGetValue(variable.Name, out var variableInfo))
+                    if (!instanceMixinGroup.ShadersByName.TryGetValue(shaderName, out var shaderInfo) || !shaderInfo.Variables.TryGetValue(variable.Name, out var variableInfo))
                     {
-                        // Try as a stage variable
+                        // Try as a stage variable, or a variable of a module (both in the root node)
                         if (!(instanceMixinGroup.Stage != null
                             && instanceMixinGroup.Stage.ShadersByName.TryGetValue(shaderName, out shaderInfo)
                             && shaderInfo.Variables.TryGetValue(variable.Name, out variableInfo)))
@@ -1135,7 +1138,20 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     // In case of functions, OpMemberAccessSDSL.Member could either be a OpFunction or a OpImportFunctionSDSL
                     var functionId = memberAccess.Member;
-                    if (globalContext.ExternalFunctions.TryGetValue(memberAccess.Member, out var function))
+                    var isExternalFunction = globalContext.ExternalFunctions.TryGetValue(memberAccess.Member, out var function);
+                    if (isExternalFunction && !isBase && FindModule(instanceMixinGroup, globalContext.ExternalShaders[function.ShaderId]) is { } module)
+                    {
+                        // A module function: there is no override to select, it is the function of that module
+                        var moduleFunctions = module.Functions.GetValueOrDefault(function.Name);
+                        var moduleFunctionIndex = moduleFunctions?.FindIndex(x => x.Type == functionType) ?? -1;
+                        if (moduleFunctionIndex == -1)
+                            throw new InvalidOperationException($"Can't find function {function.Name} in module {module.ShaderName}");
+                        memberAccesses.Add(memberAccess.ResultId, moduleFunctions![moduleFunctionIndex].Id);
+                        i.SetOpNop();
+                        continue;
+                    }
+
+                    if (isExternalFunction)
                     {
                         // Process member call (composition)
                         if (!instanceMixinGroup.MethodGroupsByName.TryGetValue((function.Name, functionType), out functionId)
@@ -1234,6 +1250,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
         return result;
+    }
+
+    /// <summary>
+    /// The module <paramref name="shaderName"/> seen from <paramref name="mixinNode"/>, or null when that node or the root mixes
+    /// the class in: calls then select the override, as for any inherited method.
+    /// </summary>
+    private static ShaderInfo? FindModule(MixinNode mixinNode, string shaderName)
+    {
+        if (!mixinNode.ShadersByName.TryGetValue(shaderName, out var shader) && mixinNode.Stage != null)
+            mixinNode.Stage.ShadersByName.TryGetValue(shaderName, out shader);
+        return shader is { IsModule: true } ? shader : null;
     }
 
     /// <summary>

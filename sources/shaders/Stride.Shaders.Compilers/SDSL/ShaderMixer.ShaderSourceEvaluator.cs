@@ -102,6 +102,18 @@ public partial class ShaderMixer
             {
                 var stageOnlyVariant = new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments, ImportStageOnly: true) { Buffer = shaderName.Buffer, Symbol = shaderName.Symbol };
 
+                // A module (static references only) of a composition: one instance, here. Its parents are modules that came
+                // before it in the composition, so they are already here.
+                if (shaderName.IsModule)
+                {
+                    var existingIndex = result.Mixins.IndexOf(shaderName);
+                    if (existingIndex == -1)
+                        result.Mixins.Add(new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments) { Buffer = shaderName.Buffer, Symbol = shaderName.Symbol, IsModule = true });
+                    else if (result.Mixins[existingIndex].ImportStageOnly)
+                        result.Mixins[existingIndex] = new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments) { Buffer = shaderName.Buffer, Symbol = shaderName.Symbol };
+                    return;
+                }
+
                 // Skip if already added (either standard or stage-only)
                 if (result.Mixins.Contains(shaderName) || result.Mixins.Contains(stageOnlyVariant))
                     return;
@@ -148,9 +160,22 @@ public partial class ShaderMixer
         {
             var shaderName = mixinList[shaderIndex];
 
-            // May already be present if promoteToParent pulled it forward earlier
-            if (result.Mixins.Contains(shaderName))
+            // May already be present if promoteToParent pulled it forward earlier, or added it as a module of a composition:
+            // mixed in here, it is no longer a module
+            var existingIndex = result.Mixins.IndexOf(shaderName);
+            if (existingIndex != -1)
+            {
+                if (!shaderName.IsModule)
+                    result.Mixins[existingIndex].IsModule = false;
                 continue;
+            }
+
+            // A module in a composition exists once per effect, at the root
+            if (shaderName.IsModule && promoteToParent != null)
+            {
+                promoteToParent(shaderName);
+                continue;
+            }
 
             var shaderBuffers = shaderName.Buffer ?? throw new InvalidOperationException($"Shader buffers not loaded for {shaderName.ClassName}");
 

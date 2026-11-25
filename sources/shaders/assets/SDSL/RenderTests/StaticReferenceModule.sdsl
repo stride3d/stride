@@ -1,0 +1,33 @@
+// PSMain(ExpectedResult=#060A060A)
+
+namespace Stride.Shaders.Tests;
+
+// Functions and constants only: a static reference imports it as a module, not mixed into the referencing node
+shader StaticReferenceModuleHelper
+{
+    static const float Ten = 10.0;
+
+    float Twice(float value)
+    {
+        return value * 2.0;
+    }
+}
+
+shader StaticReferenceModule
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        float twice = StaticReferenceModuleHelper.Twice(3.0);
+        float ten = StaticReferenceModuleHelper.Ten;
+        streams.ColorTarget = float4(twice, ten, twice, ten) / 255.0;
+    }
+}

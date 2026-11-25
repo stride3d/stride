@@ -1,0 +1,57 @@
+// PSMain(ExpectedResult=#0E0E0E0E)
+
+namespace Stride.Shaders.Tests;
+
+shader StaticReferenceInCompositionHelper
+{
+    float Twice(float value)
+    {
+        return value * 2.0;
+    }
+}
+
+shader StaticReferenceInCompositionBase
+{
+    float Compute()
+    {
+        return 0.0;
+    }
+};
+
+// Both compositions use the helper through a static reference: it is one module at the root, not one copy per composition
+shader StaticReferenceInCompositionA : StaticReferenceInCompositionBase
+{
+    override float Compute()
+    {
+        return StaticReferenceInCompositionHelper.Twice(3.0);
+    }
+};
+
+shader StaticReferenceInCompositionB : StaticReferenceInCompositionBase
+{
+    override float Compute()
+    {
+        return StaticReferenceInCompositionHelper.Twice(4.0);
+    }
+};
+
+shader StaticReferenceInCompositionRoot
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    compose StaticReferenceInCompositionBase Comp0;
+    compose StaticReferenceInCompositionBase Comp1;
+
+    void PSMain()
+    {
+        float value = Comp0.Compute() + Comp1.Compute();
+        streams.ColorTarget = float4(value, value, value, value) / 255.0;
+    }
+};
+
+effect StaticReferenceInComposition
+{
+    mixin StaticReferenceInCompositionRoot;
+    mixin compose Comp0 = StaticReferenceInCompositionA;
+    mixin compose Comp1 = StaticReferenceInCompositionB;
+}

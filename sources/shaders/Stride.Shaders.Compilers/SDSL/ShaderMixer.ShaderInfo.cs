@@ -38,6 +38,11 @@ public partial class ShaderMixer
         /// </summary>
         public bool ImportStageOnly { get; set; }
 
+        /// <summary>
+        /// Used only through static references (always in the root node): they call its functions, never an override.
+        /// </summary>
+        public bool IsModule { get; set; }
+
         public int StartInstruction { get; internal set; } = startInstruction;
         public int EndInstruction { get; internal set; } = endInstruction;
         public Dictionary<string, List<(int Id, FunctionType Type)>> Functions { get; } = new();

@@ -372,8 +372,8 @@ public partial class ShaderCorpusTests
 
     const string OptimizedSuffix = ".optimized.spvasm";
 
-    // A class line of an explain dump: "  mixin X"
-    [System.Text.RegularExpressions.GeneratedRegex(@"^ +mixin ([A-Za-z_]\w*)", System.Text.RegularExpressions.RegexOptions.Multiline)]
+    // A class line of an explain dump: "  mixin X", "  module X"
+    [System.Text.RegularExpressions.GeneratedRegex(@"^ +(?:mixin|module) ([A-Za-z_]\w*)", System.Text.RegularExpressions.RegexOptions.Multiline)]
     private static partial System.Text.RegularExpressions.Regex MixedClass();
 
     static readonly string[] DiffSuffixes = [".error.txt", ".explain.txt", ".reflection.txt", ".legal.spvasm", ".spvasm", OptimizedSuffix];

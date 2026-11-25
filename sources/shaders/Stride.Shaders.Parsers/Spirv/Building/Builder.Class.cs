@@ -60,6 +60,13 @@ public record class ShaderClassInstantiation(string ClassName, ConstantExpressio
 
     public ShaderDefinition? Symbol { get; set; }
 
+    /// <summary>
+    /// Reached only through static references (<c>X.Method()</c>, <c>X.Member</c>) of a class with functions, constants and
+    /// stage members only: it exists once per effect, at the root, and is not mixed into the node of the referencing class.
+    /// Not part of equality: a class reached both ways is one entry, a mixin.
+    /// </summary>
+    public bool IsModule { get; set; }
+
     public string ToClassNameWithGenerics()
     {
         if ((GenericArguments == null || GenericArguments.Length == 0) && !ImportStageOnly)
@@ -124,7 +131,8 @@ public class ConstantVector
 
 public partial class SpirvBuilder
 {
-    public static void BuildInheritanceListWithoutSelf(IExternalShaderLoader shaderLoader, SpirvContext topLevelContext, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, SpirvContext declaringContext, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
+    /// <param name="asModule">The classes added are modules (<see cref="ShaderClassInstantiation.IsModule"/>), as are the targets of the module edges in any case.</param>
+    public static void BuildInheritanceListWithoutSelf(IExternalShaderLoader shaderLoader, SpirvContext topLevelContext, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, SpirvContext declaringContext, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep, bool asModule = false)
     {
         // Build shader name mapping and collect generic parameter expressions
         var shaderMapping = new Dictionary<int, ShaderClassInstantiation>();
@@ -183,7 +191,7 @@ public partial class SpirvBuilder
                     shaderName = shaderName with { GenericArguments = remappedArgs };
                 }
 
-                BuildInheritanceListIncludingSelf(shaderLoader, topLevelContext, shaderName, macros, inheritanceList, resolveStep);
+                BuildInheritanceListIncludingSelf(shaderLoader, topLevelContext, shaderName, macros, inheritanceList, resolveStep, asModule || (inherit.Flags & MixinInheritFlagsMask.Module) != 0);
             }
         }
     }
@@ -197,7 +205,8 @@ public partial class SpirvBuilder
         return new ShaderClassInstantiation(importShader.ShaderName, exprs);
     }
 
-    public static ShaderClassInstantiation BuildInheritanceListIncludingSelf(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
+    /// <param name="asModule">The class and the parents it adds are modules (<see cref="ShaderClassInstantiation.IsModule"/>).</param>
+    public static ShaderClassInstantiation BuildInheritanceListIncludingSelf(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep, bool asModule = false)
     {
         // TODO: cache same instantiations within context?
         var index = inheritanceList.IndexOf(classSource);
@@ -213,13 +222,24 @@ public partial class SpirvBuilder
             index = inheritanceList.IndexOf(classSource);
             if (index == -1)
             {
-                BuildInheritanceListWithoutSelf(shaderLoader, context, classSource, macros, classSource.Buffer.Value.Context, inheritanceList, resolveStep);
+                classSource.IsModule = asModule;
+                BuildInheritanceListWithoutSelf(shaderLoader, context, classSource, macros, classSource.Buffer.Value.Context, inheritanceList, resolveStep, asModule);
                 index = inheritanceList.Count;
                 inheritanceList.Add(classSource);
+                return classSource;
             }
         }
 
-        return inheritanceList[index];
+        // Reached first through a static reference, now through an inherit: it is a mixin, and so are its parents.
+        // It keeps its place in the list, where the static reference put it.
+        var existing = inheritanceList[index];
+        if (existing.IsModule && !asModule)
+        {
+            existing.IsModule = false;
+            BuildInheritanceListWithoutSelf(shaderLoader, context, existing, macros, existing.Buffer!.Value.Context, inheritanceList, resolveStep);
+        }
+
+        return existing;
     }
 
     record struct GenericParameter(SymbolType Type, int ResultId, int ResultType, int Index, string Name, bool Resolved, string Value);
