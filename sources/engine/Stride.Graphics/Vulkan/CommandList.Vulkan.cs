@@ -434,7 +434,7 @@ namespace Stride.Graphics
                     case VkDescriptorType.StorageImage:
                         {
                             var texture = heapObject.Value as Texture;
-                            descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = VkImageLayout.General };
+                            descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeStorageImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = VkImageLayout.General };
                             write->pImageInfo = &descriptorData->ImageInfo;
                             break;
                         }
