@@ -21,8 +21,8 @@ on:
   workflow_dispatch:
     inputs:
       astcenc-version:
-        description: astcenc git tag (e.g. 5.3.0)
-        default: 5.3.0
+        description: astcenc git tag (e.g. 5.7.1)
+        default: 5.7.1
         required: true
 
 jobs:

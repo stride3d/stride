@@ -76,7 +76,7 @@ namespace Stride.TextureConverter.TexLibraries
             if (err != AstcEncNative.AstcEncError.Success)
                 throw new TextureToolsException($"astcenc_config_init failed: {AstcEncNative.GetErrorMessage(err)}");
 
-            err = AstcEncNative.ContextAlloc(configBuf, threadCount: 1, out var context);
+            err = AstcEncNative.ContextAlloc(configBuf, threadCount: 1, out var context, parentContext: IntPtr.Zero);
             if (err != AstcEncNative.AstcEncError.Success)
                 throw new TextureToolsException($"astcenc_context_alloc failed: {AstcEncNative.GetErrorMessage(err)}");
 
@@ -183,7 +183,7 @@ namespace Stride.TextureConverter.TexLibraries
             if (err != AstcEncNative.AstcEncError.Success)
                 throw new TextureToolsException($"astcenc_config_init failed: {AstcEncNative.GetErrorMessage(err)}");
 
-            err = AstcEncNative.ContextAlloc(configBuf, threadCount: 1, out var context);
+            err = AstcEncNative.ContextAlloc(configBuf, threadCount: 1, out var context, parentContext: IntPtr.Zero);
             if (err != AstcEncNative.AstcEncError.Success)
                 throw new TextureToolsException($"astcenc_context_alloc failed: {AstcEncNative.GetErrorMessage(err)}");
 
