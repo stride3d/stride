@@ -1,0 +1,15 @@
+// Module code calls an instance method of a parent (the terrain case without `module` on the helper).
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleCallsInstance : ModuleRuleSlot, ModuleRuleHelper
+{
+    module float4 Run()
+    {
+        return Helper();
+    }
+
+    override float4 Compute()
+    {
+        return Run();
+    }
+};

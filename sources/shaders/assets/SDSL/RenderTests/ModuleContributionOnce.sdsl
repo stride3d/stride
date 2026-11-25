@@ -1,0 +1,54 @@
+// PSMain(ExpectedResult=#01030000)
+
+namespace Stride.Shaders.Tests;
+
+// A module override of a shader in two composition slots runs once per effect (like ScreenPositionBase);
+// its instance methods run once per slot.
+
+shader ModuleContributionOnceBase
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    module void Contribute()
+    {
+    }
+
+    float Compute()
+    {
+        return 0.0;
+    }
+};
+
+shader ModuleContributionOnceContributor : ModuleContributionOnceBase
+{
+    module override void Contribute()
+    {
+        base.Contribute();
+        streams.ColorTarget.x += 1.0 / 255.0;
+    }
+
+    override float Compute()
+    {
+        return 1.0;
+    }
+};
+
+shader ModuleContributionOnceRoot : ModuleContributionOnceBase
+{
+    compose ModuleContributionOnceBase Comp0;
+    compose ModuleContributionOnceBase Comp1;
+
+    void PSMain()
+    {
+        streams.ColorTarget = 0;
+        Contribute();
+        streams.ColorTarget.y = (Comp0.Compute() + Comp1.Compute() + 1.0) / 255.0;
+    }
+};
+
+effect ModuleContributionOnce
+{
+    mixin ModuleContributionOnceRoot;
+    mixin compose Comp0 = ModuleContributionOnceContributor;
+    mixin compose Comp1 = ModuleContributionOnceContributor;
+}

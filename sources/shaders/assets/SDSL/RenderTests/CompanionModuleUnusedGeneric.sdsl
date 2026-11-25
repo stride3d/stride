@@ -1,0 +1,55 @@
+// PSMain(ExpectedResult=#01010200)
+
+namespace Stride.Shaders.Tests;
+
+// The module part of CompanionModuleGeneric doesn't use N: its two instantiations share one companion module,
+// so the module override runs once. The instance part uses N: one value per slot.
+
+shader CompanionModuleGenericBase
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    module void Contribute()
+    {
+    }
+
+    float Compute()
+    {
+        return 0.0;
+    }
+};
+
+shader CompanionModuleGeneric<int N> : CompanionModuleGenericBase
+{
+    module override void Contribute()
+    {
+        base.Contribute();
+        streams.ColorTarget.x += 1.0 / 255.0;
+    }
+
+    override float Compute()
+    {
+        return N;
+    }
+};
+
+shader CompanionModuleGenericRoot : CompanionModuleGenericBase
+{
+    compose CompanionModuleGenericBase Comp0;
+    compose CompanionModuleGenericBase Comp1;
+
+    void PSMain()
+    {
+        streams.ColorTarget = 0;
+        Contribute();
+        streams.ColorTarget.y = Comp0.Compute() / 255.0;
+        streams.ColorTarget.z = Comp1.Compute() / 255.0;
+    }
+};
+
+effect CompanionModuleUnusedGeneric
+{
+    mixin CompanionModuleGenericRoot;
+    mixin compose Comp0 = CompanionModuleGeneric<1>;
+    mixin compose Comp1 = CompanionModuleGeneric<2>;
+}

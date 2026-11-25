@@ -1,4 +1,4 @@
-// Declares the stage slot. Having a stage member is what gets this shader promoted to the root,
+// Declares the module slot. The slot is in this shader's companion module, in the root,
 // away from the composition that supplies its value.
 namespace Stride.Shaders.Tests;
 

@@ -2,10 +2,10 @@
 
 namespace Stride.Shaders.Tests;
 
-// This class will be inherited twice by CompositionInheritanceStageIndirectAndDirect
-// - first through ShadingColor0 (but it will be stage-only inheritance)
-// - then from ExternalClass being in the inheritance list (full inheritance)
-// This test makes sure the full inheritance override the stage-only inheritance, while still happening early enough
+// This class is used twice by CompositionInheritanceStageIndirectAndDirect
+// - through ShadingColor0 (a composition: its module members would be a companion module in the root)
+// - from ExternalClass being in the root inheritance list (mixed at the root)
+// This test makes sure the root mixin provides the module members, so there is no separate companion module
 shader ExternalClass
 {
     cbuffer PerView

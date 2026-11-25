@@ -1,0 +1,10 @@
+// A module override of an instance method: in a composition they are in different nodes.
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleWrongModuleOverride : ModuleRuleSlot, ModuleRuleHelper
+{
+    override module float Helper()
+    {
+        return 2.0;
+    }
+};

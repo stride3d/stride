@@ -209,7 +209,7 @@ public class StrideShaderTests
             && m.Text.Contains("[numthreads] parameter must be a constant integer expression"));
     }
 
-    // A `module compose` is one slot for the whole effect: its declaring shader is promoted to the root,
+    // A `module compose` is one slot for the whole effect: it is in its declaring shader's companion module, in the root,
     // so a value supplied at a nested composition would have nothing to attach to.
     [Fact]
     public void StageCompositionSuppliedFromNestedIsReported()
@@ -1423,22 +1423,6 @@ new ShaderMacro("class", "shader"),
         Assert.Contains("Append", hlsl);
     }
 
-    // A static call (Utils.Method(x)) from a stage method is not a non-stage member access.
-    [Fact]
-    public void StaticCallFromStageMethodDoesNotForceFullImport()
-    {
-        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
-        var shaderMixer = new ShaderMixer(loader);
-        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("StaticCallRoot", [], out var buffer, out _, out _));
-
-        foreach (var i in buffer.Buffer)
-        {
-            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpFunctionMetadataSDSL && (Stride.Shaders.Spirv.Core.OpFunctionMetadataSDSL)i is { } metadata)
-                Assert.False(metadata.Flags.HasFlag(Stride.Shaders.Spirv.Specification.FunctionFlagsMask.ReferencesNonStage),
-                    "A static call is not an instance access: the stage method must stay stage-only importable.");
-        }
-    }
-
     // A composition with no value in the mixin tree gets its default shader, compiled with the macros of its node
     [Fact]
     public void DefaultCompositionGetsTheMacrosOfItsNode()
@@ -1508,6 +1492,109 @@ new ShaderMacro("class", "shader"),
         Assert.Equal(0, CountLines(explanation, "  module StaticReferenceModuleOverriddenHelper"));
     }
 
+    // A module override of a shader in two composition slots is one companion module in the root
+    [Fact]
+    public void ContributionFromTwoSlotsIsOneCompanionModule()
+    {
+        var explanation = ExplainRenderTest("ModuleContributionOnce", new());
+        Assert.Equal(1, CountLines(explanation, "  companion module ModuleContributionOnceContributor"));
+        Assert.Equal(2, CountLines(explanation, "  mixin ModuleContributionOnceContributor"));
+    }
+
+    // Two instantiations whose module part doesn't use the generic argument share one companion module
+    [Fact]
+    public void CompanionModuleIdentityIgnoresUnusedGenericArguments()
+    {
+        var explanation = ExplainRenderTest("CompanionModuleUnusedGeneric", new());
+        Assert.Equal(1, CountLines(explanation, "  companion module CompanionModuleGeneric<*>"));
+        Assert.Equal(1, CountLines(explanation, "  mixin CompanionModuleGeneric<1>"));
+        Assert.Equal(1, CountLines(explanation, "  mixin CompanionModuleGeneric<2>"));
+    }
+
+    // Mixes ModuleRuleRoot with the given shader in its composition slot
+    static (bool Success, Stride.Core.Diagnostics.LoggerResult Log) MergeModuleRule(string slotShader)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var source = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("ModuleRuleRoot") },
+            Compositions = { ["Comp0"] = new ShaderMixinSource { Mixins = { new ShaderClassSource(slotShader) } } },
+        };
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        var success = new ShaderMixer(loader).MergeSDSL(source, new ShaderMixer.Options(true), log, out _, out _, out _, out _);
+        return (success, log);
+    }
+
+    // Module code of a shader used in a composition can't read its instance members (one per slot)
+    [Fact]
+    public void ModuleCodeReadingInstanceMemberInCompositionIsReported()
+    {
+        var (success, log) = MergeModuleRule("ModuleRuleReadsInstance");
+        Assert.False(success);
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("Module code `ModuleRuleReadsInstance.ReadValue` reads `Value`, an instance member of `ModuleRuleReadsInstance`")
+            && m.Text.Contains("(`Comp0`)") && m.Text.Contains("Mark `Value` `module`"));
+    }
+
+    // ... nor call an instance method of a parent
+    [Fact]
+    public void ModuleCodeCallingInstanceMethodInCompositionIsReported()
+    {
+        var (success, log) = MergeModuleRule("ModuleRuleCallsInstance");
+        Assert.False(success);
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("Module code `ModuleRuleCallsInstance.Run` calls `ModuleRuleHelper.Helper`, an instance method")
+            && m.Text.Contains("Mark `ModuleRuleHelper.Helper` `module`"));
+    }
+
+    // In a composition, an override of a module method must be a module override (one chain per effect)
+    [Fact]
+    public void InstanceOverrideOfModuleMethodInCompositionIsReported()
+    {
+        var (success, log) = MergeModuleRule("ModuleRuleWrongOverride");
+        Assert.False(success);
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("`ModuleRuleWrongOverride.Factor` overrides the module method `ModuleRuleModuleBase.Factor` but is not `module`")
+            && m.Text.Contains("Write `override module`"));
+    }
+
+    // ... nor call an instance method of its own class
+    [Fact]
+    public void ModuleCodeCallingOwnInstanceMethodInCompositionIsReported()
+    {
+        var (success, log) = MergeModuleRule("ModuleRuleCallsOwnInstance");
+        Assert.False(success);
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("Module code `ModuleRuleCallsOwnInstance.Run` calls `Helper`, an instance method of `ModuleRuleCallsOwnInstance`")
+            && m.Text.Contains("Mark `Helper` `module`"));
+    }
+
+    // In a composition, a module method can't override an instance method (one chain per instance)
+    [Fact]
+    public void ModuleOverrideOfInstanceMethodInCompositionIsReported()
+    {
+        var (success, log) = MergeModuleRule("ModuleRuleWrongModuleOverride");
+        Assert.False(success);
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("`ModuleRuleWrongModuleOverride.Helper` is `module` but overrides the instance method `ModuleRuleHelper.Helper`")
+            && m.Text.Contains("Remove `module`"));
+    }
+
+    // A companion module stays after its parent, also when another instantiation of the parent, mixed later at the root, holds the parent's module part
+    [Fact]
+    public void CompanionModuleStaysAfterParentOfSameIdentity()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var source = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("ModuleRuleRoot"), new ShaderClassSource("ModuleRuleGenericParent", "1") },
+            Compositions = { ["Comp0"] = new ShaderMixinSource { Mixins = { new ShaderClassSource("ModuleRuleGenericChild") } } },
+        };
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(new ShaderMixer(loader).MergeSDSL(source, new ShaderMixer.Options(true), log, out _, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+    }
+
     // A shader with an override can't be a module: a static reference mixes it in as before, and says why
     [Fact]
     public void StaticReferenceToShaderWithOverrideIsMixedIn()
@@ -1518,26 +1605,6 @@ new ShaderMacro("class", "shader"),
         Assert.Equal(0, CountLines(explanation, "  module StaticReferenceToMixinHelper"));
         Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Debug
             && m.Text.Contains("Static reference to 'StaticReferenceToMixinHelper'") && m.Text.Contains("'StaticReferenceToMixinHelper.Value' is an override"));
-    }
-
-    // A non-stage variable read through its shader name (Base.Value) from a stage method is an instance access.
-    [Fact]
-    public void QualifiedNonStageReadFromStageMethodForcesFullImport()
-    {
-        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
-        var shaderMixer = new ShaderMixer(loader);
-        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("QualifiedNonStageRoot", [], out var buffer, out _, out _));
-
-        var needsFullImport = false;
-        foreach (var i in buffer.Context)
-        {
-            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpMixinInheritSDSL && (Stride.Shaders.Spirv.Core.OpMixinInheritSDSL)i is { } inherit
-                && inherit.Flags.HasFlag(Stride.Shaders.Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport)
-                && buffer.Context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is Stride.Shaders.Core.ShaderSymbol { Name: "QualifiedNonStageBase" })
-                needsFullImport = true;
-        }
-
-        Assert.True(needsFullImport, "QualifiedNonStageBase.Value is read from a stage method: the base must be fully imported.");
     }
 
     // [loop] and [unroll] must reach OpLoopMerge's loop control; SPIRV-Cross turns them back into HLSL attributes.

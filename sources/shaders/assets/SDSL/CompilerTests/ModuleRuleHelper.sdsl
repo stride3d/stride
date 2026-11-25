@@ -1,0 +1,9 @@
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleHelper
+{
+    float Helper()
+    {
+        return 1.0;
+    }
+};

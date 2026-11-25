@@ -13,7 +13,7 @@ shader NormalFromNormalMapping : Transformation, NormalBase, NormalStream
         streams.meshNormalWS = mul(streams.meshNormal, (float3x3)WorldInverseTranspose);    // TODO: PERFORMANCE: Normalization required?
     }
 
-    override float3x3 GetTangentWorldTransform()
+    override module float3x3 GetTangentWorldTransform()
     {
         return (float3x3)WorldInverseTranspose;
     }

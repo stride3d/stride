@@ -1,19 +1,19 @@
 // This file provides shaders for the CompositionStageInheritedNotPromotedToRoot test in StrideShaderTests.cs.
-// The test builds a ShaderMixinSource manually (not via effect block) to reproduce a bug where
-// a parent shader's stage functions are not promoted to root level when the child is used in a composition.
+// Module code of a composition shader calls a module helper of its parent: the helper is in the parent's
+// companion module, in the root.
 
 namespace Stride.Shaders.Tests;
 
-// Parent shader with a non-stage helper function (like TerrainQuery).
+// Parent shader with a module helper function (like TerrainQuery).
 shader StageParentHelper
 {
-    float4 ComputeHelper()
+    module float4 ComputeHelper()
     {
         return float4(1.0, 1.0, 1.0, 1.0) / 255.0;
     }
 }
 
-// Child shader inherits parent, has a stage method that calls parent's stage function.
+// Child shader inherits parent, has a module method that calls parent's module function.
 // Mimics MaterialTreeDisplacementFeature inheriting TerrainQuery.
 shader StageChildComposition : StageParentHelper
 {

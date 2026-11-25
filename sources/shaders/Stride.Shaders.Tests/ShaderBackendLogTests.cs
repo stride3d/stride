@@ -31,11 +31,14 @@ public class ShaderBackendLogTests : IDisposable
         compiler.SourceDirectories.Add(sourceDir.Name);
         compiler.SourceDirectories.Add("assets/Stride/SDSL");
 
-        // Inlining a function with two returns gives a loop that runs once, which FXC warns about (X3557)
+        // Inlining a function with two returns gives a loop that runs once, which FXC warns about (X3557); the register is
+        // ignored, which the shader loader warns about (SDSL0220)
         var shaderPath = Path.Combine(sourceDir.FullName, $"{shaderName}.sdsl");
         File.WriteAllText(shaderPath, $$"""
             shader {{shaderName}} : SpriteBase
             {
+                float Scale : register(c1);
+
                 float4 Pick(float4 color)
                 {
                     if (color.x > 0.5)
@@ -92,7 +95,7 @@ public class ShaderBackendLogTests : IDisposable
 
         var messages = Compile().Messages;
 
-        Assert.Contains(messages, m => m.Module == EffectCompileLog.EffectCompilerModule && m.Text.Contains("references instance method"));
+        Assert.Contains(messages, m => m.Module == EffectCompileLog.EffectCompilerModule && m.Text.Contains("SDSL0220"));
         Assert.All(messages, m => Assert.NotNull(m.Module));
     }
 

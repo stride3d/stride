@@ -1,0 +1,15 @@
+// The module part doesn't use N: all instantiations share one, held by the first one met.
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleGenericParent<int N>
+{
+    module float Factor()
+    {
+        return 1.0;
+    }
+
+    float Value()
+    {
+        return N;
+    }
+};

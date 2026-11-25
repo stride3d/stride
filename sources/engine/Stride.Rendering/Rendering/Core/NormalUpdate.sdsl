@@ -14,7 +14,7 @@ shader NormalUpdate : NormalStream
     {
     }
 	
-    float3x3 GetTangentMatrix()
+    module float3x3 GetTangentMatrix()
     {
         float3x3 tangentMatrix;
 
@@ -33,7 +33,7 @@ shader NormalUpdate : NormalStream
         streams.tangentToWorld =  mul(tangentMatrix, tangentWorldTransform);
     }
 
-    float3x3 GetTangentWorldTransform()
+    module float3x3 GetTangentWorldTransform()
     {
         return float3x3(1,0,0, 0,1,0, 0,0,1);
     }
