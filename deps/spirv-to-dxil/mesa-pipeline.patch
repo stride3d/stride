@@ -1,8 +1,8 @@
 diff --git a/meson.build b/meson.build
-index f4dc51dc5d5..2d2b6a90eca 100644
+index 59d30c80221..3f33e1b9ae4 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -2356,6 +2356,21 @@ endif
+@@ -2476,6 +2476,21 @@ endif
  add_project_arguments(c_args,   language : ['c'])
  add_project_arguments(cpp_args, language : ['cpp'])
  
@@ -23,14 +23,14 @@ index f4dc51dc5d5..2d2b6a90eca 100644
 +
  gl_priv_reqs = []
  
- if with_glx == 'xlib'
+ if with_glx == 'dri'
 diff --git a/meson.options b/meson.options
-index 024b8340252..78c85f13121 100644
+index beb2837bead..0a0b6626019 100644
 --- a/meson.options
 +++ b/meson.options
-@@ -879,3 +879,11 @@ option(
-   value : false,
-   description : 'use experimental virtio backend for intel driver',
+@@ -923,3 +923,11 @@ option(
+   value : true,
+   description : 'Build panfrost disassemblers. Explicitly setting this option to false will cause the panfrost stack to build without disassemblers. This should be left enabled for distro builds.'
  )
 +
 +option(
@@ -40,6 +40,20 @@ index 024b8340252..78c85f13121 100644
 +  description : 'Stride: send the allocations of Mesa code to a static mimalloc (MSVC only). ' +
 +                'The Windows process heap serializes them when several threads compile at once.',
 +)
+diff --git a/src/compiler/nir/meson.build b/src/compiler/nir/meson.build
+index 436e3714b4a..d85205d8208 100644
+--- a/src/compiler/nir/meson.build
++++ b/src/compiler/nir/meson.build
+@@ -78,7 +78,8 @@ nir_intrinsics_c = custom_target(
+   depend_files : files('nir_intrinsics.py'),
+ )
+ 
+-with_nir_headers_only = not with_gfx_compute or (
++# Stride: spirv_to_dxil needs NIR without GL, Vulkan or CLC; the list below names it, but only when the gallium driver is d3d12.
++with_nir_headers_only = (not with_gfx_compute and not with_spirv_to_dxil) or (
+   gallium_drivers == ['d3d12'] and
+   get_option('gallium-d3d12-graphics').disabled() and
+   not [
 diff --git a/src/microsoft/spirv_to_dxil/meson.build b/src/microsoft/spirv_to_dxil/meson.build
 index a00ed9927bb..0791e458b37 100644
 --- a/src/microsoft/spirv_to_dxil/meson.build

@@ -53,13 +53,19 @@ jobs:
     env:
       RUN_ID: ${{ inputs.run-id || github.run_id }}
     steps:
+      # Each artifact goes in a folder of its own, named after it. download-artifact with a pattern extracts a single
+      # match without that folder (spirv_to_dxil has one RID).
       - name: Download symbols
-        uses: actions/download-artifact@v8
-        with:
-          pattern: symbols-${{ inputs.name }}-*
-          path: symbols
-          run-id: ${{ env.RUN_ID }}
-          github-token: ${{ github.token }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ inputs.name }}
+        run: |
+          names=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" --paginate \
+            --jq ".artifacts[] | select(.name | startswith(\"symbols-$NAME-\")) | .name")
+          [ -n "$names" ] || { echo "::error::No symbols-$NAME-* artifact in run $RUN_ID"; exit 1; }
+          for artifact in $names; do
+            gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$artifact" --dir "symbols/$artifact"
+          done
 
       - name: Download VERSION.txt
         uses: actions/download-artifact@v8

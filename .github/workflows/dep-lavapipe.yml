@@ -27,7 +27,7 @@ on:
         required: false
       ref:
         description: Mesa ref (branch, tag, SHA, or refs/merge-requests/<id>/head)
-        default: mesa-26.2.4
+        default: mesa-26.3.1
         required: false
       version:
         description: NuGet package version (leave empty for the Mesa version and the next build number)
@@ -35,7 +35,9 @@ on:
 
 env:
   MESA_REPOSITORY: ${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}
-  MESA_REF: ${{ github.event.inputs.ref || 'mesa-26.2.4' }}
+  MESA_REF: ${{ github.event.inputs.ref || 'mesa-26.3.1' }}
+  # The LLVM that the Windows and Linux builds compile and link statically (tag llvmorg-<version>). macOS uses Homebrew's.
+  LLVM_VERSION: 23.1.6
 
 jobs:
   # The builds fetch this one commit, so every RID gets the same sources even when the ref moves during the run.
@@ -124,13 +126,13 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: llvm-install
-          key: llvm-21.1.0-msvc2026-static-x64-v1
+          key: llvm-${{ env.LLVM_VERSION }}-msvc2026-static-x64-v1
 
       - name: Build LLVM (cache miss)
         if: steps.restore-llvm.outputs.cache-hit != 'true'
         shell: cmd
         run: |
-          git clone --depth 1 --branch llvmorg-21.1.0 https://github.com/llvm/llvm-project.git
+          git clone --depth 1 --branch llvmorg-${{ env.LLVM_VERSION }} https://github.com/llvm/llvm-project.git
           cmake -S llvm-project/llvm -B llvm-build -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_INSTALL_PREFIX=%CD%\llvm-install ^
@@ -150,7 +152,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: llvm-install
-          key: llvm-21.1.0-msvc2026-static-x64-v1
+          key: llvm-${{ env.LLVM_VERSION }}-msvc2026-static-x64-v1
 
       - name: Record build info
         id: info
@@ -267,13 +269,13 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: llvm-install
-          key: llvm-21.1.0-msvc2026-static-arm64-v1
+          key: llvm-${{ env.LLVM_VERSION }}-msvc2026-static-arm64-v1
 
       - name: Build LLVM (cache miss)
         if: steps.restore-llvm.outputs.cache-hit != 'true'
         shell: cmd
         run: |
-          git clone --depth 1 --branch llvmorg-21.1.0 https://github.com/llvm/llvm-project.git
+          git clone --depth 1 --branch llvmorg-${{ env.LLVM_VERSION }} https://github.com/llvm/llvm-project.git
           cmake -S llvm-project/llvm -B llvm-build -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_INSTALL_PREFIX=%CD%\llvm-install ^
@@ -292,7 +294,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: llvm-install
-          key: llvm-21.1.0-msvc2026-static-arm64-v1
+          key: llvm-${{ env.LLVM_VERSION }}-msvc2026-static-arm64-v1
 
       - name: Record build info
         id: info
@@ -394,19 +396,19 @@ jobs:
 
       # LLVM is built from source and linked statically, like on Windows. Ubuntu 24.04's LLVM 18
       # miscompiles half-float code on AVX512-FP16 hosts (Sapphire/Emerald/Granite Rapids):
-      # the Android emulator dies on the first local reflections pipeline there. LLVM 22.1.8 is
+      # the Android emulator dies on the first local reflections pipeline there. LLVM 22.1.8 and later are
       # reported fixed (it was still broken in 20.1.2).
       - name: Restore LLVM cache
         id: restore-llvm
         uses: actions/cache/restore@v4
         with:
           path: llvm-install
-          key: llvm-22.1.8-linux-static-x64-v1
+          key: llvm-${{ env.LLVM_VERSION }}-linux-static-x64-v1
 
       - name: Build LLVM (cache miss)
         if: steps.restore-llvm.outputs.cache-hit != 'true'
         run: |
-          git clone --depth 1 --branch llvmorg-22.1.8 https://github.com/llvm/llvm-project.git
+          git clone --depth 1 --branch llvmorg-${{ env.LLVM_VERSION }} https://github.com/llvm/llvm-project.git
           cmake -S llvm-project/llvm -B llvm-build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$PWD/llvm-install" \
@@ -430,7 +432,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: llvm-install
-          key: llvm-22.1.8-linux-static-x64-v1
+          key: llvm-${{ env.LLVM_VERSION }}-linux-static-x64-v1
 
       - name: Use built LLVM
         run: echo "$PWD/llvm-install/bin" >> $GITHUB_PATH
