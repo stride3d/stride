@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       freetype-version:
-        description: FreeType version tag (e.g. VER-2-13-3)
-        default: VER-2-13-3
+        description: FreeType version tag (e.g. VER-2-15-0)
+        default: VER-2-15-0
         required: true
 
 # Debug files: every build compiles with debug info, and the libraries ship without it and without their local
@@ -180,6 +180,7 @@ jobs:
             -DFT_DISABLE_BZIP2=ON \
             -DFT_DISABLE_BROTLI=ON \
             -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_HVF=ON \
             -DFT_DISABLE_PNG=ON \
             -DFT_DISABLE_ZLIB=ON
           cmake --build freetype-build -- -j$(sysctl -n hw.ncpu)
@@ -298,6 +299,7 @@ jobs:
             -DFT_DISABLE_BZIP2=ON \
             -DFT_DISABLE_BROTLI=ON \
             -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_HVF=ON \
             -DFT_DISABLE_PNG=ON \
             -DFT_DISABLE_ZLIB=ON
           cmake --build freetype-build -- -j$(sysctl -n hw.ncpu)

@@ -22,6 +22,7 @@ To rebuild:
 
 All optional dependencies are disabled for a minimal build:
 - No zlib, bzip2, brotli, harfbuzz, or PNG support
+- No HVF on macOS and iOS: from 2.15.0, FreeType links Apple's experimental HVF library when the SDK has it
 - Stride only uses core glyph rasterization and metrics
 
 ## Directory structure
