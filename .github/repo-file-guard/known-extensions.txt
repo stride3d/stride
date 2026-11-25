@@ -122,6 +122,7 @@ vsixmanifest
 wav
 woff
 xaml
+xcconfig
 xcf
 xml
 yaml
