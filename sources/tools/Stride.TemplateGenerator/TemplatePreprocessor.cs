@@ -8,11 +8,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Stride.Assets.Templates;
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Serialization;
 
 namespace Stride.TemplateGenerator;
 
@@ -214,18 +217,23 @@ Cache/
 
         // Dep collapse: for sample templates whose .csproj references shared external asset packs
         // (e.g. Templates/Packs/PrototypingBlocks), inline those packs' Assets/ and Resources/
-        // content into the staged tree and strip the ProjectReference. Intra-template refs
-        // (e.g. MyTemplate.Windows → MyTemplate) are preserved. No-op when no .csproj contains
-        // an external ProjectReference (e.g. the NewGame scaffold).
-        CollapseProjectReferences(logger);
+        // content into the folders of the referencing package and strip the ProjectReference.
+        // Intra-template refs (e.g. MyTemplate.Windows → MyTemplate) are preserved. No-op when no
+        // .csproj contains an external ProjectReference (e.g. the NewGame scaffold).
+        if (!CollapseProjectReferences(logger))
+            return false;
 
         // Asset pruning: drop any asset under the staged tree that isn't reachable from a root
         // (RootAsset, always-mark-as-root type, or transitively depended on by such). For
         // dep-collapsed sample templates this typically prunes 80%+ of inlined-pack assets that
-        // the sample doesn't actually use. Pure-text scan (no PackageSession.Load), so it has no
-        // engine-assembly dependency and runs in milliseconds.
+        // the sample doesn't actually use, and then the inlined resources no asset left uses.
+        // Pure-text scan (no PackageSession.Load), so it has no engine-assembly dependency and
+        // runs in milliseconds.
         if (!SkipPrune)
+        {
             DumbPruneUnreachableAssets(logger);
+            PruneUnusedPackResources(logger);
+        }
         else
             logger.Info("Skipping asset prune");
 
@@ -699,12 +707,12 @@ Cache/
 
     /// <summary>
     /// Walks all <c>.csproj</c> files under the staged output, removes any
-    /// <c>&lt;ProjectReference&gt;</c> whose target resolves outside the staging dir, and copies
-    /// the referenced project's <c>Assets/</c> and <c>Resources/</c> content into the staged
-    /// root's top-level <c>Assets/</c> / <c>Resources/</c>. Intra-template references (e.g. exec
-    /// → game library, same staging tree) are left untouched.
+    /// <c>&lt;ProjectReference&gt;</c> whose target resolves outside the staging dir, and inlines
+    /// the referenced pack into the package of that <c>.csproj</c> (see <see cref="InlinePack"/>).
+    /// Intra-template references (e.g. exec → game library, same staging tree) are left untouched.
     /// </summary>
-    private void CollapseProjectReferences(ILogger logger)
+    /// <returns>False when a pack can't be inlined, as the template would not compile.</returns>
+    private bool CollapseProjectReferences(ILogger logger)
     {
         var stagedRoot = new DirectoryInfo(OutputDirectory!).FullName;
         var inputRoot = new DirectoryInfo(InputPath!).FullName;
@@ -761,10 +769,16 @@ Cache/
                     continue;
                 }
 
-                // Copy the referenced project dir's Assets/ and Resources/ subdirs into the staged
-                // root's top-level Assets/ and Resources/.
-                var copiedCount = CopyContentSubdir(resolvedDir, stagedRoot, "Assets", logger)
-                                + CopyContentSubdir(resolvedDir, stagedRoot, "Resources", logger);
+                int copiedCount;
+                try
+                {
+                    copiedCount = InlinePack(csprojPath, resolved);
+                }
+                catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException)
+                {
+                    logger.Error($"Could not inline the pack '{include}' into '{Path.GetFileName(csprojPath)}': {ex.Message}");
+                    return false;
+                }
                 totalCopied += copiedCount;
                 logger.Info($"Inlined ProjectReference '{include}' → {copiedCount} files");
                 refsToRemove.Add(refElem);
@@ -787,6 +801,39 @@ Cache/
 
         if (totalRefsRemoved > 0)
             logger.Info($"Dep-collapse: removed {totalRefsRemoved} external ProjectReference(s), inlined {totalCopied} files");
+        return true;
+    }
+
+    /// <summary>
+    /// Adds a pack to the package of a staged project as <c>stride new</c> adds one: its
+    /// <c>Assets/*</c> into the first asset folder of the package, its <c>Resources/*</c> into the
+    /// first resource folder, and the paths of its assets rewritten to lead to its resources there.
+    /// Records the resources it writes for <see cref="PruneUnusedPackResources"/>.
+    /// </summary>
+    /// <returns>The number of files inlined.</returns>
+    private int InlinePack(string stagedProjectPath, string packProjectPath)
+    {
+        var packDirectory = Path.GetDirectoryName(packProjectPath)!;
+        var packResources = Path.Combine(packDirectory, "Resources");
+        var resources = Directory.Exists(packResources)
+            ? Directory.EnumerateFiles(packResources, "*", SearchOption.AllDirectories).Select(file => Path.GetRelativePath(packResources, file)).ToList()
+            : [];
+        if (!Directory.Exists(Path.Combine(packDirectory, "Assets")) && resources.Count == 0)
+            return 0;
+
+        var folders = AssetPackPlacement.GetFolders(new AssetPackPlacement.PackageProject(stagedProjectPath, IsHead: false));
+        var upgrade = $"Run 'Stride.AssetCompiler upgrade \"{Path.ChangeExtension(packProjectPath, ".sdpkg")}\" --resave-all' on the pack";
+        var advice = new AssetPackPlacement.RefusalAdvice($"{upgrade}, so that its paths are all tagged.", $"{upgrade}, or change the folders of the sample.");
+        var copied = 0;
+        AssetPackPlacement.AddAsync(staging =>
+        {
+            copied = CopyContentSubdir(packDirectory, staging, "Assets") + CopyContentSubdir(packDirectory, staging, "Resources");
+            return Task.CompletedTask;
+        }, Path.GetFileName(packDirectory), folders, advice).GetAwaiter().GetResult();
+
+        foreach (var resource in resources)
+            InlinedResources.Add(Path.GetFullPath(Path.Combine(folders.Resources!, resource)));
+        return copied;
     }
 
     /// <summary>
@@ -1204,6 +1251,86 @@ Cache/
             logger.Info($"Pruned {deleted} unreachable asset file(s) from staged tree");
     }
 
+    private static readonly StringComparer PathComparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
+    /// <summary>Full paths of the pack resources <see cref="InlinePack"/> wrote.</summary>
+    private readonly HashSet<string> InlinedResources = new(PathComparer);
+
+    /// <summary>
+    /// Deletes the inlined pack resources that no asset left after the prune refers to. A pack
+    /// asset refers to its resources by relative paths: tagged <c>!file</c>, in the keys of
+    /// <c>~SourceHashes</c>, or untagged in the packs saved before the tag. Every key and value of
+    /// every asset is tried as such a path, so no form of reference is missed. The sample's own
+    /// resources stay: its code may use them.
+    /// </summary>
+    private void PruneUnusedPackResources(ILogger logger)
+    {
+        if (InlinedResources.Count == 0)
+            return;
+
+        var used = new HashSet<string>(PathComparer);
+        foreach (var path in Directory.EnumerateFiles(OutputDirectory!, "*", SearchOption.AllDirectories))
+        {
+            if (!Path.GetExtension(path).StartsWith(".sd", StringComparison.OrdinalIgnoreCase) || !IsTextFile(path))
+                continue;
+
+            var stream = new YamlStream();
+            try
+            {
+                stream.Load(new StringReader(File.ReadAllText(path)));
+            }
+            catch (YamlException)
+            {
+                continue;
+            }
+
+            var folder = Path.GetDirectoryName(path)!;
+            foreach (var scalar in stream.Documents.SelectMany(document => Scalars(document.RootNode)))
+            {
+                // A key of ~SourceHashes is the hash of the file, '~', then its path.
+                foreach (var candidate in new[] { scalar, scalar[(scalar.IndexOf('~') + 1)..] })
+                {
+                    if (ResolveInlinedResource(folder, candidate) is { } resource)
+                        used.Add(resource);
+                }
+            }
+        }
+
+        var deleted = 0;
+        foreach (var resource in InlinedResources.Where(resource => !used.Contains(resource) && File.Exists(resource)))
+        {
+            File.Delete(resource);
+            deleted++;
+        }
+        if (deleted > 0)
+            logger.Info($"Pruned {deleted} pack resource file(s) no asset uses from staged tree");
+    }
+
+    private static IEnumerable<string> Scalars(YamlNode node) => node switch
+    {
+        YamlScalarNode scalar => [scalar.Value],
+        YamlSequenceNode sequence => sequence.Children.SelectMany(Scalars),
+        YamlMappingNode mapping => mapping.Children.SelectMany(child => Scalars(child.Key).Concat(Scalars(child.Value))),
+        _ => [],
+    };
+
+    private string? ResolveInlinedResource(string folder, string path)
+    {
+        // Windows drops these from the end of a path, and they aren't part of a file name.
+        if (path.Length == 0 || path[^1] == '.' || char.IsWhiteSpace(path[^1]))
+            return null;
+
+        try
+        {
+            var resolved = Path.GetFullPath(Path.Combine(folder, path.Replace('\\', '/')));
+            return InlinedResources.Contains(resolved) ? resolved : null;
+        }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>
     /// Parses the <c>RootAssets:</c> section of a <c>.sdpkg</c> and adds each entry's leading GUID
     /// to <paramref name="rootIds"/>. Entries are YAML list items of form
@@ -1229,7 +1356,7 @@ Cache/
         }
     }
 
-    private static int CopyContentSubdir(string sourceProjectDir, string stagedRoot, string subdirName, ILogger logger)
+    private static int CopyContentSubdir(string sourceProjectDir, string stagedRoot, string subdirName)
     {
         var sourceSubdir = Path.Combine(sourceProjectDir, subdirName);
         if (!Directory.Exists(sourceSubdir))

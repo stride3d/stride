@@ -3,9 +3,12 @@
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Mono.Options;
 using Stride.Assets.Templates;
 using Stride.Core.Diagnostics;
+
+[assembly: InternalsVisibleTo("Stride.Templates.Tests")]
 
 namespace Stride.TemplateGenerator;
 

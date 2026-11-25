@@ -17,11 +17,16 @@
     <Compile Include="..\..\engine\Stride.Assets\Templates\SdtplMetadata.cs">
       <Link>SdtplMetadata.cs</Link>
     </Compile>
+    <!-- Inlines a referenced pack as `stride new` adds one: into the package's folders, its paths rewritten. -->
+    <Compile Include="..\..\engine\Stride.Assets\Templates\AssetPackPlacement.cs">
+      <Link>AssetPackPlacement.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <!-- Stride.Core for ILogger / GlobalLogger; no need for engine asset deps (preprocessor
-         runs pure text transforms). -->
+    <!-- Stride.Core for ILogger / GlobalLogger, Stride.Core.Design for the YamlFilePaths of AssetPackPlacement; no need
+         for engine asset deps (preprocessor runs pure text transforms). -->
     <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Yaml\Stride.Core.Yaml.csproj" />
   </ItemGroup>
 </Project>

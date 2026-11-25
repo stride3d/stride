@@ -16,6 +16,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\sources\tools\Stride.TemplateGenerator\Stride.TemplateGenerator.csproj" />
+  </ItemGroup>
+
   <!-- ProjectReferences build each template project, which packs it into bin/packages
        (Stride.Templates.Common.targets). The content packs (Starters, Samples, AssetPacks) pack only with
        StridePackContentTemplates on; with it off, their build removes this checkout's packs, and the smoke test

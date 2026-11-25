@@ -181,7 +181,7 @@ dotnet msbuild build/samples.proj -t:PrepareSamplesForRelease                   
 
     The `Include` value is the `dotnet new` short name. Pick the package by content type: `Stride.Templates.Games.Starters` for an opinionated game-genre starter, `Stride.Templates.Samples` for a feature demo.
 
-4. **Build the package**. The preprocessor handles GUID rewriting (sample-internal → template.json placeholders, engine archetype Ids preserved), `ProjectReference` dep-collapse (shared packs inlined as `Assets/`/`Resources/`), sourceName rename (`MyCoolSample` → `MyTemplate` → user's `-n` value at instantiation), `.sln` synthesis with platform-conditional project sections, and `template.json` emission. Inspect the output at `obj/template-content/stride-mycoolsample/` before packing if you want to verify the transforms.
+4. **Build the package**. The preprocessor handles GUID rewriting (sample-internal → template.json placeholders, engine archetype Ids preserved), `ProjectReference` dep-collapse (a shared pack is inlined into the folders of the package that references it, as `stride new` adds a pack: see "The paths" and "The version" above; a pack whose paths would need a rewrite and have no `!file` tag stops the build), sourceName rename (`MyCoolSample` → `MyTemplate` → user's `-n` value at instantiation), `.sln` synthesis with platform-conditional project sections, and `template.json` emission. Inspect the output at `obj/template-content/stride-mycoolsample/` before packing if you want to verify the transforms.
 
 ## Adding a new asset pack
 
