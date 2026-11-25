@@ -61,11 +61,15 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
     private IAssetPreview? currentPreview;
     private object? previewView;
     private volatile AssetViewModel? previewedAsset;
+    private volatile AssetViewModel? previewBuildingAsset;
 
+    // While previewChangePending is set: the asset selected last, null for no preview
     private AssetViewModel? previewBuildQueue;
+    private volatile bool previewChangePending;
+    // Held by the change or update of the preview that runs: one at a time
     private readonly SemaphoreSlim previewChangeLock = new(1, 1);
     /// <summary>
-    /// A lock used to access the <see cref="currentPreview"/>, <see cref="previewBuildQueue"/>, <see cref="previewStopped"/>,
+    /// A lock used to access the <see cref="currentPreview"/>, <see cref="previewBuildQueue"/>, <see cref="previewChangePending"/>, <see cref="previewStopped"/>,
     /// <see cref="isPreviewHidden"/> fields and the <see cref="PreviewGame"/> property safely.
     /// </summary>
     private readonly object previewLock = new();
@@ -133,6 +137,11 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
     public AssetViewModel? PreviewedAsset => previewedAsset;
 
     /// <summary>
+    /// Gets the asset whose preview is being built, or <c>null</c> while none is.
+    /// </summary>
+    public AssetViewModel? PreviewBuildingAsset => previewBuildingAsset;
+
+    /// <summary>
     /// Starts the preview game thread and follows the session. A derived constructor calls it once.
     /// </summary>
     protected void StartPreviewGame()
@@ -170,9 +179,6 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
     {
         if (!IsDisposed)
         {
-            // Terminate preview control thread
-            previewBuildQueue = null;
-
             session.AssetPropertiesChanged -= OnAssetPropertyChanged;
             gameSettingsProvider.GameSettingsChanged -= OnGameSettingsChanged;
             AssemblyRegistry.AssemblyRegistered -= AssemblyRegistered;
@@ -182,6 +188,8 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
             lock (previewLock)
             {
                 previewStopped = true;
+                previewBuildQueue = null;
+                previewChangePending = false;
                 previewGame = PreviewGame;
             }
             // The game may not exist yet: the thread then ends without starting it
@@ -233,7 +241,7 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
             if (isPreviewHidden)
                 PreviewGame.IsEditorHidden = true;
             // An asset selected before the game existed (the asset of the editors that open with the session) shows first
-            if (previewBuildQueue != null)
+            if (previewChangePending)
                 PreviewGame.Script.AddTask(ChangePreviewAsset);
         }
         var context = CreateGameContext(PreviewGame);
@@ -289,11 +297,12 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
         previewCompileContext.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
     }
 
-    public void SetAssetToPreview(AssetViewModel asset)
+    public void SetAssetToPreview(AssetViewModel? asset)
     {
         lock (previewLock)
         {
             previewBuildQueue = asset;
+            previewChangePending = true;
             // The game thread has not created the game yet: it takes the asset when it does
             if (PreviewGame is null)
                 return;
@@ -334,8 +343,14 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
 
     private async Task ChangePreviewAsset()
     {
-        if (!previewChangeLock.Wait(0))
+        // Each selection posts this task. They run one after the other, after the change or update running now: the
+        // first takes the last selection, the next ones find no change pending.
+        await previewChangeLock.WaitAsync();
+        if (!previewChangePending)
+        {
+            previewChangeLock.Release();
             return;
+        }
 
         AssetViewModel? asset = null;
         IAssetPreview? nextPreview = null;
@@ -364,11 +379,13 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
                     nextPreview = GetPreviewForAsset(previewBuildQueue);
                     previewBuildQueue = null;
                 }
+                previewChangePending = false;
                 currentPreview = nextPreview;
             }
 
             if (asset != null && nextPreview != null)
             {
+                previewBuildingAsset = asset;
                 previewView = await nextPreview.Initialize(asset, this);
                 if (previewView != null)
                 {
@@ -392,6 +409,7 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
         }
         finally
         {
+            previewBuildingAsset = null;
             previewChangeLock.Release();
         }
 

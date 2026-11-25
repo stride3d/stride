@@ -1081,6 +1081,42 @@ internal sealed class UITestHost
             return false;
         }
 
+        public async Task<bool> WaitForPreviewBuilding(Guid assetId, double timeoutSeconds = 60)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            var service = await host.dispatcher.InvokeAsync(() => TryGetSession()?.ServiceProvider.TryGet<GameStudioPreviewService>()).Task.ConfigureAwait(false);
+            if (service is null) { host.Log("WaitForPreviewBuilding: no preview service"); return false; }
+            while (DateTime.UtcNow < deadline)
+            {
+                // Read off the UI thread, every 10 ms: a build can take less than a second
+                if (service.PreviewBuildingAsset is { } building && (Guid)building.Id == assetId)
+                {
+                    host.Log($"WaitForPreviewBuilding: preview of '{building.Url}' building");
+                    return true;
+                }
+                if (service.PreviewedAsset is { } previewed && (Guid)previewed.Id == assetId)
+                {
+                    host.Log($"WaitForPreviewBuilding: preview of '{previewed.Url}' already shown, its build was not seen");
+                    return true;
+                }
+                await Task.Delay(10).ConfigureAwait(false);
+            }
+            host.Log($"WaitForPreviewBuilding: timed out after {timeoutSeconds}s waiting for the preview of id={assetId} to build");
+            return false;
+        }
+
+        public Task<Guid> SelectAsset(string assetName) =>
+            host.dispatcher.InvokeAsync(() =>
+            {
+                var session = TryGetSession();
+                if (session is null) { host.Log("SelectAsset: no session"); return Guid.Empty; }
+                var asset = session.AllAssets.FirstOrDefault(a => string.Equals(a.Name, assetName, StringComparison.Ordinal));
+                if (asset is null) { host.Log($"SelectAsset: '{assetName}' not found"); return Guid.Empty; }
+                session.AssetCollection.SelectAssets([asset]);
+                host.Log($"SelectAsset: selected '{asset.Url}' (id={asset.Id})");
+                return (Guid)asset.Id;
+            }).Task;
+
         private static SceneEditorViewModel TryGetOpenSceneEditor()
         {
             var session = TryGetSession();

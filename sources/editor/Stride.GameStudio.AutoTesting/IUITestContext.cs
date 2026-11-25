@@ -156,6 +156,18 @@ public interface IUITestContext
     Task<bool> WaitForPreview(Guid assetId, double timeoutSeconds = 60);
 
     /// <summary>
+    /// Waits until the preview of the asset <paramref name="assetId"/> is being built, or already shown when its build was
+    /// too short to see. Returns false on timeout.
+    /// </summary>
+    Task<bool> WaitForPreviewBuilding(Guid assetId, double timeoutSeconds = 60);
+
+    /// <summary>
+    /// Selects the asset named <paramref name="assetName"/> in the asset view, as a click does. Returns its id, or
+    /// <see cref="Guid.Empty"/> if no such asset was found.
+    /// </summary>
+    Task<Guid> SelectAsset(string assetName);
+
+    /// <summary>
     /// Walks the loaded session's assets and returns how many objects failed to deserialize (were
     /// replaced with <c>IUnloadable</c> placeholders) — e.g. a script component whose type/assembly
     /// couldn't be resolved. Returns 0 when no project/session is loaded. Call after the project's
