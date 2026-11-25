@@ -17,12 +17,8 @@ namespace Stride.Assets.Templates;
 /// </summary>
 internal sealed class SdtplMetadata
 {
-    /// <summary>
-    /// True when the .sdtpl root tag is <c>!TemplateAssetPack</c>: the input is an asset pack
-    /// (Assets/ + Resources/ dropped into an existing project) packed as a dotnet new item
-    /// template, not a full project template.
-    /// </summary>
-    public bool IsAssetPack { get; set; }
+    /// <summary>Type of template based on the starting tag (e.g. !Template).</summary>
+    public TemplateType? Type { get; set; }
 
     public Guid? Id { get; set; }
     public string? Name { get; set; }
@@ -85,7 +81,12 @@ internal sealed class SdtplMetadata
     {
         var meta = new SdtplMetadata
         {
-            IsAssetPack = string.Equals(root.Tag?.TrimStart('!'), "TemplateAssetPack", StringComparison.Ordinal),
+            Type = root.Tag?.TrimStart('!') switch
+            {
+                "TemplateSample" => TemplateType.Sample,
+                "TemplateAssetPack" => TemplateType.AssetPack,
+                _ => TemplateType.Standard
+            },
         };
         foreach (var entry in root.Children)
         {
@@ -124,5 +125,12 @@ internal sealed class SdtplMetadata
             if (item is YamlScalarNode s && s.Value is not null)
                 sink.Add(s.Value);
         }
+    }
+
+    public enum TemplateType
+    {
+        Sample,
+        Standard,
+        AssetPack
     }
 }
