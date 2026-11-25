@@ -23,8 +23,12 @@ namespace Stride.AssetCompiler
         public string UpgradeReportPath { get; set; }
         // Upgrade verb only: after a failed step, keep the files as the upgrade left them instead of putting them back.
         public bool KeepPartialUpgrade { get; set; }
-        // Upgrade verb only: mark an upgrade kept unfinished as finished, and upgrade.
+        // Upgrade verb only: mark the upgrades kept unfinished as finished before the load, and upgrade.
         public bool MarkUpgradeFinished { get; set; }
+        // Upgrade verb only: run again the project steps the upgrades kept unfinished left, and upgrade once none is left.
+        public bool RetryUnfinishedUpgrade { get; set; }
+        // Upgrade verb only: nothing to upgrade, only mark finished or retry the upgrades kept unfinished.
+        public bool UnfinishedUpgradeOnly { get; set; }
         // This should not be a list
         public bool DisableAutoCompileProjects { get; set; }
         public string ProjectConfiguration { get; set; }

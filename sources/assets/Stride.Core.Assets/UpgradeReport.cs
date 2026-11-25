@@ -34,17 +34,20 @@ public enum UpgradeOutcome
     /// <summary>Every step that applies ran, done or partial.</summary>
     Completed,
 
-    /// <summary>A step of the whole project failed, and every file of the project was put back as it was before the upgrade.</summary>
+    /// <summary>A step of a whole project of the session failed, and every file the upgrade changed, in every project, was put back.</summary>
     Reverted,
 
     /// <summary>
-    /// A step of the whole project failed, and the files stay as the upgrade left them: the project records the upgrade with the
-    /// steps to finish by hand (see <see cref="PackageUpgrader.UnfinishedMetadata"/>).
+    /// A step of the whole project failed, and the files stay as the upgrade left them, as asked or for want of a backup: the
+    /// project records the upgrade with the steps to finish by hand (see <see cref="PackageUpgrader.UnfinishedMetadata"/>).
     /// </summary>
     Kept,
 
-    /// <summary>A step of the whole project failed, and the files stay as the upgrade left them, with no backup to put them back from.</summary>
-    Stopped,
+    /// <summary>
+    /// A step of a whole project of the session failed, and some of the files the upgrade changed could not be put back: each
+    /// project records its version before the upgrade as unfinished, until the user copies them from the backup.
+    /// </summary>
+    PartlyReverted,
 }
 
 /// <summary>
@@ -57,7 +60,29 @@ public enum UpgradeOutcome
 /// Whether code the step leaves unchanged may still compile and behave differently, so that the build doesn't show what is
 /// left to do.
 /// </param>
-public sealed record UpgradeStepInfo(string Id, string Title, string? HelpLink, bool MayChangeBehaviour = false);
+public sealed record UpgradeStepInfo(string Id, string Title, string? HelpLink, bool MayChangeBehaviour = false)
+{
+    /// <summary>
+    /// Whether an entry of the steps an upgrade left (see <see cref="PackageUpgrader.UnfinishedMetadata"/>) is the ID of a step,
+    /// or the title of a part of the upgrade that is not a step, such as "Put the files back as they were".
+    /// </summary>
+    public static bool IsStepId(string entry) => !entry.Contains(' ', StringComparison.Ordinal);
+}
+
+/// <summary>
+/// An upgrade a project records as kept unfinished (see <see cref="PackageUpgrader.UnfinishedMetadata"/>).
+/// </summary>
+/// <param name="Upgrader">The <see cref="PackageUpgraderAttribute.Name"/> of the upgrader.</param>
+/// <param name="Version">The version the record holds.</param>
+/// <param name="Steps">The IDs of the steps left to finish by hand, or the titles of parts of the upgrade that are not steps.</param>
+public sealed record UnfinishedUpgrade(string Upgrader, string Version, IReadOnlyList<string> Steps);
+
+/// <summary>
+/// What running again the steps of the unfinished upgrades of a project did (see <see cref="PackageSession.RetryUnfinishedUpgrades"/>).
+/// </summary>
+/// <param name="StepsLeft">The steps still left, or the titles of the parts of the upgrade that are not steps.</param>
+/// <param name="ChangedProject">Whether a step changed a file: the project is restored and loaded again to take it.</param>
+public sealed record UnfinishedUpgradeRetry(IReadOnlyList<string> StepsLeft, bool ChangedProject);
 
 /// <summary>
 /// A file an upgrade step could not change, and why.
@@ -160,6 +185,12 @@ public sealed class UpgraderReport
     /// <summary>The version the project is upgraded to.</summary>
     public PackageVersion? ToVersion { get; }
 
+    /// <summary>
+    /// Whether the report is of the steps an upgrade kept unfinished, run again (see <see cref="PackageUpgrader.RetrySteps"/>):
+    /// the project stays on <see cref="ToVersion"/>.
+    /// </summary>
+    public bool IsRetry { get; init; }
+
     /// <summary>The steps that apply to the project, in the order they run, then the parts of the upgrade that failed outside a step.</summary>
     public List<UpgradeStepResult> Steps { get; } = [];
 
@@ -224,7 +255,8 @@ public sealed class UpgradeReport
 
     /// <summary>
     /// The report of <paramref name="upgrader"/> on the project <paramref name="projectFullPath"/>, upgraded from
-    /// <paramref name="fromVersion"/>: added the first time, with the steps that apply not run yet.
+    /// <paramref name="fromVersion"/>: added the first time, with the steps that apply not run yet. A retry of the upgrader on the
+    /// project (see <see cref="AddRetry"/>) has a report of its own, which comes after this one.
     /// </summary>
     public UpgraderReport GetOrAdd(UFile projectFullPath, PackageUpgrader upgrader, PackageVersion fromVersion)
     {
@@ -240,20 +272,49 @@ public sealed class UpgradeReport
                 Projects.Add(project);
             }
 
-            var report = project.Upgraders.FirstOrDefault(x => x.Name == upgrader.Attribute.Name);
+            var report = project.Upgraders.FirstOrDefault(x => x.Name == upgrader.Attribute.Name && !x.IsRetry);
             if (report is null)
             {
                 report = new UpgraderReport(upgrader.Attribute.Name, fromVersion, upgrader.Attribute.UpdatedVersionRange?.MinVersion, upgrader.GetUpgradeSteps(fromVersion));
-                project.Upgraders.Add(report);
+                // The upgrade names the section of the report, before the retry that let it run
+                var retry = project.Upgraders.FindIndex(x => x.Name == upgrader.Attribute.Name);
+                project.Upgraders.Insert(retry >= 0 ? retry : project.Upgraders.Count, report);
             }
             return report;
         }
     }
 
-    /// <summary>The report of the upgrader named <paramref name="upgraderName"/> on the project, or <c>null</c>.</summary>
+    /// <summary>
+    /// Adds the report of the steps an upgrade of the project by <paramref name="upgrader"/> kept unfinished, run again on the
+    /// project at <paramref name="version"/>: the steps the upgrader declares with these IDs, not run yet, then the other parts left.
+    /// </summary>
+    public UpgraderReport AddRetry(UFile projectFullPath, PackageUpgrader upgrader, PackageVersion version, IReadOnlyList<string> stepsLeft)
+    {
+        ArgumentNullException.ThrowIfNull(projectFullPath);
+        ArgumentNullException.ThrowIfNull(upgrader);
+        ArgumentNullException.ThrowIfNull(stepsLeft);
+        var declared = upgrader.GetUpgradeSteps(new PackageVersion("0.0.0")).ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase);
+        lock (gate)
+        {
+            var project = Projects.FirstOrDefault(x => x.ProjectFullPath == projectFullPath);
+            if (project is null)
+            {
+                project = new ProjectUpgradeReport(projectFullPath);
+                Projects.Add(project);
+            }
+
+            // A step the upgrader no longer declares has only its ID; a part of the upgrade that is not a step has no ID
+            var report = new UpgraderReport(upgrader.Attribute.Name, version, version, stepsLeft.Where(UpgradeStepInfo.IsStepId).Select(x => declared.GetValueOrDefault(x) ?? new UpgradeStepInfo(x, "", null))) { IsRetry = true };
+            report.Steps.AddRange(stepsLeft.Where(x => !UpgradeStepInfo.IsStepId(x)).Select(x => new UpgradeStepResult(null, x, null)));
+            project.Upgraders.Add(report);
+            return report;
+        }
+    }
+
+    /// <summary>The report of the upgrade of the project by the upgrader named <paramref name="upgraderName"/>, not of a retry, or <c>null</c>.</summary>
     public UpgraderReport? Find(UFile projectFullPath, string upgraderName)
     {
         lock (gate)
-            return Projects.FirstOrDefault(x => x.ProjectFullPath == projectFullPath)?.Upgraders.FirstOrDefault(x => x.Name == upgraderName);
+            return Projects.FirstOrDefault(x => x.ProjectFullPath == projectFullPath)?.Upgraders.FirstOrDefault(x => x.Name == upgraderName && !x.IsRetry);
     }
 }

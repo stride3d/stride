@@ -198,6 +198,15 @@ public static class AssetRegistry
     }
 
     /// <summary>
+    /// The package upgrader whose <see cref="PackageUpgraderAttribute.Name"/> is <paramref name="upgraderName"/>, or <c>null</c>.
+    /// </summary>
+    public static PackageUpgrader? GetPackageUpgraderByName(string upgraderName)
+    {
+        lock (RegistryLock)
+            return RegisteredPackageUpgraders.Values.FirstOrDefault(x => string.Equals(x.Attribute.Name, upgraderName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
     /// Gets the default file associated with an asset.
     /// </summary>
     /// <typeparam name="T">Type of the asset.</typeparam>

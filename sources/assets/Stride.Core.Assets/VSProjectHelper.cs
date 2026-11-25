@@ -324,31 +324,39 @@ public static class VSProjectHelper
     }
 
     /// <summary>
-    /// The upgrades a project records as kept unfinished (see <see cref="PackageUpgrader.UnfinishedMetadata"/>): for each
-    /// upgrader, the steps left to finish by hand.
+    /// The upgrades a project records as kept unfinished (see <see cref="PackageUpgrader.UnfinishedMetadata"/>), each with the
+    /// steps left to finish by hand.
     /// </summary>
     /// <param name="projectPath">The project file.</param>
-    public static Dictionary<string, List<string>> GetUnfinishedUpgrades(string projectPath)
+    public static IReadOnlyList<UnfinishedUpgrade> GetUnfinishedUpgrades(string projectPath)
     {
         var project = LoadProject(projectPath);
         try
         {
-            var result = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
-            foreach (var record in project.GetItems(PackageUpgrader.UpgradeRecordItem))
-            {
-                var steps = record.GetMetadataValue(PackageUpgrader.UnfinishedMetadata).Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (steps.Length > 0)
-                    result[record.EvaluatedInclude] = [.. steps];
-                else
-                    result.Remove(record.EvaluatedInclude);
-            }
-            return result;
+            return GetUnfinishedUpgrades(project);
         }
         finally
         {
             project.ProjectCollection.UnloadAllProjects();
             project.ProjectCollection.Dispose();
         }
+    }
+
+    /// <summary>
+    /// The upgrades the evaluated <paramref name="project"/> records as kept unfinished (see <see cref="PackageUpgrader.UnfinishedMetadata"/>),
+    /// each with the steps left to finish by hand.
+    /// </summary>
+    /// <param name="project">The evaluated project.</param>
+    public static IReadOnlyList<UnfinishedUpgrade> GetUnfinishedUpgrades(MicrosoftProject project)
+    {
+        // The last record of an upgrader wins, as an Update of an imported one does
+        var result = new Dictionary<string, UnfinishedUpgrade?>(StringComparer.OrdinalIgnoreCase);
+        foreach (var record in project.GetItems(PackageUpgrader.UpgradeRecordItem))
+        {
+            var steps = record.GetMetadataValue(PackageUpgrader.UnfinishedMetadata).Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            result[record.EvaluatedInclude] = steps.Length > 0 ? new UnfinishedUpgrade(record.EvaluatedInclude, record.GetMetadataValue("Version"), steps) : null;
+        }
+        return result.Values.OfType<UnfinishedUpgrade>().ToList();
     }
 
     /// <summary>

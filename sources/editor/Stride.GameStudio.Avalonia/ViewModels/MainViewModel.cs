@@ -119,7 +119,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         // In safe mode, a banner says how many plugins are off, with "Restart normally" and the Plugins panel
         if (host is not null)
             SafeModeBanner = new SafeModeBannerViewModel(serviceProvider, host, this, () => Panels.Show(BuiltInPanels.Plugins), () => session is not null);
-        UpgradeReportBanner = new UpgradeReportBannerViewModel(serviceProvider);
+        UpgradeReportBanner = new UpgradeReportBannerViewModel(serviceProvider) { ReloadCommand = ReloadCommand };
 
         // The most recently used sessions of this and the earlier editor versions
         MRU = RecentSessionsSettings.CreateMostRecentlyUsedFiles();

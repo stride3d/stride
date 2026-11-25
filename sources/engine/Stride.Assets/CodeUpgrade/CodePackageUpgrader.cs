@@ -79,24 +79,43 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
             return false;
         }
 
-        // Version-gated structural csproj migrations declared via the upgrade registry (r.Project): load the project once,
-        // and run each registration the project is upgrading across. Each step is saved once it returned, so a step that
-        // throws leaves the project as the previous one left it, and stops it.
+        // Version-gated structural csproj migrations declared via the upgrade registry (r.Project): each registration the
+        // project is upgrading across
         var registry = new UpgradeRegistry();
         DeclareUpgrades(registry);
         var applicable = registry.GetSteps(Attribute.Name)
             .Where(step => step.Declaration is ProjectUpgradeRegistration && UpgradingFromBefore(dependency, step.GateVersion))
             .ToArray();
-        if (applicable.Length == 0)
+        return RunProjectSteps(session, solutionProject, applicable, report, log);
+    }
+
+    /// <inheritdoc/>
+    public override void RetrySteps(PackageSession session, SolutionProject project, UpgraderReport report, ILogger log)
+    {
+        var registry = new UpgradeRegistry();
+        DeclareUpgrades(registry);
+        var left = report.Steps.Select(x => x.Id).OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var steps = registry.GetSteps(Attribute.Name)
+            .Where(step => step.Declaration is ProjectUpgradeRegistration && !step.IsRetired && left.Contains(step.Id))
+            .ToArray();
+        RunProjectSteps(session, project, steps, report, log);
+    }
+
+    // Runs the project steps on the project loaded once. Each step is saved once it returned, so a step that throws leaves the
+    // project as the previous one left it, and stops it. Returns false when a step failed.
+    private static bool RunProjectSteps(PackageSession session, SolutionProject solutionProject, IReadOnlyList<DeclaredUpgradeStep> steps, UpgraderReport report, ILogger log)
+    {
+        if (steps.Count == 0)
             return true;
 
+        var projectFullPath = solutionProject.FullPath;
         Project project = null;
         try
         {
             project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
             var context = new ProjectUpgradeContext(project, solutionProject, projectFullPath, log) { Backup = session.UpgradeBackup };
 
-            foreach (var step in applicable)
+            foreach (var step in steps)
             {
                 var result = report.Find(step.Id);
                 var failedUnitCount = context.FailedUnits.Count;
@@ -114,6 +133,7 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
                 var changedFiles = new List<string>();
                 if (context.IsDirty)
                 {
+                    session.UpgradeBackup?.Snapshot(projectFullPath.ToOSPath());
                     project.Save();
                     context.IsDirty = false;
                     changedFiles.Add(projectFullPath.ToOSPath());

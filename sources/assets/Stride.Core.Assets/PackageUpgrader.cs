@@ -26,7 +26,8 @@ public abstract class PackageUpgrader
     /// <summary>
     /// The metadata of an <see cref="UpgradeRecordItem"/> that lists, separated by <c>;</c>, the IDs of the steps an upgrade
     /// kept after a failure left to finish by hand. No upgrade runs on the project while it is set: the user removes it once
-    /// these steps are done ("Mark upgrade as finished" in Game Studio, <c>stride upgrade --mark-finished</c>).
+    /// these steps are done ("Mark as finished" in Game Studio, <c>stride upgrade --mark-finished</c>), or once they are run again
+    /// and done (see <see cref="RetrySteps"/>).
     /// </summary>
     public const string UnfinishedMetadata = "Unfinished";
 
@@ -35,6 +36,19 @@ public abstract class PackageUpgrader
     /// <see cref="UpgradeReport"/>. Empty by default: an upgrader without declared steps reports only its failures.
     /// </summary>
     public virtual IReadOnlyList<UpgradeStepInfo> GetUpgradeSteps(PackageVersion fromVersion) => [];
+
+    /// <summary>
+    /// Runs again, in the order they run in an upgrade, the steps of the whole project among the steps an upgrade of the project
+    /// kept unfinished, and reports them in <paramref name="report"/>. Code steps don't run again: they read the API of the version
+    /// the project was upgraded from. Runs none by default.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <param name="project">The project, at the version the upgrade moved it to.</param>
+    /// <param name="report">The report of the steps left, made by <see cref="UpgradeReport.AddRetry"/>.</param>
+    /// <param name="log">The log.</param>
+    public virtual void RetrySteps(PackageSession session, SolutionProject project, UpgraderReport report, ILogger log)
+    {
+    }
 
     /// <summary>
     /// Performs a preprocessing step of package migration, before assembly references are loaded.

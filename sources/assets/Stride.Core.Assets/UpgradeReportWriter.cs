@@ -50,14 +50,26 @@ public static class UpgradeReportWriter
     public static string FormatUpgrade(UpgradeReport report, string inputName, DateTime time)
     {
         ArgumentNullException.ThrowIfNull(report);
+        return FormatUpgrade(report.Projects, inputName, time);
+    }
+
+    /// <summary>
+    /// The report of these projects of an upgrade, as Markdown.
+    /// </summary>
+    /// <param name="projects">The reports of the projects.</param>
+    /// <param name="inputName">The name of the solution or project that was upgraded.</param>
+    /// <param name="time">When the upgrade ran.</param>
+    public static string FormatUpgrade(IReadOnlyCollection<ProjectUpgradeReport> projects, string inputName, DateTime time)
+    {
+        ArgumentNullException.ThrowIfNull(projects);
         var builder = new StringBuilder();
         builder.Append($"# Upgrade report: {inputName}\n\n");
         builder.Append($"The upgrade of {FormatTime(time)}.");
-        if (report.Projects.Count == 0)
+        if (projects.Count == 0)
             return builder.Append(" No project needed an upgrade.\n").ToString();
 
         builder.Append('\n');
-        foreach (var project in report.Projects)
+        foreach (var project in projects)
             builder.Append('\n').Append(FormatSection(project, time, withProjectName: true));
         return builder.ToString();
     }
@@ -96,6 +108,9 @@ public static class UpgradeReportWriter
         return string.Join("\n", project.Upgraders.SelectMany(x => x.Steps).Where(x => x.Status != UpgradeStepStatus.Done).Select(step =>
         {
             var line = $"- {StatusName(step.Status)} {(step.Id is null ? "" : FormatIdLink(step.Id, step.HelpLink) + " ")}{step.Title}";
+            // A part of the upgrade that is not a step says why it failed: the projects it references, for example
+            if (step.Id is null && step.Error is not null)
+                return $"{line}: {step.Error.ReplaceLineEndings(" ")}";
             return step.Status == UpgradeStepStatus.Partial ? $"{line} ({string.Join(", ", LeftParts(step))})" : line;
         }));
     }
@@ -106,7 +121,7 @@ public static class UpgradeReportWriter
     public static string FormatStepList(IEnumerable<UpgradeStepInfo> steps)
     {
         ArgumentNullException.ThrowIfNull(steps);
-        return string.Join("\n", steps.Select(step => $"- {FormatIdLink(step.Id, step.HelpLink)} {step.Title}".TrimEnd()));
+        return string.Join("\n", steps.Select(step => step.Id.Length == 0 ? $"- {step.Title}" : $"- {FormatIdLink(step.Id, step.HelpLink)} {step.Title}".TrimEnd()));
     }
 
     private static string FormatSection(ProjectUpgradeReport project, DateTime time, bool withProjectName)
@@ -164,7 +179,7 @@ public static class UpgradeReportWriter
             builder.Append($"\n### {heading}\n\n");
             foreach (var step in group)
             {
-                builder.Append("- [ ] ").Append(FormatStep(step));
+                builder.Append(project.Outcome == UpgradeOutcome.Reverted ? "- " : "- [ ] ").Append(FormatStep(step));
                 if (heading != StatusHeading(step.Status))
                     builder.Append(" (").Append(StatusName(step.Status)).Append(')');
                 builder.Append('\n');
@@ -206,9 +221,9 @@ public static class UpgradeReportWriter
         var upgrader = project.Upgraders.FirstOrDefault();
         return project.Outcome switch
         {
-            UpgradeOutcome.Reverted => $"A step failed, so every file of the project was put back as it was before this upgrade: the project stays on {upgrader?.Name} {upgrader?.FromVersion}, and its next upgrade runs every step again.",
+            UpgradeOutcome.Reverted => $"A step of a project of the solution failed, so every file the upgrade changed, in every project, was put back as it was: the project stays on {upgrader?.Name} {upgrader?.FromVersion}. Nothing below is to do by hand: fix why the upgrade failed, and its next upgrade runs these steps again.",
             UpgradeOutcome.Kept => "A step failed, and the files were kept as the upgrade left them: finish the items below by hand, then mark the upgrade as finished. No upgrade runs on the project before that.",
-            UpgradeOutcome.Stopped => $"A step failed, and the files stay as the upgrade left them, with no backup to put them back from: the project stays recorded on {upgrader?.Name} {upgrader?.FromVersion}.",
+            UpgradeOutcome.PartlyReverted => "A step failed, and some files the upgrade changed could not be put back as they were: copy them from the backup, then mark the upgrade as finished. No upgrade runs on the project before that.",
             _ => null,
         };
     }
@@ -245,12 +260,15 @@ public static class UpgradeReportWriter
     private static string FormatOutcome(ProjectUpgradeReport project)
     {
         var steps = project.Upgraders.SelectMany(x => x.Steps).ToList();
+        // A reverted upgrade leaves nothing to do by hand: its next upgrade runs the steps again
+        if (project.Outcome == UpgradeOutcome.Reverted)
+            return "reverted";
+
         var left = steps.Count(x => x.IsLeftover);
         var outcome = project.Outcome switch
         {
-            UpgradeOutcome.Reverted => "reverted, ",
             UpgradeOutcome.Kept => "kept, ",
-            UpgradeOutcome.Stopped => "stopped, ",
+            UpgradeOutcome.PartlyReverted => "partly reverted, ",
             _ => "",
         };
         if (left > 0)
@@ -268,7 +286,9 @@ public static class UpgradeReportWriter
         => project.Upgraders.Count == 0 ? "No upgrader" : FormatVersions(project.Upgraders[0], arrow);
 
     private static string FormatVersions(UpgraderReport upgrader, string arrow)
-        => upgrader.ToVersion is null ? $"{upgrader.Name} from {upgrader.FromVersion}" : $"{upgrader.Name} {upgrader.FromVersion}{arrow}{upgrader.ToVersion}";
+        => upgrader.IsRetry ? $"{upgrader.Name} {upgrader.ToVersion}, steps left run again"
+            : upgrader.ToVersion is null ? $"{upgrader.Name} from {upgrader.FromVersion}"
+            : $"{upgrader.Name} {upgrader.FromVersion}{arrow}{upgrader.ToVersion}";
 
     private static string FormatTime(DateTime time) => time.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 

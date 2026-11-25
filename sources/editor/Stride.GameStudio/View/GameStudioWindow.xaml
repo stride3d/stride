@@ -475,10 +475,23 @@
         </ToolBar>
       </ToolBarTray>
 
-      <!-- UPGRADE REPORT BANNER ROW: while a project of the session has an upgrade-report.md, its last upgrades left items to do by hand -->
+      <!-- UPGRADE REPORT BANNER ROW: while the last upgrade of a project of the session is unfinished, or left items to check in its upgrade-report.md -->
       <Border Grid.Row="1" Padding="8,4" BorderThickness="0,1" BorderBrush="Gray" Background="#30E0A040"
               Visibility="{Binding UpgradeReportBanner.IsVisible, Converter={sd:VisibleOrCollapsed}}">
         <DockPanel>
+          <Button DockPanel.Dock="Right" Margin="8,0,0,0" Padding="8,2"
+                  Content="{sd:Localize Remove the report, Context=Button}"
+                  Command="{Binding UpgradeReportBanner.RemoveReportsCommand}"
+                  Visibility="{Binding UpgradeReportBanner.CanRemoveReports, Converter={sd:VisibleOrCollapsed}}"/>
+          <Button DockPanel.Dock="Right" Margin="8,0,0,0" Padding="8,2"
+                  Content="{sd:Localize Mark as finished, Context=Button}"
+                  Command="{Binding UpgradeReportBanner.MarkFinishedCommand}"
+                  Visibility="{Binding UpgradeReportBanner.IsUnfinished, Converter={sd:VisibleOrCollapsed}}"/>
+          <Button DockPanel.Dock="Right" Margin="8,0,0,0" Padding="8,2"
+                  Content="{sd:Localize Retry, Context=Button}"
+                  ToolTip="{sd:Localize Run the project steps left again; code steps are done by hand, Context=ToolTip}"
+                  Command="{Binding UpgradeReportBanner.RetryCommand}"
+                  Visibility="{Binding UpgradeReportBanner.IsUnfinished, Converter={sd:VisibleOrCollapsed}}"/>
           <Button DockPanel.Dock="Right" Margin="8,0,0,0" Padding="8,2"
                   Content="{sd:Localize Open the report, Context=Button}"
                   Command="{Binding UpgradeReportBanner.OpenCommand}"/>

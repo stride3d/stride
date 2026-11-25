@@ -354,7 +354,7 @@ namespace Stride.Assets
 
         // 4.4: rename the asset-compiler PackageReference (Stride.Core.Assets.CompilerApp -> Stride.AssetCompiler)
         // and retire the on-disk .sdsl.cs/.sdfx.cs siblings now produced by the Roslyn source generator into obj/.
-        private static void UpgradeProjectTo44(ProjectUpgradeContext context)
+        internal static void UpgradeProjectTo44(ProjectUpgradeContext context)
         {
             var project = context.Project;
             var log = context.Log;
@@ -370,20 +370,31 @@ namespace Stride.Assets
                     && (x.Include == "Stride.Core.Assets.CompilerApp" || x.Include == "Stride.AssetCompiler"))
                 .ToArray())
             {
+                // A retry runs the step again on the reference it already changed: then it changes nothing
                 if (compilerRef.Include == "Stride.Core.Assets.CompilerApp")
+                {
                     compilerRef.Include = "Stride.AssetCompiler";
+                    context.IsDirty = true;
+                }
 
                 var includeAssets = compilerRef.Metadata.FirstOrDefault(m => m.Name == "IncludeAssets");
-                if (includeAssets != null)
-                    includeAssets.Value = "build;buildTransitive";
-                else
+                if (includeAssets == null)
+                {
                     compilerRef.AddMetadata("IncludeAssets", "build;buildTransitive", true);
+                    context.IsDirty = true;
+                }
+                else if (includeAssets.Value != "build;buildTransitive")
+                {
+                    includeAssets.Value = "build;buildTransitive";
+                    context.IsDirty = true;
+                }
 
                 var privateAssets = compilerRef.Metadata.FirstOrDefault(m => m.Name == "PrivateAssets");
                 if (privateAssets != null)
+                {
                     compilerRef.RemoveChild(privateAssets);
-
-                context.IsDirty = true;
+                    context.IsDirty = true;
+                }
             }
 
             // .sdsl/.sdfx generated C# now comes from a Roslyn source generator into obj/, so rename any
@@ -397,9 +408,9 @@ namespace Stride.Assets
                     || file.EndsWith(".sdfx.cs", StringComparison.OrdinalIgnoreCase)))
                     continue;
 
-                // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/)
+                // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/) and backups
                 var rel = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                if (IsBuildOutput(rel))
+                if (IsBuildOutputOrBackup(rel))
                     continue;
 
                 context.MoveFile(file, file + ".bak", $"Renamed legacy generated shader file: {rel} -> {rel}.bak");
@@ -534,13 +545,13 @@ namespace Stride.Assets
         }
 
         /// <summary>
-        /// The plugin packages owning the asset files under <paramref name="projectDir"/> (build output excluded) that
+        /// The plugin packages owning the asset files under <paramref name="projectDir"/> (build output and backups excluded) that
         /// <paramref name="referencedPackages"/> lacks.
         /// </summary>
         internal static IEnumerable<string> FindMissingPluginPackages(string projectDir, IEnumerable<string> referencedPackages)
         {
             var assetExtensions = Directory.EnumerateFiles(projectDir, "*.sd*", SearchOption.AllDirectories)
-                .Where(file => !IsBuildOutput(Path.GetRelativePath(projectDir, file).Replace('\\', '/')))
+                .Where(file => !IsBuildOutputOrBackup(Path.GetRelativePath(projectDir, file).Replace('\\', '/')))
                 .Select(Path.GetExtension)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var referenced = referencedPackages.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -552,8 +563,10 @@ namespace Stride.Assets
                 .ToList();
         }
 
-        private static bool IsBuildOutput(string relativePath)
+        // The files under bin/ and obj/, and the copies of an upgrade backup, which is in the project folder when the solution is
+        internal static bool IsBuildOutputOrBackup(string relativePath)
             => relativePath.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) || relativePath.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                || relativePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase) || relativePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
+                || relativePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase) || relativePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase)
+                || UpgradeBackup.IsInBackupFolder(relativePath);
     }
 }

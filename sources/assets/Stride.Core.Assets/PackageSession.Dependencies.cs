@@ -382,6 +382,18 @@ partial class PackageSession
                 }
             }
 
+            // Without an upgrade pending, the steps an upgrade kept unfinished left can run again now. Those that changed the
+            // project change what it restores and evaluates.
+            if (pendingPackageUpgrades.Count == 0 && msProject is not null)
+            {
+                ContinueUnfinishedUpgrade(package, upgradePending: false, loadParameters, log);
+                if (UpgradeReport.Projects.FirstOrDefault(x => x.ProjectFullPath == project.FullPath)?.Upgraders.Any(x => x.IsRetry && x.Steps.Any(step => step.ChangedFiles.Count > 0)) == true)
+                {
+                    referencesUpgraded = true;
+                    msProject = LoadOrGetCachedProject(projectPath, loadParameters);
+                }
+            }
+
             if (pendingPackageUpgrades.Count > 0)
             {
                 if (IsUpgradeStopped(project, pendingPackageUpgrades, log))

@@ -165,18 +165,24 @@ public sealed class PackageLoadParameters
     public Func<Package, IList<PackageSession.PendingPackageUpgrade>, PackageUpgradeRequestedAnswer> PackageUpgradeRequested;
 
     /// <summary>
-    /// Occurs when a step of the whole project failed in the upgrade of a package, once the upgrade ended, with what each step
-    /// did. Without it, every file of the project is put back as it was before the upgrade.
+    /// Occurs once the upgrade of the session ended, when a step of a whole project failed, with the reports of the projects
+    /// that failed: the answer holds for the upgrade of every project of the session. Without it, every file the upgrade changed
+    /// is put back as it was. Not raised without a backup: the files are kept.
     /// </summary>
-    public Func<Package, ProjectUpgradeReport, PackageUpgradeFailedAnswer>? PackageUpgradeFailed { get; set; }
+    public Func<IReadOnlyList<ProjectUpgradeReport>, PackageUpgradeFailedAnswer>? PackageUpgradeFailed { get; set; }
 
     /// <summary>
-    /// Occurs when the project of a package to upgrade records an earlier upgrade that was kept unfinished (see
-    /// <see cref="PackageUpgrader.UnfinishedMetadata"/>), with the steps it left (only their ID when the upgrader no longer
-    /// declares them): <c>true</c> marks that upgrade as finished and upgrades the package. Without it, or with <c>false</c>, the
-    /// package isn't upgraded.
+    /// Occurs when an upgrade of a package is pending, and its project records an earlier upgrade that was kept unfinished (see
+    /// <see cref="PackageUpgrader.UnfinishedMetadata"/>), with the steps it left (only their ID when the upgrader no longer declares
+    /// them). Without it, the upgrade stays unfinished, and the package isn't upgraded.
     /// </summary>
-    public Func<Package, IReadOnlyList<UpgradeStepInfo>, bool>? UnfinishedUpgradeFound { get; set; }
+    public Func<Package, IReadOnlyList<UpgradeStepInfo>, UnfinishedUpgradeAnswer>? UnfinishedUpgradeFound { get; set; }
+
+    /// <summary>
+    /// Whether the steps that upgrades kept unfinished left run again (see <see cref="PackageUpgrader.RetrySteps"/>), without
+    /// <see cref="UnfinishedUpgradeFound"/>, also in projects without an upgrade pending.
+    /// </summary>
+    public bool RetryUnfinishedUpgrades { get; set; }
 
     /// <summary>
     /// Set by the in-place upgrade flow to tolerate transient NU1605 downgrades when restoring a solution from a

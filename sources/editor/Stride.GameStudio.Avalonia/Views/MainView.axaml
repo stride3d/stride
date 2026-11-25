@@ -305,14 +305,27 @@
         </Grid>
       </Border>
 
-      <!-- While a project of the session has an upgrade-report.md: its last upgrades left items to do by hand -->
+      <!-- While the last upgrade of a project of the session is unfinished, or left items to check in its upgrade-report.md -->
       <Border Name="UpgradeReportBanner" Padding="8,4" BorderThickness="0,1" BorderBrush="Gray" Background="#30E0A040"
               IsVisible="{Binding UpgradeReportBanner.IsVisible}">
-        <Grid ColumnDefinitions="*, Auto">
+        <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto">
           <TextBlock Name="UpgradeReportMessage" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding UpgradeReportBanner.Message}"/>
           <Button Name="OpenUpgradeReportButton" Grid.Column="1" Margin="8,0,0,0"
                   Content="{sd:LocalizeString Open the report, Context=Button}"
                   Command="{Binding UpgradeReportBanner.OpenCommand}"/>
+          <Button Name="RetryUpgradeButton" Grid.Column="2" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Retry, Context=Button}"
+                  ToolTip.Tip="{sd:LocalizeString Run the project steps left again; code steps are done by hand, Context=ToolTip}"
+                  Command="{Binding UpgradeReportBanner.RetryCommand}"
+                  IsVisible="{Binding UpgradeReportBanner.IsUnfinished}"/>
+          <Button Name="MarkUpgradeFinishedButton" Grid.Column="3" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Mark as finished, Context=Button}"
+                  Command="{Binding UpgradeReportBanner.MarkFinishedCommand}"
+                  IsVisible="{Binding UpgradeReportBanner.IsUnfinished}"/>
+          <Button Name="RemoveUpgradeReportButton" Grid.Column="4" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Remove the report, Context=Button}"
+                  Command="{Binding UpgradeReportBanner.RemoveReportsCommand}"
+                  IsVisible="{Binding UpgradeReportBanner.CanRemoveReports}"/>
         </Grid>
       </Border>
     </StackPanel>

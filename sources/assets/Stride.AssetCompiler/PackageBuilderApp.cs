@@ -139,8 +139,10 @@ namespace Stride.AssetCompiler
                 { "no-backup", "Upgrade verb only: skip backing up the files the upgrade overwrites (backup is on by default).", v => options.NoBackup = v != null },
                 { "resave-all", "Upgrade verb only: save every asset in the current format, also the ones the upgrade did not change.", v => options.ResaveAll = v != null },
                 { "report=", "Upgrade verb only: write what the upgrade did to each project, in Markdown, to this file.", v => options.UpgradeReportPath = v },
-                { "keep-partial", "Upgrade verb only: after a failed step, keep the files as the upgrade left them, and record the steps to finish by hand (by default, every file of the project is put back).", v => options.KeepPartialUpgrade = v != null },
-                { "mark-finished", "Upgrade verb only: mark an upgrade kept unfinished as finished, and upgrade.", v => options.MarkUpgradeFinished = v != null },
+                { "keep-partial", "Upgrade verb only: after a failed step, keep the files as the upgrade left them, and record the steps to finish by hand (by default, every file it changed is put back, in every project).", v => options.KeepPartialUpgrade = v != null },
+                { "mark-finished", "Upgrade verb only: mark the upgrades kept unfinished as finished, and upgrade.", v => options.MarkUpgradeFinished = v != null },
+                { "retry", "Upgrade verb only: run again the project steps the upgrades kept unfinished left, and upgrade once none is left.", v => options.RetryUnfinishedUpgrade = v != null },
+                { "unfinished-only", "Upgrade verb only: with --mark-finished or --retry, don't upgrade: the project is on the version to upgrade to.", v => options.UnfinishedUpgradeOnly = v != null },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
                 {
                     if (!string.IsNullOrEmpty(v))
@@ -468,6 +470,29 @@ namespace Stride.AssetCompiler
                 }
             }
 
+            if (options.RetryUnfinishedUpgrade && options.MarkUpgradeFinished)
+            {
+                options.Logger.Error("--retry and --mark-finished are alternatives: run the steps left again, or mark the upgrade as finished once they are done by hand.");
+                return (int)BuildResultCode.CommandLineError;
+            }
+
+            // Marked before the load, the upgrades kept unfinished no longer stop the upgrade of their projects. Without an
+            // upgrade, the project files are all that change: no load.
+            if (options.MarkUpgradeFinished)
+            {
+                foreach (var projectPath in ProjectFilesOf(upgradeTarget, options.Logger))
+                {
+                    if (VSProjectHelper.MarkUpgradesFinished(projectPath))
+                        options.Logger.Info($"The last upgrade of [{System.IO.Path.GetFileNameWithoutExtension(projectPath)}] is marked as finished.");
+                }
+                if (options.UnfinishedUpgradeOnly)
+                {
+                    // No upgrade runs: the report says that no project needed one
+                    WriteUpgradeReport(options, new UpgradeReport(), upgradeTarget);
+                    return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
+                }
+            }
+
             // Reconcile reproduces a GameStudio open+save, so load the session the way GameStudio
             // does — using the defaults, which compile and load the project assemblies. Without that,
             // assets referencing user script types (e.g. a sample's own components) fail to
@@ -481,8 +506,8 @@ namespace Stride.AssetCompiler
                 AllowUpgradeDowngradeRestore = true,
                 // Snapshot every file the upgrade overwrites into a timestamped backup folder unless opted out.
                 BackupBeforeUpgrade = !options.NoBackup,
-                PackageUpgradeFailed = (_, _) => options.KeepPartialUpgrade ? PackageUpgradeFailedAnswer.Keep : PackageUpgradeFailedAnswer.Revert,
-                UnfinishedUpgradeFound = (_, _) => options.MarkUpgradeFinished,
+                PackageUpgradeFailed = _ => options.KeepPartialUpgrade ? PackageUpgradeFailedAnswer.Keep : PackageUpgradeFailedAnswer.Revert,
+                RetryUnfinishedUpgrades = options.RetryUnfinishedUpgrade,
             };
 
             // Load (compiling the project assemblies) is the slow phase; forward each message it logs live.
@@ -508,14 +533,11 @@ namespace Stride.AssetCompiler
             if (sessionResult.HasErrors)
                 options.Logger.Warning("The session loaded with errors; upgrading and saving the assets that loaded. Fix the errors and re-run for a complete upgrade.");
 
-            // A project with nothing to upgrade still has its unfinished upgrade marked as finished
-            if (options.MarkUpgradeFinished)
+            // The steps run again wrote their files: nothing of the assets changes without an upgrade
+            if (options.UnfinishedUpgradeOnly)
             {
-                foreach (var project in sessionResult.Session.Projects.OfType<SolutionProject>().Where(x => x.FullPath is not null))
-                {
-                    if (VSProjectHelper.MarkUpgradesFinished(project.FullPath.ToOSPath(), sessionResult.Session.UpgradeBackup))
-                        options.Logger.Info($"The last upgrade of [{project.Name}] is marked as finished.");
-                }
+                WriteUpgradeReport(options, sessionResult.Session.UpgradeReport, upgradeTarget);
+                return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
             }
 
             ReconcileBases(sessionResult.Session, options.Logger);
@@ -531,19 +553,42 @@ namespace Stride.AssetCompiler
             }
 
             sessionResult.Session.Save(options.Logger);
-
-            if (!string.IsNullOrEmpty(options.UpgradeReportPath))
-            {
-                try
-                {
-                    System.IO.File.WriteAllText(options.UpgradeReportPath, UpgradeReportWriter.FormatUpgrade(sessionResult.Session.UpgradeReport, System.IO.Path.GetFileName(upgradeTarget), DateTime.Now));
-                }
-                catch (Exception e) when (e is System.IO.IOException or UnauthorizedAccessException)
-                {
-                    options.Logger.Error($"Could not write the upgrade report [{options.UpgradeReportPath}]", e);
-                }
-            }
+            WriteUpgradeReport(options, sessionResult.Session.UpgradeReport, upgradeTarget);
             return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
+        }
+
+        // Writes what the upgrade did to each project to the file of --report, if any
+        private static void WriteUpgradeReport(PackageBuilderOptions options, UpgradeReport report, string upgradeTarget)
+        {
+            if (string.IsNullOrEmpty(options.UpgradeReportPath))
+                return;
+            try
+            {
+                System.IO.File.WriteAllText(options.UpgradeReportPath, UpgradeReportWriter.FormatUpgrade(report, System.IO.Path.GetFileName(upgradeTarget), DateTime.Now));
+            }
+            catch (Exception e) when (e is System.IO.IOException or UnauthorizedAccessException)
+            {
+                options.Logger.Error($"Could not write the upgrade report [{options.UpgradeReportPath}]", e);
+            }
+        }
+
+        // The project files of a solution, or the project file itself
+        private static IEnumerable<string> ProjectFilesOf(string path, ILogger logger)
+        {
+            if (path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
+                return [path];
+            try
+            {
+                return Stride.Core.Solutions.Solution.FromFile(path).Projects
+                    .Select(x => x.FullPath)
+                    .Where(x => !string.IsNullOrEmpty(x) && x.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) && System.IO.File.Exists(x))
+                    .ToList();
+            }
+            catch (Exception e)
+            {
+                logger.Error($"Could not read the projects of [{path}]", e);
+                return [];
+            }
         }
 
         // Re-applies changed archetype/base values to derived assets, the way GameStudio does on load.

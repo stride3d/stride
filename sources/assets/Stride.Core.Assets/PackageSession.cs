@@ -633,27 +633,31 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     private readonly Dictionary<SolutionProject, string> stoppedUpgrades = [];
     private string? stoppedSessionUpgrade;
 
-    // The packages whose upgrade failed or was stopped, and those whose upgrade the user refused: the projects that reference
-    // them are not upgraded
+    // The packages whose upgrade failed or was stopped, and those not upgraded by choice (refused, or held by an unfinished
+    // upgrade): the projects that reference them are not upgraded
     private readonly HashSet<Package> failedUpgrades = [];
     private readonly HashSet<Package> refusedUpgrades = [];
 
-    // Reports, and returns true, when the upgrade of a project can't go on: stopped by the source-code migration pre-pass,
-    // or one of the projects it references failed its upgrade or wasn't upgraded. The package then fails its upgrade too,
-    // and the report of each of its upgraders says why.
+    // Returns true when the upgrade of a project can't go on. When it was stopped by the source-code migration pre-pass, or a
+    // project it references failed its upgrade, the package fails its upgrade too, and the report of each of its upgraders says
+    // why. When a project it references is not upgraded by choice, it is not upgraded either, as if refused: nothing failed.
     private bool IsUpgradeStopped(SolutionProject project, IEnumerable<PendingPackageUpgrade> pendingPackageUpgrades, ILogger log)
     {
         var reason = stoppedSessionUpgrade ?? stoppedUpgrades.GetValueOrDefault(project);
         if (reason is null && project.ReferencedProjects.FirstOrDefault(x => failedUpgrades.Contains(x.Package)) is { } failedReference)
             reason = $"the project it references, [{failedReference.Name}], could not be upgraded";
         if (reason is null && project.ReferencedProjects.FirstOrDefault(x => refusedUpgrades.Contains(x.Package)) is { } refusedReference)
-            reason = $"the project it references, [{refusedReference.Name}], is not upgraded";
+        {
+            log.Warning($"[{project.Name}] is not upgraded: the project it references, [{refusedReference.Name}], is not upgraded.");
+            refusedUpgrades.Add(project.Package);
+            return true;
+        }
         if (reason is null)
             return false;
 
         log.Error($"The upgrade of [{project.Name}] is stopped: {reason}.");
         foreach (var pending in pendingPackageUpgrades)
-            ReportOf(this, project.Package, pending)?.AddFailure("Continue the upgrade", reason);
+            ReportOf(this, project.Package, pending)?.AddFailure(ContinueTitle, reason);
         failedUpgrades.Add(project.Package);
         return true;
     }
@@ -1216,22 +1220,24 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         PublishUpgradeReports(log, loadParameters);
     }
 
-    // Ends the upgrade of each project upgraded by this load, after a failed step of the whole project as the front-end
-    // answers. Then logs what the upgrade did, the steps one line each (verbose when all are done), and adds it to the
-    // upgrade-report.md of the project when the upgrade left something, or when the file is already there. The file is not in
-    // the upgrade backup: putting the files back keeps it.
+    // Ends the upgrade of the projects this load upgraded when a step of a whole project failed, as the front-end answers.
+    // Then logs what the upgrade did, the steps one line each (verbose when all are done). Next to each project, its
+    // upgrade-report.md gets the upgrade when it left something to do by hand, or when the file is already there; the report of
+    // a reverted upgrade goes in the backup folder instead, with the files it explains. upgrade-report.md is not in the backup:
+    // putting the files back keeps it.
     private void PublishUpgradeReports(ILogger log, PackageLoadParameters? loadParameters)
     {
         var time = DateTime.Now;
+        EndFailedUpgrades(loadParameters, log);
+
+        var reverted = new List<ProjectUpgradeReport>();
         foreach (var project in UpgradeReport.Projects.Where(x => !x.IsPublished))
         {
             project.IsPublished = true;
             if (continuedFromUnfinished.Remove(project.ProjectFullPath, out var unfinished))
                 project.ContinuedFromUnfinished.AddRange(unfinished);
-            if (Projects.OfType<SolutionProject>().FirstOrDefault(x => x.FullPath == project.ProjectFullPath) is { } solutionProject && failedUpgrades.Contains(solutionProject.Package))
-                EndFailedUpgrade(solutionProject, project, loadParameters, log);
 
-            var hasLeftovers = project.HasLeftovers;
+            var hasLeftovers = project.HasLeftovers || project.Outcome != UpgradeOutcome.Completed;
             log.Info($"{project.ProjectFullPath.GetFileName()}: {UpgradeReportWriter.FormatSummary(project)}");
             foreach (var line in UpgradeReportWriter.FormatStepLines(project))
             {
@@ -1239,6 +1245,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                     log.Info(line);
                 else
                     log.Verbose(line);
+            }
+            if (project.Outcome == UpgradeOutcome.Reverted)
+            {
+                reverted.Add(project);
+                continue;
             }
 
             var reportPath = Path.Combine(project.ProjectFullPath.GetFullDirectory().ToOSPath(), UpgradeReportWriter.FileName);
@@ -1256,65 +1267,133 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 log.Error($"Could not write the upgrade report [{reportPath}]", ex);
             }
         }
+
+        if (reverted.Count == 0 || UpgradeBackup is null)
+            return;
+        var inputName = HasSolution ? SolutionPath.GetFileName() : reverted[0].ProjectFullPath.GetFileName();
+        try
+        {
+            var revertedReportPath = UpgradeBackup.WriteFile(UpgradeReportWriter.FileName, UpgradeReportWriter.FormatUpgrade(reverted, inputName, time));
+            log.Warning($"The upgrade is reverted: see why in [{revertedReportPath}].");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            log.Error("Could not write the report of the reverted upgrade in the backup folder", ex);
+        }
     }
 
-    // After a step of the whole project failed, puts every file of the project back as it was before the upgrade, or keeps the
-    // files as the upgrade left them and records the upgrade with the steps it left, as the front-end answers (revert by
-    // default). The files under the folder of the project are its files, except those under another project of the session.
-    // In both cases, nothing of the upgrade that is still in memory is saved.
-    private void EndFailedUpgrade(SolutionProject project, ProjectUpgradeReport report, PackageLoadParameters? loadParameters, ILogger log)
-    {
-        ForgetUpgradeChanges(project.Package);
-        var directory = project.FullPath.GetFullDirectory().ToOSPath();
-        var otherDirectories = Projects.OfType<SolutionProject>()
-            .Where(x => x != project && x.FullPath is not null)
-            .Select(x => x.FullPath.GetFullDirectory().ToOSPath())
-            .Where(x => IsUnder(x, directory) && !string.Equals(x, directory, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-        bool IsProjectFile(string path) => IsUnder(path, directory) && !otherDirectories.Any(other => IsUnder(path, other));
+    // The title of the item of a revert that could not put every file back, which the projects record as unfinished
+    private const string PutFilesBackTitle = "Put the files back as they were";
 
-        // A project whose upgrade changed nothing has nothing to put back or keep; without backup, a step ran or changed a file
-        var changed = UpgradeBackup?.HasChanges(IsProjectFile)
-            ?? report.Upgraders.SelectMany(x => x.Steps).Any(x => x.ChangedFiles.Count > 0 || x.Status is UpgradeStepStatus.Done or UpgradeStepStatus.Partial);
-        if (!changed)
+    // The title of the failure of a project whose upgrade is stopped before it starts: a reason, not an item to do
+    private const string ContinueTitle = "Continue the upgrade";
+
+    // A solution stays on one version: when a step of a whole project failed, the upgrade of the session ends as one. Revert (the
+    // default) puts back every file the upgrade changed, in every project; keep (also without a backup to put them back from)
+    // leaves the files as the upgrade left them, and each failed project that changed records the steps it left. Nothing of a
+    // failed or reverted upgrade that is still in memory is saved.
+    private void EndFailedUpgrades(PackageLoadParameters? loadParameters, ILogger log)
+    {
+        var failed = UpgradeReport.Projects
+            .Where(x => !x.IsPublished && x.Outcome == UpgradeOutcome.Completed)
+            .Select(report => (Report: report, Project: ProjectOf(report)))
+            .Where(x => x.Project is not null && failedUpgrades.Contains(x.Project.Package))
+            .Select(x => (x.Report, Project: x.Project!))
+            .ToList();
+        if (failed.Count == 0)
+            return;
+        foreach (var (_, project) in failed)
+            ForgetUpgradeChanges(project.Package);
+
+        // The projects an earlier load upgraded, such as before a project was added, keep their upgrade, which the session holds:
+        // the backup still has their files until the session is saved
+        var earlier = UpgradeReport.Projects.Where(x => x.IsPublished).Select(ProjectOf).OfType<SolutionProject>().ToList();
+        bool IsOfThisLoad(string path) => !earlier.Any(project => IsFileOf(project, path));
+
+        // Without a backup, a project changed when a step ran or changed a file
+        var changed = failed.Where(x => UpgradeBackup?.HasChanges(path => IsFileOf(x.Project, path))
+            ?? x.Report.Upgraders.SelectMany(upgrader => upgrader.Steps).Any(step => step.ChangedFiles.Count > 0 || step.Status is UpgradeStepStatus.Done or UpgradeStepStatus.Partial)).ToList();
+        if (!(UpgradeBackup?.HasChanges(IsOfThisLoad) ?? changed.Count > 0))
             return;
 
-        var answer = loadParameters?.PackageUpgradeFailed?.Invoke(project.Package, report) ?? PackageUpgradeFailedAnswer.Revert;
+        var names = string.Join(", ", failed.Select(x => $"[{x.Project.Name}]"));
+        var answer = UpgradeBackup is null ? PackageUpgradeFailedAnswer.Keep : loadParameters?.PackageUpgradeFailed?.Invoke(failed.Select(x => x.Report).ToList()) ?? PackageUpgradeFailedAnswer.Revert;
         if (answer == PackageUpgradeFailedAnswer.Keep)
         {
-            foreach (var upgrader in report.Upgraders.Where(x => x.ToVersion is not null))
+            // A project stopped by a project it references changed nothing, but its steps are left: they run on a retry, as the
+            // projects it references are no longer upgraded
+            var stopped = failed.Where(x => x.Report.Upgraders.SelectMany(upgrader => upgrader.Steps).Any(step => step.Id is null && step.Title == ContinueTitle));
+            foreach (var (report, project) in changed.Union(stopped))
             {
                 // A part of the upgrade that is not a declared step is named by its title
-                var unfinished = upgrader.Steps.Where(x => x.Status is UpgradeStepStatus.Failed or UpgradeStepStatus.NotRun).Select(x => x.Id ?? x.Title).ToList();
-                try
-                {
-                    VSProjectHelper.SetUpgradeRecord(project.FullPath.ToOSPath(), upgrader.Name, upgrader.ToVersion!.ToString(), UpgradeBackup, unfinished);
-                }
-                catch (Exception ex)
-                {
-                    log.Error($"Could not record in [{project.FullPath.GetFileName()}] that the [{upgrader.Name}] upgrade was kept unfinished", ex);
-                }
+                RecordUnfinished(project, report, x => x.ToVersion!, x => x.Steps.Where(step => step.Status is UpgradeStepStatus.Failed or UpgradeStepStatus.NotRun && step.Title != ContinueTitle).Select(step => step.Id ?? step.Title), log);
+                report.Outcome = UpgradeOutcome.Kept;
             }
-            report.Outcome = UpgradeOutcome.Kept;
-            log.Warning($"The upgrade of [{project.Name}] failed, and its files are kept as the upgrade left them: finish its items by hand, then mark the upgrade as finished.");
+            log.Warning(UpgradeBackup is null
+                ? $"The upgrade of {names} failed, and there is no backup to put the files back from: they are kept as the upgrade left them. Finish the items left by hand, or restore the files from version control, then mark the upgrade as finished."
+                : $"The upgrade of {names} failed, and the files are kept as the upgrade left them: finish the items left by hand, then mark the upgrade as finished.");
             return;
         }
 
-        if (UpgradeBackup is null)
+        var upgraded = UpgradeReport.Projects.Where(x => !x.IsPublished && x.Upgraders.Any(upgrader => upgrader.ToVersion is not null)).ToList();
+        foreach (var report in upgraded)
         {
-            report.Outcome = UpgradeOutcome.Stopped;
-            log.Error($"The upgrade of [{project.Name}] failed, and it has no backup to put its files back from: they stay as the upgrade left them. Restore them from version control, fix the errors above and upgrade again.");
+            if (ProjectOf(report) is { } project)
+            {
+                ForgetUpgradeChanges(project.Package);
+                project.UpgradedVersions.Clear();
+            }
+            report.Outcome = UpgradeOutcome.Reverted;
+        }
+
+        var notBack = UpgradeBackup!.Restore(IsOfThisLoad);
+        if (notBack.Count == 0)
+        {
+            log.Warning($"The upgrade of {names} failed: every file the upgrade changed, in every project, is put back as it was. Fix the errors above and upgrade again.");
             return;
         }
 
-        var failed = UpgradeBackup.Restore(IsProjectFile);
-        report.Outcome = UpgradeOutcome.Reverted;
-        if (failed.Count > 0)
-            report.Upgraders.FirstOrDefault()?.AddFailure("Put the files back as they were", $"{failed.Count} file(s) could not be put back: {string.Join(", ", failed.Select(x => Path.GetRelativePath(directory, x)))}");
-        log.Warning($"The upgrade of [{project.Name}] failed: every file of the project is put back as it was before the upgrade. Fix the errors above and upgrade again.");
+        // The projects are between two versions: no upgrade runs on them before the user put the files back and says so
+        foreach (var report in upgraded)
+        {
+            var directory = report.ProjectFullPath.GetFullDirectory().ToOSPath();
+            report.Upgraders.FirstOrDefault()?.AddFailure(PutFilesBackTitle, $"{notBack.Count} file(s) could not be put back: {string.Join(", ", notBack.Select(x => Path.GetRelativePath(directory, x)))}. Their copies are under {UpgradeBackup.FolderPath}.");
+            if (ProjectOf(report) is { } project)
+                RecordUnfinished(project, report, x => x.FromVersion, _ => [PutFilesBackTitle], log);
+            report.Outcome = UpgradeOutcome.PartlyReverted;
+        }
+        log.Error($"The upgrade of {names} failed, and {notBack.Count} of the files it changed could not be put back as they were: copy them from [{UpgradeBackup.FolderPath}], then mark the upgrade as finished.");
+
+        SolutionProject? ProjectOf(ProjectUpgradeReport report) => Projects.OfType<SolutionProject>().FirstOrDefault(x => x.FullPath == report.ProjectFullPath);
+    }
+
+    // Whether a file is under the folder of the project, and not under the folder of another project of the session in it
+    private bool IsFileOf(SolutionProject project, string path)
+    {
+        var directory = project.FullPath.GetFullDirectory().ToOSPath();
+        return IsUnder(path, directory) && !Projects.OfType<SolutionProject>()
+            .Where(x => x != project && x.FullPath is not null)
+            .Select(x => x.FullPath.GetFullDirectory().ToOSPath())
+            .Any(other => IsUnder(other, directory) && IsUnder(path, other));
 
         static bool IsUnder(string path, string directory)
             => path.StartsWith(Path.TrimEndingDirectorySeparator(directory) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Records in the project each upgrader of the report at a version, with the steps it left to finish by hand
+    private void RecordUnfinished(SolutionProject project, ProjectUpgradeReport report, Func<UpgraderReport, PackageVersion> version, Func<UpgraderReport, IEnumerable<string>> unfinished, ILogger log)
+    {
+        foreach (var upgrader in report.Upgraders.Where(x => x.ToVersion is not null))
+        {
+            try
+            {
+                VSProjectHelper.SetUpgradeRecord(project.FullPath.ToOSPath(), upgrader.Name, version(upgrader).ToString(), UpgradeBackup, unfinished(upgrader).ToList());
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Could not record in [{project.FullPath.GetFileName()}] that the [{upgrader.Name}] upgrade is unfinished", ex);
+            }
+        }
     }
 
     // The upgrade of the package stopped: what it changed in memory is not saved
@@ -1373,7 +1452,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         // A cancelled load asks nothing more and upgrades nothing more: its session is dropped
         if (loadParameters.CancelToken is { IsCancellationRequested: true })
             return PackageUpgradeRequestedAnswer.DoNotUpgrade;
-        if (!ContinueUnfinishedUpgrade(package, pendingPackageUpgrades, loadParameters, log))
+        if (!ContinueUnfinishedUpgrade(package, upgradePending: true, loadParameters, log))
             return PackageUpgradeRequestedAnswer.DoNotUpgrade;
 
         if (packageUpgradeAllowed is { } allowed)
@@ -1398,43 +1477,117 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         return answer;
     }
 
-    // Whether the package may be upgraded, as far as an earlier upgrade kept unfinished goes: none is recorded, or the front-end
-    // marks it as finished. Asked once per package.
-    private bool ContinueUnfinishedUpgrade(Package package, IList<PendingPackageUpgrade> pendingPackageUpgrades, PackageLoadParameters loadParameters, ILogger log)
+    // Whether the package may be upgraded, as far as an earlier upgrade kept unfinished goes: none is recorded, or its steps run
+    // again until none is left, or it is marked as finished. The front-end is asked only when an upgrade of the package is
+    // pending, which the unfinished upgrade stops; otherwise its steps run again only when the load parameters ask for it, and the
+    // project loads as it is. Once per package.
+    private bool ContinueUnfinishedUpgrade(Package package, bool upgradePending, PackageLoadParameters loadParameters, ILogger log)
     {
-        if (unfinishedUpgradeAnswers.TryGetValue(package, out var answer))
-            return answer;
+        if (unfinishedUpgradeAnswers.TryGetValue(package, out var mayUpgrade))
+            return mayUpgrade;
         if (package.Container is not SolutionProject { FullPath: { } projectPath } project || !File.Exists(projectPath.ToOSPath()))
             return unfinishedUpgradeAnswers[package] = true;
 
-        var upgraders = pendingPackageUpgrades.Select(x => x.PackageUpgrader).DistinctBy(x => x.Attribute.Name, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(x => x.Attribute.Name, StringComparer.OrdinalIgnoreCase);
-        var unfinished = VSProjectHelper.GetUnfinishedUpgrades(projectPath.ToOSPath())
-            .Where(x => upgraders.ContainsKey(x.Key))
-            .SelectMany(x => DescribeSteps(upgraders[x.Key], x.Value))
-            .ToList();
+        var unfinished = VSProjectHelper.GetUnfinishedUpgrades(LoadOrGetCachedProject(projectPath.ToOSPath(), loadParameters));
         if (unfinished.Count == 0)
             return unfinishedUpgradeAnswers[package] = true;
 
-        var ids = unfinished.Select(x => x.Id).ToList();
-        if (loadParameters.UnfinishedUpgradeFound?.Invoke(package, unfinished) != true)
+        var steps = unfinished.SelectMany(x => DescribeSteps(AssetRegistry.GetPackageUpgraderByName(x.Upgrader), x.Steps)).ToList();
+        var items = string.Join(", ", unfinished.SelectMany(x => x.Steps));
+        var answer = loadParameters.RetryUnfinishedUpgrades ? UnfinishedUpgradeAnswer.Retry
+            : upgradePending ? loadParameters.UnfinishedUpgradeFound?.Invoke(package, steps) ?? UnfinishedUpgradeAnswer.Leave
+            : UnfinishedUpgradeAnswer.Leave;
+        if (answer == UnfinishedUpgradeAnswer.MarkFinished)
         {
-            log.Error($"The last upgrade of [{project.Name}] was kept unfinished, with {string.Join(", ", ids)} to finish by hand: mark it as finished once they are done, then upgrade again (in Game Studio, or with 'stride upgrade --mark-finished').");
-            return unfinishedUpgradeAnswers[package] = false;
+            ArmUpgradeBackup(loadParameters, log);
+            VSProjectHelper.MarkUpgradesFinished(projectPath.ToOSPath(), UpgradeBackup);
+            ClearCachedProject(projectPath.ToOSPath());
+            continuedFromUnfinished[projectPath] = [.. unfinished.SelectMany(x => x.Steps)];
+            log.Info($"The last upgrade of [{project.Name}] is marked as finished: it had left {items} to finish by hand.");
+            return unfinishedUpgradeAnswers[package] = true;
         }
 
-        ArmUpgradeBackup(loadParameters, log);
-        VSProjectHelper.MarkUpgradesFinished(projectPath.ToOSPath(), UpgradeBackup);
-        continuedFromUnfinished[projectPath] = ids;
-        log.Info($"The last upgrade of [{project.Name}] is marked as finished: it had left {string.Join(", ", ids)} to finish by hand.");
-        return unfinishedUpgradeAnswers[package] = true;
+        if (answer == UnfinishedUpgradeAnswer.Retry)
+        {
+            ArmUpgradeBackup(loadParameters, log);
+            var retry = RetryUnfinished(project, unfinished, log);
+            ClearCachedProject(projectPath.ToOSPath());
+            if (retry.StepsLeft.Count == 0)
+                return unfinishedUpgradeAnswers[package] = true;
+        }
+        else
+        {
+            log.Info($"The last upgrade of [{project.Name}] is unfinished, with {items} to finish by hand.");
+        }
+
+        // Without an upgrade to stop, the project loads as it is: the front-end shows that the upgrade is unfinished
+        if (upgradePending)
+            log.Error($"The upgrade of [{project.Name}] doesn't run: its last upgrade is unfinished. Run its steps again ('stride upgrade --retry', Retry in Game Studio), or mark it as finished once they are done by hand, then upgrade again.");
+        return unfinishedUpgradeAnswers[package] = false;
     }
 
-    // The steps of the upgrader with these IDs, as it declares them; a step it no longer declares has only its ID
-    private static IEnumerable<UpgradeStepInfo> DescribeSteps(PackageUpgrader upgrader, IEnumerable<string> ids)
+    /// <summary>
+    /// Runs again the project steps that the unfinished upgrades of <paramref name="project"/> left (see
+    /// <see cref="PackageUpgrader.RetrySteps"/>), records the steps still left, and publishes the report of the retry: in the
+    /// log, and in the <see cref="UpgradeReportWriter.FileName"/> of the project when steps are still left.
+    /// </summary>
+    /// <param name="project">A project of the session.</param>
+    /// <param name="log">The log.</param>
+    /// <returns>What the retry did; nothing for a project without an unfinished upgrade.</returns>
+    public UnfinishedUpgradeRetry RetryUnfinishedUpgrades(SolutionProject project, ILogger log)
     {
-        var steps = upgrader.GetUpgradeSteps(new PackageVersion("0.0.0")).ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase);
-        return ids.Select(id => steps.GetValueOrDefault(id) ?? new UpgradeStepInfo(id, "", null));
+        ArgumentNullException.ThrowIfNull(project);
+        ArgumentNullException.ThrowIfNull(log);
+        if (project.FullPath is null || !File.Exists(project.FullPath.ToOSPath()))
+            return new UnfinishedUpgradeRetry([], false);
+
+        var retry = RetryUnfinished(project, VSProjectHelper.GetUnfinishedUpgrades(project.FullPath.ToOSPath()), log);
+        PublishUpgradeReports(log, null);
+        return retry;
+    }
+
+    // Runs again the project steps of each unfinished upgrade, and records the steps each still leaves
+    private UnfinishedUpgradeRetry RetryUnfinished(SolutionProject project, IReadOnlyList<UnfinishedUpgrade> unfinished, ILogger log)
+    {
+        var projectPath = project.FullPath;
+        var left = new List<string>();
+        var changedProject = false;
+        foreach (var record in unfinished)
+        {
+            if (AssetRegistry.GetPackageUpgraderByName(record.Upgrader) is not { } upgrader || !PackageVersion.TryParse(record.Version, out var version))
+            {
+                left.AddRange(record.Steps);
+                continue;
+            }
+
+            var report = UpgradeReport.AddRetry(projectPath, upgrader, version, record.Steps);
+            upgrader.RetrySteps(this, project, report, log);
+            changedProject |= report.Steps.Any(x => x.ChangedFiles.Count > 0);
+            var recordLeft = report.Steps.Where(x => x.Status != UpgradeStepStatus.Done).Select(x => x.Id ?? x.Title).ToList();
+            left.AddRange(recordLeft);
+            try
+            {
+                VSProjectHelper.SetUpgradeRecord(projectPath.ToOSPath(), record.Upgrader, record.Version, UpgradeBackup, recordLeft);
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Could not record in [{projectPath.GetFileName()}] the steps the [{record.Upgrader}] upgrade still leaves", ex);
+            }
+        }
+
+        if (left.Count == 0)
+            log.Info($"The steps the last upgrade of [{project.Name}] left are done: the upgrade is finished.");
+        else
+            log.Warning($"The last upgrade of [{project.Name}] still leaves {string.Join(", ", left)} to finish by hand: mark it as finished once they are done.");
+        return new UnfinishedUpgradeRetry(left, changedProject);
+    }
+
+    // The steps of the upgrader with these IDs, as it declares them; a step it no longer declares, or an upgrader that isn't
+    // loaded, gives only its ID, and a part of the upgrade that isn't a step only its title
+    private static IEnumerable<UpgradeStepInfo> DescribeSteps(PackageUpgrader? upgrader, IEnumerable<string> ids)
+    {
+        var steps = upgrader?.GetUpgradeSteps(new PackageVersion("0.0.0")).ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase) ?? [];
+        return ids.Select(id => steps.GetValueOrDefault(id) ?? (UpgradeStepInfo.IsStepId(id) ? new UpgradeStepInfo(id, "", null) : new UpgradeStepInfo("", id, null)));
     }
 
     /// <summary>

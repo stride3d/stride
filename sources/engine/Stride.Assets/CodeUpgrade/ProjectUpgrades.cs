@@ -98,8 +98,7 @@ public sealed class ProjectUpgradeContext
         ArgumentNullException.ThrowIfNull(destination);
         pendingChanges.Add((source, () =>
         {
-            Backup?.Snapshot(source);
-            Backup?.Snapshot(destination);
+            Backup?.SnapshotMove(source, destination);
             File.Move(source, destination, overwrite: true);
         }, doneMessage));
     }

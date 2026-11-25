@@ -21,7 +21,7 @@ namespace Stride.Assets
             foreach (var file in Directory.EnumerateFiles(projectDir, "*.sdfx", SearchOption.AllDirectories))
             {
                 var relative = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                if (IsBuildOutput(relative))
+                if (IsBuildOutputOrBackup(relative))
                     continue;
 
                 try

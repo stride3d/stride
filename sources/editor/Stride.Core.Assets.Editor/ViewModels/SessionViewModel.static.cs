@@ -283,6 +283,27 @@ partial class SessionViewModel
                         // Load references
                         sessionResult.Session.LoadMissingReferences(sessionResult);
 
+                        // A failed upgrade didn't load what it failed on. A reverted one has something to fix before the project
+                        // upgrades again: it doesn't open. A kept one opens again from its files, where the banner shows what is left.
+                        var outcomes = sessionResult.Session.UpgradeReport.Projects.Select(x => x.Outcome).ToList();
+                        if (outcomes.Contains(UpgradeOutcome.PartlyReverted))
+                        {
+                            sessionResult.Error(Tr._p("Log", "The upgrade failed, and some files could not be put back as they were: copy them from the backup folder the log names, then open the project again and mark its upgrade as finished."));
+                            return null;
+                        }
+                        if (outcomes.Contains(UpgradeOutcome.Reverted))
+                        {
+                            sessionResult.Error(Tr._p("Log", "The upgrade failed and was reverted: every project is on its version again. Fix the errors of the log (the backup folder has the report of the upgrade), then open the project again to upgrade it."));
+                            return null;
+                        }
+                        if (outcomes.Contains(UpgradeOutcome.Kept))
+                        {
+                            sessionResult.Info(Tr._p("Log", "The upgrade failed and was kept unfinished: the project opens again, with the steps left to retry or to do by hand."));
+                            sessionResult.Session.Dispose();
+                            load(loadParameters);
+                            sessionResult.Session.LoadMissingReferences(sessionResult);
+                        }
+
                         // Create the session view model (in the UI thread)
                         var dispatcher = serviceProvider.Get<IDispatcherService>();
                         result = dispatcher.Invoke(() => new SessionViewModel(sessionServices, sessionResult.Session, main, sessionResult));
@@ -452,14 +473,19 @@ partial class SessionViewModel
             return upgrade ? PackageUpgradeRequestedAnswer.Upgrade : PackageUpgradeRequestedAnswer.DoNotUpgrade;
         };
         // The callbacks run on the loading thread, not on the UI thread: waiting for the dialog is safe
-        loadParameters.PackageUpgradeFailed = (package, report) =>
+        loadParameters.PackageUpgradeFailed = reports =>
         {
             var message = new StringBuilder();
-            message.AppendLine(string.Format(Tr._p("Message", "The upgrade of **{0}** failed:"), package.Meta.Name));
+            message.AppendLine(Tr._p("Message", "The upgrade failed:"));
+            foreach (var report in reports)
+            {
+                message.AppendLine();
+                message.AppendLine($"**{report.ProjectFullPath.GetFileNameWithoutExtension()}**");
+                message.AppendLine();
+                message.AppendLine(UpgradeReportWriter.FormatStepsLeftList(report));
+            }
             message.AppendLine();
-            message.AppendLine(UpgradeReportWriter.FormatStepsLeftList(report));
-            message.AppendLine();
-            message.AppendLine(Tr._p("Message", "**Revert** puts every file of the project back as it was before the upgrade: fix the errors of the log, then upgrade again. **Keep** leaves the files as the upgrade left them: finish the steps above by hand, as upgrade-report.md next to the project lists them, then mark the upgrade as finished."));
+            message.AppendLine(Tr._p("Message", "**Revert** puts back as it was every file the upgrade changed, in every project: fix the errors of the log, then open the project again to upgrade it. **Keep** leaves the files as the upgrade left them, and opens the project: retry the steps left, or do them by hand, as upgrade-report.md next to the project lists them."));
             var buttons = new[]
             {
                 new DialogButtonInfo { Content = Tr._p("Button", "Revert"), Result = (int)PackageUpgradeFailedAnswer.Revert, IsDefault = true },
@@ -470,17 +496,18 @@ partial class SessionViewModel
         loadParameters.UnfinishedUpgradeFound = (package, steps) =>
         {
             var message = new StringBuilder();
-            message.AppendLine(string.Format(Tr._p("Message", "The last upgrade of **{0}** was kept unfinished, with these steps to finish by hand:"), package.Meta.Name));
+            message.AppendLine(string.Format(Tr._p("Message", "**{0}** can't be upgraded: its last upgrade is unfinished, with these steps left:"), package.Meta.Name));
             message.AppendLine();
             message.AppendLine(UpgradeReportWriter.FormatStepList(steps));
             message.AppendLine();
-            message.AppendLine(Tr._p("Message", "Mark it as finished once they are done: the package is then upgraded."));
+            message.AppendLine(Tr._p("Message", "**Retry** runs the project steps again, and upgrades once none is left. Code steps are done by hand, as upgrade-report.md lists them, then **Mark as finished**. **Not now** opens the project as it is."));
             var buttons = new[]
             {
-                new DialogButtonInfo { Content = Tr._p("Button", "Mark as finished and continue"), Result = 1 },
-                new DialogButtonInfo { Content = Tr._p("Button", "Cancel"), Result = 0, IsDefault = true },
+                new DialogButtonInfo { Content = Tr._p("Button", "Retry"), Result = (int)UnfinishedUpgradeAnswer.Retry },
+                new DialogButtonInfo { Content = Tr._p("Button", "Mark as finished"), Result = (int)UnfinishedUpgradeAnswer.MarkFinished },
+                new DialogButtonInfo { Content = Tr._p("Button", "Not now"), Result = (int)UnfinishedUpgradeAnswer.Leave, IsDefault = true },
             };
-            return serviceProvider.Get<IDialogService>().MessageBoxAsync(message.ToString(), buttons, MessageBoxImage.Question).Result == 1;
+            return (UnfinishedUpgradeAnswer)serviceProvider.Get<IDialogService>().MessageBoxAsync(message.ToString(), buttons, MessageBoxImage.Question).Result;
         };
         return loadParameters;
     }

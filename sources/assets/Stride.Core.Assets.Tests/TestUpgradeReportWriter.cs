@@ -157,8 +157,8 @@ public class TestUpgradeReportWriter
             - not run [Stride-4.5.0-P2](https://doc/4.5.html#stride-4.5.0-p2) Add the plugin packages
             """.ReplaceLineEndings("\n"), UpgradeReportWriter.FormatStepsLeftList(LeftoversReport()));
         Assert.Equal(
-            "- [Stride-4.5.0-P1](https://doc/4.5.html#stride-4.5.0-p1) Update the effects\n- `Stride-4.4.0-P9`",
-            UpgradeReportWriter.FormatStepList([new UpgradeStepInfo("Stride-4.5.0-P1", "Update the effects", "https://doc/4.5.html#stride-4.5.0-p1"), new UpgradeStepInfo("Stride-4.4.0-P9", "", null)]));
+            "- [Stride-4.5.0-P1](https://doc/4.5.html#stride-4.5.0-p1) Update the effects\n- `Stride-4.4.0-P9`\n- Put the files back as they were",
+            UpgradeReportWriter.FormatStepList([new UpgradeStepInfo("Stride-4.5.0-P1", "Update the effects", "https://doc/4.5.html#stride-4.5.0-p1"), new UpgradeStepInfo("Stride-4.4.0-P9", "", null), new UpgradeStepInfo("", "Put the files back as they were", null)]));
     }
 
     [Fact]
@@ -199,9 +199,9 @@ public class TestUpgradeReportWriter
     }
 
     [Theory]
-    [InlineData(UpgradeOutcome.Reverted, "## 2026-11-21 14:32 · Stride 4.5.0 → 4.5.7 · reverted, 1 item left", "A step failed, so every file of the project was put back as it was before this upgrade: the project stays on Stride 4.5.0, and its next upgrade runs every step again.")]
+    [InlineData(UpgradeOutcome.Reverted, "## 2026-11-21 14:32 · Stride 4.5.0 → 4.5.7 · reverted", "A step of a project of the solution failed, so every file the upgrade changed, in every project, was put back as it was: the project stays on Stride 4.5.0. Nothing below is to do by hand: fix why the upgrade failed, and its next upgrade runs these steps again.")]
     [InlineData(UpgradeOutcome.Kept, "## 2026-11-21 14:32 · Stride 4.5.0 → 4.5.7 · kept, 1 item left", "A step failed, and the files were kept as the upgrade left them: finish the items below by hand, then mark the upgrade as finished.")]
-    [InlineData(UpgradeOutcome.Stopped, "## 2026-11-21 14:32 · Stride 4.5.0 → 4.5.7 · stopped, 1 item left", "with no backup to put them back from")]
+    [InlineData(UpgradeOutcome.PartlyReverted, "## 2026-11-21 14:32 · Stride 4.5.0 → 4.5.7 · partly reverted, 1 item left", "some files the upgrade changed could not be put back as they were: copy them from the backup")]
     public void AFailedUpgradeSaysWhatHappenedToItsFiles(UpgradeOutcome outcome, string title, string summary)
     {
         var project = CleanReport();
