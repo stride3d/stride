@@ -2,10 +2,14 @@
 #
 # When <from> is a release on its release branch and <to> is on the mainline, finds the mainline
 # work of <from>..<to> that already shipped in <from> as cherry-picks. A mainline commit is picked
-# when a commit of merge-base..<from> names it in a `(cherry picked from commit <sha>)` line, or
-# has the same patch (git's cherry-mark). Its picks carry the share of its changed lines they also
-# change, paths ignored, so moved files and small conflict fixes still count. At 95% or more the
-# commit shipped; below that it shipped in part.
+# when a commit of merge-base..<from> names it in a `(cherry picked from commit <sha>)` line, has
+# the same patch (git's cherry-mark), or else has the same subject or names the same PR in it (a
+# pick without `-x` that changed on the way). Its picks carry the share of its changed lines they
+# also change, paths ignored, so moved files and small conflict fixes still count, and a line
+# adapted to the release branch counts for the share of its words they carry. At 95% or more the
+# commit shipped; below that it shipped in part. A pair found by its subject alone counts only
+# when its picks carry 50% of its changed lines whole, so commits that merely share a subject such
+# as "Fix build", and common words, are not taken for picks.
 #
 # A first-parent entry of <to> (a squash or direct commit, or a merge commit and the commits it
 # brings in) shipped when all its commits shipped. Writes, in <outdir>:
@@ -114,9 +118,33 @@ foreach ($line in Split-Lines (Invoke-Git log, '--cherry-mark', '--left-right', 
     if ($parents.ContainsKey($h)) { if (!$picks.ContainsKey($h)) { $sameRight.Add($h) } } else { $sameLeft.Add($h) }
 }
 
+# The other mainline commits with the subject, or the PR in their subject, of commits of the
+# release branch. A merge counts only by its PR: "Merge branch 'master'" says nothing of its content.
+function Get-SubjectKey([string]$Subject, [int]$ParentCount) {
+    if ($Subject -cmatch '^Merge pull request #(\d+)' -or $Subject -cmatch '\(#(\d+)\)$') { return "#$($Matches[1])" }
+    $ParentCount -lt 2 ? $Subject : $null
+}
+$releaseBySubject = New-Map
+foreach ($line in Split-Lines (Invoke-Git log, '--format=%H %P%x09%s', "$To..$From")) {
+    $ids, $s = $line.Split("`t", 2)
+    $h, $p = $ids.Split(' ')
+    $key = Get-SubjectKey "$s" @($p | Where-Object { $_ }).Count
+    if (!$key) { continue }
+    if (!$releaseBySubject.ContainsKey($key)) { $releaseBySubject[$key] = [Collections.Generic.List[string]]::new() }
+    $releaseBySubject[$key].Add($h)
+}
+$paired = [Collections.Generic.HashSet[string]]::new([string[]]$sameRight, [StringComparer]::Ordinal)
+$bySubject = New-Map    # mainline commit -> the release commits that match its subject
+foreach ($h in $parents.Keys) {
+    if ($picks.ContainsKey($h) -or $paired.Contains($h)) { continue }
+    $key = Get-SubjectKey $subject[$h] $parents[$h].Count
+    if ($key -and $releaseBySubject.ContainsKey($key)) { $bySubject[$h] = $releaseBySubject[$key] }
+}
+
 # The changed lines of each commit, per file: sign and text, spacing ignored, blank lines left out.
 $files = New-Map    # sha -> list of { Path; Lines: line -> count }
-$shas = @($picks.Keys) + @($picks.Values | ForEach-Object { $_ }) + $sameLeft + $sameRight
+$shas = @($picks.Keys) + @($picks.Values | ForEach-Object { $_ }) + $sameLeft + $sameRight +
+    @($bySubject.Keys) + @($bySubject.Values | ForEach-Object { $_ })
 if ($shas.Count) {
     $diffs = Invoke-Git -GitArgs log, '--no-walk=unsorted', '--stdin', '--format=commit %H', '-p', '--diff-merges=first-parent',
         '--no-color', '--no-ext-diff', '--no-textconv' -InputLines $shas
@@ -167,36 +195,70 @@ foreach ($o in $sameRight) {
     $picks[$o] = [Collections.Generic.List[string]]::new()
     if ($queue -and $queue.Count) { $picks[$o].Add($queue.Dequeue()) }
 }
+foreach ($kv in $bySubject.GetEnumerator()) { $picks[$kv.Key] = [Collections.Generic.List[string]]::new([string[]]$kv.Value) }
 
-# The share of a commit's changed lines its picks carry, and the files they carry less of.
-$share = New-Map
-$leftOut = New-Map
-foreach ($o in $picks.Keys) {
+# The share of a commit's changed lines its picks carry, and the files they carry less of. A line
+# changed on the way counts for the share of its words (letters, digits and `_`) found in the pick
+# lines left over: `@this.Context.X` picked as `Context.X` counts for 2 words of 3. Exact counts
+# only the lines picked whole.
+$wordPattern = [regex]::new('[\p{L}\p{N}_]+')
+function Get-Words([string]$Line) { $s = $Line.Substring(0, 1); $wordPattern.Matches($Line.Substring(1)) | ForEach-Object { $s + $_.Value } }
+function Measure-Picks([string]$Orig) {
+    $origFiles = @(Get-Files $Orig)
+    $result = [pscustomobject]@{ Share = 100; Exact = 100; Left = [Collections.Generic.List[string]]::new() }
+    # A commit paired by cherry-mark alone has the same patch.
+    if ($picks[$Orig].Count -eq 0) { return $result }
     $pool = [Collections.Generic.Dictionary[string, int]]::new([StringComparer]::Ordinal)
-    foreach ($p in $picks[$o]) {
+    foreach ($p in $picks[$Orig]) {
         foreach ($f in Get-Files $p) { foreach ($kv in $f.Lines.GetEnumerator()) { $pool[$kv.Key] = (Get-Count $pool $kv.Key) + $kv.Value } }
     }
-    # A commit paired by cherry-mark alone has the same patch.
-    $same = $picks[$o].Count -eq 0
-    $total = 0; $carried = 0
-    $left = [Collections.Generic.List[string]]::new()
-    foreach ($f in Get-Files $o) {
-        $ft = 0; $fc = 0
-        foreach ($kv in $f.Lines.GetEnumerator()) {
-            $n = $kv.Value
-            $m = $same ? $n : [Math]::Min((Get-Count $pool $kv.Key), $n)
-            if (!$same) { $pool[$kv.Key] = (Get-Count $pool $kv.Key) - $m }
-            $ft += $n
-            $fc += $m
-        }
-        $total += $ft
-        $carried += $fc
-        if ($fc * 100 -lt $threshold * $ft) {
-            $left.Add($fc ? ('`{0}` ({1}% picked)' -f $f.Path, [Math]::Floor(100 * $fc / $ft)) : "``$($f.Path)``")
+    $total = @(0) * $origFiles.Count; $exact = @(0) * $origFiles.Count; $missed = @($null) * $origFiles.Count
+    for ($i = 0; $i -lt $origFiles.Count; $i++) {
+        $missed[$i] = [Collections.Generic.List[string]]::new()
+        foreach ($kv in $origFiles[$i].Lines.GetEnumerator()) {
+            $m = [Math]::Min((Get-Count $pool $kv.Key), $kv.Value)
+            $pool[$kv.Key] = (Get-Count $pool $kv.Key) - $m
+            $total[$i] += $kv.Value
+            $exact[$i] += $m
+            for ($k = $m; $k -lt $kv.Value; $k++) { $missed[$i].Add($kv.Key) }
         }
     }
-    $share[$o] = $total ? [Math]::Floor(100 * $carried / $total) : 100
-    $leftOut[$o] = $left
+    $words = [Collections.Generic.Dictionary[string, int]]::new([StringComparer]::Ordinal)
+    foreach ($kv in $pool.GetEnumerator()) {
+        if ($kv.Value -gt 0) { foreach ($w in Get-Words $kv.Key) { $words[$w] = (Get-Count $words $w) + $kv.Value } }
+    }
+    $allTotal = 0; $allExact = 0; $allCarried = 0.0
+    for ($i = 0; $i -lt $origFiles.Count; $i++) {
+        $carried = [double]$exact[$i]
+        foreach ($line in $missed[$i]) {
+            $w = @(Get-Words $line)
+            if (!$w.Count) { continue }
+            $found = 0
+            foreach ($x in $w) { if ((Get-Count $words $x) -gt 0) { $words[$x]--; $found++ } }
+            $carried += $found / $w.Count
+        }
+        $allTotal += $total[$i]; $allExact += $exact[$i]; $allCarried += $carried
+        if ($carried * 100 -lt $threshold * $total[$i]) {
+            $result.Left.Add($carried ? ('`{0}` ({1}% picked)' -f $origFiles[$i].Path, [Math]::Floor(100 * $carried / $total[$i])) : "``$($origFiles[$i].Path)``")
+        }
+    }
+    if ($allTotal) {
+        $result.Share = [int][Math]::Floor(100 * $allCarried / $allTotal)
+        $result.Exact = [int][Math]::Floor(100 * $allExact / $allTotal)
+    }
+    $result
+}
+$share = New-Map
+$leftOut = New-Map
+$keptBySubject = 0
+foreach ($o in @($picks.Keys)) {
+    $m = Measure-Picks $o
+    if ($bySubject.ContainsKey($o)) {
+        if ($m.Exact -lt 50) { [void]$picks.Remove($o); continue }
+        $keptBySubject++
+    }
+    $share[$o] = $m.Share
+    $leftOut[$o] = $m.Left
 }
 function Test-Shipped([string]$Sha) { $share.ContainsKey($Sha) -and $share[$Sha] -ge $threshold }
 
@@ -239,4 +301,4 @@ $shippedCommits = [string[]]@($unitOf.Keys | Where-Object { $isShipped.Contains(
 [IO.File]::WriteAllText((Join-Path $OutDir 'partly-shipped.md'), ($partialMd.Count ? ($partialMd -join "`n") + "`n" : ''), $utf8)
 
 $full = @($share.Keys | Where-Object { Test-Shipped $_ }).Count
-"$($share.Count) commits of $From..$To were picked into ${From}: $full shipped ($threshold% of their changed lines or more), $($share.Count - $full) in part. First-parent entries: $($shippedUnits.Count) shipped, $($partialMd.Count) in part, of $($units.Count)."
+"$($share.Count) commits of $From..$To were picked into ${From} ($keptBySubject found by their subject): $full shipped ($threshold% of their changed lines or more), $($share.Count - $full) in part. First-parent entries: $($shippedUnits.Count) shipped, $($partialMd.Count) in part, of $($units.Count)."

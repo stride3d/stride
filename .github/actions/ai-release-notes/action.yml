@@ -158,7 +158,10 @@ runs:
         SHIPPED_UNITS="$PWD/shipped-units.txt"
         SHIPPED_COMMITS="$PWD/shipped-commits.txt"
         PARTLY_SHIPPED="$PWD/partly-shipped.md"
-        : > "$SHIPPED_UNITS"; : > "$SHIPPED_COMMITS"; : > "$PARTLY_SHIPPED"
+        # SPLIT_PRS: PR, entry, shipped (1 or 0), subject, for the PRs with entries that shipped and
+        # entries that didn't.
+        SPLIT_PRS="$PWD/split-prs.tsv"
+        : > "$SHIPPED_UNITS"; : > "$SHIPPED_COMMITS"; : > "$PARTLY_SHIPPED"; : > "$SPLIT_PRS"
         SHIPPED_PRS=""
         MERGE_BASE=""
         if ! git merge-base --is-ancestor "$FROM" "$TO"; then
@@ -168,14 +171,14 @@ runs:
           # A PR shipped when all its first-parent entries did. A merge or squash entry names its PR
           # in its subject. The others (rebase merges, direct pushes) are looked up: the shipped
           # ones, and the unshipped ones next to them, as a rebase merge's commits are consecutive.
-          # UNIT_PRS: entry, shipped (1 or 0), PR from its subject.
+          # UNIT_PRS: entry, shipped (1 or 0), PR from its subject, subject.
           UNIT_PRS="$PWD/unit-prs.tsv"
           git log --first-parent --format='%H%x09%s' "$FROM..$TO" \
             | awk -F'\t' -v shipped="$SHIPPED_UNITS" '
                 BEGIN { while ((getline l < shipped) > 0) s[l] }
                 { pr = ""
                   if (match($2, /Merge pull request #[0-9]+/) || match($2, /\(#[0-9]+\)$/)) { pr = substr($2, RSTART, RLENGTH); gsub(/[^0-9]/, "", pr) }
-                  print $1 "\t" (($1 in s) ? 1 : 0) "\t" pr }' > "$UNIT_PRS"
+                  print $1 "\t" (($1 in s) ? 1 : 0) "\t" pr "\t" $2 }' > "$UNIT_PRS"
           LOOKED_UP="$PWD/unit-prs-looked-up.tsv"
           while read -r sha; do
             printf '%s\t%s\n' "$sha" "$(gh_value "repos/$REPO/commits/$sha/pulls" \
@@ -188,6 +191,15 @@ runs:
               { n = $3 != "" ? $3 : pr[$1]; if (n == "") next; all[n] = ((n in all) ? all[n] : 1) && $2 }
               END { for (n in all) if (all[n]) print n }' "$UNIT_PRS" | sort -n | paste -sd' ' -)
           echo "::notice::PRs that shipped whole in $FROM, left out: $(wc -w <<< "$SHIPPED_PRS")."
+          # Some PRs shipped only some of their entries: those are out of the log, but the title of
+          # the PR in the change list still covers all of it.
+          awk -F'\t' -v OFS='\t' -v looked="$LOOKED_UP" '
+              BEGIN { while ((getline l < looked) > 0) { split(l, f, "\t"); if (f[2] != "") pr[f[1]] = f[2] } }
+              { n = $3 != "" ? $3 : pr[$1]; if (n == "") next
+                line[++count] = n OFS $1 OFS $2 OFS $4; kinds[n, $2] = 1 }
+              END { for (i = 1; i <= count; i++) { split(line[i], f, "\t"); if (kinds[f[1], 0] && kinds[f[1], 1]) print line[i] } }' \
+            "$UNIT_PRS" > "$SPLIT_PRS"
+          echo "::notice::PRs that shipped in part (some of their entries): $(cut -f1 "$SPLIT_PRS" | sort -u | grep -c . || true)."
         fi
 
         # The documentation from stride-docs: master's Markdown pages (published docs, written
@@ -323,6 +335,24 @@ runs:
           WHATS_CHANGED=$(printf '%s\n%s' "$WHATS_CHANGED" "$ORIGINALS" | grep -v '^$' || true)
           echo "::notice::Backport: $(wc -l < "$PICKS") cherry-picked commits from $(grep -c . <<< "$ORIGINALS" || true) original PRs; backport PR(s) left out of the list: ${BACKPORT_PRS:-none}."
         fi
+        # A PR merged into the branch of another PR (stacked PRs) has no entry of its own: it shipped
+        # when its merge commit is in an entry that shipped. Their merge commits come from GraphQL,
+        # 100 PRs per query.
+        if [ -n "$MERGE_BASE" ] && [ -s "$SHIPPED_COMMITS" ]; then
+          OTHER_PRS=$(grep -oE '/pull/[0-9]+$' <<< "$WHATS_CHANGED" | grep -oE '[0-9]+' \
+            | grep -vxFf <(awk -F'\t' '{ print $2 }' "$LOOKED_UP"; cut -f3 "$UNIT_PRS") || true)
+          STACKED_PRS=""
+          while read -r batch; do
+            [ -n "$batch" ] || continue
+            q="query { repository(owner: \"${REPO%%/*}\", name: \"${REPO#*/}\") {"
+            for n in $batch; do q+=" p$n: pullRequest(number: $n) { number mergeCommit { oid } }"; done
+            STACKED_PRS+=" $(gh_value graphql -f query="$q} }" --jq '.data.repository[] | select(.mergeCommit) | "\(.number)\t\(.mergeCommit.oid)"' \
+              | awk -F'\t' -v shipped="$SHIPPED_COMMITS" 'BEGIN { while ((getline l < shipped) > 0) s[l] } $2 in s { print $1 }' | paste -sd' ' -)"
+          done < <(xargs -n 100 <<< "$OTHER_PRS")
+          STACKED_PRS=$(xargs <<< "$STACKED_PRS")
+          echo "::notice::PRs merged into a PR that shipped whole, left out: $(wc -w <<< "$STACKED_PRS")${STACKED_PRS:+ ($STACKED_PRS)}."
+          SHIPPED_PRS=$(xargs -n 1 <<< "$SHIPPED_PRS $STACKED_PRS" | sort -un | paste -sd' ' -)
+        fi
         # The PRs that already shipped in FROM leave the list.
         if [ -n "$SHIPPED_PRS" ]; then
           WHATS_CHANGED=$(awk -v prs="$SHIPPED_PRS" '
@@ -392,11 +422,30 @@ runs:
         EOF
             )
           fi
+          # The PRs that shipped some of their entries, among the ones with a new entry in this
+          # product's scope.
+          SPLIT=$(awk -F'\t' -v keep="$LOG_FILE" '
+              BEGIN { while ((getline l < keep) > 0) { split(l, f, "\t"); k[f[1]] } }
+              { e = "`" substr($2, 1, 10) "` " $4; if ($3) old[$1] = old[$1] (old[$1] == "" ? "" : "; ") e; else { new[$1] = new[$1] (new[$1] == "" ? "" : "; ") e; if ($2 in k) inscope[$1] } }
+              END { for (n in inscope) print "- #" n ": shipped: " old[n] ". New: " new[n] "." }' "$SPLIT_PRS" | sort -t'#' -k2n)
+          if [ -n "$SPLIT" ]; then
+            SHIPPED_NOTE+=$'\n'$(cat <<'EOF'
+        - The pull requests below were merged as several first-parent entries, and only some of them
+          were picked: the ones listed as shipped are out of the log file, the new ones are in it.
+          The title of such a pull request in the change list covers all of it: describe only its new
+          entries, and leave the pull request out when they are not user-facing (tests, CI, internal
+          cleanups).
+
+        @SPLIT@
+        EOF
+            )
+          fi
           SHIPPED_NOTE="${SHIPPED_NOTE//@FROM@/"$FROM"}"
           SHIPPED_NOTE="${SHIPPED_NOTE//@TO@/"$TO"}"
           SHIPPED_NOTE="${SHIPPED_NOTE//@MERGE_BASE@/"$MERGE_BASE"}"
           SHIPPED_NOTE="${SHIPPED_NOTE//@SHIPPED_COUNT@/"$(git log --first-parent --format=%H "$FROM..$TO" -- $SCOPE | grep -cxFf "$SHIPPED_UNITS" || true)"}"
           SHIPPED_NOTE="${SHIPPED_NOTE//@PARTLY@/"$PARTLY"}"
+          SHIPPED_NOTE="${SHIPPED_NOTE//@SPLIT@/"$SPLIT"}"
         fi
 
         # Convert bare GitHub PR/commit URLs to portable markdown links ([#NNNN](url),
@@ -585,14 +634,15 @@ runs:
         fi
         build_credits "$BULLETS"  # resolve the model's bare references into finished credits
 
-        # New Contributors block (repo-wide; from the changelog fetched above).
+        # New Contributors block (repo-wide; from the changelog fetched above), without bot accounts.
         CONTRIB=""
         if [ "$ADD_CONTRIBUTORS" = "true" ]; then
           CONTRIB=$(awk '
                 /^## New Contributors/ { c=1 }
                 c && /^\*\*Full Changelog/ { exit }
                 c && /^## / && !/^## New Contributors/ { exit }
-                c { print }' <<< "$GN_BODY")
+                c && !/^\* @[^ ]*\[bot\] / { print }' <<< "$GN_BODY")
+          grep -q '^\* ' <<< "$CONTRIB" || CONTRIB=""
           [ -n "$CONTRIB" ] && echo "::notice::Appended New Contributors section." || echo "::notice::No New Contributors section to append."
         fi
 
