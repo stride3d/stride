@@ -1,0 +1,145 @@
+// PSMain(ExpectedResult=#01020304)
+
+namespace Stride.Shaders.Tests;
+
+// Fields of a partial struct with a struct type (a plain struct, an array of one). The effect's struct is a, extra, layers,
+// light (owner first, then the parts by class name). The root sees a, extra, light, the composition a, layers, light,
+// the module PartialFieldsLight a, light: the index of light changes in each class, and the struct inside it is read
+// and written by different classes.
+
+module PartialFieldsOwner
+{
+    partial struct PartialFieldsSurface
+    {
+        float a;
+    };
+};
+
+module PartialFieldsAExtra
+{
+    import PartialFieldsOwner;
+
+    extend struct PartialFieldsSurface
+    {
+        float extra;
+    };
+};
+
+module PartialFieldsLight
+{
+    import PartialFieldsOwner;
+
+    struct PartialFieldsLightSample
+    {
+        float3 color;
+        float intensity;
+    };
+
+    extend struct PartialFieldsSurface
+    {
+        PartialFieldsLightSample light;
+    };
+
+    void SetIntensity(inout PartialFieldsSurface s)
+    {
+        s.light.intensity = 3.0 / 255.0;
+    }
+
+    float GetGreen(PartialFieldsSurface s)
+    {
+        return s.light.color.g;
+    }
+};
+
+module PartialFieldsLayers
+{
+    import PartialFieldsOwner;
+
+    struct PartialFieldsLayerData
+    {
+        float pad;
+        float weight;
+    };
+
+    extend struct PartialFieldsSurface
+    {
+        PartialFieldsLayerData layers[2];
+    };
+
+    void SetWeight(inout PartialFieldsSurface s)
+    {
+        s.layers[1].weight = 4.0 / 255.0;
+    }
+};
+
+shader PartialFieldsLayerBase
+{
+    import PartialFieldsOwner;
+
+    void Apply(inout PartialFieldsSurface s)
+    {
+        s.a = 0.0;
+    }
+
+    float ReadIntensity(PartialFieldsSurface s)
+    {
+        return 0.0;
+    }
+
+    float ReadWeight(PartialFieldsSurface s)
+    {
+        return 0.0;
+    }
+};
+
+shader PartialFieldsLayer : PartialFieldsLayerBase
+{
+    import PartialFieldsLayers;
+    import PartialFieldsLight;
+
+    override void Apply(inout PartialFieldsSurface s)
+    {
+        float a = s.a;
+        base.Apply(s);
+        s.a = a;
+        s.light.color = float3(0.0, 2.0 / 255.0, 0.0);
+        SetWeight(s);
+    }
+
+    override float ReadIntensity(PartialFieldsSurface s)
+    {
+        return s.light.intensity;
+    }
+
+    override float ReadWeight(PartialFieldsSurface s)
+    {
+        PartialFieldsLayerData layer = s.layers[1];
+        return layer.weight;
+    }
+};
+
+shader PartialFieldsRoot
+{
+    import PartialFieldsAExtra;
+    import PartialFieldsLight;
+
+    stream float4 ColorTarget : SV_Target0;
+
+    compose PartialFieldsLayerBase Layer;
+
+    void PSMain()
+    {
+        PartialFieldsSurface s = (PartialFieldsSurface)0;
+        s.a = 1.0 / 255.0;
+        s.extra = 1.0;
+        SetIntensity(s);
+        Layer.Apply(s);
+        streams.ColorTarget = float4(s.a, GetGreen(s), Layer.ReadIntensity(s), Layer.ReadWeight(s));
+    }
+};
+
+effect PartialStructFields
+{
+    mixin PartialFieldsRoot;
+    mixin compose Layer = PartialFieldsLayer;
+}
