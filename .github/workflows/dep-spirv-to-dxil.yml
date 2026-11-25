@@ -11,8 +11,8 @@ on:
         default: https://gitlab.freedesktop.org/mesa/mesa.git
         required: false
       ref:
-        description: Mesa ref to build (branch, tag, SHA, or refs/merge-requests/<id>/head); the default is the commit Stride ships
-        default: 50ab52f135e42f6f52ccbfadf78b00eab0a2b3b6
+        description: Mesa ref to build (branch, tag, SHA, or refs/merge-requests/<id>/head); the default is the release Stride ships
+        default: mesa-26.3.1
         required: false
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
         shell: pwsh
         run: |
           $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          $ref = "${{ github.event.inputs.ref || '50ab52f135e42f6f52ccbfadf78b00eab0a2b3b6' }}"
+          $ref = "${{ github.event.inputs.ref || 'mesa-26.3.1' }}"
           git init mesa-src
           # Keep LF line endings — our patch is LF, and on Windows runners
           # autocrlf=true would otherwise add CR which breaks `git apply`.

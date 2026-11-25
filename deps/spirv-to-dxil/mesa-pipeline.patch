@@ -1,8 +1,8 @@
 diff --git a/meson.build b/meson.build
-index f4dc51dc5d5..2d2b6a90eca 100644
+index 59d30c80221..3f33e1b9ae4 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -2356,6 +2356,21 @@ endif
+@@ -2476,6 +2476,21 @@ endif
  add_project_arguments(c_args,   language : ['c'])
  add_project_arguments(cpp_args, language : ['cpp'])
  
@@ -23,14 +23,14 @@ index f4dc51dc5d5..2d2b6a90eca 100644
 +
  gl_priv_reqs = []
  
- if with_glx == 'xlib'
+ if with_glx == 'dri'
 diff --git a/meson.options b/meson.options
-index 024b8340252..78c85f13121 100644
+index beb2837bead..0a0b6626019 100644
 --- a/meson.options
 +++ b/meson.options
-@@ -879,3 +879,11 @@ option(
-   value : false,
-   description : 'use experimental virtio backend for intel driver',
+@@ -923,3 +923,11 @@ option(
+   value : true,
+   description : 'Build panfrost disassemblers. Explicitly setting this option to false will cause the panfrost stack to build without disassemblers. This should be left enabled for distro builds.'
  )
 +
 +option(
