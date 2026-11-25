@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../../Templates/Packs/mannequinModel/mannequinModel.csproj" />
   <Project Path="BepuSample.Game/BepuSample.Game.csproj" />
   <Project Path="BepuSample.Windows/BepuSample.Windows.csproj" />
 </Solution>
