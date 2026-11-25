@@ -817,6 +817,16 @@ public unsafe class VulkanFrameRenderer(uint width = 800, uint height = 600, byt
                 deviceApi.vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
                 deviceApi.vkCmdEndRenderPass(commandBuffer);
 
+                // ReadBuffer maps the storage buffers
+                var barrier = new VkMemoryBarrier
+                {
+                    sType = VkStructureType.MemoryBarrier,
+                    srcAccessMask = VkAccessFlags.ShaderWrite,
+                    dstAccessMask = VkAccessFlags.HostRead,
+                };
+                deviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.FragmentShader, VkPipelineStageFlags.Host,
+                    VkDependencyFlags.None, 1, &barrier, 0, null, 0, null);
+
                 var copyRegion = new VkBufferImageCopy
                 {
                     imageSubresource = new VkImageSubresourceLayers(VkImageAspectFlags.Color, 0, 0, 1),

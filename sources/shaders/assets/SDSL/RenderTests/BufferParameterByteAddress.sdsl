@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#336699FF, structuredbuffer.Bytes="4: 0 0.2 0.4 0.6", structuredbuffer.Scratch="4: 0 0 0")
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Bytes="4: 0 0.2 0.4 0.6", structuredbuffer.Scratch="4: 0 0 0", expectedfloat.Scratch="0.2 0.4 0.6")
 
 namespace Stride.Shaders.Tests;
 
