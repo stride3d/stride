@@ -15,7 +15,8 @@ using Stride.Core.Yaml.Serialization;
 namespace Stride.Assets.Templates;
 
 // Where an asset pack goes: which package, then which folders of that package. Shared by source between the Game Studio
-// generator and the stride CLI. Failures are an InvalidOperationException whose message is for the user.
+// generator, the stride CLI and the template preprocessor, which inlines the packs a sample references. Failures are an
+// InvalidOperationException whose message is for the user.
 internal static class AssetPackPlacement
 {
     private const string AssetsFolder = "Assets";
@@ -40,6 +41,15 @@ internal static class AssetPackPlacement
 
     // Resources is null when the package lists no resource folder, and NoResourcesError says what to add.
     public sealed record PackFolders(string Assets, string? Resources, string? NoResourcesError);
+
+    // What the message of a refused pack tells the user to do, as each tool has its own way out: when a path of the pack
+    // has no !file tag (Untagged), and when the pack can't go in the folders it goes to (Placement).
+    public sealed record RefusalAdvice(string Untagged, string Placement)
+    {
+        public static RefusalAdvice Cli { get; } = new(
+            "Upgrade the project with 'stride upgrade' for a pack whose paths are all tagged, or pass -o to write to a given folder.",
+            "Pass -o to write to a given folder.");
+    }
 
     // The package a pack goes into when the command runs in a directory: the one around it, else the one just below it.
     public static PackageChoice ChoosePackage(string directory)
@@ -108,7 +118,7 @@ internal static class AssetPackPlacement
 
     // Instantiates a pack into a temporary folder, as the template engine can't rename its folders, then moves it into the
     // folders it goes to. Nothing is written to them when the pack is refused. Says which of the two the pack has.
-    public static async Task<(bool HasAssets, bool HasResources)> AddAsync(Func<string, Task> instantiate, string templateName, PackFolders folders)
+    public static async Task<(bool HasAssets, bool HasResources)> AddAsync(Func<string, Task> instantiate, string templateName, PackFolders folders, RefusalAdvice? advice = null)
     {
         var staging = Path.Combine(Path.GetTempPath(), $"stride-new-{Guid.NewGuid():N}");
         try
@@ -124,7 +134,7 @@ internal static class AssetPackPlacement
             if (hasResources && folders.NoResourcesError is { } noResources)
                 throw new InvalidOperationException(noResources);
             if (hasAssets && hasResources)
-                RewriteResourcePaths(stagedAssets, stagedResources, folders.Assets, folders.Resources!);
+                RewriteResourcePaths(stagedAssets, stagedResources, folders.Assets, folders.Resources!, advice);
 
             if (hasAssets)
                 MoveFiles(stagedAssets, folders.Assets);
@@ -142,14 +152,15 @@ internal static class AssetPackPlacement
     // Points the assets of a staged pack at the folders it goes to. Only a path of an asset that resolves to a staged
     // resource changes, in the text of the file, so every other byte stays as it is. A path to a staged resource without
     // the !file tag, as in the packs saved before 4.4.4, can't be found as a path, so such a pack is refused.
-    public static void RewriteResourcePaths(string stagedAssets, string stagedResources, string assets, string resources)
+    public static void RewriteResourcePaths(string stagedAssets, string stagedResources, string assets, string resources, RefusalAdvice? advice = null)
     {
         if (!NeedsRewrite(assets, resources))
             return;
 
+        advice ??= RefusalAdvice.Cli;
         var relative = Path.GetRelativePath(assets, resources).Replace('\\', '/');
         if (Path.IsPathRooted(relative))
-            throw new InvalidOperationException($"No relative path leads from '{assets}' to '{resources}', so the pack's assets could not refer to their resources. Use folders on the same drive, or pass -o to write to a given folder.");
+            throw new InvalidOperationException($"No relative path leads from '{assets}' to '{resources}', so the pack's assets could not refer to their resources. Use folders on the same drive. {advice.Placement}");
 
         var stagedResourceFiles = Directory.EnumerateFiles(stagedResources, "*", SearchOption.AllDirectories).ToHashSet(StringComparer.FromComparison(PathComparison));
         foreach (var file in Directory.EnumerateFiles(stagedAssets, "*", SearchOption.AllDirectories))
@@ -159,7 +170,7 @@ internal static class AssetPackPlacement
 
             var stagedFolder = Path.GetDirectoryName(file)!;
             if (FindUntaggedPath(text, path => ResolveResource(path, stagedFolder, stagedResourceFiles) is not null) is { } untagged)
-                throw new InvalidOperationException($"'{Path.GetFileName(file)}' in the pack refers to '{untagged}' without the {YamlFilePaths.FileTag} tag, so the pack can only go in the standard layout, with {ResourcesFolder} next to the asset folder, and this package lists '{assets}' and '{resources}'. Upgrade the project with 'stride upgrade' for a pack whose paths are all tagged, or pass -o to write to a given folder.");
+                throw new InvalidOperationException($"'{Path.GetFileName(file)}' in the pack refers to '{untagged}' without the {YamlFilePaths.FileTag} tag, so the pack can only go in the standard layout, with {ResourcesFolder} next to the asset folder, and this package lists '{assets}' and '{resources}'. {advice.Untagged}");
 
             var folder = Path.GetDirectoryName(Path.Combine(assets, Path.GetRelativePath(stagedAssets, file)))!;
             string? rewritten;
@@ -171,7 +182,7 @@ internal static class AssetPackPlacement
             }
             catch (InvalidOperationException e)
             {
-                throw new InvalidOperationException($"{e.Message} It is in '{Path.GetFileName(file)}'. Pass -o to write to a given folder.");
+                throw new InvalidOperationException($"{e.Message} It is in '{Path.GetFileName(file)}'. {advice.Placement}");
             }
 
             if (rewritten is not null)
