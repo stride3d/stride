@@ -73,6 +73,10 @@ namespace Stride.Graphics
         private NativeResourceCollector nativeResourceCollector;
         private GraphicsResourceLinkCollector graphicsResourceLinkCollector;
 
+        // Buffers that hold retired native allocations, so that the idle ones are trimmed once per frame
+        private readonly HashSet<Buffer> buffersWithRetiredAllocations = new();
+        private readonly List<Buffer> buffersToTrim = new();
+
         private VkBuffer nativeUploadBuffer;
         private VkDeviceMemory nativeUploadBufferMemory;
         private IntPtr nativeUploadBufferStart;
@@ -321,7 +325,42 @@ namespace Stride.Graphics
             {
                 FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue - (ulong)MaxFramesInFlight);
                 graphicsResourceLinkCollector.Release();
+                TrimRetiredBufferAllocations();
             }
+        }
+
+        internal void AddBufferWithRetiredAllocations(Buffer buffer)
+        {
+            lock (buffersWithRetiredAllocations)
+            {
+                buffersWithRetiredAllocations.Add(buffer);
+            }
+        }
+
+        internal void RemoveBufferWithRetiredAllocations(Buffer buffer)
+        {
+            lock (buffersWithRetiredAllocations)
+            {
+                buffersWithRetiredAllocations.Remove(buffer);
+            }
+        }
+
+        // Called once per frame: the buffers are trimmed outside the registry lock, as they take their own lock then the registry's
+        private void TrimRetiredBufferAllocations()
+        {
+            lock (buffersWithRetiredAllocations)
+            {
+                if (buffersWithRetiredAllocations.Count == 0)
+                    return;
+
+                buffersToTrim.AddRange(buffersWithRetiredAllocations);
+            }
+
+            foreach (var buffer in buffersToTrim)
+            {
+                buffer.TrimFreeAllocations();
+            }
+            buffersToTrim.Clear();
         }
 
         /// <summary>

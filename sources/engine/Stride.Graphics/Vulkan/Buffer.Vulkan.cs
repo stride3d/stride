@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
+using System.Collections.Generic;
 using Stride.Core;
 using Vortice.Vulkan;
 
@@ -12,6 +13,27 @@ namespace Stride.Graphics
         internal VkBuffer NativeBuffer;
         internal VkBufferView NativeBufferView;
         internal VkAccessFlags NativeAccessMask;
+
+        /// <summary>
+        /// The number of frames a retired native allocation the GPU is done with may wait to be reused before it is destroyed.
+        /// </summary>
+        private const int MaxFreeAllocationAgeInFrames = 2 * GraphicsDevice.MaxFramesInFlight;
+
+        private struct RetiredAllocation
+        {
+            public ulong FenceValue;
+            public VkBuffer Buffer;
+            public VkDeviceMemory Memory;
+            public VkBufferView View;
+        }
+
+        // Allocations replaced by a discard, oldest first, each with the frame fence value after which the GPU is done with it
+        private readonly Queue<RetiredAllocation> retiredAllocations = new();
+
+        /// <summary>
+        /// The number of native buffers and memory allocations this buffer created.
+        /// </summary>
+        internal int NativeAllocationCount;
 
         /// <summary>
         /// The size of the <see cref="NativeBuffer"/>: <see cref="SizeInBytes"/> rounded up to a multiple of 4, which <c>vkCmdFillBuffer</c> requires.
@@ -47,34 +69,157 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed(bool immediately = false)
         {
+            lock (retiredAllocations)
+            {
+                GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes * retiredAllocations.Count);
+                GraphicsDevice.RemoveBufferWithRetiredAllocations(this);
+
+                while (retiredAllocations.Count > 0)
+                {
+                    var retired = retiredAllocations.Dequeue();
+                    CollectNativeObjects(retired.View, retired.Buffer, retired.Memory);
+                }
+            }
+
             GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
 
-            if (NativeBufferView != VkBufferView.Null)
-            {
-                GraphicsDevice.Collect(NativeBufferView);
-                NativeBufferView = VkBufferView.Null;
-            }
-
-            if (NativeBuffer != VkBuffer.Null)
-            {
-                GraphicsDevice.Collect(NativeBuffer);
-                NativeBuffer = VkBuffer.Null;
-            }
-
-            if (NativeMemory != VkDeviceMemory.Null)
-            {
-                GraphicsDevice.Collect(NativeMemory);
-                NativeMemory = VkDeviceMemory.Null;
-            }
+            ReleaseNativeObjects();
 
             base.OnDestroyed(immediately);
+        }
+
+        /// <summary>
+        /// Hands the native objects to the device to destroy once the GPU is done with them.
+        /// </summary>
+        private void ReleaseNativeObjects()
+        {
+            CollectNativeObjects(NativeBufferView, NativeBuffer, NativeMemory);
+
+            NativeBufferView = VkBufferView.Null;
+            NativeBuffer = VkBuffer.Null;
+            NativeMemory = VkDeviceMemory.Null;
+        }
+
+        private void CollectNativeObjects(VkBufferView view, VkBuffer buffer, VkDeviceMemory memory)
+        {
+            if (view != VkBufferView.Null)
+                GraphicsDevice.Collect(view);
+
+            if (buffer != VkBuffer.Null)
+                GraphicsDevice.Collect(buffer);
+
+            if (memory != VkDeviceMemory.Null)
+                GraphicsDevice.Collect(memory);
+        }
+
+        /// <summary>
+        /// Gives the buffer new native memory with undefined contents, so that commands already recorded or in flight keep reading the old memory.
+        /// </summary>
+        /// <remarks>
+        /// The old memory is reused by a later rename once the GPU is done with it.
+        /// </remarks>
+        internal void Rename()
+        {
+            var needsNewAllocation = true;
+
+            lock (retiredAllocations)
+            {
+                // Same fence value as GraphicsDevice.Collect: the GPU is done with the old memory when the current frame completes
+                var current = new RetiredAllocation
+                {
+                    FenceValue = GraphicsDevice.FrameFence.NextFenceValue,
+                    Buffer = NativeBuffer,
+                    Memory = NativeMemory,
+                    View = NativeBufferView,
+                };
+
+                if (retiredAllocations.Count > 0 && GraphicsDevice.FrameFence.IsFenceCompleteInternal(retiredAllocations.Peek().FenceValue))
+                {
+                    var free = retiredAllocations.Dequeue();
+                    NativeBuffer = free.Buffer;
+                    NativeMemory = free.Memory;
+                    NativeBufferView = free.View;
+                    CopyFenceValue = null;
+                    needsNewAllocation = false;
+                }
+                else
+                {
+                    NativeBuffer = VkBuffer.Null;
+                    NativeMemory = VkDeviceMemory.Null;
+                    NativeBufferView = VkBufferView.Null;
+                    GraphicsDevice.RegisterBufferMemoryUsage(SizeInBytes);
+                }
+
+                retiredAllocations.Enqueue(current);
+
+                if (retiredAllocations.Count == 1)
+                    GraphicsDevice.AddBufferWithRetiredAllocations(this);
+
+                if (!needsNewAllocation)
+                    TrimFreeAllocationsLocked();
+            }
+
+            if (needsNewAllocation)
+                Recreate(IntPtr.Zero, clearContents: false);
+        }
+
+        /// <summary>
+        /// The number of retired native allocations the buffer keeps for reuse.
+        /// </summary>
+        internal int RetiredAllocationCount
+        {
+            get
+            {
+                lock (retiredAllocations)
+                {
+                    return retiredAllocations.Count;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Destroys the retired native allocations that stayed free for long: they are surplus, left by a burst of discards.
+        /// </summary>
+        /// <remarks>
+        /// The oldest retired allocations are reused first.
+        /// </remarks>
+        internal void TrimFreeAllocations()
+        {
+            lock (retiredAllocations)
+            {
+                TrimFreeAllocationsLocked();
+            }
+        }
+
+        private void TrimFreeAllocationsLocked()
+        {
+            var trimmed = false;
+            while (retiredAllocations.Count > 0)
+            {
+                var oldest = retiredAllocations.Peek();
+                if (oldest.FenceValue + MaxFreeAllocationAgeInFrames >= GraphicsDevice.FrameFence.LastCompletedFence)
+                    break;
+
+                retiredAllocations.Dequeue();
+                CollectNativeObjects(oldest.View, oldest.Buffer, oldest.Memory);
+                GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
+                trimmed = true;
+            }
+
+            if (trimmed && retiredAllocations.Count == 0)
+                GraphicsDevice.RemoveBufferWithRetiredAllocations(this);
         }
 
         /// <summary>
         /// Replaces the native buffer with a new one initialized with the provided data, keeping the description.
         /// </summary>
         /// <param name="dataPointer">The data to initialize the buffer with, or <see cref="IntPtr.Zero"/> for none.</param>
-        public unsafe void Recreate(IntPtr dataPointer)
+        public void Recreate(IntPtr dataPointer)
+        {
+            Recreate(dataPointer, clearContents: true);
+        }
+
+        private unsafe void Recreate(IntPtr dataPointer, bool clearContents)
         {
             var createInfo = new VkBufferCreateInfo
             {
@@ -148,6 +293,8 @@ namespace Stride.Graphics
                 }
             }
 
+            NativeAllocationCount++;
+
             // Create buffer
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateBuffer(GraphicsDevice.NativeDevice, &createInfo, null, out NativeBuffer));
             SetDebugName();
@@ -169,7 +316,8 @@ namespace Stride.Graphics
                 GraphicsDevice.NativeDeviceApi.vkBindBufferMemory(GraphicsDevice.NativeDevice, NativeBuffer, NativeMemory, 0);
             }
 
-            if (SizeInBytes > 0)
+            // Without data or a clear, the contents stay undefined and nothing is submitted
+            if (SizeInBytes > 0 && (dataPointer != IntPtr.Zero || clearContents))
             {
                 var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CopyFence.GetCompletedValue());
 
@@ -230,9 +378,14 @@ namespace Stride.Graphics
 
                 // Make sure any subsequent CPU access (i.e. MapSubresource) will wait for copy command list to be finished
                 CopyFenceValue = copyFenceValue;
-
-                InitializeViews();
             }
+            else
+            {
+                CopyFenceValue = null;
+            }
+
+            if (SizeInBytes > 0)
+                InitializeViews();
         }
 
         /// <summary>
