@@ -118,29 +118,77 @@ runs:
         TO="${INPUT_TO:-${TAG:-HEAD}}"
         FROM="$INPUT_FROM"
         if [ -z "$FROM" ] && [ -n "$TAG_MATCH" ]; then
-          # Default 'from' baseline for the notes:
-          #  - a prerelease (4.4.0-beta5) uses the nearest previous release of any kind
-          #    (usually the previous prerelease 4.4.0-beta4; for the first prerelease of a
-          #    version, the previous stable), giving incremental "what's new" notes;
-          #  - a stable release (4.4.0) uses the previous STABLE release (4.3.0.2507),
-          #    skipping the intermediate prereleases.
-          case "${TO##*/}" in
-            *-*)
-              FROM=$(git describe --tags --abbrev=0 --match "$TAG_MATCH" "$TO^" 2>/dev/null || true) ;;
-            *)
-              for cand in $(git tag --list "$TAG_MATCH" --merged "$TO" --sort=-creatordate 2>/dev/null); do
-                [ "$cand" = "$TO" ] && continue
-                case "${cand##*/}" in *-*) continue ;; esac
-                FROM="$cand"; break
-              done ;;
-          esac
-          # Last resort (no stable ancestor): nearest matching tag of any kind.
+          # Default 'from': the previous release by version, which may be on its release branch
+          # rather than an ancestor of TO (the work it already took from TO's branch is found
+          # below):
+          #  - a prerelease (4.5.0-beta2) starts from the previous prerelease of its version
+          #    (4.5.0-beta1); the first one (4.5.0-beta1), from the previous stable release (4.4.3);
+          #  - a stable release (4.5.0), from the previous stable release (4.4.3), skipping the
+          #    prereleases;
+          #  - a branch or a commit (master), from the highest stable release that doesn't contain it.
+          # Only X.Y.Z[.W] versions count, so old tags such as launcher/22 are never picked.
+          if git rev-parse -q --verify "refs/tags/$TO" >/dev/null && [[ "${TO##*/}" =~ ^[0-9]+(\.[0-9]+){2,}(-.+)?$ ]]; then
+            TO_VERSION="${TO##*/}"
+            BASE="${TO_VERSION%%-*}"
+            # The highest tag whose version (v) passes the awk condition $2 and sorts below $1. sort -V
+            # compares digit runs as numbers (beta10 > beta9, 4.4.10 > 4.4.9).
+            tag_below() {
+              { git tag --list "$TAG_MATCH" | awk -F/ -v to="$TO_VERSION" -v base="$BASE" "{ v = \$NF } $2 { print v \"\t\" \$0 }"
+                printf '%s\t\n' "$1"; } \
+                | sort -t$'\t' -k1,1V | awk -F'\t' '$2 == "" && !done { print prev; done = 1 } { prev = $2 }'
+            }
+            [ "$TO_VERSION" != "$BASE" ] && FROM=$(tag_below "$TO_VERSION" 'index(v, base "-") == 1 && v != to')
+            [ -z "$FROM" ] && FROM=$(tag_below "$BASE" 'v ~ /^[0-9]+(\.[0-9]+)+$/ && split(v, p, ".") >= 3 && v != base')
+          else
+            FROM=$(git tag --list "$TAG_MATCH" --no-contains "$TO" 2>/dev/null | awk -F/ '$NF ~ /^[0-9]+(\.[0-9]+)+$/ && split($NF, p, ".") >= 3' \
+              | sort -V | tail -n 1 || true)
+          fi
+          # Last resort (no stable release): nearest matching tag of any kind.
           [ -z "$FROM" ] && FROM=$(git describe --tags --abbrev=0 --match "$TAG_MATCH" "$TO^" 2>/dev/null || true)
         fi
         if [ -z "$FROM" ]; then
           echo "::error::No 'from' ref given or derivable (tag-match '$TAG_MATCH'); cannot generate release notes."; exit 1
         fi
         echo "::notice::Generating notes for $FROM..$TO"
+
+        # FROM on its release branch (4.4.3 for 4.5.0): the range holds all of TO's work since the
+        # branches split, and the release branch took part of it as cherry-picks, which already
+        # shipped. shipped-picks.ps1 finds the first-parent entries that shipped whole, left out of
+        # everything the model reads, and those that shipped in part, which get their own section.
+        SHIPPED_UNITS="$PWD/shipped-units.txt"
+        SHIPPED_COMMITS="$PWD/shipped-commits.txt"
+        PARTLY_SHIPPED="$PWD/partly-shipped.md"
+        : > "$SHIPPED_UNITS"; : > "$SHIPPED_COMMITS"; : > "$PARTLY_SHIPPED"
+        SHIPPED_PRS=""
+        MERGE_BASE=""
+        if ! git merge-base --is-ancestor "$FROM" "$TO"; then
+          MERGE_BASE=$(git merge-base "$FROM" "$TO")
+          SHIPPED_SUMMARY=$(pwsh -NoProfile -File "$GITHUB_ACTION_PATH/shipped-picks.ps1" "$FROM" "$TO" "$PWD")
+          echo "::notice::$SHIPPED_SUMMARY"
+          # A PR shipped when all its first-parent entries did. A merge or squash entry names its PR
+          # in its subject. The others (rebase merges, direct pushes) are looked up: the shipped
+          # ones, and the unshipped ones next to them, as a rebase merge's commits are consecutive.
+          # UNIT_PRS: entry, shipped (1 or 0), PR from its subject.
+          UNIT_PRS="$PWD/unit-prs.tsv"
+          git log --first-parent --format='%H%x09%s' "$FROM..$TO" \
+            | awk -F'\t' -v shipped="$SHIPPED_UNITS" '
+                BEGIN { while ((getline l < shipped) > 0) s[l] }
+                { pr = ""
+                  if (match($2, /Merge pull request #[0-9]+/) || match($2, /\(#[0-9]+\)$/)) { pr = substr($2, RSTART, RLENGTH); gsub(/[^0-9]/, "", pr) }
+                  print $1 "\t" (($1 in s) ? 1 : 0) "\t" pr }' > "$UNIT_PRS"
+          LOOKED_UP="$PWD/unit-prs-looked-up.tsv"
+          while read -r sha; do
+            printf '%s\t%s\n' "$sha" "$(gh_value "repos/$REPO/commits/$sha/pulls" \
+              --jq '[.[] | select(.merged_at != null)] | first | select(.) | .number')"
+          done < <(awk -F'\t' '{ h[NR] = $1; s[NR] = $2; p[NR] = $3 }
+              END { for (i = 1; i <= NR; i++)
+                      if (p[i] == "" && (s[i] || (s[i - 1] && p[i - 1] == "") || (s[i + 1] && p[i + 1] == ""))) print h[i] }' "$UNIT_PRS") > "$LOOKED_UP"
+          SHIPPED_PRS=$(awk -F'\t' -v looked="$LOOKED_UP" '
+              BEGIN { while ((getline l < looked) > 0) { split(l, f, "\t"); if (f[2] != "") pr[f[1]] = f[2] } }
+              { n = $3 != "" ? $3 : pr[$1]; if (n == "") next; all[n] = ((n in all) ? all[n] : 1) && $2 }
+              END { for (n in all) if (all[n]) print n }' "$UNIT_PRS" | sort -n | paste -sd' ' -)
+          echo "::notice::PRs that shipped whole in $FROM, left out: $(wc -w <<< "$SHIPPED_PRS")."
+        fi
 
         # The documentation from stride-docs: master's Markdown pages (published docs, written
         # release notes included) and the release notes changed by open docs PRs (drafts, often
@@ -270,6 +318,13 @@ runs:
           WHATS_CHANGED=$(printf '%s\n%s' "$WHATS_CHANGED" "$ORIGINALS" | grep -v '^$' || true)
           echo "::notice::Backport: $(wc -l < "$PICKS") cherry-picked commits from $(grep -c . <<< "$ORIGINALS" || true) original PRs; backport PR(s) left out of the list: ${BACKPORT_PRS:-none}."
         fi
+        # The PRs that already shipped in FROM leave the list.
+        if [ -n "$SHIPPED_PRS" ]; then
+          WHATS_CHANGED=$(awk -v prs="$SHIPPED_PRS" '
+              BEGIN { n = split(prs, a, " "); for (i = 1; i <= n; i++) s[a[i]] }
+              match($0, /\/pull\/[0-9]+$/) && substr($0, RSTART + 6) in s { next }
+              { print }' <<< "$WHATS_CHANGED")
+        fi
         if grep -q '^\* ' <<< "$WHATS_CHANGED"; then
           # generate-notes is repo-wide. For a scoped product it is only an attribution
           # lookup (the scoped git log stays the inclusion list); unscoped, it is the
@@ -294,6 +349,49 @@ runs:
         else
           SCOPE_NOTE="This release covers the whole $PRODUCT; consider every commit in the range."
           LOG_CMD="git log --first-parent --pretty=format:'%H%x09%s' $FROM..$TO"
+        fi
+        # The model reads that log from a file, without the entries that already shipped in FROM.
+        LOG_FILE="$PWD/first-parent-log.txt"
+        git log --first-parent --format='%H%x09%s' "$FROM..$TO" -- $SCOPE \
+          | awk -F'\t' -v shipped="$SHIPPED_UNITS" 'BEGIN { while ((getline l < shipped) > 0) s[l] } !($1 in s)' > "$LOG_FILE"
+
+        SHIPPED_NOTE=""
+        if [ -n "$MERGE_BASE" ]; then
+          SHIPPED_NOTE=$(cat <<'EOF'
+        # Work that already shipped in `@FROM@`
+
+        `@FROM@` is on its release branch, not on the history of `@TO@`: the two split at commit
+        `@MERGE_BASE@`, and this range holds all the work of `@TO@` since then. The release branch
+        took part of that work as cherry-picks (`git cherry-pick -x`), so that part already shipped
+        in `@FROM@` or an earlier release of its branch, and is not new in `@TO@`. To check what a
+        release had before, read its own history (`git log @FROM@`).
+
+        - @SHIPPED_COUNT@ first-parent entries whose changes all shipped are left out of the log file
+          and of the authoritative change list. Leave them out of your output too.
+        EOF
+          )
+          # The entries that shipped in part, among the ones of this product's scope.
+          PARTLY=$(awk -v keep="$LOG_FILE" '
+              BEGIN { while ((getline l < keep) > 0) { split(l, f, "\t"); k[f[1]] } }
+              /^- `/ { on = substr($2, 2, 40) in k }
+              on' "$PARTLY_SHIPPED")
+          if [ -n "$PARTLY" ]; then
+            SHIPPED_NOTE+=$'\n'$(cat <<'EOF'
+        - The entries below shipped in part. Each says which of its commits were picked, how much of
+          each commit its pick carries, and the files the pick left out. Describe only the part that
+          `@FROM@` didn't have: the commits that were not picked, and the files a pick left out
+          (`git show <sha> -- <file>`). Leave the entry out when that part is not user-facing
+          (tests, CI, internal cleanups).
+
+        @PARTLY@
+        EOF
+            )
+          fi
+          SHIPPED_NOTE="${SHIPPED_NOTE//@FROM@/"$FROM"}"
+          SHIPPED_NOTE="${SHIPPED_NOTE//@TO@/"$TO"}"
+          SHIPPED_NOTE="${SHIPPED_NOTE//@MERGE_BASE@/"$MERGE_BASE"}"
+          SHIPPED_NOTE="${SHIPPED_NOTE//@SHIPPED_COUNT@/"$(git log --first-parent --format=%H "$FROM..$TO" -- $SCOPE | grep -cxFf "$SHIPPED_UNITS" || true)"}"
+          SHIPPED_NOTE="${SHIPPED_NOTE//@PARTLY@/"$PARTLY"}"
         fi
 
         # Convert bare GitHub PR/commit URLs to portable markdown links ([#NNNN](url),
@@ -417,6 +515,8 @@ runs:
           PROMPT="${PROMPT//\$TAG/"$TO"}"
           PROMPT="${PROMPT//\$SCOPE_NOTE/"$SCOPE_NOTE"}"
           PROMPT="${PROMPT//\$LOG_CMD/"$LOG_CMD"}"
+          PROMPT="${PROMPT//\$LOG_FILE/"$LOG_FILE"}"
+          PROMPT="${PROMPT//\$SHIPPED_NOTE/"$SHIPPED_NOTE"}"
           PROMPT="${PROMPT//\$FORMAT_INSTRUCTION/"$FMT"}"
           PROMPT="${PROMPT//\$GH_CHANGELOG/"$GH_CHANGELOG"}"
           PROMPT="${PROMPT//\$WRITTEN_NOTES/"$DOCS_SECTION"}"
@@ -538,10 +638,13 @@ runs:
           gn_prs=$(printf '%s\n' "$WHATS_CHANGED" | grep -oE 'pull/[0-9]+' | grep -oE '[0-9]+' || true)
           # generate-notes drops PRs whose merge commit it cannot match, so the range's own merge
           # and squash subjects are unioned in; without them the denominator understates the range
-          # and bullets get no credit for citing what the list missed.
-          git_prs=$(git log --pretty=%s "$FROM..$TO" -- $SCOPE \
+          # and bullets get no credit for citing what the list missed. What shipped in FROM doesn't
+          # count: neither the commits of its entries nor its PRs.
+          git_prs=$(git log --pretty='%H%x09%s' "$FROM..$TO" -- $SCOPE \
+            | awk -F'\t' -v shipped="$SHIPPED_COMMITS" 'BEGIN { while ((getline l < shipped) > 0) s[l] } !($1 in s) { print $2 }' \
             | grep -oE '(Merge pull request #[0-9]+|\(#[0-9]+\)$)' | grep -oE '[0-9]+' || true)
-          all_prs=$(printf '%s\n%s\n' "$gn_prs" "$git_prs" | grep -E '^[0-9]+$' | sort -un || true)
+          all_prs=$(printf '%s\n%s\n' "$gn_prs" "$git_prs" | grep -E '^[0-9]+$' \
+            | grep -vxFf <(printf '%s\n' $SHIPPED_PRS) | sort -un || true)
           cited_prs=$(grep -oE 'pull/[0-9]+' "$BULLETS" | grep -oE '[0-9]+' | sort -un || true)
           # Set difference by lookup, not comm: comm needs lexicographic input, and these lists are
           # sorted numerically, so it misreports as soon as PR numbers differ in width.

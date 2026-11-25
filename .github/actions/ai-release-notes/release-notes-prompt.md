@@ -48,7 +48,9 @@ $WRITTEN_NOTES
 
 This release covers the commit range `$PREV..$TAG`. Start from the **first-parent** view of the
 mainline, where each entry is one merged unit (a squash-merge commit, a merge commit, or a
-direct commit):
+direct commit). It is in `$LOG_FILE`, one `<sha><TAB><subject>` line per entry, newest first:
+read all of it with Read. It is the output of this command, minus the entries that already
+shipped in `$PREV`, if any:
 
     $LOG_CMD
 
@@ -84,6 +86,8 @@ important changes is the job of the highlights draft, never the bullet list.
 Exhaustive means **every PR is accounted for**, not that every commit becomes a bullet. The unit of
 a bullet is the merged PR, so a PR with twenty commits is still one bullet at the PR's scale. Never
 split one PR into several commit-sized bullets to raise coverage.
+
+$SHIPPED_NOTE
 
 # Filter — keep only what a user cares about
 
