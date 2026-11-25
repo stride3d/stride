@@ -309,9 +309,9 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
             using var target = Texture.New2D(device, TargetSize, TargetSize, PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget);
             using var colorBuffer = Buffer.Constant.New(device, 4 * sizeof(float), GraphicsResourceUsage.Dynamic);
 
-            Buffer colorView = null;
-            if (readView)
-                colorView = Buffer.Raw.New(device, 4 * sizeof(float), BufferFlags.ShaderResource, GraphicsResourceUsage.Dynamic);
+            using var colorView = readView
+                ? Buffer.Raw.New(device, 4 * sizeof(float), BufferFlags.ShaderResource, GraphicsResourceUsage.Dynamic)
+                : null;
 
             var effectName = readView ? "SimpleBufferEffect" : "SimpleEffect";
             using var effect = new EffectInstance(game.EffectSystem.LoadEffect(effectName).WaitForResult());
@@ -341,8 +341,6 @@ public class TestDynamicBufferDiscard : GraphicTestGameBase
             device.PrimitiveQuad.Draw(commandList);
 
             Assert.Equal(Color.Blue, ReadColor(commandList, target));
-
-            colorView?.Dispose();
         });
     }
 

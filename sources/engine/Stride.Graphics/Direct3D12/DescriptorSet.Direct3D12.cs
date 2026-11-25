@@ -271,23 +271,37 @@ namespace Stride.Graphics
                 if (resource is null || source.Version == resource.RenameVersion)
                     continue;
 
-                sources[srvIndex + i] = source with { Version = resource.RenameVersion };
-
-                var bindingOffset = i * resource.GraphicsDevice.SrvHandleIncrementSize;
-                switch (source.Kind)
+                // Command lists on several threads can bind the same Descriptor Set
+                lock (sources)
                 {
-                    case DescriptorSourceKind.ShaderResourceView:
-                        WriteShaderResourceView(bindingOffset, resource);
-                        break;
+                    source = sources[srvIndex + i];
+                    var version = resource.RenameVersion;
+                    if (source.Version == version)
+                        continue;
 
-                    case DescriptorSourceKind.UnorderedAccessView:
-                        WriteUnorderedAccessView(bindingOffset, resource);
-                        break;
-
-                    case DescriptorSourceKind.ConstantBuffer:
-                        WriteConstantBuffer(bindingOffset, (Buffer) resource, source.Offset, source.Size);
-                        break;
+                    RewriteDescriptor(i, source);
+                    sources[srvIndex + i] = source with { Version = version };
                 }
+            }
+        }
+
+        private void RewriteDescriptor(int index, DescriptorSource source)
+        {
+            var resource = source.Resource;
+            var bindingOffset = index * resource.GraphicsDevice.SrvHandleIncrementSize;
+            switch (source.Kind)
+            {
+                case DescriptorSourceKind.ShaderResourceView:
+                    WriteShaderResourceView(bindingOffset, resource);
+                    break;
+
+                case DescriptorSourceKind.UnorderedAccessView:
+                    WriteUnorderedAccessView(bindingOffset, resource);
+                    break;
+
+                case DescriptorSourceKind.ConstantBuffer:
+                    WriteConstantBuffer(bindingOffset, (Buffer) resource, source.Offset, source.Size);
+                    break;
             }
         }
 
