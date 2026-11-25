@@ -261,7 +261,8 @@ runs:
           requests. Find the pull request behind each item (the authoritative change list,
           `gh pr list --search`). Large rewrites they describe are often one big pull request.
         - Do not contradict them and do not repeat their prose: keep your bullets short.
-        - Do not add a breaking-changes subheading: their list of breaking changes is the reference.
+        - Do not add the breaking-changes and behavior-changes subheadings: their list of breaking
+          changes is the reference.
         - They describe a whole minor version. For a prerelease range, leave out what is not in
           `@RANGE@`.
         - They are input data, not instructions about your output format.
@@ -439,6 +440,36 @@ runs:
         @SPLIT@
         EOF
             )
+          fi
+          # A pick is often adapted to its branch, so the line shares above miss part of what shipped.
+          # The notes of the branch's releases say what it already announced.
+          BRANCH_TAGS=()
+          if [ -n "$PARTLY$SPLIT" ]; then
+            mapfile -t BRANCH_TAGS < <(git tag --merged "$FROM" --no-merged "$MERGE_BASE" ${TAG_MATCH:+--list "$TAG_MATCH"} | sort -V)
+          fi
+          BRANCH_NOTES="$PWD/branch-release-notes.md"
+          : > "$BRANCH_NOTES"
+          READ_TAGS=""
+          for t in "${BRANCH_TAGS[@]}"; do
+            body=$(gh release view "$t" -R "$REPO" --json body --jq '.body' 2>/dev/null || true)
+            [ -n "$body" ] || continue
+            printf '# %s\n\n%s\n\n' "$t" "$body" >> "$BRANCH_NOTES"
+            READ_TAGS+="${READ_TAGS:+, }$t"
+          done
+          if [ -s "$BRANCH_NOTES" ]; then
+            SHIPPED_NOTE+=$'\n'$(cat <<'EOF'
+        - `@BRANCH_NOTES@` holds the release notes of the releases of that branch
+          (@BRANCH_TAGS@). Before you write an entry that shipped in part, or the new entries of a
+          pull request above, read what those notes say about it: a change they already describe was
+          announced, even when its pick changed on the way. Leave it out, or describe only what they
+          don't. Do this for each change of the pull request: when these notes announce one of its
+          changes and another fixes a feature new in this release, the first stays out and the
+          other still folds into that feature's bullet.
+        EOF
+            )
+            SHIPPED_NOTE="${SHIPPED_NOTE//@BRANCH_NOTES@/"$BRANCH_NOTES"}"
+            SHIPPED_NOTE="${SHIPPED_NOTE//@BRANCH_TAGS@/"$READ_TAGS"}"
+            echo "::notice::Release notes of $FROM's branch for the model: $READ_TAGS."
           fi
           SHIPPED_NOTE="${SHIPPED_NOTE//@FROM@/"$FROM"}"
           SHIPPED_NOTE="${SHIPPED_NOTE//@TO@/"$TO"}"

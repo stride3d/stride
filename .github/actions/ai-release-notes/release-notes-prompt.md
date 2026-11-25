@@ -108,12 +108,28 @@ bullets.
 GitHub groups the authoritative change list under headings that come from the labels
 maintainers put on each pull request. The pull requests under `💥 Breaking Changes` are labeled
 `breaking-change` or `behavioral-change`: they change something a game developer may have to
-check or update after upgrading. In the bullet list, put the ones in scope first, under a
-`### 💥 Breaking changes` subheading, instead of under their area. Say what the developer has to
-check or change, and say when Game Studio's project upgrade does it for them (the pull request
-adds an upgrader). Treat this list as a floor, not a ceiling: a change that clearly breaks
-existing projects still belongs there even without the label. In the highlights draft, mention a
-breaking change only when it is also a highlight.
+check or update after upgrading. In the bullet list, the ones in scope come first, under two
+subheadings:
+
+- `### 💥 Breaking changes`: the pull requests labeled `breaking-change`, and any other change
+  after which existing code or projects no longer build or load. Say what the developer has to
+  change, and say when Game Studio's project upgrade does it for them (the pull request adds an
+  upgrader).
+- `### ⚠️ Behavior changes`, after it: the pull requests labeled only `behavioral-change`. Their
+  projects still build, but something works differently. Say what works differently and what the
+  developer should check.
+
+These two lists are to-do lists for someone upgrading, not the description of the changes. A
+pull request that also brings a feature or a fix keeps its bullet under its area, which describes
+what it brings, and its entry here says only what to check or change, in one or two sentences,
+starting with the area (for example "Model import: ..."). A pull request that is only a break,
+such as a removed or renamed API, is described only under Breaking changes. When several
+entries call for the same action, or touch the same API, group them into one entry, as anywhere
+else.
+
+Treat the labels as a floor, not a ceiling: a change that clearly breaks existing projects
+belongs under Breaking changes even without the label. In the highlights draft, mention a
+breaking or behavior change only when it is also a highlight.
 
 # Output format
 
@@ -138,6 +154,13 @@ size. Critically: a commit is often a **follow-up or hardening of a feature that
 shipped in an earlier release**. Treat that as a minor fix, not a highlight. If you're
 unsure whether something is new *in this release*, check history before `$PREV`
 (`git log` earlier, or `gh release view <earlier-tag>`).
+
+The other way round, a fix or follow-up of a feature that is **new in this release** is part of
+that feature: users never had the broken version. Fold it into the feature's bullet and cite its
+pull request there, never as a bullet of its own, and never as a "Fixed" line. Judge each change
+of the pull request on its own: one the notes of an earlier release already describe stays out,
+users have it. If the pull request has other changes that fix the new feature, those still fold
+into the feature's bullet with the pull request cited.
 
 # References — strict
 
@@ -171,5 +194,8 @@ unsure whether something is new *in this release*, check history before `$PREV`
   already shipped in an earlier release is a fix, not a new feature.
 - Be concise: make every line count — the bullet list is exhaustive but each bullet stays
   tight, and the highlights are few and curated.
+- Under an area subheading, a bullet doesn't start with the name of that area: the heading
+  already says it. A narrower label is fine ("Bepu: ..." under Physics).
+- Write a fix as "Fixed ..." or as the behavior that is now right, never "Fixed: ...".
 - Output **only** the Markdown — no preamble, no "here are the notes", no description of your
   process. Begin directly with the first `###` heading.
