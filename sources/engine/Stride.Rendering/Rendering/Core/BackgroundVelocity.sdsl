@@ -2,8 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // Computes screen space velocity for backgrounds
-shader BackgroundVelocity : ShaderBase, VelocityStream, PositionStream4, ScreenPositionBase
+shader BackgroundVelocity
 {
+    import ShaderBase;
+    import VelocityStream;
+    import PositionStream4;
+    import ScreenPositionBase;
+
     module float4x4 DeltaMatrix;
 
     module stream float4 currentShadingPosition;

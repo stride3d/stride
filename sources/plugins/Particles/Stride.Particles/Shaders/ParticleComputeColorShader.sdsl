@@ -4,8 +4,10 @@
 namespace Stride.Rendering
 {
 
-shader ParticleComputeColorShader : ParticleBase
+shader ParticleComputeColorShader
 {
+    import ParticleBase;
+
     // -------------------------------------
     // streams
     // -------------------------------------

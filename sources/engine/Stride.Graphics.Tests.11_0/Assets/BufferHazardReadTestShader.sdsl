@@ -7,8 +7,10 @@ namespace Stride.Graphics.Tests
     /// Reads a structured buffer bound for unordered access, so a previous dispatch's write to it needs an
     /// unordered access barrier, not a transition.
     /// </summary>
-    internal shader BufferHazardReadTestShader : ComputeShaderBase
+    internal shader BufferHazardReadTestShader
     {
+        import ComputeShaderBase;
+
         module RWStructuredBuffer<uint> Input;
         module RWStructuredBuffer<uint> Result;
 

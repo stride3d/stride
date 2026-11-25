@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Lens flare artifact shader. 
     /// </summary>
-    internal shader FlareArtifactShader<int TapCount> : ImageEffectShader
+    internal shader FlareArtifactShader<int TapCount>
     {
+        import ImageEffectShader;
+
         // Amount of blending
         float Amount;
 

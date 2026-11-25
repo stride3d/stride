@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // ComputeColor that just returns streams.velocity
-shader VelocityOutput : ComputeColor, VelocityStream
+shader VelocityOutput : ComputeColor
 {
+    import VelocityStream;
+
     override float4 Compute()
     {
         return float4(streams.velocity.xy, 0.0f, 0.0f);

@@ -5,14 +5,14 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Performs hair shading.
     /// </summary>
-    shader MaterialSurfaceShadingSpecularHair<int ShadingModel, bool DebugRenderPasses> :
-        IMaterialSurfaceShading, // Required for "ComputeDirectLightContribution()" and the like.
-        MaterialPixelShadingStream,
-        MaterialHairShared,
-        NormalStream, // Required for "streams.normalWS", "streams.meshNormal", "streams.meshTangent".
+    shader MaterialSurfaceShadingSpecularHair<int ShadingModel, bool DebugRenderPasses> : IMaterialSurfaceShading, // Required for "ComputeDirectLightContribution()" and the like.
+        MaterialPixelShadingStream, // Required for "streams.normalWS", "streams.meshNormal", "streams.meshTangent".
         Transformation, // Required for "WorldInverseTranspose".
         MaterialPixelStream    // Required for "streams.matDiffuse".
     {
+        import MaterialHairShared;
+        import NormalStream;
+
         compose ComputeColor SpecularHighlightsShiftNoiseTexture;
         compose ComputeColor SecondarySpecularGlintsNoiseTexture;
         

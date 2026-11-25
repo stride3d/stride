@@ -1,0 +1,10 @@
+// Functions and constants, used by name from other shaders
+shader MyMath
+{
+    static const float Pi = 3.14159265;
+
+    float Square(float x)
+    {
+        return x * x;
+    }
+};

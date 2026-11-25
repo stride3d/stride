@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Vignetting shader. 
     /// </summary>
-    internal shader VignettingShader : ColorTransformShader, Texturing
+    internal shader VignettingShader : ColorTransformShader
     {
+        import Texturing;
+
         // Amount
         float Amount;
 

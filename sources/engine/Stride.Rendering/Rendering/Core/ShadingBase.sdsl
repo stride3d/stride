@@ -11,8 +11,10 @@
 # define STRIDE_RENDER_TARGET_COUNT 1
 #endif
 
-shader ShadingBase : ShaderBase
+shader ShadingBase
 {
+    import ShaderBase;
+
     compose ComputeColor ShadingColor0;
 
 #if STRIDE_RENDER_TARGET_COUNT > 1

@@ -3,7 +3,7 @@
 
 namespace Stride.Rendering.Materials
 {
-    class MaterialHairDirectionFunctionBitangent : IMaterialHairDirectionFunction
+    shader MaterialHairDirectionFunctionBitangent : IMaterialHairDirectionFunction
     {
         override float3 Compute(float3 normalOS, float4 tangentOS, float3x3 worldInverseTranspose)
         {

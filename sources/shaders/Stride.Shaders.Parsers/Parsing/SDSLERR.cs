@@ -49,10 +49,14 @@ public static class SDSLErrorMessages
     public const string SDSL0041 = "SDSL0041: Expected expression or semi colon";
     public const string SDSL0042 = "SDSL0042: Expected prefix expression";
     public const string SDSL0043 = "SDSL0043: Unexpected <EOF>";
+    [RecoverableInUpgrade]
+    public const string SDSL0045 = "SDSL0045: `stage` is now `module`: write `module`. The Stride project upgrade does it. If you changed the project's Stride version by hand, put the old version back, restore, then run the project upgrade (Game Studio or `stride upgrade`). A shader in a package needs a new version of that package.";
     public const string SDSL0048 = "SDSL0048: '{0}' is a reserved word and can't be a name. Rename it";
     public const string SDSL0049 = "SDSL0049: Code after the end of shader {0}. Only shader, effect and params declarations can follow: remove it, or move it into the shader";
     public const string SDSL0313 = "SDSL0313: An .sdfx file declares an effect with 'effect', not 'shader': write '{0}'";
     public const string SDSL0050 = "SDSL0050: {0} {1} is declared inside {2} {3}, but it is not a member of a {2}. Move it out of the block";
+    [RecoverableInUpgrade]
+    public const string SDSL0051 = "SDSL0051: `class` is now `shader`: write `shader`. The Stride project upgrade does it. If you changed the project's Stride version by hand, put the old version back, restore, then run the project upgrade (Game Studio or `stride upgrade`). A shader in a package needs a new version of that package.";
 
 
     // Semantic errors
@@ -99,6 +103,10 @@ public static class SDSLErrorMessages
     public const string SDSL0150 = "SDSL0150: {0} has no member '{1}'. To get the size of a buffer, call {2}.GetDimensions({3}).";
     public const string SDSL0190 = "SDSL0190: Unknown type {0}. Check its name; a struct or a shader must be declared in this shader, one it inherits, or another shader file.";
     public const string SDSL0191 = "SDSL0191: {1} inherits from {0}, but shader {0} can't be found. Check its name, and that its .sdsl file is with the other shaders.";
+    public const string SDSL0196 = "SDSL0196: {1} imports {0}, but module {0} can't be found. Check its name, and that its .sdsl file is with the other shaders.";
+    public const string SDSL0197 = "SDSL0197: {0} is a shader, not a module: inherit it to use its members, or make it a module.";
+    public const string SDSL0198 = "SDSL0198: {0} is a shader, not a module: inherit it (`: {0}`) instead of importing it.";
+    public const string SDSL0199 = "SDSL0199: module {0} can't inherit the shader {1}: a module only imports other modules.";
     public const string SDSL0192 = "SDSL0192: {0}.{1}: {1} is {2}, so '{0}.' doesn't apply to it. Write {1}.";
     public const string SDSL0193 = "SDSL0193: Can't convert {0} to {1}: HLSL doesn't add components implicitly. Write them: {1}(value, ...).";
     public const string SDSL0194 = "SDSL0194: Stream {0} is read{1} before any stage writes it, and it has no semantic, so it can't come from a vertex buffer. Write streams.{0} before reading it, or give it a semantic if it is a vertex buffer input.";

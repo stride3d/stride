@@ -3,8 +3,10 @@
 /// <summary>
 /// Calculates the normal  the normals from a normal map.
 /// </summary>
-shader NormalFromNormalMappingTessellation : NormalFromNormalMapping
+shader NormalFromNormalMappingTessellation
 {
+    import NormalFromNormalMapping;
+
     override module void GenerateNormal_VS()
     {
         // Perform normal generation at the end in case meshNormal is modified

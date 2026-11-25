@@ -4,15 +4,18 @@
 /// Defines a depth texture.
 /// Various helper functions to extract information from a depth buffer.
 /// </summary>
-shader DepthBase : Camera, Texturing
+module DepthBase
 {
+    import Camera;
+    import Texturing;
+
     // -------------------------------------
     // Resources
     // -------------------------------------
     rgroup PerView.Depth
     {
         //[Link("RenderTarget.DepthStencilSource")]
-        module Texture2D DepthStencil;
+        Texture2D DepthStencil;
     }
 
     // Sample the depth from the texture

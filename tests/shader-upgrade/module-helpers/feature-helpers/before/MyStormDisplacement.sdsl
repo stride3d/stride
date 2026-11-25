@@ -1,0 +1,8 @@
+// Changes a helper of the wind feature
+shader MyStormDisplacement : MyWindDisplacement
+{
+    override float Gust()
+    {
+        return 3.0;
+    }
+};

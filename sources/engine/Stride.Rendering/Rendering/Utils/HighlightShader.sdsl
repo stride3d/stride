@@ -4,8 +4,10 @@
 namespace Stride.Rendering
 {
     // TODO GRAPHICS REFACTOR: Unify passthrough color shaders (picking, highlight, etc.)
-    shader HighlightShader : ShaderBase
+    shader HighlightShader
     {
+        import ShaderBase;
+
         cbuffer PerDraw
         {
             module float4 HighlightColor;

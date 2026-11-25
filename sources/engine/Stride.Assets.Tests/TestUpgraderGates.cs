@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Shaders.Parsing.Upgrade;
 using Xunit;
 
 namespace Stride.Assets.Tests
@@ -27,7 +28,7 @@ namespace Stride.Assets.Tests
         {
             var committed = typeof(StridePackageUpgrader).GetCustomAttribute<PackageUpgraderAttribute>().UpdatedVersionRange.MinVersion.Version;
             var registry = DeclaredUpgrades();
-            var gates = registry.CodeUpgrades.Select(x => x.GateVersion).Concat(registry.ProjectUpgrades.Select(x => x.GateVersion));
+            var gates = registry.CodeUpgrades.Select(x => x.GateVersion).Concat(registry.ProjectUpgrades.Select(x => x.GateVersion)).Concat(registry.ShaderUpgrades.Select(x => x.GateVersion));
 
             Assert.All(gates, gate => Assert.True(gate.Version <= committed, $"Gate {gate} is above the committed version {committed}: bump Patch in SharedAssemblyInfo.cs"));
         }
@@ -39,6 +40,31 @@ namespace Stride.Assets.Tests
             var registry = DeclaredUpgrades();
             AssertInOrder(registry.CodeUpgrades.Select(x => x.GateVersion).ToArray());
             AssertInOrder(registry.ProjectUpgrades.Select(x => x.GateVersion).ToArray());
+            AssertInOrder(registry.ShaderUpgrades.Select(x => x.GateVersion).ToArray());
+        }
+
+        // Each step of the shader source upgrade belongs to one gate: the gate of the release whose upgrade first runs it
+        [Fact]
+        public void EachShaderUpgradeStepIsAtOneGate()
+        {
+            var gateSteps = DeclaredUpgrades().ShaderUpgrades.SelectMany(x => x.Steps).ToList();
+            var ownSteps = typeof(ShaderSourceUpgrade).GetFields(BindingFlags.Public | BindingFlags.Static).Where(x => x.IsLiteral).Select(x => (string)x.GetValue(null));
+            var steps = gateSteps.Where(ShaderUpgrader.Steps.Contains).ToList();
+
+            Assert.All(gateSteps, x => Assert.True(ShaderUpgrader.Steps.Contains(x) || ownSteps.Contains(x), $"{x} is no step of the upgrade"));
+            Assert.Equal(steps.Distinct(), steps);
+            Assert.Equal(ShaderUpgrader.Steps.Order(), steps.Order());
+        }
+
+        // A gate runs on what the gates before it wrote: its steps come after theirs in the order of the upgrade
+        [Fact]
+        public void TheStepsOfALaterGateComeLater()
+        {
+            var order = ShaderUpgrader.Steps.ToList();
+            var positions = DeclaredUpgrades().ShaderUpgrades.Select(x => x.Steps.Where(order.Contains).Select(y => order.IndexOf(y)).ToList()).Where(x => x.Count > 0).ToList();
+
+            for (var i = 1; i < positions.Count; i++)
+                Assert.True(positions[i - 1].Max() < positions[i].Min(), $"A step of gate {i + 1} comes before a step of gate {i}");
         }
 
         private static void AssertInOrder(PackageVersion[] gates)

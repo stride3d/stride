@@ -6,8 +6,11 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// The first pass of a shader performing Lambertian pre-filtering using Spherical Harmonics
     /// </summary>
-    shader LambertianPrefilteringSHNoComputePass1<int THarmonicsOrder> : SphericalHarmonicsBase<THarmonicsOrder>, ImageEffectShader, Texturing
+    shader LambertianPrefilteringSHNoComputePass1<int THarmonicsOrder> : SphericalHarmonicsBase<THarmonicsOrder>
     {
+        import ImageEffectShader;
+        import Texturing;
+
         // the input texture containing the radiance
         TextureCube RadianceMap;
 

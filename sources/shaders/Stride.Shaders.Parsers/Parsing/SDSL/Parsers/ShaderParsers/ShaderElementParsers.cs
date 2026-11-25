@@ -15,6 +15,11 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
             parsed = typeDef;
             return true;
         }
+        else if (Import(ref scanner, result, out var import))
+        {
+            parsed = import;
+            return true;
+        }
         else if (BufferParsers.Buffer(ref scanner, result, out var buffer))
         {
             Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true);
@@ -65,16 +70,20 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        var isStaged = Tokens.AnyOf(["module", "stage"], ref scanner, out _, advance: true) && Parsers.Spaces0(ref scanner, result, out _);
+        var isStaged = Tokens.AnyOf(["module", "stage"], ref scanner, out var modifier, advance: true) && Parsers.Spaces0(ref scanner, result, out _);
 
         if (SamplerState(ref scanner, result, out var samplerState))
         {
+            if (isStaged && modifier == "stage")
+                Parsers.StageIsNowModule(ref scanner, result, position);
             samplerState.IsStaged = isStaged;
             parsed = samplerState;
             return true;
         }
         else if (SamplerComparisonState(ref scanner, result, out var samplerCompState))
         {
+            if (isStaged && modifier == "stage")
+                Parsers.StageIsNowModule(ref scanner, result, position);
             samplerCompState.IsStaged = isStaged;
             parsed = samplerCompState;
             return true;
@@ -94,6 +103,26 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
     public static bool Method<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMethod parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderMethodParsers().Match(ref scanner, result, out parsed, in orError);
+
+    /// <summary>
+    /// <c>import X;</c> or <c>import X&lt;A, B&gt;;</c>: a module used by the shader.
+    /// </summary>
+    public static bool Import<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderImport parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if (
+            Tokens.Literal("import", ref scanner, advance: true)
+            && Parsers.Spaces1(ref scanner, result, out _)
+            && LiteralsParser.IdentifierBase(ref scanner, result, out var module)
+            && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
+        )
+        {
+            parsed = new ShaderImport(module, scanner[position..scanner.Position]);
+            return true;
+        }
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
 
     public static bool TypeDef<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderElement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner

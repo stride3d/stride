@@ -12,7 +12,10 @@ public record struct CompositionParser() : IParser<ShaderCompose>
         var position = scanner.Position;
 
         var hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes) && Parsers.Spaces0(ref scanner, result, out _);
-        var isStaged = Tokens.AnyOf(["module", "stage"], ref scanner, out _, advance: true) && Parsers.Spaces1(ref scanner, result, out _);
+        var modifierStart = scanner.Position;
+        var isStaged = Tokens.AnyOf(["module", "stage"], ref scanner, out var modifier, advance: true) && Parsers.Spaces1(ref scanner, result, out _);
+        if (isStaged && modifier == "stage")
+            Parsers.StageIsNowModule(ref scanner, result, modifierStart);
 
         if (Tokens.Literal("compose", ref scanner, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
         {

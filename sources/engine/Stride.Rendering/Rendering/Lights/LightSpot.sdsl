@@ -5,12 +5,13 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a spot light
     /// </summary>
-    shader LightSpot :
-        LightStream,    // Required for "streams.lightColor" and "streams.lightDirectionWS".
-        PositionStream4,    // Required for "streams.PositionWS".
-        SpotLightDataInternalShader,    // Required for "SpotLightDataInternal"
+    shader LightSpot : // Required for "streams.lightColor" and "streams.lightDirectionWS".
+        PositionStream4, // Required for "streams.PositionWS".
+        SpotLightDataInternalShader, // Required for "SpotLightDataInternal"
         LightSpotAttenuationDefault    // Required for "ComputeAttenuation()"
     {
+        import LightStream;
+
         struct SpotLightData
         {
             float3 PositionWS;

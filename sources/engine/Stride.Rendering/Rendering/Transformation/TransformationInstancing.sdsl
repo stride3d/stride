@@ -4,8 +4,11 @@
 # define ModelTransformUsage 0
 #endif
 
-shader TransformationInstancing : TransformationBase, Transformation
+module TransformationInstancing
 {
+    import TransformationBase;
+    import Transformation;
+
     struct InstanceTransform
     {
         float4x4 Matrix;
@@ -13,8 +16,8 @@ shader TransformationInstancing : TransformationBase, Transformation
 
     rgroup PerDraw.Instancing
     {
-        module StructuredBuffer<InstanceTransform> InstanceWorld;
-        module StructuredBuffer<InstanceTransform> InstanceWorldInverse;
+        StructuredBuffer<InstanceTransform> InstanceWorld;
+        StructuredBuffer<InstanceTransform> InstanceWorldInverse;
     }
 
     float4x4 GetInstanceWorld(uint instanceId)

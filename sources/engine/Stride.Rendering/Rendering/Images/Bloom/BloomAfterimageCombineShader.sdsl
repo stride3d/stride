@@ -9,8 +9,9 @@ namespace Stride.Rendering.Images
     /// - Texture0: current brightness
     /// - Texture1: persistence brightness
     /// </summary>
-    internal shader BloomAfterimageCombineShader : ImageEffectShader
+    internal shader BloomAfterimageCombineShader
     {
+        import ImageEffectShader;
 
         module override float4 Shading()
         {

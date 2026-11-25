@@ -6,8 +6,10 @@ namespace Stride.Graphics.Tests
     /// <summary>
     /// Writes the average of each 2x2 block of a mip-level into the next mip-level of the same texture.
     /// </summary>
-    internal shader MipDownsampleTestShader : ComputeShaderBase
+    internal shader MipDownsampleTestShader
     {
+        import ComputeShaderBase;
+
         module Texture2D<float4> Input;
         module RWTexture2D<float4> Output;
 

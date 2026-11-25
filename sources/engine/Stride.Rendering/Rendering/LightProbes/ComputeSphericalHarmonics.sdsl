@@ -6,8 +6,11 @@ namespace Stride.Rendering.LightProbes
     /// <summary>
     /// Base shader to sample an environment
     /// </summary>
-    shader ComputeSphericalHarmonics<int TOrder> : SphericalHarmonicsUtils<TOrder>, ComputeColor, NormalStream
+    shader ComputeSphericalHarmonics<int TOrder> : ComputeColor
     {
+        import SphericalHarmonicsUtils<TOrder>;
+        import NormalStream;
+
         cbuffer PerMaterial
         {
             [Color]

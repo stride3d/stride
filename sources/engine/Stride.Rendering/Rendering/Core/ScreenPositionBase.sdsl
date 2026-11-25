@@ -4,18 +4,20 @@
 /// Declares and sets the value of the screen position of the fragment ({x,y} in [-1,1], z in [0,1]).
 /// Be careful when to include this shader because ShadingPosition should be correct at this point. Include this shader at the end of the mixin list.
 /// </summary>
-shader ScreenPositionBase : ShaderBase
+module ScreenPositionBase
 {
-    // The position in screen space
-    module stream float4 ScreenPosition;
+    import ShaderBase;
 
-    module override void VSMain()
+    // The position in screen space
+    stream float4 ScreenPosition;
+
+    override void VSMain()
     {
         base.VSMain();
         streams.ScreenPosition = streams.ShadingPosition;
     }
 
-    module override void PSMain()
+    override void PSMain()
     {
         streams.ScreenPosition /= streams.ScreenPosition.w;
         base.PSMain();

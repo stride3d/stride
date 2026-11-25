@@ -8,8 +8,10 @@ namespace Stride.Rendering.Images
     /// Adapted from the shader of Martins Upitis.
     /// http://devlog-martinsh.blogspot.ca/2013/05/image-imperfections-and-film-grain-post.html
     /// </summary>
-    internal shader FilmGrainShader : ColorTransformShader, Texturing
+    internal shader FilmGrainShader : ColorTransformShader
     {
+        import Texturing;
+
         // Amount
         float Amount;
 

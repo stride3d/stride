@@ -5,8 +5,8 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// An array of light groups
     /// </summary>
-    shader DirectLightGroupArray
+    module DirectLightGroupArray
     {
-        module compose DirectLightGroup directLightGroups[];
+        compose DirectLightGroup directLightGroups[];
     };
 }

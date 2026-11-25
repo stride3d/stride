@@ -3,8 +3,10 @@
 /// <summary>
 /// Computes shading for all the groups of lights.
 /// </summary>
-shader ColorTransformGroupShader : ImageEffectShader
+shader ColorTransformGroupShader
 {
+    import ImageEffectShader;
+
     compose ColorTransformShader Transforms[];
 
     override module float4 Shading()

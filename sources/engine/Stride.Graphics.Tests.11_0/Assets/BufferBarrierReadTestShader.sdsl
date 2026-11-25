@@ -6,8 +6,10 @@ namespace Stride.Graphics.Tests
     /// <summary>
     /// Reads a structured buffer written by a previous dispatch and increments each element.
     /// </summary>
-    internal shader BufferBarrierReadTestShader : ComputeShaderBase
+    internal shader BufferBarrierReadTestShader
     {
+        import ComputeShaderBase;
+
         module StructuredBuffer<uint> Input;
         module RWStructuredBuffer<uint> Result;
 

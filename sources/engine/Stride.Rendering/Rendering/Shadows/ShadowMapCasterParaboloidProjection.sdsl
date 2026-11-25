@@ -3,8 +3,12 @@
 
 namespace Stride.Rendering.Shadows
 {
-    shader ShadowMapCasterParaboloidProjection : TransformationBase, PositionStream4, Texturing
+    shader ShadowMapCasterParaboloidProjection
     {
+        import TransformationBase;
+        import PositionStream4;
+        import Texturing;
+
         static const float ClippingEpsilon = 0.03;
 
         cbuffer PerView.ShadowCaster

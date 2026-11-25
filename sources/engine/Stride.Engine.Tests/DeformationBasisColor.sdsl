@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // Used as a lit diffuse color so both deformed directions contribute directly to the regression image.
-shader DeformationBasisColor : ComputeColor, NormalStream
+shader DeformationBasisColor : ComputeColor
 {
+    import NormalStream;
+
     override float4 Compute()
     {
         float3 combined = 0.5 * normalize(streams.meshNormal) + 0.5 * normalize(streams.meshTangent.xyz);

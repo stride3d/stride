@@ -3,18 +3,20 @@
 /// <summary>
 /// Defines the methods to get the normal in world space.
 /// </summary>
-shader NormalUpdate : NormalStream
+module NormalUpdate
 {
-    module void GenerateNormal_VS()
+    import NormalStream;
+
+    void GenerateNormal_VS()
     {
         streams.normalWS = 0.0f;
     }
 
-    module void GenerateNormal_PS()
+    void GenerateNormal_PS()
     {
     }
 	
-    module float3x3 GetTangentMatrix()
+    float3x3 GetTangentMatrix()
     {
         float3x3 tangentMatrix;
 
@@ -26,20 +28,20 @@ shader NormalUpdate : NormalStream
         return tangentMatrix;
     }
 	
-    module void UpdateTangentToWorld()
+    void UpdateTangentToWorld()
     {
         var tangentMatrix = GetTangentMatrix();
         var tangentWorldTransform = GetTangentWorldTransform();
         streams.tangentToWorld =  mul(tangentMatrix, tangentWorldTransform);
     }
 
-    module float3x3 GetTangentWorldTransform()
+    float3x3 GetTangentWorldTransform()
     {
         return float3x3(1,0,0, 0,1,0, 0,0,1);
     }
 	
     // This method is called by the MaterialSurfaceLightingAndShading to calculate the effective normal
-    module void UpdateNormalFromTangentSpace(float3 normalInTangentSpace)
+    void UpdateNormalFromTangentSpace(float3 normalInTangentSpace)
     {
         streams.normalWS = normalize(mul(normalInTangentSpace, streams.tangentToWorld));
     }

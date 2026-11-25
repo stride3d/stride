@@ -39,6 +39,22 @@ public abstract class PackageUpgrader
     }
 
     /// <summary>
+    /// Performs the step of package migration that reads what the package uses, before assembly references are loaded: once per package,
+    /// after the restore that follows the reference changes of <see cref="UpgradeBeforeAssembliesLoaded"/>, in reference order.
+    /// </summary>
+    /// <param name="loadParameters">The load parameters.</param>
+    /// <param name="session">The session.</param>
+    /// <param name="log">The log.</param>
+    /// <param name="dependentPackage">The source package.</param>
+    /// <param name="dependency">The dependency.</param>
+    /// <param name="dependencyPackage">The dependency package.</param>
+    /// <returns><c>false</c> when it failed: the package then records no upgrade, and the projects that reference it aren't upgraded.</returns>
+    public virtual bool UpgradeAfterRestore(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
+    {
+        return true;
+    }
+
+    /// <summary>
     /// Performs the package migration, before assets are loaded
     /// </summary>
     /// <param name="loadParameters">The load parameters.</param>

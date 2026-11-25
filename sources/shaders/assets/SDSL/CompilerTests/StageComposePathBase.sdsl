@@ -1,4 +1,4 @@
-// Base of the `stage compose` slot used by StageComposePathRoot.
+// Base of the `module compose` slot used by StageComposePathRoot.
 namespace Stride.Shaders.Tests;
 
 shader StageComposePathBase

@@ -3,9 +3,10 @@
 
 namespace Stride.Rendering.Materials
 {
-    class MaterialHairLightAttenuationFunctionDirectional<int NormalMode, LinkType THardnessReciprocal, LinkType TBoundaryShift> : IMaterialHairLightAttenuationFunction, 
-        NormalStream, LightStream  // These are required for accessing the normals and light direction.
+    shader MaterialHairLightAttenuationFunctionDirectional<int NormalMode, LinkType THardnessReciprocal, LinkType TBoundaryShift> : IMaterialHairLightAttenuationFunction, LightStream  // These are required for accessing the normals and light direction.
     {
+        import NormalStream;
+
         cbuffer PerMaterial
         {
             [Link("THardnessReciprocal")]

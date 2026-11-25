@@ -3,8 +3,10 @@
 namespace Stride.Rendering.Materials
 {
     // Temporary code for testing IMaterialSurface
-    shader MaterialSurfaceNormalStreamShading : ShadingBase, NormalStream
+    shader MaterialSurfaceNormalStreamShading : ShadingBase
     {
+        import NormalStream;
+
         module override float4 Shading()
         {
             // Run surface shading but don't take the result

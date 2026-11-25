@@ -6,8 +6,10 @@ namespace Stride.Graphics.Tests
     /// <summary>
     /// A shader performing Lambertian pre-filtering.
     /// </summary>
-    internal shader ComputeShaderTest<int TNbOfIterations>: ComputeShaderBase
+    internal shader ComputeShaderTest<int TNbOfIterations>
     {    
+        import ComputeShaderBase;
+
         module Texture2D<float4> input;
         module RWTexture2D<float4> output;
 

@@ -2,11 +2,11 @@
 
 namespace Stride.Shaders.Tests;
 
-shader ExternalClass<int TArraySize>
+module ExternalClass<int TArraySize>
 {
     cbuffer PerView
     {
-        module float Data[TArraySize];
+        float Data[TArraySize];
     };
 }
 

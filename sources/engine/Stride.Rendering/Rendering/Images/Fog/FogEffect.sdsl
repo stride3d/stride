@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Simple fog
     /// </summary>
-    internal shader FogEffect : ImageEffectShader
+    internal shader FogEffect
     {
+        import ImageEffectShader;
+
         module float FogStart = 0.0f;
         module float Density = 1.0f;
         module float zFar = 1000.0f;

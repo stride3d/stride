@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Simulates retina persistence / afterimage with bright ghost slowly fading out. 
     /// </summary>
-    internal shader BloomAfterimageShader : ImageEffectShader
+    internal shader BloomAfterimageShader
     {
+        import ImageEffectShader;
+
         // Fade-out speed of the persistence image
         module float FadeOutSpeed;
 

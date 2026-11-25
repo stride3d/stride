@@ -5,8 +5,10 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Performs a Lambert shading
     /// </summary>
-    shader MaterialSurfaceShadingDiffuseLambert<bool TIsEnergyConservative> : IMaterialSurfaceShading, Math
+    shader MaterialSurfaceShadingDiffuseLambert<bool TIsEnergyConservative> : IMaterialSurfaceShading
     {
+        import Math;
+
         override float3 ComputeDirectLightContribution()
         {
             var diffuseColor = streams.matDiffuseVisible;

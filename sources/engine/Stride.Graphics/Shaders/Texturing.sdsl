@@ -1,62 +1,62 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-shader Texturing
+module Texturing
 {
     // Default texture slots - might be automatically used by the material
-    module Texture2D Texture0;
-    module float2 Texture0TexelSize;
-    module Texture2D Texture1;
-    module float2 Texture1TexelSize;
-    module Texture2D Texture2;
-    module float2 Texture2TexelSize;
-    module Texture2D Texture3;
-    module float2 Texture3TexelSize;
-    module Texture2D Texture4;
-    module float2 Texture4TexelSize;
-    module Texture2D Texture5;
-    module float2 Texture5TexelSize;
-    module Texture2D Texture6;
-    module float2 Texture6TexelSize;
-    module Texture2D Texture7;
-    module float2 Texture7TexelSize;
-    module Texture2D Texture8;
-    module float2 Texture8TexelSize;
-    module Texture2D Texture9;
-    module float2 Texture9TexelSize;
+    Texture2D Texture0;
+    float2 Texture0TexelSize;
+    Texture2D Texture1;
+    float2 Texture1TexelSize;
+    Texture2D Texture2;
+    float2 Texture2TexelSize;
+    Texture2D Texture3;
+    float2 Texture3TexelSize;
+    Texture2D Texture4;
+    float2 Texture4TexelSize;
+    Texture2D Texture5;
+    float2 Texture5TexelSize;
+    Texture2D Texture6;
+    float2 Texture6TexelSize;
+    Texture2D Texture7;
+    float2 Texture7TexelSize;
+    Texture2D Texture8;
+    float2 Texture8TexelSize;
+    Texture2D Texture9;
+    float2 Texture9TexelSize;
 
     // Default texture cube slots
-    module TextureCube TextureCube0;
-    module TextureCube TextureCube1;
-    module TextureCube TextureCube2;
-    module TextureCube TextureCube3;
+    TextureCube TextureCube0;
+    TextureCube TextureCube1;
+    TextureCube TextureCube2;
+    TextureCube TextureCube3;
 
     // Default texture 3D slots
-    module Texture3D Texture3D0;
-    module Texture3D Texture3D1;
-    module Texture3D Texture3D2;
-    module Texture3D Texture3D3;
+    Texture3D Texture3D0;
+    Texture3D Texture3D1;
+    Texture3D Texture3D2;
+    Texture3D Texture3D3;
 
     // Default sampler
-    module SamplerState Sampler;
+    SamplerState Sampler;
 
-    module SamplerState PointSampler
+    SamplerState PointSampler
     {
         Filter = MIN_MAG_MIP_POINT;
     };
 
-    module SamplerState LinearSampler
+    SamplerState LinearSampler
     {
         Filter = MIN_MAG_MIP_LINEAR;
     };
 
-    module SamplerState LinearBorderSampler
+    SamplerState LinearBorderSampler
     {
         Filter = MIN_MAG_MIP_LINEAR;
         AddressU = Border;
         AddressV = Border;
     };
 
-    module SamplerComparisonState LinearClampCompareLessEqualSampler
+    SamplerComparisonState LinearClampCompareLessEqualSampler
     {
         Filter = COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
         AddressU = Clamp;
@@ -65,12 +65,12 @@ shader Texturing
 
     };
 
-    module SamplerState AnisotropicSampler
+    SamplerState AnisotropicSampler
     {
         Filter = ANISOTROPIC;
     };
 
-    module SamplerState AnisotropicRepeatSampler
+    SamplerState AnisotropicRepeatSampler
     {
         Filter = ANISOTROPIC;
         AddressU = Wrap;
@@ -78,47 +78,47 @@ shader Texturing
         MaxAnisotropy = 16;
     };
 
-    module SamplerState PointRepeatSampler
+    SamplerState PointRepeatSampler
     {
         Filter = MIN_MAG_MIP_POINT;
         AddressU = Wrap;
         AddressV = Wrap;
     };
 
-    module SamplerState LinearRepeatSampler
+    SamplerState LinearRepeatSampler
     {
         Filter = MIN_MAG_MIP_LINEAR;
         AddressU = Wrap;
         AddressV = Wrap;
     };
 
-    module SamplerState RepeatSampler
+    SamplerState RepeatSampler
     {
         AddressU = Wrap;
         AddressV = Wrap;
     };
 
     // Default custom samplers - might be automatically used by the materials
-    module SamplerState Sampler0;
-    module SamplerState Sampler1;
-    module SamplerState Sampler2;
-    module SamplerState Sampler3;
-    module SamplerState Sampler4;
-    module SamplerState Sampler5;
-    module SamplerState Sampler6;
-    module SamplerState Sampler7;
-    module SamplerState Sampler8;
-    module SamplerState Sampler9;
+    SamplerState Sampler0;
+    SamplerState Sampler1;
+    SamplerState Sampler2;
+    SamplerState Sampler3;
+    SamplerState Sampler4;
+    SamplerState Sampler5;
+    SamplerState Sampler6;
+    SamplerState Sampler7;
+    SamplerState Sampler8;
+    SamplerState Sampler9;
 
     // Texcoord attribute inputs
-    module stream float2 TexCoord : TEXCOORD0;
-    module stream float2 TexCoord1 : TEXCOORD1;
-    module stream float2 TexCoord2 : TEXCOORD2;
-    module stream float2 TexCoord3 : TEXCOORD3;
-    module stream float2 TexCoord4 : TEXCOORD4;
-    module stream float2 TexCoord5 : TEXCOORD5;
-    module stream float2 TexCoord6 : TEXCOORD6;
-    module stream float2 TexCoord7 : TEXCOORD7;
-    module stream float2 TexCoord8 : TEXCOORD8;
-    module stream float2 TexCoord9 : TEXCOORD9;
+    stream float2 TexCoord : TEXCOORD0;
+    stream float2 TexCoord1 : TEXCOORD1;
+    stream float2 TexCoord2 : TEXCOORD2;
+    stream float2 TexCoord3 : TEXCOORD3;
+    stream float2 TexCoord4 : TEXCOORD4;
+    stream float2 TexCoord5 : TEXCOORD5;
+    stream float2 TexCoord6 : TEXCOORD6;
+    stream float2 TexCoord7 : TEXCOORD7;
+    stream float2 TexCoord8 : TEXCOORD8;
+    stream float2 TexCoord9 : TEXCOORD9;
 };

@@ -3,8 +3,10 @@
 
 namespace Stride.Rendering.Images
 {
-    shader RangeDecompressorShader : ImageEffectShader
+    shader RangeDecompressorShader
     {
+        import ImageEffectShader;
+
         module override float4 Shading()
         {
             float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;

@@ -6,8 +6,10 @@ namespace Stride.Graphics.Tests
     /// <summary>
     /// Fills the triangle with one color.
     /// </summary>
-    internal shader MeshBufferDrawTestShader : ShaderBase
+    internal shader MeshBufferDrawTestShader
     {
+        import ShaderBase;
+
         module stream float3 Position : POSITION;
 
         module float4 Color;

@@ -6,8 +6,10 @@ namespace Stride.Rendering.Materials.Shaders
 	/// <summary>
     /// Outputs material world space normal vectors (packed from [-1;-1] to [0;1] to fit smaller render targets)
     /// </summary>
-    shader GBufferOutputNormals : ComputeColor, MaterialPixelShadingStream, NormalPack
+    shader GBufferOutputNormals : ComputeColor, MaterialPixelShadingStream
     {
+        import NormalPack;
+
         override float4 Compute()
         {
             return float4(EncodeNormal(streams.normalWS), 1);

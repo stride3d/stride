@@ -2,8 +2,8 @@
 
 namespace Stride.Shaders.Tests;
 
-// Functions and constants only: a static reference imports it as a module, not mixed into the referencing node
-shader StaticReferenceModuleHelper
+// A module of functions and constants: a static reference imports it, it is not mixed into the referencing node
+module StaticReferenceModuleHelper
 {
     static const float Ten = 10.0;
 

@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Voxels
 {
-    shader VoxelIsotropicSampler : IVoxelSampler, Texturing
+    shader VoxelIsotropicSampler : IVoxelSampler
     {
+        import Texturing;
+
         compose VoxelStorageTextureShader storage;
         cbuffer PerView.Lighting
         {

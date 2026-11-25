@@ -1,0 +1,7 @@
+// Imports a shader: an error
+namespace Stride.Shaders.Tests;
+
+shader ModuleImportsShader
+{
+    import ModuleShaderTarget;
+};

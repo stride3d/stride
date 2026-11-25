@@ -3,7 +3,7 @@
 
 namespace Stride.Rendering.Materials
 {
-    class IMaterialSubsurfaceScatteringScatteringProfile
+    shader IMaterialSubsurfaceScatteringScatteringProfile
     {
         void Prepare(void)    // Called once at the beginning of the shader.
         {

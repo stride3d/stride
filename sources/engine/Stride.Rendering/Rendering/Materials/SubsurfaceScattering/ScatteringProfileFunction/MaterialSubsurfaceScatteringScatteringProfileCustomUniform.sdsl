@@ -3,7 +3,7 @@
 
 namespace Stride.Rendering.Materials
 {
-    class MaterialSubsurfaceScatteringScatteringProfileCustomUniform : IMaterialSubsurfaceScatteringScatteringProfile
+    shader MaterialSubsurfaceScatteringScatteringProfileCustomUniform : IMaterialSubsurfaceScatteringScatteringProfile
     {
         cbuffer PerMaterial
         {

@@ -6,11 +6,11 @@
 /// <remarks>
 /// TEXTURE_KEY: generic LinkType - the name of the ParameterKey that will link to this texture.
 /// </remarks>
-shader DynamicTexture<LinkType TTexture, MemberName LocalResourceGroup>
+module DynamicTexture<LinkType TTexture, MemberName LocalResourceGroup>
 {
     rgroup LocalResourceGroup
     {
         [Link("TTexture")]
-        module Texture2D Texture;
+        Texture2D Texture;
     }
 };

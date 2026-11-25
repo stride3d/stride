@@ -6,7 +6,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Helpers for values that end up in half-float render targets.
     /// </summary>
-    shader HalfPrecisionUtils
+    module HalfPrecisionUtils
     {
         /// <summary>
         /// Half the half-float maximum (65504), leaving headroom for the blurs and sums that follow.

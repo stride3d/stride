@@ -3,8 +3,11 @@
 /// <summary>
 /// Renders the geometry in the correct view for a cube map.
 /// </summary>
-shader CameraCube : PositionStream4, ShaderBase
+shader CameraCube
 {
+    import PositionStream4;
+    import ShaderBase;
+
     float3 CameraWorldPosition;
 
     float4x4 CameraViewProjectionMatrices[6];

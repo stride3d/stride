@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Materials
 {
-    shader MaterialSurfaceTransparentAlphaDiscard : IMaterialSurface, MaterialPixelShadingStream, ShaderBaseStream
+    shader MaterialSurfaceTransparentAlphaDiscard : IMaterialSurface, MaterialPixelShadingStream
     {
+        import ShaderBaseStream;
+
         override void Compute()
         {
             // Discard a pixel if the alpha from the material diffuse is less than the alpha discard limit

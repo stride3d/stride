@@ -3,8 +3,10 @@
 
 // By inheriting the ParticleBase we inherit Texturing and the VSMain/PSMain methods, enough to draw a uniformly colored quad
 
-shader ParticleCustomShader : ParticleBase
+shader ParticleCustomShader
 {
+    import ParticleBase;
+
     // -------------------------------------
     // streams
     // -------------------------------------

@@ -6,8 +6,14 @@ namespace Stride.Rendering.LightProbes
     /// <summary>
     /// Defines a skybox environment light
     /// </summary>
-    shader LightProbeShader<int TOrder> : EnvironmentLight, MaterialPixelShadingStream, NormalStream, Transformation, ShaderBaseStream, PositionStream4, SphericalHarmonicsUtils<TOrder>
+    shader LightProbeShader<int TOrder> : EnvironmentLight, MaterialPixelShadingStream
     {
+        import NormalStream;
+        import Transformation;
+        import ShaderBaseStream;
+        import PositionStream4;
+        import SphericalHarmonicsUtils<TOrder>;
+
         cbuffer PerView.LightProbes
         {
             module int IgnoredProbeStart;

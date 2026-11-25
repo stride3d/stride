@@ -1,0 +1,6 @@
+// Settings shared by the blur passes, inherited to see them
+module MyBlurSettings
+{
+    float BlurRadius;
+    float2 Direction;
+};

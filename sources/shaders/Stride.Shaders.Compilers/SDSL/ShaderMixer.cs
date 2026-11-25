@@ -1197,17 +1197,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     var isExternalFunction = globalContext.ExternalFunctions.TryGetValue(memberAccess.Member, out var function);
                     if (isExternalFunction && !isBase && FindModule(instanceMixinGroup, globalContext.ExternalShaders[function.ShaderId]) is { } module)
                     {
-                        // A module function: there is no override to select, it is the function of that module
+                        // A module function, found in its module (another class can have a function with the same name and type);
+                        // its override chain is used below
                         var moduleFunctions = module.Functions.GetValueOrDefault(function.Name);
                         var moduleFunctionIndex = moduleFunctions?.FindIndex(x => x.Type == functionType) ?? -1;
                         if (moduleFunctionIndex == -1)
                             throw new InvalidOperationException($"Can't find function {function.Name} in module {module.ShaderName}");
-                        memberAccesses.Add(memberAccess.ResultId, moduleFunctions![moduleFunctionIndex].Id);
-                        i.SetOpNop();
-                        continue;
+                        functionId = moduleFunctions![moduleFunctionIndex].Id;
                     }
-
-                    if (isExternalFunction)
+                    else if (isExternalFunction)
                     {
                         // Process member call (composition)
                         if (!instanceMixinGroup.MethodGroupsByName.TryGetValue((function.Name, functionType), out functionId)
@@ -1315,8 +1313,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     }
 
     /// <summary>
-    /// The module <paramref name="shaderName"/> seen from <paramref name="mixinNode"/>, or null when that node or the root mixes
-    /// the class in: calls then select the override, as for any inherited method.
+    /// The module <paramref name="shaderName"/> seen from <paramref name="mixinNode"/> (modules are in the root), or null when it
+    /// is not a module.
     /// </summary>
     private static ShaderInfo? FindModule(MixinNode mixinNode, string shaderName)
     {

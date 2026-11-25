@@ -3,8 +3,11 @@
 /// <summary>
 /// Performs skinning on the tangent.
 /// </summary>
-shader TangentMeshSkinning : TransformationSkinning, NormalStream
+shader TangentMeshSkinning
 {
+    import TransformationSkinning;
+    import NormalStream;
+
     override void PreTransformPosition()
     {
         base.PreTransformPosition();

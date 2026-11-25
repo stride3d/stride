@@ -15,11 +15,11 @@ shader ComputeColorTextureScaledOffsetDynamicSampler<LinkType TTextureName,
                                              LinkType TSampler, 
                                              MemberName TRgba, 
                                              LinkType TScale, 
-                                             LinkType TOffset> : ComputeColor, 
-                                                               DynamicTexture<TTextureName, PerMaterial>, 
-                                                               DynamicSampler<TSampler, PerMaterial>, 
-                                                               DynamicTextureStream<TStream>
+                                             LinkType TOffset> : ComputeColor, DynamicTextureStream<TStream>
 {
+    import DynamicTexture<TTextureName, PerMaterial>;
+    import DynamicSampler<TSampler, PerMaterial>;
+
     cbuffer PerMaterial
     {
         [Link("TScale")]

@@ -101,8 +101,12 @@ namespace Stride.Rendering.SubsurfaceScattering
         int MaxMaterialCount,
         int KernelLength,
         int RenderMode
-        > : ImageEffectShader, Camera, Math
+        >
     {
+        import ImageEffectShader;
+        import Camera;
+        import Math;
+
         // Generated values:
         module float2 ProjectionSizeOnUnitPlaneInClipSpace;
         module float ScatteringWidths[MaxMaterialCount]; // TODO: Use Buffer<float> instead?

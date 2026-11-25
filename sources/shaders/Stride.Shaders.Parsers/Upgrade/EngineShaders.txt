@@ -1,0 +1,512 @@
+# Engine shader classes for the shader source upgrade (ShaderUpgrader): name, generic parameter count, module|shader, compose|-, parents.
+# Generated from the engine .sdsl files by the explicit test ShaderUpgradeTests.UpdateEngineShaderClasses.
+AdditiveLightShader	1	shader	-	ImageEffectShader,Texturing
+AmbientOcclusionBlurShader	5	shader	-	ImageEffectShader,Camera
+AmbientOcclusionRawAOShader	2	shader	-	ImageEffectShader,Camera
+ApplyAmbientOcclusionShader	0	shader	-	ImageEffectShader
+BRDFMicrofacet	0	module	-	Math
+BackgroundCubemapShader	0	shader	-	BackgroundShader
+BackgroundShader	0	module	-	SpriteBase
+BackgroundVelocity	0	shader	-	ShaderBase,VelocityStream,PositionStream4,ScreenPositionBase
+BakeLightProbeShader	0	shader	-	PositionStream4,Texturing
+BlendUtils	0	module	-	
+BloomAfterimageCombineShader	0	shader	-	ImageEffectShader
+BloomAfterimageShader	0	shader	-	ImageEffectShader
+BrightFilterShader	0	shader	-	ImageEffectShader
+BufferBarrierReadTestShader	0	shader	-	ComputeShaderBase
+BufferBarrierTestShader	0	shader	-	ComputeShaderBase
+BufferHazardReadTestShader	0	shader	-	ComputeShaderBase
+BufferToTexture	0	shader	-	LocalSamples,ComputeShaderBase,VoxelPositionStream,DataPacking
+BufferToTextureColumns	0	shader	-	LocalSamples,ComputeShaderBase,VoxelPositionStream,DataPacking
+Camera	0	module	-	
+CameraCube	0	shader	-	PositionStream4,ShaderBase
+CameraOrientationGizmoShader	0	shader	-	ComputeColor,PositionStream4
+CircleOfConfusion	0	module	-	
+ClearBuffer	0	shader	-	ComputeShaderBase
+CoCLinearDepthShader	0	shader	-	ImageEffectShader,Camera,CircleOfConfusion
+CoCMapBlurShader	1	shader	-	ImageEffectShader
+ColorBase	0	module	-	
+ColorCombinerShader	1	shader	-	ImageEffectShader
+ColorTransformGroupShader	0	shader	-	ImageEffectShader
+ColorTransformShader	0	shader	compose	
+ColorUtility	0	module	-	
+CombineFrontCoCShader	1	shader	-	ImageEffectShader
+CombineLevelsFromCoCShader	1	shader	-	ImageEffectShader
+CompilationErrorShader	0	shader	-	ShadingBase
+ComputeColor	0	shader	compose	
+ComputeColor3	0	shader	-	
+ComputeColorAdd	0	shader	-	ComputeColor
+ComputeColorAdd3	0	shader	-	ComputeColor
+ComputeColorAdd3ds	0	shader	-	ComputeColor
+ComputeColorAddMaya	0	shader	-	ComputeColor
+ComputeColorAverage	0	shader	-	ComputeColor
+ComputeColorCave	0	shader	-	ComputeColor
+ComputeColorClampedLerp	0	shader	-	ComputeColor
+ComputeColorColor	0	shader	-	ComputeColor
+ComputeColorColorBurn	0	shader	-	ComputeColor
+ComputeColorColorDodge	0	shader	-	ComputeColor
+ComputeColorConstantColor3Link	1	shader	-	ComputeColor
+ComputeColorConstantColorLink	1	shader	-	ComputeColor
+ComputeColorConstantFloatLink	1	shader	-	ComputeColor
+ComputeColorConstantLink	1	shader	-	ComputeColor
+ComputeColorDarken3ds	0	shader	-	ComputeColor
+ComputeColorDarkenMaya	0	shader	-	ComputeColor
+ComputeColorDesaturate	0	shader	-	ComputeColor
+ComputeColorDifference3ds	0	shader	-	ComputeColor
+ComputeColorDifferenceMaya	0	shader	-	ComputeColor
+ComputeColorDivide	0	shader	-	ComputeColor
+ComputeColorExclusion	0	shader	-	ComputeColor
+ComputeColorFixed	1	shader	-	ComputeColor
+ComputeColorFromStream	2	shader	-	ComputeColor
+ComputeColorHardLight	0	shader	-	ComputeColor
+ComputeColorHardMix	0	shader	-	ComputeColor
+ComputeColorHue	0	shader	-	ComputeColor
+ComputeColorIlluminate	0	shader	-	ComputeColor
+ComputeColorIn	0	shader	-	ComputeColor
+ComputeColorLerpAlpha	0	shader	-	ComputeColor
+ComputeColorLighten3ds	0	shader	-	ComputeColor
+ComputeColorLightenMaya	0	shader	-	ComputeColor
+ComputeColorLinearBurn	0	shader	-	ComputeColor
+ComputeColorLinearDodge	0	shader	-	ComputeColor
+ComputeColorMask	0	shader	-	ComputeColor
+ComputeColorMask3ds	0	shader	-	ComputeColor
+ComputeColorMaterialAlphaBlend	0	shader	-	ComputeColor,MaterialPixelStream
+ComputeColorMultiply	0	shader	-	ComputeColor
+ComputeColorMultiply3ds	0	shader	-	ComputeColor
+ComputeColorMultiplyMaya	0	shader	-	ComputeColor
+ComputeColorOne	0	shader	-	ComputeColor
+ComputeColorOut	0	shader	-	ComputeColor
+ComputeColorOutdoor	0	shader	-	ComputeColor
+ComputeColorOver3ds	0	shader	-	ComputeColor
+ComputeColorOverMaya	0	shader	-	ComputeColor
+ComputeColorOverlay	0	shader	-	ComputeColor
+ComputeColorOverlay3ds	0	shader	-	ComputeColor
+ComputeColorParameter	0	shader	-	ComputeColor
+ComputeColorPinLight	0	shader	-	ComputeColor
+ComputeColorSaturate	0	shader	-	ComputeColor
+ComputeColorSaturation	0	shader	-	ComputeColor
+ComputeColorScaler	1	shader	-	ComputeColor
+ComputeColorScreen	0	shader	-	ComputeColor
+ComputeColorSoftLight	0	shader	-	ComputeColor
+ComputeColorStackedNormals	2	shader	-	ComputeColor
+ComputeColorStream	0	shader	-	ComputeColor,ColorBase
+ComputeColorSubstituteAlpha	0	shader	-	ComputeColor
+ComputeColorSubstituteAlphaWithColor	0	shader	-	ComputeColor
+ComputeColorSubtract	0	shader	-	ComputeColor
+ComputeColorSubtract3ds	0	shader	-	ComputeColor
+ComputeColorSubtractMaya	0	shader	-	ComputeColor
+ComputeColorTextureLodSampler	5	shader	-	ComputeColor,DynamicTextureStream,DynamicTexture,DynamicSampler
+ComputeColorTextureLodScaledOffsetDynamicSampler	7	shader	-	ComputeColor,DynamicTextureStream,DynamicTexture,DynamicSampler
+ComputeColorTextureLodScaledOffsetSampler	7	shader	-	ComputeColor,DynamicTextureStream,DynamicTexture,DynamicSampler
+ComputeColorTextureLodScaledSampler	6	shader	-	ComputeColor,DynamicTextureStream,DynamicTexture,DynamicSampler
+ComputeColorTextureSampler	4	shader	-	ComputeColor,DynamicTextureStream,DynamicTexture,DynamicSampler
+ComputeColorTextureScaledOffsetDynamicSampler	6	shader	-	ComputeColor,DynamicTextureStream,DynamicTexture,DynamicSampler
+ComputeColorTextureScaledOffsetDynamicSamplerRandomUV	6	shader	-	ComputeColor,DynamicTextureStream,DynamicTexture,DynamicSampler
+ComputeColorTextureScaledOffsetSampler	6	shader	-	ComputeColor,DynamicTextureStream,DynamicTexture,DynamicSampler
+ComputeColorTextureScaledSampler	5	shader	-	ComputeColor,DynamicTextureStream,DynamicTexture,DynamicSampler
+ComputeColorThreshold	0	shader	-	ComputeColor
+ComputeColorValue	0	shader	-	ComputeColor
+ComputeColorWhite	0	shader	-	ComputeColor
+ComputeShaderBase	0	module	-	
+ComputeShaderTest	1	shader	-	ComputeShaderBase
+ComputeSmoothMinScalar	1	shader	-	ComputeColor
+ComputeSphericalHarmonics	1	shader	-	ComputeColor,SphericalHarmonicsUtils,NormalStream
+CubemapFaceResampleShader	0	shader	-	Math,ImageEffectShader
+CubemapSprite	0	shader	-	SpriteEffect,Texturing
+CubemapUtils	0	module	-	
+CustomShader	0	shader	-	SpriteBase
+DataPacking	0	module	-	
+DebugLineShader	0	shader	-	ShaderBase,Transformation,PositionStream4,ColorBase
+DeformationBasisColor	0	shader	-	ComputeColor,NormalStream
+DepthAwareDirectionalBlurShader	2	shader	-	DepthAwareDirectionalBlurUtil,ImageEffectShader
+DepthAwareDirectionalBlurUtil	2	shader	-	ComputeColor,Texturing
+DepthBase	0	module	-	Camera,Texturing
+DepthMinMaxShader	1	shader	-	ImageEffectShader
+DirectLightGroup	0	shader	compose	ShadowGroup,TextureProjectionGroup,NormalStream,PositionStream4,MaterialPixelStream,LightStream
+DirectLightGroupArray	0	module	-	
+DirectLightGroupFixed	1	shader	-	DirectLightGroup
+DirectLightGroupPerDraw	0	shader	-	DirectLightGroup
+DirectLightGroupPerView	0	shader	-	DirectLightGroup
+Dither	0	shader	-	ColorTransformShader,Texturing
+DynamicSampler	2	module	-	
+DynamicTexture	2	module	-	
+DynamicTextureCube	2	shader	-	
+DynamicTextureStream	1	shader	-	
+EffectCompiling	0	shader	-	ShadingBase
+EnvironmentLight	0	shader	compose	ShadowGroup,LightStream,NormalStream
+EnvironmentLightArray	0	module	-	
+FXAAShader	0	shader	-	ImageEffectShader
+FilmGrainShader	0	shader	-	ColorTransformShader,Texturing
+FlareArtifactShader	1	shader	-	ImageEffectShader
+FlareReplicate	0	shader	-	ImageEffectShader
+FlattenLayers	0	shader	-	ShaderBase,PositionStream4
+FogEffect	0	shader	-	ImageEffectShader
+GBuffer	0	shader	-	MaterialPixelStream,ShaderBase
+GBufferOutputNormals	0	shader	-	ComputeColor,MaterialPixelShadingStream,NormalPack
+GBufferOutputSpecularColorRoughness	0	shader	-	ComputeColor,MaterialPixelShadingStream,Utilities
+GBufferOutputSubsurfaceScatteringMaterialIndex	0	shader	-	ComputeColor
+GaussianBlurShader	2	shader	-	ImageEffectShader
+Global	0	module	-	
+GlobalVR	0	shader	-	
+HSVUtils	0	module	-	
+HalfPrecisionUtils	0	module	-	
+Hammersley	0	module	-	Math
+HammersleyTest	0	shader	-	ComputeShaderBase
+HeightfieldDisplacement	3	shader	-	IMaterialSurface,HeightfieldDisplacementProperties,PositionStream,NormalStream,Transformation,Texturing
+HeightfieldDisplacementProperties	0	module	-	
+HeightfieldDisplacementWindow	0	shader	-	IMaterialSurface,HeightfieldDisplacementProperties,PositionStream,NormalStream,Transformation,Texturing
+HeightfieldSinusoidalWaveShader	2	shader	-	ComputeColor,HeightfieldDisplacementProperties,PositionStream,NormalStream,Transformation,Texturing
+HighlightShader	0	shader	-	ShaderBase
+IComputeEnvironmentColor	0	shader	compose	
+IMaterialCelShadingLightFunction	0	shader	compose	MaterialPixelShadingStream
+IMaterialHairDirectionFunction	0	shader	compose	
+IMaterialHairDiscardFunction	0	shader	compose	
+IMaterialHairLightAttenuationFunction	0	shader	compose	
+IMaterialHairShadowingFunction	0	shader	compose	
+IMaterialSpecularMicrofacetEnvironmentFunction	0	shader	compose	MaterialPixelShadingStream,BRDFMicrofacet
+IMaterialSpecularMicrofacetFresnelFunction	0	shader	compose	MaterialPixelShadingStream,BRDFMicrofacet
+IMaterialSpecularMicrofacetNormalDistributionFunction	0	shader	compose	MaterialPixelShadingStream,BRDFMicrofacet
+IMaterialSpecularMicrofacetVisibilityFunction	0	shader	compose	MaterialPixelShadingStream,BRDFMicrofacet
+IMaterialStreamBlend	0	shader	compose	MaterialStream,MaterialVertexStream,MaterialPixelStream
+IMaterialSubsurfaceScatteringScatteringProfile	0	shader	compose	
+IMaterialSurface	0	shader	compose	MaterialStream
+IMaterialSurfaceDomain	0	shader	-	IMaterialSurface,MaterialDomainStream
+IMaterialSurfacePixel	0	shader	-	IMaterialSurface,MaterialPixelStream
+IMaterialSurfaceShading	0	shader	compose	MaterialPixelStream,LightStream
+IMaterialSurfaceVertex	0	shader	-	IMaterialSurface,MaterialVertexStream
+IStreamInitializer	0	shader	compose	
+IVoxelSampler	0	shader	compose	
+ImageEffectShader	0	module	-	SpriteBase
+ImageScalerShader	0	shader	-	ImageEffectShader
+ImportanceSamplingGGX	0	module	-	Math
+IndirectArgumentsWriterTestShader	0	shader	-	ComputeShaderBase
+IndirectDispatchTestShader	0	shader	-	ComputeShaderBase
+IndirectDrawTestShader	0	shader	-	ShaderBase
+InstancedDrawTestShader	0	shader	-	ShaderBase
+LambertianPrefilteringSHNoComputePass1	1	shader	-	SphericalHarmonicsBase,ImageEffectShader,Texturing
+LambertianPrefilteringSHNoComputePass2	0	shader	-	ImageEffectShader,Texturing
+LambertianPrefilteringSHPass1	2	shader	-	SphericalHarmonicsBase,ComputeShaderBase,Texturing
+LambertianPrefilteringSHPass2	2	shader	-	SphericalHarmonicsBase,ComputeShaderBase,Texturing,Math
+LevelCubeMapEnvironmentColor	0	shader	-	IComputeEnvironmentColor,Texturing
+LightClustered	0	module	-	ScreenPositionBase,ShaderBaseStream,Camera
+LightClusteredPointGroup	0	shader	-	DirectLightGroup,LightPoint,LightClustered
+LightClusteredSpotGroup	0	shader	-	DirectLightGroup,LightSpot,SpotLightDataInternalShader,LightClustered
+LightConstantWhite	0	shader	-	EnvironmentLight,LightStream
+LightDirectional	0	module	-	
+LightDirectionalGroup	1	shader	-	DirectLightGroupPerView,LightDirectional
+LightPoint	0	shader	-	LightUtil,LightStream,PositionStream4
+LightPointGroup	1	shader	-	DirectLightGroupPerDraw,LightPoint
+LightProbeShader	1	shader	-	EnvironmentLight,MaterialPixelShadingStream,NormalStream,Transformation,ShaderBaseStream,PositionStream4,SphericalHarmonicsUtils
+LightShaftsShader	1	shader	-	ImageEffectShader,PostEffectBoundingRay,LightStream,NormalStream
+LightSimpleAmbient	0	shader	-	EnvironmentLight,MaterialPixelShadingStream
+LightSkyboxShader	0	shader	-	EnvironmentLight,MaterialPixelShadingStream,NormalStream,Transformation
+LightSpot	0	shader	-	PositionStream4,SpotLightDataInternalShader,LightSpotAttenuationDefault,LightStream
+LightSpotAttenuationDefault	0	shader	-	LightUtil
+LightSpotAttenuationRectangular	0	shader	-	LightSpotAttenuationDefault
+LightSpotGroup	1	shader	-	DirectLightGroupPerDraw,LightSpot,LightSpotAttenuationDefault
+LightStreakShader	2	shader	-	ImageEffectShader
+LightStream	0	module	-	
+LightTiling	0	shader	-	ComputeShaderBase
+LightUtil	0	module	-	
+LightVoxelShader	0	shader	-	EnvironmentLight,MaterialPixelShadingStream,Camera,Texturing,NormalStream,PositionStream4,Transformation
+LocalSamples	0	module	-	
+LuminanceLogShader	0	shader	-	ImageEffectShader
+LuminanceToChannelShader	1	shader	-	ColorTransformShader
+LuminanceUtils	0	module	-	
+MSAADepthResolverShader	0	shader	-	ShaderBase,Texturing,Math
+MSAAResolverShader	3	shader	-	ImageEffectShader,Math
+MarchAttributes	0	shader	-	
+MaterialCelShadingLightDefault	1	shader	-	IMaterialCelShadingLightFunction
+MaterialCelShadingLightRamp	0	shader	-	IMaterialCelShadingLightFunction,Texturing
+MaterialDisplacementStream	0	shader	-	IStreamInitializer
+MaterialDomainStream	0	shader	-	MaterialStream,MaterialDisplacementStream,MaterialTessellationStream,NormalStream,PositionStream,Texturing
+MaterialFrontBackBlendShader	1	shader	-	ShadingBase,Transformation,PositionStream,NormalStream
+MaterialHairDirectionFunctionBitangent	0	shader	-	IMaterialHairDirectionFunction
+MaterialHairDirectionFunctionTangent	0	shader	-	IMaterialHairDirectionFunction
+MaterialHairDiscardFunctionOpaquePass	1	shader	-	IMaterialHairDiscardFunction,MaterialPixelStream
+MaterialHairDiscardFunctionTransparentPass	1	shader	-	IMaterialHairDiscardFunction,MaterialPixelStream
+MaterialHairLightAttenuationFunctionDirectional	3	shader	-	IMaterialHairLightAttenuationFunction,LightStream,NormalStream
+MaterialHairLightAttenuationFunctionNone	0	shader	-	IMaterialHairLightAttenuationFunction
+MaterialHairShadowingFunctionScattering	1	shader	-	IMaterialHairShadowingFunction,ShadowStream
+MaterialHairShadowingFunctionShadowing	0	shader	-	IMaterialHairShadowingFunction,ShadowStream
+MaterialHairShared	0	module	-	
+MaterialPixelShadingStream	0	shader	-	MaterialPixelStream,LightStream
+MaterialPixelStream	0	shader	-	MaterialStream,NormalStream,LightStream
+MaterialSpecularMicrofacetEnvironmentGGXLUT	0	shader	-	IMaterialSpecularMicrofacetEnvironmentFunction,Texturing
+MaterialSpecularMicrofacetEnvironmentGGXPolynomial	0	shader	-	IMaterialSpecularMicrofacetEnvironmentFunction
+MaterialSpecularMicrofacetEnvironmentThinGlass	0	shader	-	IMaterialSpecularMicrofacetEnvironmentFunction,MaterialTransmittanceReflectanceStream
+MaterialSpecularMicrofacetFresnelNone	0	shader	-	IMaterialSpecularMicrofacetFresnelFunction
+MaterialSpecularMicrofacetFresnelSchlick	0	shader	-	IMaterialSpecularMicrofacetFresnelFunction
+MaterialSpecularMicrofacetFresnelThinGlass	0	shader	-	IMaterialSpecularMicrofacetFresnelFunction,MaterialTransmittanceReflectanceStream
+MaterialSpecularMicrofacetNormalDistributionBeckmann	0	shader	-	IMaterialSpecularMicrofacetNormalDistributionFunction
+MaterialSpecularMicrofacetNormalDistributionBlinnPhong	0	shader	-	IMaterialSpecularMicrofacetNormalDistributionFunction
+MaterialSpecularMicrofacetNormalDistributionGGX	0	shader	-	IMaterialSpecularMicrofacetNormalDistributionFunction
+MaterialSpecularMicrofacetVisibilityCookTorrance	0	shader	-	IMaterialSpecularMicrofacetVisibilityFunction
+MaterialSpecularMicrofacetVisibilityImplicit	0	shader	-	IMaterialSpecularMicrofacetVisibilityFunction
+MaterialSpecularMicrofacetVisibilityKelemen	0	shader	-	IMaterialSpecularMicrofacetVisibilityFunction
+MaterialSpecularMicrofacetVisibilityNeumann	0	shader	-	IMaterialSpecularMicrofacetVisibilityFunction
+MaterialSpecularMicrofacetVisibilitySmithBeckmann	0	shader	-	IMaterialSpecularMicrofacetVisibilityFunction
+MaterialSpecularMicrofacetVisibilitySmithGGXCorrelated	0	shader	-	IMaterialSpecularMicrofacetVisibilityFunction
+MaterialSpecularMicrofacetVisibilitySmithSchlickBeckmann	0	shader	-	IMaterialSpecularMicrofacetVisibilityFunction
+MaterialSpecularMicrofacetVisibilitySmithSchlickGGX	0	shader	-	IMaterialSpecularMicrofacetVisibilityFunction
+MaterialStream	0	shader	-	IStreamInitializer
+MaterialStreamAdditiveBlend	1	shader	-	IMaterialStreamBlend
+MaterialStreamLinearBlend	1	shader	-	IMaterialStreamBlend
+MaterialStreamNormalBlend	0	shader	-	IMaterialStreamBlend
+MaterialSubsurfaceScatteringScatteringProfileCustomUniform	0	shader	-	IMaterialSubsurfaceScatteringScatteringProfile
+MaterialSubsurfaceScatteringScatteringProfileCustomVarying	0	shader	-	IMaterialSubsurfaceScatteringScatteringProfile
+MaterialSubsurfaceScatteringScatteringProfileSkin	0	shader	-	IMaterialSubsurfaceScatteringScatteringProfile
+MaterialSurfaceArray	0	shader	-	IMaterialSurface
+MaterialSurfaceDiffuse	0	shader	-	IMaterialSurfacePixel
+MaterialSurfaceDiffuseMetalFlakes	0	shader	-	MaterialSurfaceDiffuse,Transformation,PositionStream4
+MaterialSurfaceDiffuseSpecularAlphaBlendColor	0	shader	-	IMaterialSurfacePixel,MaterialPixelShadingStream
+MaterialSurfaceDisplacement	3	shader	-	IMaterialSurface,MaterialDisplacementStream,PositionStream,NormalStream,Transformation
+MaterialSurfaceDomainStageCompositor	0	shader	-	TessellationBase
+MaterialSurfaceEmissiveShading	1	shader	-	IMaterialSurfacePixel,MaterialPixelShadingStream
+MaterialSurfaceGlossinessMap	1	shader	-	IMaterialSurfacePixel
+MaterialSurfaceGlossinessMapMetalFlakes	1	shader	-	MaterialSurfaceGlossinessMap,Transformation,PositionStream4
+MaterialSurfaceLightingAndShading	0	shader	-	IMaterialSurfacePixel,MaterialPixelShadingStream,DirectLightGroupArray,EnvironmentLightArray,Math,Transformation,ShaderBaseStream,NormalUpdate
+MaterialSurfaceMetalness	0	shader	-	IMaterialSurfacePixel
+MaterialSurfaceNormalMap	2	shader	-	IMaterialSurfacePixel
+MaterialSurfaceNormalStreamShading	0	shader	-	ShadingBase,NormalStream
+MaterialSurfacePixelStageCompositor	0	shader	-	ShadingBase,MaterialPixelShadingStream,Transformation,PositionStream,DirectLightGroupArray,EnvironmentLightArray
+MaterialSurfaceSetStreamFromComputeColor	2	shader	-	IMaterialSurfacePixel,IMaterialSurfaceVertex,IMaterialSurfaceDomain
+MaterialSurfaceShadingBlend	0	shader	-	MaterialSurfaceArray,MaterialPixelShadingStream
+MaterialSurfaceShadingDiffuseCelShading	2	shader	-	IMaterialSurfaceShading,MaterialPixelShadingStream,ShadowGroup,Math,LightStream
+MaterialSurfaceShadingDiffuseHair	3	shader	-	IMaterialSurfaceShading,MaterialPixelShadingStream,LightStream,MaterialHairShared,NormalStream,Math,Transformation
+MaterialSurfaceShadingDiffuseLambert	1	shader	-	IMaterialSurfaceShading,Math
+MaterialSurfaceShadingSpecularCelShading	0	shader	-	IMaterialSurfaceShading,MaterialPixelShadingStream,Math,BRDFMicrofacet,LightStream
+MaterialSurfaceShadingSpecularHair	2	shader	-	IMaterialSurfaceShading,MaterialPixelShadingStream,Transformation,MaterialPixelStream,MaterialHairShared,NormalStream
+MaterialSurfaceShadingSpecularMicrofacet	0	shader	-	IMaterialSurfaceShading,MaterialPixelShadingStream,Math,BRDFMicrofacet
+MaterialSurfaceStreamShading	3	shader	-	ShadingBase,MaterialPixelShadingStream
+MaterialSurfaceStreamsBlend	0	shader	-	IMaterialSurface
+MaterialSurfaceSubsurfaceScatteringShading	0	shader	-	IMaterialSubsurfaceScatteringScatteringProfile,IMaterialSurfaceShading,MaterialPixelShadingStream,ShadowStream,Math
+MaterialSurfaceTransmittanceShading	0	shader	-	IMaterialSurfacePixel,MaterialPixelShadingStream,MaterialTransmittanceReflectanceStream
+MaterialSurfaceTransparentAlphaDiscard	0	shader	-	IMaterialSurface,MaterialPixelShadingStream,ShaderBaseStream
+MaterialSurfaceVertexDisplacement	1	shader	-	IMaterialSurfaceVertex
+MaterialSurfaceVertexStageCompositor	0	shader	-	ShaderBase
+MaterialTessellationStream	0	shader	-	IStreamInitializer
+MaterialTransmittanceReflectanceStream	0	shader	-	MaterialPixelStream
+MaterialVertexStream	0	shader	-	MaterialStream,MaterialDisplacementStream,NormalStream,PositionStream
+Math	0	module	-	
+McIntoshCombineShader	0	shader	-	ImageEffectShader
+McIntoshOptimizedShader	0	shader	-	ImageEffectShader
+MeshBufferDrawTestShader	0	shader	-	ShaderBase
+MeshBufferFetchTestShader	0	shader	-	ComputeShaderBase
+MeshVelocity	0	shader	-	PositionStream4,TransformationBase,ScreenPositionBase,VelocityStream
+MipDownsampleTestShader	0	shader	-	ComputeShaderBase
+ModelComponentPickingShader	0	shader	-	ShaderBase
+MorphSkinning	0	shader	-	ComputeShaderBase,MorphTargetUtil
+MorphTargetUtil	0	module	-	NormalUtil,Utilities
+MultiTexturesSpriteShader	0	shader	-	SpriteBase
+MultipleRenderTargetsEffectShader	0	shader	-	ShadingBase
+NormalBase	0	module	-	NormalUpdate,ShaderBase
+NormalFromMesh	0	module	-	NormalBase,Transformation
+NormalFromMeshInstanced	0	shader	-	NormalFromMesh,TransformationInstancing
+NormalFromNormalMapping	0	module	-	Transformation,NormalBase,NormalStream
+NormalFromNormalMappingInstanced	0	module	-	TransformationInstancing,NormalBase,NormalStream
+NormalFromNormalMappingTessellation	0	shader	-	NormalFromNormalMapping
+NormalFromNormalMappingTessellationInstanced	0	shader	-	NormalFromNormalMappingInstanced,TransformationInstancing
+NormalMeshSkinning	0	shader	-	TransformationSkinning,NormalStream
+NormalPack	0	module	-	
+NormalStream	0	module	-	
+NormalUpdate	0	module	-	NormalStream
+NormalUtil	0	module	-	
+NormalVSSkinningFromMesh	0	shader	-	NormalFromMesh
+NormalVSSkinningNormalMapping	0	module	-	NormalFromNormalMapping
+NormalVSSkinningNormalMappingTessellation	0	shader	-	NormalVSSkinningNormalMapping
+OpaqueBase	0	shader	-	Texturing
+OutlineEffect	0	shader	-	ImageEffectShader
+ParticleBase	0	module	-	DepthBase,ShaderBase,Texturing,ParticleUtilities
+ParticleColor	0	shader	-	ComputeColor
+ParticleColorStream	0	shader	-	ParticleColor
+ParticleComputeColorShader	0	shader	-	ParticleBase
+ParticleUtilities	0	module	-	
+PickingShader	0	shader	-	ShaderBase
+PixelShaderUnorderedAccessShader	0	shader	-	ShaderBase
+PointDepth	0	shader	-	ImageEffectShader
+PositionHStream4	0	shader	-	
+PositionStream	0	module	-	PositionStream4
+PositionStream2	0	module	-	ShaderBase
+PositionStream4	0	module	-	
+PositionVertexTransform	0	shader	-	ShaderBase,Transformation,PositionStream
+PostEffectBoundingRay	1	module	-	ImageEffectShader,DepthBase,Transformation,PositionStream4
+RadiancePrefilteringGGXNoComputeShader	1	shader	-	Math,ImageEffectShader
+RadiancePrefilteringGGXShader	1	shader	-	Math,ComputeShaderBase
+RangeCompressorShader	0	shader	-	ImageEffectShader
+RangeDecompressorShader	0	shader	-	ImageEffectShader
+RenderViewKind	0	shader	-	
+RoughnessCubeMapEnvironmentColor	0	shader	-	IComputeEnvironmentColor,MaterialPixelShadingStream,Texturing
+SSLRBlurPass	0	shader	-	ImageEffectShader
+SSLRCombinePass	0	shader	-	ImageEffectShader,SSLRCommon,Utilities
+SSLRCommon	0	module	-	ImageEffectShader,Utilities,NormalPack
+SSLRDepthPass	0	shader	-	ImageEffectShader
+SSLRRayTracePass	0	shader	-	ImageEffectShader,SSLRCommon,NormalPack,Math
+SSLRResolvePass	2	shader	-	ImageEffectShader,SSLRCommon,NormalPack,Math,BRDFMicrofacet
+SSLRTemporalPass	0	shader	-	ImageEffectShader,Texturing
+ScreenPositionBase	0	module	-	ShaderBase
+SelectedSpriteShader	0	shader	-	SpriteBase
+ShaderBase	0	module	-	ShaderBaseStream
+ShaderBaseStream	0	module	-	
+ShadingBase	0	shader	-	ShaderBase
+ShadingColor	0	shader	-	ShaderBase
+ShadowGroup	0	shader	-	ShadowStream
+ShadowMapCasterAlphaDiscard	0	shader	-	ShadingBase,MaterialPixelStream,MaterialPixelShadingStream,Transformation,PositionStream,NormalUpdate
+ShadowMapCasterAlphaDithered	0	shader	-	ShadingBase,MaterialPixelStream,MaterialPixelShadingStream,Transformation,PositionStream,NormalUpdate
+ShadowMapCasterCubeMapProjection	0	shader	-	TransformationBase,PositionStream4,Texturing
+ShadowMapCasterNoPixelShader	0	shader	-	Transformation,ShaderBase,PositionStream
+ShadowMapCasterParaboloidProjection	0	shader	-	TransformationBase,PositionStream4,Texturing
+ShadowMapCasterVsm	0	shader	-	ShaderBase
+ShadowMapCommon	1	shader	-	
+ShadowMapFilterBase	1	shader	-	ShadowMapCommon,Texturing,Math
+ShadowMapFilterDefault	1	shader	-	ShadowMapFilterBase
+ShadowMapFilterPcf	2	shader	-	ShadowMapFilterBase
+ShadowMapFilterVsm	1	shader	-	ShadowMapFilterBase
+ShadowMapGroup	1	shader	-	ShadowGroup,ShadowMapCommon
+ShadowMapReceiverBase	3	shader	-	MaterialPixelShadingStream,ShadowMapGroup,ShadowMapFilterBase,PositionStream4
+ShadowMapReceiverDirectional	6	shader	-	ShadowMapReceiverBase,Transformation
+ShadowMapReceiverPointCubeMap	1	shader	-	ShadowMapGroup,ShadowMapFilterBase,LightPointGroup,PositionStream4,ShaderBaseStream,LightStream,Texturing,NormalStream
+ShadowMapReceiverPointParaboloid	1	shader	-	ShadowMapGroup,ShadowMapFilterBase,PositionStream4,ShaderBaseStream
+ShadowMapReceiverSpot	2	shader	-	ShadowMapReceiverBase,Transformation
+ShadowStream	0	module	-	
+SharedTextureCoordinate	0	shader	-	ShaderBase,Texturing
+SignedDistanceFieldFont	0	module	-	Texturing
+SignedDistanceFieldFontShader	0	shader	-	ShaderBase,SignedDistanceFieldFont
+SimpleShader	0	shader	-	ShaderBase,Texturing
+SinglePassWireframeShader	0	shader	-	ShaderBase,Transformation,Texturing,PositionStream4
+SkyboxShaderBase	0	module	-	SpriteBase,SkyboxStream
+SkyboxShaderCubemap	0	shader	-	SkyboxShaderBase
+SkyboxShaderTexture	0	shader	-	SkyboxShaderBase,Math
+SkyboxStream	0	module	-	
+SphericalHarmonicsBase	1	shader	-	Math
+SphericalHarmonicsEnvironmentColor	1	shader	-	IComputeEnvironmentColor,SphericalHarmonicsUtils
+SphericalHarmonicsRenderer	1	shader	-	SphericalHarmonicsBase,ImageEffectShader,Texturing
+SphericalHarmonicsUtils	1	module	-	Math
+SpotLightDataInternalShader	0	module	-	
+Sprite3DBase	0	shader	-	SpriteBase
+SpriteAlphaCutoff	1	shader	-	SpriteBase
+SpriteBase	0	module	-	ShaderBase,Texturing
+SpriteBatchShader	1	shader	-	SpriteBase
+SpriteEffect	0	module	-	SpriteBase
+SpriteEffectExtTexture	0	shader	-	ShaderBase
+SpriteEffectExtTextureRegular	0	shader	-	ShaderBase
+SpritePicking	0	shader	-	SpriteBase
+SpriteSignedDistanceFieldFontShader	0	shader	-	SpriteBase,SignedDistanceFieldFont
+SpriteSuperSampler	0	shader	-	SpriteBase
+SubsurfaceScatteringBlurShader	6	shader	-	ImageEffectShader,Camera,Math
+SwapUV	1	shader	-	ShaderBase,Texturing
+TangentMeshSkinning	0	shader	-	TransformationSkinning,NormalStream
+TemporalAntiAliasShader	0	shader	-	ImageEffectShader
+TessellationAE2	1	shader	-	TessellationBase,MaterialDomainStream
+TessellationAE3	1	shader	-	TessellationBase,MaterialDomainStream
+TessellationAE4	1	shader	-	TessellationBase,MaterialDomainStream
+TessellationBase	0	shader	-	MaterialDomainStream,ShaderBase,TransformationBase,Camera,Transformation,NormalBase
+TessellationFlat	0	shader	-	TessellationBase
+TessellationPN	0	shader	-	TessellationFlat
+TextureProjectionCommon	1	shader	-	
+TextureProjectionFilterDefault	1	shader	-	TextureProjectionCommon,Texturing
+TextureProjectionGroup	0	shader	-	
+TextureProjectionReceiverBase	4	shader	-	TextureProjectionCommon,TextureProjectionFilterDefault,Texturing
+TextureProjectionReceiverSpot	3	shader	-	TextureProjectionGroup,TextureProjectionReceiverBase
+Texturing	0	module	-	
+ThresholdAlphaCoC	0	shader	-	ImageEffectShader
+ThresholdAlphaCoCFront	0	shader	-	ImageEffectShader
+ToGlslShader	0	shader	-	ShaderBase,Texturing
+ToneMapACESOperatorShader	0	shader	-	ToneMapCommonOperatorShader
+ToneMapCommonOperatorShader	0	shader	-	ToneMapOperatorShader
+ToneMapDragoOperatorShader	0	shader	-	ToneMapCommonOperatorShader
+ToneMapExponentialOperatorShader	0	shader	-	ToneMapCommonOperatorShader
+ToneMapHejl2OperatorShader	0	shader	-	ToneMapOperatorShader
+ToneMapHejlDawsonOperatorShader	0	shader	-	ToneMapOperatorShader
+ToneMapLogarithmicOperatorShader	0	shader	-	ToneMapCommonOperatorShader
+ToneMapMikeDayOperatorShader	0	shader	-	ToneMapOperatorShader
+ToneMapOperatorShader	0	shader	compose	ColorTransformShader
+ToneMapReinhardOperatorShader	0	shader	-	ToneMapCommonOperatorShader
+ToneMapShader	3	shader	-	ColorTransformShader,Texturing
+ToneMapU2FilmicOperatorShader	0	shader	-	ToneMapOperatorShader
+Transformation	0	module	-	
+TransformationBase	0	module	-	ShaderBase
+TransformationInstancing	0	module	-	TransformationBase,Transformation
+TransformationMatrix	1	shader	-	PositionHStream4,TransformationBase,PositionStream4
+TransformationMorph	0	shader	-	TransformationBase,PositionStream4,NormalStream,MorphTargetUtil
+TransformationSkinning	0	module	-	TransformationBase,PositionStream4,Transformation
+TransformationSkinningInstanced	0	shader	-	TransformationSkinning,TransformationInstancing
+TransformationWAndVP	0	shader	-	PositionHStream4,TransformationBase,PositionStream4
+TransformationWAndVPInstanced	0	shader	-	TransformationWAndVP,PositionHStream4,TransformationInstancing,PositionStream4
+TransformationWVP	0	shader	-	TransformationMatrix
+TransformationZero	0	shader	-	TransformationBase,PositionStream4
+TripleRhombiCombineShader	0	shader	-	ImageEffectShader
+UIEffectShader	1	shader	-	ShaderBase,Texturing
+UnorderedAccessOnlyTextureShader	0	shader	-	ComputeShaderBase
+UnorderedAccessReverseIncrementTestShader	0	shader	-	ComputeShaderBase
+UnorderedAccessSlowWriteTestShader	0	shader	-	ComputeShaderBase
+Utilities	0	module	-	
+VelocityOutput	0	shader	-	ComputeColor,VelocityStream
+VelocityStream	0	module	-	ShaderBase
+VideoShader	0	shader	-	SpriteBase
+VignettingShader	0	shader	-	ColorTransformShader,Texturing
+VolumeMinMaxShader	0	shader	-	PositionHStream4,ShaderBase
+Voxel2x2x2Mipmap	0	shader	-	Math,Texturing,ComputeShaderBase
+Voxel2x2x2Mipmapper	0	shader	compose	Math,Texturing,ComputeShaderBase
+Voxel2x2x2MipmapperHeuristic	0	shader	-	Voxel2x2x2Mipmapper
+Voxel2x2x2MipmapperPhysicallyBased	0	shader	-	Voxel2x2x2Mipmapper
+Voxel2x2x2MipmapperSimple	0	shader	-	Voxel2x2x2Mipmapper
+Voxel2x2x2Mipmapper_AnisoXN	0	shader	-	Voxel2x2x2Mipmapper
+Voxel2x2x2Mipmapper_AnisoXP	0	shader	-	Voxel2x2x2Mipmapper
+Voxel2x2x2Mipmapper_AnisoYN	0	shader	-	Voxel2x2x2Mipmapper
+Voxel2x2x2Mipmapper_AnisoYP	0	shader	-	Voxel2x2x2Mipmapper
+Voxel2x2x2Mipmapper_AnisoZN	0	shader	-	Voxel2x2x2Mipmapper
+Voxel2x2x2Mipmapper_AnisoZP	0	shader	-	Voxel2x2x2Mipmapper
+VoxelAnisotropicPairedSampler	0	shader	-	IVoxelSampler,Texturing
+VoxelAnisotropicPairedWriter_Float4	0	shader	-	VoxelLayout_Float4,NormalStream
+VoxelAnisotropicSampler	0	shader	-	IVoxelSampler,Texturing
+VoxelAnisotropicWriter_Float4	0	shader	-	VoxelLayout_Float4,NormalStream
+VoxelAttribute	0	shader	compose	
+VoxelAttributeDirectionalCoverageSampler	0	shader	-	IVoxelSampler,Texturing
+VoxelAttributeDirectionalCoverageShader	0	shader	-	VoxelAttribute,ShaderBaseStream,NormalStream,DataPacking
+VoxelAttributeEmissionOpacityShader	0	shader	-	VoxelAttribute,ShaderBaseStream
+VoxelAttributeSoliditySampler	0	shader	-	IVoxelSampler,Texturing
+VoxelAttributeSolidityShader	0	shader	-	VoxelAttribute,VoxelPositionStream,ShaderBaseStream,NormalStream,DataPacking
+VoxelBufferWriteAssign	0	shader	-	VoxelBufferWriter
+VoxelBufferWriteMax	0	shader	-	VoxelBufferWriter
+VoxelBufferWriter	0	shader	compose	
+VoxelFragmentPackFloat16	0	shader	-	VoxelFragmentPacker,DataPacking
+VoxelFragmentPackFloat32	0	shader	-	VoxelFragmentPacker
+VoxelFragmentPackFloatR11G11B10	0	shader	-	VoxelFragmentPacker,DataPacking
+VoxelFragmentPacker	0	shader	compose	
+VoxelIsotropicSampler	0	shader	-	IVoxelSampler,Texturing
+VoxelIsotropicWriter_Float4	0	shader	-	VoxelLayout_Float4
+VoxelLayout_Float4	0	shader	compose	NormalStream
+VoxelMarchBeam	3	shader	-	VoxelMarchMethod,VoxelRadiusMarchMethod,MarchAttributes
+VoxelMarchCone	4	shader	-	VoxelMarchMethod,VoxelRadiusMarchMethod,MarchAttributes
+VoxelMarchConeEditMode	0	shader	-	VoxelMarchMethod,VoxelRadiusMarchMethod,MarchAttributes
+VoxelMarchConePerMipmap	1	shader	-	VoxelMarchMethod,MarchAttributes
+VoxelMarchMethod	0	shader	compose	
+VoxelMarchSet	0	shader	compose	
+VoxelMarchSetHemisphere12	0	shader	-	VoxelMarchSet
+VoxelMarchSetHemisphere6	0	shader	-	VoxelMarchSet,ShaderBase
+VoxelMarchSetRandomHemisphere	0	shader	-	VoxelMarchSet,ShaderBase
+VoxelModifierApplierAnisotropic	0	shader	compose	
+VoxelModifierApplierAnisotropicPaired	0	shader	compose	
+VoxelModifierApplierAntiAliasingAnisotropic	1	shader	-	VoxelModifierApplierAnisotropic,LocalSamples
+VoxelModifierApplierAntiAliasingAnisotropicPaired	1	shader	-	VoxelModifierApplierAnisotropicPaired,LocalSamples
+VoxelModifierApplierAntiAliasingIsotropic	1	shader	-	VoxelModifierApplierIsotropic,LocalSamples
+VoxelModifierApplierIsotropic	0	shader	compose	
+VoxelModifierApplierOpacifyAnisotropic	0	shader	-	VoxelModifierApplierAnisotropic
+VoxelModifierApplierOpacifyAnisotropicPaired	0	shader	-	VoxelModifierApplierAnisotropicPaired
+VoxelModifierApplierOpacifyIsotropic	0	shader	-	VoxelModifierApplierIsotropic
+VoxelModifierApplierSolidifyAnisotropic	1	shader	-	VoxelModifierApplierAnisotropic,LocalSamples
+VoxelModifierApplierSolidifyAnisotropicPaired	1	shader	-	VoxelModifierApplierAnisotropicPaired,LocalSamples
+VoxelModifierApplierSolidifyIsotropic	1	shader	-	VoxelModifierApplierIsotropic,LocalSamples
+VoxelPositionStream	0	module	-	
+VoxelRadiusMarchMethod	0	shader	compose	
+VoxelStorageClipmapShader	0	shader	-	VoxelStorageShader,Texturing,ShaderBaseStream,Transformation
+VoxelStorageShader	0	shader	compose	VoxelPositionStream,PositionStream4,ShaderBaseStream
+VoxelStorageTextureClipmapShader	4	shader	-	VoxelStorageTextureShader,Texturing
+VoxelStorageTextureShader	0	shader	compose	
+VoxelVisualizationRawShader	0	shader	-	ImageEffectShader
+VoxelVisualizationViewShader	0	shader	-	ImageEffectShader
+VoxelizationMethod	0	shader	compose	VoxelPositionStream,PositionStream4,ShaderBaseStream
+VoxelizationMethodDominantAxis	0	shader	-	VoxelizationMethod,Math,Transformation,ShaderBase,NormalStream,PositionStream4,VoxelPositionStream
+VoxelizationMethodSingleAxis	0	shader	-	VoxelizationMethod,Math,Transformation,ShaderBase,NormalStream,PositionStream4,VoxelPositionStream
+VoxelizeToFragments	0	shader	-	MaterialPixelStream,MaterialPixelShadingStream,Math,Transformation,ShaderBase,Texturing,NormalStream,PositionStream4,VoxelPositionStream

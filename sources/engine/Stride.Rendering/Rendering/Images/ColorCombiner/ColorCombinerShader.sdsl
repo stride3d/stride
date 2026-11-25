@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A shader combiner
     /// </summary>
-    internal shader ColorCombinerShader<int count> : ImageEffectShader
+    internal shader ColorCombinerShader<int count>
     {
+        import ImageEffectShader;
+
         float Factors[10];
 
         [Color]

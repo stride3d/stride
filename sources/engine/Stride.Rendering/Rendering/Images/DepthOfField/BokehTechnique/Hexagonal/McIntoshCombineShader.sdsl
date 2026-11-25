@@ -9,8 +9,9 @@ namespace Stride.Rendering.Images
     ///  - Texture0: a color buffer with diagonal blur
     ///  - Texture1: a color buffer with diagonal blur
     /// </summary>
-    shader McIntoshCombineShader : ImageEffectShader
+    shader McIntoshCombineShader
     {
+        import ImageEffectShader;
 
         module override float4 Shading()
         {

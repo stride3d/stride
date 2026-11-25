@@ -6,8 +6,11 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// The second pass of a shader performing Lambertian pre-filtering using Spherical Harmonics
     /// </summary>
-    shader LambertianPrefilteringSHNoComputePass2 : ImageEffectShader, Texturing
+    shader LambertianPrefilteringSHNoComputePass2
     {   
+        import ImageEffectShader;
+        import Texturing;
+
         module override float4 Shading()
         {
             float4 result = 0;

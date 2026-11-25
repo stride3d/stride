@@ -9,8 +9,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A reduction shader
     /// </summary>
-    shader DepthMinMaxShader<bool TFirstPass> : ImageEffectShader
+    shader DepthMinMaxShader<bool TFirstPass>
     {
+        import ImageEffectShader;
+
         Texture2D<float> TextureMap;
         Texture2D<float2> TextureReduction;
 

@@ -1,0 +1,13 @@
+// A post effect that inherits shaders only to see their members
+shader MyBlur : MyVignette
+{
+    import ImageEffectShader;
+    import Texturing;
+    import MyBlurSettings;
+
+    module override float4 Shading()
+    {
+        float4 color = Texture0.Sample(LinearSampler, streams.TexCoord + Direction * BlurRadius / MyMath.Pi);
+        return color * (1.0 - MyVignette.Apply(streams.TexCoord));
+    }
+};

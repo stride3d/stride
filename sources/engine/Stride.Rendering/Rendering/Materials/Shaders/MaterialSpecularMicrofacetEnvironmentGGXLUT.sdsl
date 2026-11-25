@@ -5,8 +5,10 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Interface for a microfacet Fresnel function
     /// </summary>
-    shader MaterialSpecularMicrofacetEnvironmentGGXLUT : IMaterialSpecularMicrofacetEnvironmentFunction, Texturing
+    shader MaterialSpecularMicrofacetEnvironmentGGXLUT : IMaterialSpecularMicrofacetEnvironmentFunction
     {
+        import Texturing;
+
         rgroup PerMaterial
         {
             module Texture2D EnvironmentLightingDFG_LUT;

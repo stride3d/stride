@@ -6,8 +6,10 @@ namespace Stride.Graphics.Tests
     /// <summary>
     /// Writes indirect call arguments on the GPU, one value per thread.
     /// </summary>
-    internal shader IndirectArgumentsWriterTestShader : ComputeShaderBase
+    internal shader IndirectArgumentsWriterTestShader
     {
+        import ComputeShaderBase;
+
         module StructuredBuffer<uint> Source;
         module RWBuffer<uint> Arguments;
 

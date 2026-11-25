@@ -6,7 +6,9 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Contains all the default streams of the vertex shader stage.
     /// </summary>
-    shader MaterialVertexStream : MaterialStream, MaterialDisplacementStream, NormalStream, PositionStream
+    shader MaterialVertexStream : MaterialStream, MaterialDisplacementStream
     {
+        import NormalStream;
+        import PositionStream;
     };
 }

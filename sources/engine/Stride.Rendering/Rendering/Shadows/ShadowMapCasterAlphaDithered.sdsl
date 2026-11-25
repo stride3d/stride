@@ -7,8 +7,12 @@ namespace Stride.Rendering.Shadows
     /// Runs the material surface chain to populate shadingColorAlpha but never writes ColorTarget,
     /// so the resulting PS has no SV_Target output (depth-only).
     /// </summary>
-    shader ShadowMapCasterAlphaDithered : Transformation, ShadingBase, PositionStream, MaterialPixelStream, MaterialPixelShadingStream, NormalUpdate
+    shader ShadowMapCasterAlphaDithered : ShadingBase, MaterialPixelStream, MaterialPixelShadingStream
     {
+        import Transformation;
+        import PositionStream;
+        import NormalUpdate;
+
         static const float BayerMatrix[16] =
         {
             0,

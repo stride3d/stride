@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A gaussian blur shader
     /// </summary>
-    internal shader GaussianBlurShader<int BlurCount, bool IsVertical> : ImageEffectShader
+    internal shader GaussianBlurShader<int BlurCount, bool IsVertical>
     {
+        import ImageEffectShader;
+
         module float2 OffsetsWeights[BlurCount];
 
         module override float4 Shading()

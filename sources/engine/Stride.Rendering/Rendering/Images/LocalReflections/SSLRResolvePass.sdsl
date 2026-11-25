@@ -6,8 +6,14 @@ namespace Stride.Rendering.Images
     /// <summary>
 	/// Screen Space Local Reflections shader for Resolve Pass
     /// </summary>
-    shader SSLRResolvePass<int ResolveSamples, bool ReduceHighlights> : ImageEffectShader, SSLRCommon, NormalPack, Math, BRDFMicrofacet
+    shader SSLRResolvePass<int ResolveSamples, bool ReduceHighlights>
     {
+        import ImageEffectShader;
+        import SSLRCommon;
+        import NormalPack;
+        import Math;
+        import BRDFMicrofacet;
+
         static const float2 Offsets[8] =
         {
             float2( 0,  0),

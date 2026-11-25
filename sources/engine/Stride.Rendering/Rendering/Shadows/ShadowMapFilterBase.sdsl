@@ -5,8 +5,11 @@ namespace Stride.Rendering.Shadows
     /// <summary>
     /// Defines shadow filtering method.
     /// </summary>
-    shader ShadowMapFilterBase<MemberName PerLighting> : ShadowMapCommon<PerLighting>, Texturing, Math
+    shader ShadowMapFilterBase<MemberName PerLighting> : ShadowMapCommon<PerLighting>
     {
+        import Texturing;
+        import Math;
+
         /// <summary>
         /// Calculate the shadow factor based on the position and shadow map distance.
         /// </summary>

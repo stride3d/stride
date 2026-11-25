@@ -4,7 +4,7 @@
 namespace Stride.Shaders.Parsers.Tests;
 
 /// <summary>
-/// <c>this.X</c> on a stage member and <c>base.X</c> on a variable are errors (SDSL0192), and so is <c>this.X</c> when the shader
+/// <c>this.X</c> on a module member and <c>base.X</c> on a variable are errors (SDSL0192), and so is <c>this.X</c> when the shader
 /// has no member X (SDSL0112). The members that <c>this.X</c> reads are checked by RenderTest <c>ThisMember</c>.
 /// </summary>
 public class ThisMemberTests : IDisposable

@@ -7,8 +7,14 @@ namespace Stride.Rendering.Shadows
     /// Selects the shadow map and computes the shadow factor.
     /// Mixed into the point light group, whose light positions it reads.
     /// </summary>
-    internal shader ShadowMapReceiverPointCubeMap<int TLightCount> : ShadowMapGroup<PerDraw.Lighting>, ShadowMapFilterBase<PerDraw.Lighting>, PositionStream4, ShaderBaseStream, LightStream, Texturing, NormalStream, LightPointGroup<TLightCount>
+    internal shader ShadowMapReceiverPointCubeMap<int TLightCount> : ShadowMapGroup<PerDraw.Lighting>, ShadowMapFilterBase<PerDraw.Lighting>, LightPointGroup<TLightCount>
     {
+        import PositionStream4;
+        import ShaderBaseStream;
+        import LightStream;
+        import Texturing;
+        import NormalStream;
+
         cbuffer PerDraw.Lighting
         {
             float4x4 WorldToShadow[TLightCount*6];

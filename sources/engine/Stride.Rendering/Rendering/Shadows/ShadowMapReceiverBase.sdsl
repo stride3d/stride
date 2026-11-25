@@ -9,12 +9,10 @@ namespace Stride.Rendering.Shadows
     /// TCascadeCountBase: Number of cascades.
     /// TCascadeDebug: Flag to enable debug mode (1 color per cascade).
     /// </remarks>
-    internal shader ShadowMapReceiverBase<MemberName PerLighting, int TCascadeCountBase, int TLightCountBase> :
-        MaterialPixelShadingStream,
-        ShadowMapGroup<PerLighting>,
-        ShadowMapFilterBase<PerLighting>,
-        PositionStream4
+    internal shader ShadowMapReceiverBase<MemberName PerLighting, int TCascadeCountBase, int TLightCountBase> : MaterialPixelShadingStream, ShadowMapGroup<PerLighting>, ShadowMapFilterBase<PerLighting>
     {
+        import PositionStream4;
+
         cbuffer PerLighting // TODO: Use a proper cbuffer for this?
         {
             float4x4 WorldToShadowCascadeUV[TCascadeCountBase * TLightCountBase];

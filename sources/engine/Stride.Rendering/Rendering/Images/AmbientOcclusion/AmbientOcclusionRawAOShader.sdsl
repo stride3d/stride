@@ -3,8 +3,11 @@
 
 namespace Stride.Rendering.Images
 {
-    shader AmbientOcclusionRawAOShader <int SamplesCount, bool IsOrthographic>  : ImageEffectShader, Camera
+    shader AmbientOcclusionRawAOShader <int SamplesCount, bool IsOrthographic>
     {
+        import ImageEffectShader;
+        import Camera;
+
         float4   ProjInfo;    // .x = zN * zF, .y = zN - zF, .z = zF
         float4   ScreenInfo;  // .x = Width, .y = Height, .z = Aspect
 

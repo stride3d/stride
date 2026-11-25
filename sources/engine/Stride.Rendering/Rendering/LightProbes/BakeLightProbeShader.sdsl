@@ -3,8 +3,11 @@
 namespace Stride.Rendering.LightProbes
 {
 	// TODO: Inherit from SpriteBase; however we can't redefine SV_Target0 to have a different type due to ColorTarget being defined by ShaderBase => ShaderBaseStream
-    shader BakeLightProbeShader : PositionStream4, Texturing
+    shader BakeLightProbeShader
     {
+		import PositionStream4;
+		import Texturing;
+
 		// Default SV_POSITION output for VS/GS shaders
 		module stream float4 ShadingPosition : SV_Position;
 

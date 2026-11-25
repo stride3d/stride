@@ -3238,10 +3238,10 @@ public partial class InstructionInfo
         Instance.Register(Op.OpMaskedScatterINTEL, OperandKind.LiteralInteger, OperandQuantifier.One, "alignment", "Memory", []);
         Instance.Register(Op.OpMaskedScatterINTEL, OperandKind.IdRef, OperandQuantifier.One, "mask", "Memory", []);
         Instance.Register(Op.OpShaderSDSL, OperandKind.LiteralString, OperandQuantifier.One, "shaderName", "Miscellaneous", []);
+        Instance.Register(Op.OpShaderSDSL, OperandKind.ShaderFlags, OperandQuantifier.One, "flags", "Miscellaneous", []);
         Instance.Register(Op.OpCompositionSDSL, OperandKind.LiteralString, OperandQuantifier.One, "compositionPath", "Miscellaneous", []);
         Instance.Register(Op.OpCompositionEndSDSL, OperandKind.None, null, "Debug");
         Instance.Register(Op.OpMixinInheritSDSL, OperandKind.IdRef, OperandQuantifier.One, "shader", "Miscellaneous", []);
-        Instance.Register(Op.OpMixinInheritSDSL, OperandKind.MixinInheritFlags, OperandQuantifier.One, "flags", "Miscellaneous", []);
         Instance.Register(Op.OpImportShaderSDSL, OperandKind.IdResult, OperandQuantifier.One, "resultId", "Miscellaneous", []);
         Instance.Register(Op.OpImportShaderSDSL, OperandKind.LiteralString, OperandQuantifier.One, "shaderName", "Miscellaneous", []);
         Instance.Register(Op.OpImportShaderSDSL, OperandKind.IdRef, OperandQuantifier.ZeroOrMore, "generics", "Miscellaneous", []);

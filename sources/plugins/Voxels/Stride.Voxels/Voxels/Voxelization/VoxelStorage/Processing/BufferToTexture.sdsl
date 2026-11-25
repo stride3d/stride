@@ -2,8 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Voxels
 {
-    shader BufferToTexture : LocalSamples, ComputeShaderBase, VoxelPositionStream, DataPacking
+    shader BufferToTexture
     {
+        import LocalSamples;
+        import ComputeShaderBase;
+        import VoxelPositionStream;
+        import DataPacking;
+
         module RWBuffer<uint> VoxelFragments;
         
         module float3 clipMapResolution;

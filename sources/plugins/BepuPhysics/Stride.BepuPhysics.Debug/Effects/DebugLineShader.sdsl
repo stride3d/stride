@@ -4,8 +4,13 @@
 /// <summary>
 /// Draws world-space line lists as screen-space quads of constant width.
 /// </summary>
-shader DebugLineShader : ShaderBase, Transformation, PositionStream4, ColorBase
+shader DebugLineShader
 {
+    import ShaderBase;
+    import Transformation;
+    import PositionStream4;
+    import ColorBase;
+
     // Clip-space w under which a vertex is considered behind the camera
     static const float NearW = 1e-4;
     // Screen length under which a segment has no usable direction

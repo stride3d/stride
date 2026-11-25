@@ -3,8 +3,14 @@
 
 namespace Stride.Heightfield
 {
-    shader HeightfieldSinusoidalWaveShader<float TilingX, float TilingY> : ComputeColor, HeightfieldDisplacementProperties, PositionStream, NormalStream, Transformation, Texturing
+    shader HeightfieldSinusoidalWaveShader<float TilingX, float TilingY> : ComputeColor
     {
+        import HeightfieldDisplacementProperties;
+        import PositionStream;
+        import NormalStream;
+        import Transformation;
+        import Texturing;
+
         override float4 Compute()
         {
             float2 uv = streams.TexCoord * float2(TilingX, TilingY);

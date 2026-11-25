@@ -5,10 +5,11 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Converts diffuse color (for metal flakes layer)
     /// </summary>
-    shader MaterialSurfaceDiffuseMetalFlakes : MaterialSurfaceDiffuse,
-                                               Transformation,
-                                               PositionStream4
+    shader MaterialSurfaceDiffuseMetalFlakes : MaterialSurfaceDiffuse
     {
+        import Transformation;
+        import PositionStream4;
+
         compose ComputeColor surfaceToEyeDistanceFactor;
 
         override void Compute()

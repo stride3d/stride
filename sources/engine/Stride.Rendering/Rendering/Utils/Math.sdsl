@@ -3,7 +3,7 @@
 /// <summary>
 /// Various math functions.
 /// </summary>
-shader Math
+module Math
 {
     // -------------------------------------
     // constant value

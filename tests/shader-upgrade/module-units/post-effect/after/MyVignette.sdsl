@@ -1,0 +1,10 @@
+// Has its own value: a shader, used by name without being inherited
+shader MyVignette
+{
+    float Strength;
+
+    float Apply(float2 uv)
+    {
+        return Strength * MyMath.Square(length(uv - 0.5));
+    }
+};

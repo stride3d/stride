@@ -3,8 +3,10 @@
 
 namespace Stride.Rendering.Images
 {
-    shader ApplyAmbientOcclusionShader : ImageEffectShader
+    shader ApplyAmbientOcclusionShader
     {
+        import ImageEffectShader;
+
         module override float4 Shading()
         {
             //*****************************

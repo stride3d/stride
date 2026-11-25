@@ -5,7 +5,7 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a directional light
     /// </summary>
-    shader LightDirectional
+    module LightDirectional
     {
         struct DirectionalLightData
         {

@@ -2,15 +2,15 @@
 
 namespace Stride.Shaders.Tests;
 
-// This class is used twice by CompositionInheritanceStageIndirectAndDirect
-// - through ShadingColor0 (a composition: its module members would be a companion module in the root)
-// - from ExternalClass being in the root inheritance list (mixed at the root)
-// This test makes sure the root mixin provides the module members, so there is no separate companion module
-shader ExternalClass
+// This module is used twice by CompositionInheritanceStageIndirectAndDirect
+// - through ShadingColor0 (a static reference from a composition)
+// - imported by the root shader
+// This test makes sure both use the one module in the root
+module ExternalClass
 {
     cbuffer PerView
     {
-        module float Eye;
+        float Eye;
     };
 }
 
@@ -34,8 +34,10 @@ shader CompositionExternalBase
 	compose CompositionBase ShadingColor0;
 };
 
-shader CompositionInheritanceStageIndirectAndDirect : CompositionExternalBase, ExternalClass
+shader CompositionInheritanceStageIndirectAndDirect : CompositionExternalBase
 {
+	import ExternalClass;
+
 	module float4 Shading()
     {
         return ShadingColor0.Compute() + Eye2 / 255.0 + Eye / 255.0;

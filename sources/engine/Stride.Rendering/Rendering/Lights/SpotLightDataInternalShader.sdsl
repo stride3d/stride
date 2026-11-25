@@ -5,7 +5,7 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a structure that is used only within the spotlight shaders.
     /// </summary>
-    shader SpotLightDataInternalShader  // Named "SpotLightDataInternalShader" instead of "SpotLightDataInternal" because otherwise the name clashes with the name of the "SpotLightDataInternal" structure.
+    module SpotLightDataInternalShader  // Named "SpotLightDataInternalShader" instead of "SpotLightDataInternal" because otherwise the name clashes with the name of the "SpotLightDataInternal" structure.
     {
         struct SpotLightDataInternal
         {

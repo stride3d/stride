@@ -6,8 +6,14 @@ namespace Stride.Rendering.Voxels.VoxelGI
     /// <summary>
     /// Defines a Voxel environment light
     /// </summary>
-    shader LightVoxelShader : Camera, Texturing, EnvironmentLight, MaterialPixelShadingStream, NormalStream, PositionStream4, Transformation
+    shader LightVoxelShader : EnvironmentLight, MaterialPixelShadingStream
     {
+        import Camera;
+        import Texturing;
+        import NormalStream;
+        import PositionStream4;
+        import Transformation;
+
         cbuffer PerView.Lighting
         {
             float Intensity;

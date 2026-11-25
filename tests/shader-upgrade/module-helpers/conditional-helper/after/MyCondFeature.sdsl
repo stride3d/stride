@@ -1,0 +1,22 @@
+// A helper called from module code, declared right after a preprocessor line
+shader MyCondFeature : MyCondSlot
+{
+    float Value;
+
+#if 1
+    module float Helper()
+    {
+        return 1;
+    }
+#endif
+
+    module float RunIt()
+    {
+        return Helper();
+    }
+
+    override float4 Compute()
+    {
+        return Value + RunIt();
+    }
+};

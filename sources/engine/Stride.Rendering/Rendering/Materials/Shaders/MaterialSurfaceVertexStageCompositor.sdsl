@@ -3,8 +3,10 @@
 namespace Stride.Rendering.Materials
 {
     // Temporary code for testing IMaterialSurface
-    shader MaterialSurfaceVertexStageCompositor : ShaderBase
+    shader MaterialSurfaceVertexStageCompositor
     {
+        import ShaderBase;
+
         compose IMaterialSurface materialVertexStage;
         compose IStreamInitializer streamInitializerVertexStage;
 

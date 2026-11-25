@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Simple fog
     /// </summary>
-    internal shader OutlineEffect : ImageEffectShader
+    internal shader OutlineEffect
     {
+        import ImageEffectShader;
+
         module float2 ScreenDiffs;  // .x = Width, .y = Height
 
         module float zFar;

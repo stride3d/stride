@@ -13,11 +13,11 @@ shader ComputeColorTextureScaledSampler<LinkType TTextureName,
                                        Semantic TStream, 
                                        LinkType TSampler, 
                                        MemberName TRgba, 
-                                       float2 TScale> : ComputeColor, 
-                                                        DynamicTexture<TTextureName, PerMaterial>, 
-                                                        DynamicSampler<TSampler, PerMaterial>, 
-                                                        DynamicTextureStream<TStream>
+                                       float2 TScale> : ComputeColor, DynamicTextureStream<TStream>
 {
+    import DynamicTexture<TTextureName, PerMaterial>;
+    import DynamicSampler<TSampler, PerMaterial>;
+
     override float4 Compute() 
     {
         return Texture.Sample(Sampler, streams.TexCoord * TScale).TRgba;

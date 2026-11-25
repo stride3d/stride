@@ -1,7 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-shader VoxelAttributeSolidityShader : VoxelAttribute, VoxelPositionStream, ShaderBaseStream, NormalStream, DataPacking
+shader VoxelAttributeSolidityShader : VoxelAttribute
 {
+    import VoxelPositionStream;
+    import ShaderBaseStream;
+    import NormalStream;
+    import DataPacking;
+
     stream uint Voxel_SolidifyTop;
     stream uint Voxel_SolidifyBottom;
     stream float Voxel_Solidity;

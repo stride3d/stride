@@ -6,8 +6,10 @@ namespace Stride.Rendering
     /// <summary>
     /// A shader used to output the id of the model component, mesh and material for a particular RenderMesh
     /// </summary>
-    shader PickingShader : ShaderBase
+    shader PickingShader
     {
+        import ShaderBase;
+
         cbuffer PerDraw
         {
             module float4 PickingData;
