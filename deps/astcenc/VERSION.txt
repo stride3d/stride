@@ -1,7 +1,8 @@
-astcenc 5.3.0
-Version: 5.3.0.0+g30aabb3f42
+astcenc 5.7.1
+Version: 5.7.1.1+g0affb51aaf
 Repository: https://github.com/ARM-software/astc-encoder
-Commit: 30aabb3f42406df45a910d8496f9bee17eeba9bb
-Stride: https://github.com/xen2/stride @ df62a8bcfdbd82a3871e28ba4358f312f24dad8e
-Built: 2026-05-18
-Workflow: https://github.com/xen2/stride/actions/runs/26025275861
+Commit: 0affb51aaf0e0de3a8b038fa32487d59754a1eed
+Stride: https://github.com/stride3d/stride @ 0a2141a095bd3a4d144fd607080f31bd917b99fc
+Built: 2026-11-25
+Workflow: https://github.com/stride3d/stride/actions/runs/45553945856
+Debug files: https://github.com/stride3d/stride/releases/tag/deps/astcenc/5.7.1.1
