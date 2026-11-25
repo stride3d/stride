@@ -1,0 +1,11 @@
+// A base of post effects with a helper and no member of its own: it becomes a module, and it was root-only through ImageEffectShader
+module MyFxBase
+{
+    import ImageEffectShader;
+    import Texturing;
+
+    float4 SampleInput(float2 uv)
+    {
+        return Texture0.Sample(LinearSampler, uv);
+    }
+};

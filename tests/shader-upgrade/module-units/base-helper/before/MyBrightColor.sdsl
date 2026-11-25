@@ -1,0 +1,11 @@
+// A node used in compositions that calls a helper of its parent through base
+shader MyBrightColor : ComputeColor, MyColorHelpers
+{
+    compose ComputeColor Input;
+
+    override float4 Compute()
+    {
+        float4 color = Input.Compute();
+        return float4(base.Brighten(color.rgb), color.a);
+    }
+};

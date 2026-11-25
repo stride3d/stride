@@ -6,6 +6,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Hammersley sampling on a Plane, Sphere, etc... 
     /// </summary>
+    [Pure]
     module Hammersley
     {    
         import Math;

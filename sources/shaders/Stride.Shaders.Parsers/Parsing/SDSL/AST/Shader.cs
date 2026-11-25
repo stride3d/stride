@@ -73,6 +73,12 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     public bool IsModule { get; set; }
     public ShaderAttributeList? Attributes { get; set; }
 
+    /// <summary>
+    /// A class attribute such as <c>[Root]</c> or <c>[Pure]</c>.
+    /// </summary>
+    public AnyShaderAttribute? FindAttribute(string name)
+        => Attributes?.Attributes.OfType<AnyShaderAttribute>().FirstOrDefault(x => x.Name.Name == name);
+
     // Note: We should make this method incremental (called many times in ShaderMixer)
     //       And possibly do the type deduplicating at the same time? (TypeDuplicateRemover)
 
@@ -504,7 +510,6 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        builder.Insert(new OpShaderSDSL(Name, IsModule ? ShaderFlagsMask.Module : ShaderFlagsMask.None));
 
         // Every member of a module is a module member
         if (IsModule)
@@ -550,6 +555,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         table.InheritedShaders.Clear();
         // Parents, then imports; a module sits where the walk first meets it
         var missingParent = false;
+        var directParents = new List<ShaderClassInstantiation>();
         foreach (var mixin in Mixins)
         {
             if (!table.ShaderLoader.Exists(mixin.Name))
@@ -560,6 +566,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             }
 
             var parent = AddToInheritanceList(mixin);
+            directParents.Add(parent);
             if (IsModule && !parent.IsModule)
                 table.AddError(new(mixin.Info, string.Format(SDSLErrorMessages.SDSL0199, Name, parent.ClassName)));
         }
@@ -572,9 +579,27 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 continue;
             }
 
-            if (!AddToInheritanceList(import.Module).IsModule)
+            var module = AddToInheritanceList(import.Module);
+            directParents.Add(module);
+            if (!module.IsModule)
                 table.AddError(new(import.Info, string.Format(SDSLErrorMessages.SDSL0198, import.Module.Name)));
         }
+
+        // A shader inheriting or importing a root-only class is root-only; a module is root-only only with its own [Root]
+        var flags = IsModule ? ShaderFlagsMask.Module : ShaderFlagsMask.None;
+        if (FindAttribute("Root") != null || (!IsModule && directParents.Any(x => x.IsRootOnly)))
+            flags |= ShaderFlagsMask.Root;
+        if (FindAttribute("Pure") is { } pureAttribute)
+        {
+            if (IsModule)
+                flags |= ShaderFlagsMask.Pure;
+            else
+                table.AddWarning(new(pureAttribute.Info, string.Format(SDSLErrorMessages.SDSL0211, Name)));
+        }
+        builder.Insert(new OpShaderSDSL(Name, flags));
+        table.CurrentShaderFlags = flags;
+        if (flags.HasFlag(ShaderFlagsMask.Pure))
+            DefinitionChecks.CheckPureModule(table, this, directParents);
 
         ShaderClassInstantiation AddToInheritanceList(IdentifierBase mixin)
         {
@@ -722,6 +747,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
 
         table.InheritedShaders.Clear();
         table.CurrentShader = null;
+        table.CurrentShaderFlags = ShaderFlagsMask.None;
         table.Pop();
     }
 

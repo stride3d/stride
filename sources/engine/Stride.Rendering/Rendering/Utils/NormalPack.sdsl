@@ -3,6 +3,7 @@
 /// <summary>
 /// Packs and stores the normals into the GBuffer. Expected texture output format: float3.
 /// </summary>
+[Pure]
 module NormalPack
 {
 	// Compact Normal Storage for Small G-Buffers

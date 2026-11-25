@@ -25,7 +25,7 @@ public class EmptyPixelShaderTests : IDisposable
     private static string Base(string pixelShaderBody) => $$"""
         namespace Stride.Shaders.Tests;
 
-        shader EmptyPixelShaderBase
+        [Root] shader EmptyPixelShaderBase
         {
             stream float4 Position : POSITION;
             stream float4 ShadingPosition : SV_Position;

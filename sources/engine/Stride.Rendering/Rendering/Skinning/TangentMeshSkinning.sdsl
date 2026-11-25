@@ -3,6 +3,7 @@
 /// <summary>
 /// Performs skinning on the tangent.
 /// </summary>
+[Root]
 shader TangentMeshSkinning
 {
     import TransformationSkinning;

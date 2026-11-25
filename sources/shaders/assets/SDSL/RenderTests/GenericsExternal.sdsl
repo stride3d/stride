@@ -24,6 +24,7 @@ shader CompositionGenerics<int TArraySize> : CompositionBase
 	}
 };
 
+[Root]
 shader GenericsExternalShader
 {
     stream float4 ColorTarget : SV_Target0;

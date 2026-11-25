@@ -6,6 +6,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Importance sampling for the GGX function.
     /// </summary>
+    [Pure]
     module ImportanceSamplingGGX
     {    
         import Math;

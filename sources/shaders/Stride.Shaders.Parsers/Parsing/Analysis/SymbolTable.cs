@@ -76,6 +76,10 @@ public partial class SymbolTable : ISymbolProvider
     public List<ShaderMacro> CurrentMacros { get; set; } = new();
     // Only valid during compilation (not during ShaderMixin phase)
     public List<ShaderClassInstantiation> InheritedShaders { get; } = new();
+    // Only valid during compilation: module, root-only and [Pure] flags of the class being compiled
+    public Spirv.Specification.ShaderFlagsMask CurrentShaderFlags { get; set; }
+    // Only valid during method body analysis
+    public ShaderMethod? CurrentMethod { get; set; }
 
     public SymbolTable(SpirvContext context, IExternalShaderLoader shaderLoader)
     {

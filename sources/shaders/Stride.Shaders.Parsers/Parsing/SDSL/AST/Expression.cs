@@ -265,6 +265,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         }
 
         ResolvedFunctionSymbol = functionSymbol;
+        DefinitionChecks.CheckCall(table, this, functionSymbol);
     }
 
     public void ProcessParameterSymbols(SymbolTable table, FunctionType? functionType = null)
@@ -1334,6 +1335,9 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
                             field.ResolvedSymbol = matchingComponent;
                             accessor.Type = matchingComponent.Type;
+                            // Parent.Value reads the member on this instance, unlike a composition qualifier
+                            if (i == 0 && Source is Identifier { ResolvedSymbol.Id.Kind: SymbolKind.Shader })
+                                DefinitionChecks.CheckRead(table, field, matchingComponent);
                             break;
                         }
 

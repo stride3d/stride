@@ -19,7 +19,8 @@ module StaticReferenceModuleOverriddenUser
 }
 
 // Overrides a function of the helper, which it sees through the static reference of an imported module: the static call
-// selects the override, as a call to an inherited method does
+// selects the override, as a call to an inherited method does. A plain override of a module function: root only.
+[Root]
 shader StaticReferenceModuleOverridden
 {
     import StaticReferenceModuleOverriddenUser;

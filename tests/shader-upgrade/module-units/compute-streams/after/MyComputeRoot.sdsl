@@ -1,0 +1,13 @@
+// The compute shader of the effect, mixed at the root
+shader MyComputeRoot
+{
+    import ComputeShaderBase;
+
+    compose ComputeColor Color;
+    RWTexture2D<float4> Output;
+
+    override void Compute()
+    {
+        Output[streams.DispatchThreadId.xy] = Color.Compute();
+    }
+};
