@@ -19,7 +19,7 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600)
     public abstract void Compute();
 
     /// <summary>
-    /// The contents of the buffer a "structuredbuffer.X" test parameter created, after <see cref="Compute"/>.
+    /// The contents of the buffer a "structuredbuffer.X" test parameter created, after <see cref="RenderFrame"/> or <see cref="Compute"/>.
     /// </summary>
     public abstract byte[] ReadBuffer(string resourceName);
 

@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#336699FF, structuredbuffer.Values="16: 0 0 0 0 0 0 0 0")
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Values="16: 0 0 0 0 0 0 0 0", expectedfloat.Values="0 0 0 0 0.2 0.4 0.6 1")
 
 namespace Stride.Shaders.Tests;
 

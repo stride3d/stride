@@ -124,15 +124,7 @@ public partial class RenderingTests
 
             renderer.SetupTest();
             renderer.Compute();
-
-            // "expected.X": the first 32-bit words of buffer X after the dispatch, as integers
-            foreach (var (key, value) in parameters.Where(x => x.Key.StartsWith("expected.")))
-            {
-                var resourceName = key["expected.".Length..];
-                var expected = value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => unchecked((int)long.Parse(x, CultureInfo.InvariantCulture))).ToArray();
-                var actual = MemoryMarshal.Cast<byte, int>(renderer.ReadBuffer(resourceName))[..expected.Length].ToArray();
-                Assert.Equal($"{resourceName}: {string.Join(" ", expected)}", $"{resourceName}: {string.Join(" ", actual)}");
-            }
+            CheckExpectedBuffers(renderer, parameters);
 
             // Present is useful for RenderDoc and other graphics capture programs
             renderer.PresentAndFinish();
@@ -342,6 +334,7 @@ public partial class RenderingTests
             using var frameBuffer = MemoryOwner<byte>.Allocate(width * height * 4);
             renderer.SetupTest();
             renderer.RenderFrame(frameBuffer.Span);
+            CheckExpectedBuffers(renderer, parameters);
             // Present is useful for RenderDoc and other graphics capture programs
             renderer.PresentAndFinish();
             var pixels = Image.LoadPixelData<Rgba32>(frameBuffer.Span, width, height);
@@ -462,6 +455,38 @@ public partial class RenderingTests
         renderer.Parameters.Clear();
         foreach (var param in parameters)
             renderer.Parameters.Add(param.Key, param.Value);
+    }
+
+    /// <summary>
+    /// Checks the buffers of "structuredbuffer.X" parameters after the draw or dispatch: "expected.X" gives the first
+    /// 32-bit words of buffer X as integers, "expectedfloat.X" as floats.
+    /// </summary>
+    private static void CheckExpectedBuffers(FrameRenderer renderer, Dictionary<string, string> parameters)
+    {
+        foreach (var (key, value) in parameters)
+        {
+            var dotIndex = key.IndexOf('.');
+            var kind = dotIndex == -1 ? null : key[..dotIndex];
+            if (kind is not ("expected" or "expectedfloat"))
+                continue;
+
+            var resourceName = key[(dotIndex + 1)..];
+            var words = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var data = renderer.ReadBuffer(resourceName);
+            if (kind == "expected")
+            {
+                var expected = words.Select(x => unchecked((int)long.Parse(x, CultureInfo.InvariantCulture))).ToArray();
+                var actual = MemoryMarshal.Cast<byte, int>(data)[..expected.Length].ToArray();
+                Assert.Equal($"{resourceName}: {string.Join(" ", expected)}", $"{resourceName}: {string.Join(" ", actual)}");
+            }
+            else
+            {
+                var expected = words.Select(x => float.Parse(x, NumberStyles.Float, CultureInfo.InvariantCulture)).ToArray();
+                var actual = MemoryMarshal.Cast<byte, float>(data)[..expected.Length].ToArray();
+                if (!expected.Zip(actual).All(x => MathF.Abs(x.First - x.Second) <= 1e-5f))
+                    Assert.Fail($"{resourceName}: expected {string.Join(" ", expected.Select(x => x.ToString(CultureInfo.InvariantCulture)))}, got {string.Join(" ", actual.Select(x => x.ToString(CultureInfo.InvariantCulture)))}");
+            }
+        }
     }
 
     public static IEnumerable<object[]> GetRenderTestFiles()
