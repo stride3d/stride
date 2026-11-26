@@ -22,6 +22,15 @@ public static partial class NuGetAssemblyResolver
     static readonly object assembliesLock = new();
     static Dictionary<string, string>? assemblyNameToPath;
 
+    /// <summary>
+    /// Gets or sets the folder that the resolved assemblies are copied to and loaded from, or <see langword="null"/> to load them where the restore found them.
+    /// </summary>
+    /// <remarks>
+    /// A process that keeps running sets it before its first assembly resolution, so that it locks neither the NuGet cache nor the build output of a checkout (dev-redirect packages).
+    /// No other process may use the folder. Native libraries aren't copied: a loaded one keeps its file locked.
+    /// </remarks>
+    public static string? AssemblyCopyFolder { get; set; }
+
     public static void DisableAssemblyResolve()
     {
         assembliesResolved = true;
@@ -227,11 +236,47 @@ public static partial class NuGetAssemblyResolver
 
                 if (assemblyNameToPath.TryGetValue(aname.Name, out var assemblyPath))
                 {
-                    return Assembly.LoadFrom(assemblyPath);
+                    return LoadAssembly(assemblyPath);
                 }
             }
             return null;
         };
+    }
+
+    /// <summary>
+    /// Loads an assembly that the restore found, from a copy in <see cref="AssemblyCopyFolder"/> when it is set.
+    /// </summary>
+    static Assembly LoadAssembly(string assemblyPath)
+    {
+        return Assembly.LoadFrom(AssemblyCopyFolder is { } folder ? CopyAssembly(assemblyPath, folder) : assemblyPath);
+    }
+
+    /// <summary>
+    /// Copies an assembly and its symbols to <paramref name="folder"/>, unless the copy is already there.
+    /// </summary>
+    /// <returns>The path of the copy, or of <paramref name="assembly"/> if it couldn't be copied.</returns>
+    static string CopyAssembly(string assembly, string folder)
+    {
+        var source = new FileInfo(assembly);
+        var copy = new FileInfo(Path.Combine(folder, source.Name));
+        try
+        {
+            // A copy keeps the write time of its source
+            if (!copy.Exists || copy.Length != source.Length || copy.LastWriteTimeUtc != source.LastWriteTimeUtc)
+            {
+                Directory.CreateDirectory(folder);
+                source.CopyTo(copy.FullName, overwrite: true);
+                var symbols = Path.ChangeExtension(source.FullName, ".pdb");
+                if (File.Exists(symbols))
+                    File.Copy(symbols, Path.ChangeExtension(copy.FullName, ".pdb"), overwrite: true);
+            }
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return assembly;
+        }
+
+        return copy.FullName;
     }
 
     static bool FileContentIsSame(FileInfo file1, FileInfo file2)
@@ -280,7 +325,7 @@ public static partial class NuGetAssemblyResolver
     /// </summary>
     private static void RegisterNativeDependencies(Dictionary<string, string> assemblyNameToPath, List<string> nativeLibs)
     {
-        var strideCoreAssembly = Assembly.LoadFrom(assemblyNameToPath["Stride.Core"])
+        var strideCoreAssembly = LoadAssembly(assemblyNameToPath["Stride.Core"])
             ?? throw new InvalidOperationException("Couldn't find assembly 'Stride.Core' in restored packages");
         var nativeLibraryHelperType = strideCoreAssembly.GetType("Stride.Core.NativeLibraryHelper")
             ?? throw new InvalidOperationException($"Couldn't find type 'Stride.Core.NativeLibraryHelper' in {strideCoreAssembly}");
@@ -295,7 +340,7 @@ public static partial class NuGetAssemblyResolver
     /// </summary>
     private static void LoadNativeDependencies(Dictionary<string, string> assemblyNameToPath, List<string> nativeLibs)
     {
-        var strideCoreAssembly = Assembly.LoadFrom(assemblyNameToPath["Stride.Core"])
+        var strideCoreAssembly = LoadAssembly(assemblyNameToPath["Stride.Core"])
             ?? throw new InvalidOperationException("Couldn't find assembly 'Stride.Core' in restored packages");
         var nativeLibraryHelperType = strideCoreAssembly.GetType("Stride.Core.NativeLibraryHelper")
             ?? throw new InvalidOperationException($"Couldn't find type 'Stride.Core.NativeLibraryHelper' in {strideCoreAssembly}");
