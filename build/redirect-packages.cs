@@ -296,6 +296,7 @@ var stubCount = 0;
 var skipCount = 0;
 var failures = 0;
 var generatedStubs = new List<string>();
+var runnableOutputs = new List<string>(); // inputs of the manifest beside the csprojs and build/ assets
 ProjectInfo? adoptedProject = null; // --adopt: the one project whose manifest lines get refreshed
 var nugetPackagesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
 
@@ -326,6 +327,7 @@ foreach (var pkgPath in freshPackages)
     try
     {
         ProcessPackage(pkgPath, pkgId, projInfo, projectMap, nugetDevDir, nugetPackagesDir, pkgVersion, strideRoot, configuration);
+        runnableOutputs.AddRange(RunnableOutputs(pkgPath, pkgId, projInfo, configuration));
         generatedStubs.Add(pkgFileName);
         adoptedProject = projInfo;
         stubCount++;
@@ -361,9 +363,10 @@ foreach (var tplPath in freshPackages.Where(p => Path.GetFileName(p).StartsWith(
 // Stubs: "<nupkg>\t<fingerprint>" per stub, the fingerprint of the fixed inputs (this script, the central package
 // versions, the solution) it was generated with; a project's build compares its own stub's with the current one.
 // Inputs: the scanned csprojs and each project's build/ & buildTransitive/ *.targets|props (packed into the
-// nupkg). One line per file, "<sha256>\t<path>": the build check uses the file mtime only as a fast prefilter
-// (against the project's own stub) and confirms a newer file by content hash, so a touch, a checkout or a
-// rebase that leaves the content unchanged changes nothing. Line endings are normalized before hashing (autocrlf
+// nupkg), and the build output a package started from its tools/ keeps there (RunnableOutputs). One line per
+// file, "<sha256>\t<path>": the build check uses the file mtime only as a fast prefilter (against the project's
+// own stub) and confirms a newer file by content hash, so a touch, a checkout or a rebase that leaves the content
+// unchanged changes nothing. Line endings are normalized before hashing (autocrlf
 // must not count as a change).
 // A full run rewrites all three from scratch. An adopt adds or replaces its own lines. ---
 var binPackagesDir = Path.Combine(strideRoot, "bin", "packages");
@@ -383,7 +386,7 @@ using (new StampLock())
         File.WriteAllLines(stampPath, generatedStubs);
         File.WriteAllLines(stampPath + ".stubs", generatedStubs.Select(StubLine));
         File.WriteAllLines(stampPath + ".inputs",
-            projects.Select(p => p.CsprojPath).Concat(projects.SelectMany(BuildAssets)).Distinct().Select(ManifestLine));
+            projects.Select(p => p.CsprojPath).Concat(projects.SelectMany(BuildAssets)).Concat(runnableOutputs).Distinct().Select(ManifestLine));
     }
     else
     {
@@ -393,7 +396,7 @@ using (new StampLock())
         if (adoptedProject != null)
             File.WriteAllLines(stampPath + ".inputs",
                 Lines(stampPath + ".inputs").Where(l => !l.Contains('\t') || !UnderDir(l.Split('\t', 2)[1], adoptedProject.ProjectDir))
-                    .Concat(new[] { adoptedProject.CsprojPath }.Concat(BuildAssets(adoptedProject)).Select(ManifestLine)));
+                    .Concat(new[] { adoptedProject.CsprojPath }.Concat(BuildAssets(adoptedProject)).Concat(runnableOutputs).Select(ManifestLine)));
     }
 }
 
@@ -602,6 +605,27 @@ static IEnumerable<string> BuildAssets(ProjectInfo project)
         .Where(Directory.Exists)
         .SelectMany(dir => Directory.EnumerateFiles(dir, "*.targets", SearchOption.AllDirectories)
             .Concat(Directory.EnumerateFiles(dir, "*.props", SearchOption.AllDirectories)));
+
+// The files of the build output that a package started from its extracted copy keeps in tools/<tfm>/: the router
+// (RouterHelper starts it from its package) and the effect compiler service (the router starts it from its package).
+// A rebuild that changes one, its own assembly or a reference copied beside it, makes the stub stale. Game Studio
+// packs into tools/ too, but the launcher starts a dev version from the checkout's bin.
+static IEnumerable<string> RunnableOutputs(string pkgPath, string pkgId, ProjectInfo project, string configuration)
+{
+    if (pkgId is not ("Stride.ConnectionRouter" or "Stride.EffectCompilerServer"))
+        return [];
+    var tfm = BuiltTfm(project.ProjectDir, configuration, project.AssemblyName);
+    if (tfm == null)
+        return [];
+    var output = Path.Combine(project.ProjectDir, "bin", configuration, tfm);
+    using var zip = ZipFile.OpenRead(pkgPath);
+    return zip.Entries
+        .Select(e => e.FullName.Split('/', 3))
+        .Where(parts => parts.Length == 3 && parts[0].Equals("tools", StringComparison.OrdinalIgnoreCase) && parts[2].Length > 0)
+        .Select(parts => Path.GetFullPath(Path.Combine(output, parts[2])))
+        .Where(File.Exists)
+        .ToList();
+}
 
 // SHA-256 of a file's content with CRLF folded to LF, lowercase hex. Mirrored by StrideCheckDevPackageInputs
 // (sources/sdk/Stride.Build.Sdk/Sdk/StrideRedirectPackagesTasks.cs); keep the two in step.

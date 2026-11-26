@@ -51,6 +51,8 @@
            fingerprint of the script, the central package versions and the solution it was made with. Every stub
            depends on those, so each project judges its own instead of a shared verdict the first refresh would
            hide from the others. A fresh checkout (no files at all) is just every stub missing.
+       A package started from its tools/ (the router, the effect compiler service) is stale as well when the build
+       changed a file the stub keeps there: _StrideAdoptDevStub checks those once the build wrote them.
        Another project's change is that project's business, when it builds. Natives and analyzers need nothing:
        the redirect serves them from the dev tree. contentFiles/ changes still need a manual run. Stamp path is
        recomputed inside the target so it picks up the worktree-suffixed PackageVersion (StrideAppendWorktreeVersion
@@ -102,6 +104,17 @@
           AfterTargets="Build"
           DependsOnTargets="_StrideCheckDevPackages"
           Condition="'$(_StrideDevStubProject)' == 'true' And '$(StrideDevPackagesGenerating)' != 'true' And '$(DesignTimeBuild)' != 'true' And ('$(TargetFrameworks)' == '' Or '$(TargetFramework)' == '')">
+    <!-- The build output that a package started from its tools/ keeps there (the manifest lists it for those only),
+         now that the build wrote it. Single-target projects: their output folder is the one the stub packs. -->
+    <StrideCheckDevPackageInputs ManifestPath="$(_StrideDevPackagesStamp).inputs" StampPath="$(_StrideDevPackagesStamp)"
+                                 StubsPath="$(_StrideDevPackagesStamp).stubs" OwnStub="$(_StrideOwnStub)"
+                                 ProjectDirectory="$(_StrideProjectDirSlash)" OutputDirectory="$(TargetDir)"
+                                 Condition="'$(_StrideStubStale)' != 'true' And '$(TargetFrameworks)' == '' And Exists('$(_StrideDevPackagesStamp)')">
+      <Output TaskParameter="Changed" ItemName="_StrideStaleOwnOutputs" />
+    </StrideCheckDevPackageInputs>
+    <PropertyGroup>
+      <_StrideStubStale Condition="'@(_StrideStaleOwnOutputs)' != ''">true</_StrideStubStale>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(_StrideStubStale)' == 'true'">
       <_StrideAdoptPackDir>$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)devstub/</_StrideAdoptPackDir>
     </PropertyGroup>
@@ -110,7 +123,10 @@
          would evaluate them all again). NuGet's own two lines are the price at minimal verbosity.
          BuildProjectReferences=false: NoBuild spares this project, not its references; building those again in
          this instance would rewrite their outputs after this project's, and VS's up-to-date check would then
-         rebuild this project once more. -->
+         rebuild this project once more.
+         The previous stub goes first: Pack is skipped while it is newer than this project's own outputs, which a
+         stale stub can be (a changed reference in tools/, a changed script or central package version). -->
+    <Delete Files="$(_StrideAdoptPackDir)$(_StrideOwnStub)" Condition="'$(_StrideStubStale)' == 'true'" />
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack"
              Properties="NoBuild=true;BuildProjectReferences=false;PackageOutputPath=$(_StrideAdoptPackDir);StridePackAssets=false;StrideSkipAutoPack=true;StrideDevPackagesGenerating=true;Configuration=$(Configuration)"
              Condition="'$(_StrideStubStale)' == 'true'" />
