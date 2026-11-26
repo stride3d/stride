@@ -80,8 +80,9 @@ namespace Stride.Rendering
         /// Gets or sets whether an object with no fallback effect is skipped while its effect compiles, instead of the frame waiting for the compilation.
         /// </summary>
         /// <remarks>
-        /// The object is not drawn until the compilation finishes, so it pops in. <see cref="MeshRenderFeature"/> and the particle emitter render feature
-        /// skip an object without an effect.
+        /// The object is not drawn until the compilation finishes, so it pops in. Each effect slot is skipped on its own, so an object can be drawn
+        /// in one render stage (for example the main pass) before another (for example its shadow). A derived feature must skip render nodes
+        /// that have no effect when it draws, as <see cref="MeshRenderFeature"/> does.
         /// </remarks>
         public bool SkipWhileCompiling { get; set; }
 
