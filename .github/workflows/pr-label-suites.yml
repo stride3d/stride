@@ -6,8 +6,9 @@ name: PR Label Suites
 #   label is the request. Pushes, `reopened` and `ready_for_review` rerun every armed suite but follow
 #   main.yml's draft rule: skipped on a draft unless it has `ci-run-on-draft`. Removing a label only
 #   stops the reruns.
-# - No `opened` trigger: labels picked when creating a PR arrive as `labeled` events right after it,
-#   and an `opened` run would start the same suites again, cancelling one copy of each.
+# - `opened` runs no suite: labels picked when creating a PR arrive as `labeled` events right after it,
+#   which start their suites. The run is there so that its end starts pr-screenshot-vision-gate.yml,
+#   which then posts its status on every PR.
 # - Runs through pull_request, so it uses the PR's own workflow YAML; adding a label requires
 #   write access, so the label itself is the authorization.
 # - Each suite is its own non-required check. There is no aggregate gate: it could only report on
@@ -19,7 +20,7 @@ name: PR Label Suites
 
 on:
   pull_request:
-    types: [reopened, synchronize, ready_for_review, labeled]
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
 
 permissions:
   actions: read # the unpublished-packages action downloads the packages of dep runs
@@ -27,17 +28,19 @@ permissions:
   pull-requests: read
 
 # One group per label event, so adding several labels in a row starts one run per label instead of
-# cancelling each other (a superseded run leaves stale cancelled checks on the PR). Push events share
-# a group and only supersede the previous push run.
+# cancelling each other (a superseded run leaves stale cancelled checks on the PR). The other events
+# share a group and only supersede the previous run of that group.
 concurrency:
   group: pr-label-suites-${{ github.event.pull_request.number }}-${{ github.event.action == 'labeled' && github.event.label.name || 'push' }}
   cancel-in-progress: true
 
 jobs:
   # Shared path-filter, consulted by suites that overlap main.yml's auto-run set (e.g. ios).
-  # Skipped for non-ci labels, which skips every suite (they all need it).
+  # Skipped on `opened` and for non-ci labels, which skips every suite (they all need it).
   changes:
-    if: github.event.action != 'labeled' || startsWith(github.event.label.name, 'ci-')
+    if: >
+      github.event.action != 'opened'
+      && (github.event.action != 'labeled' || startsWith(github.event.label.name, 'ci-'))
     uses: ./.github/workflows/changes.yml
 
   # End-user packaging/screenshot suite — main.yml runs it on pushes only, never on a PR, so no overlap guard needed.

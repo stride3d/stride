@@ -4,7 +4,7 @@ name: Screenshot Vision Gate
 # the screenshot suite captures + LPIPS-scores there and marks borderline frames "deferred" instead of
 # failing. This workflow runs in base context (has the key) on the BASE checkout (trusted comparator),
 # over the PR's uploaded image artifacts and the PR's own gold images — data only, so no PR-built code
-# ever runs with the key. It posts a "Screenshot Vision Gate" status on the PR head: pending from the
+# ever runs with the key. It posts a "Screenshot-Vision-Gate" status on the PR head: pending from the
 # start of a screenshot run, then its verdict. Mark it required to make deferrals blocking.
 
 on:
@@ -31,7 +31,7 @@ jobs:
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner, repo: context.repo.repo,
               sha: context.payload.workflow_run.head_sha,
-              context: 'Screenshot Vision Gate',
+              context: 'Screenshot-Vision-Gate',
               state: 'pending',
               target_url: context.payload.workflow_run.html_url,
               description: 'Waiting for the screenshot run to end',
@@ -206,9 +206,9 @@ jobs:
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner, repo: context.repo.repo,
               sha: context.payload.workflow_run.head_sha,
-              context: 'Screenshot Vision Gate',
+              context: 'Screenshot-Vision-Gate',
               state: ok ? 'success' : 'failure',
               target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
               description,
             });
-            if (!ok) core.setFailed('Screenshot Vision Gate failed');
+            if (!ok) core.setFailed('Screenshot-Vision-Gate failed');

@@ -28,7 +28,7 @@ The rules:
 - **`-beta` is on or off, with no number.** It goes on when a cycle starts and comes off at the stable transition. Only package builds apply it: dev and CI builds stay at `MajorMinor.Patch` (+ `-devN`). Custom labels sit between two numbers (`4.5.3-mystudio` is between `4.5.3-beta` and `4.5.4-beta`) and follow the gates by number.
 - **YAML asset upgraders don't need a bump.** They use their own per-asset version (`[AssetFormatVersion]`), which runs on the next load whatever the engine version is.
 
-The `file-guard-gate` check ([`repo-file-guard.yml`](../../.github/workflows/repo-file-guard.yml)) enforces the first rule on PRs into `master` and `master-*`, and warns on a push there:
+The `File-Guard-Gate` check ([`repo-file-guard.yml`](../../.github/workflows/repo-file-guard.yml)) enforces the first rule on PRs into `master` and `master-*`, and warns on a push there:
 
 - **A change to the upgrader files** (`StridePackageUpgrader*.cs`, `CodeUpgrade/CodeUpgrades*.cs`, `CodeUpgrade/ProjectUpgrades.cs`, not their helpers) fails unless the version rises. There is no opt-out in the commit or a label: an upgrader edit that isn't a migration stays red, and an admin uses "bypass rules" at merge, or the PR takes a needless bump. A bump with no gate at the new number only warns, because a needless bump has none.
 - **A gate the change adds** fails if it is above the committed number, or placed before a lower gate of its kind.

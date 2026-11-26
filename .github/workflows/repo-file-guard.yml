@@ -11,7 +11,7 @@ name: Repo File Guard
 #      Fix: re-commit with git-lfs installed.
 #
 # Runs on PRs, and on push to master / master-* (where it also re-audits the whole tree for
-# type drift). Mark "Repo File Guard / file-guard-gate" a required check in branch protection.
+# type drift). Its job is the required check "File-Guard-Gate".
 #
 # A second step checks that a change to a code or project upgrader moves the engine version, as
 # their gates compare only the number. See docs/build/versioning.md.
@@ -33,6 +33,7 @@ concurrency:
 
 jobs:
   file-guard-gate:
+    name: File-Guard-Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
