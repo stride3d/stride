@@ -74,7 +74,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 
 1. `git clone https://github.com/stride3d/stride.git`
 2. Open `Stride.slnx` in Visual Studio.
-3. Build either `Stride.GameStudio` (old WPF editor, located in `60-Editor`) or `Stride.GameStudio.Avalonia.Desktop` (new experimental Avalonia editor, located in `60-Editor/Avalonia`) project. The first one should be selected by default.
+3. Build either `Stride.GameStudio` (old WPF editor, located in `60-Editor/Wpf`) or `Stride.GameStudio.Avalonia.Desktop` (new experimental Avalonia editor, located in `60-Editor/Avalonia`) project. The first one should be selected by default.
 
 ### Repository layout
 
@@ -101,13 +101,13 @@ There is no `Directory.Build.props` at the root on purpose: `sources/` and `test
 | Tests (Simple) | [![](https://github.com/stride3d/stride/actions/workflows/test-windows.yml/badge.svg?branch=master)](https://github.com/stride3d/stride/actions/workflows/test-windows.yml) |
 | Tests (Game/WARP) | [![](https://github.com/stride3d/stride/actions/workflows/test-windows.yml/badge.svg?branch=master)](https://github.com/stride3d/stride/actions/workflows/test-windows.yml) |
 
-## 🚧 Stride repository landscape
+## 🗂️ Stride repository landscape
 
 Stride is spread out across multiple repositories:
 
 1. [`stride3d/stride`](https://github.com/stride3d/stride) - the main repository for Stride, containing its source code, tests and architecture documentation.
-1. [`stride3d/stride-website`](https://github.com/stride3d/stride-website) ([website link](https://www.stride3d.net/)) - repository for the official Stride website.
-2. [`stride3d/stride-docs`](https://github.com/stride3d/stride-docs) ([website link](https://doc.stride3d.net/)) - repository for the documentation website. API documentation and architecture docs are generated from `stride3d/stride`.
+2. [`stride3d/stride-website`](https://github.com/stride3d/stride-website) ([website link](https://www.stride3d.net/)) - repository for the official Stride website.
+3. [`stride3d/stride-docs`](https://github.com/stride3d/stride-docs) ([website link](https://doc.stride3d.net/)) - repository for the documentation website. API documentation and architecture docs are generated from `stride3d/stride`.
 4. [`stride3d/stride-community-toolkit`](https://github.com/stride3d/stride-community-toolkit) ([website link](https://stride3d.github.io/stride-community-toolkit/index.html)) - repository for the community toolkit, a set of C# helpers and extensions to enhance your experience with the engine.
 
 ## 🌐 .NET Foundation
