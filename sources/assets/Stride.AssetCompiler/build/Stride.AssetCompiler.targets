@@ -36,7 +36,7 @@
   <!-- Asset compile hooks directly via BeforeTargets="CopyFilesToOutputDirectory" on the
        StrideCompileAsset target itself (defined below). PrepareForRunDependsOn injection is
        unreliable because Microsoft.NET.Sdk Sdk.targets unconditionally resets the property
-       when imported after this file — same import-order issue documented on
+       when imported after this file â€” same import-order issue documented on
        StrideRunAssemblyProcessor in Stride.AssemblyProcessor.targets. -->
 
   <PropertyGroup>
@@ -77,74 +77,71 @@
     <StrideCompileAssetUpToDateCheckFileBase>$([MSBuild]::NormalizePath('$(ProjectDir)', '$(IntermediateOutputPath)', 'stride\assetcompiler-uptodatecheck'))</StrideCompileAssetUpToDateCheckFileBase>
 
     <!--The AssetCompiler runs on the build host: it loads host-built engine assemblies for type
-        discovery only, so it resolves project references for the host's native graphics API —
+        discovery only, so it resolves project references for the host's native graphics API â€”
         never the device API a project targets (the device asset output is driven by the
         platform switch). Prefer D3D11 on Windows since it's the most universally-available
         host API, but if a single-API build excluded it, fall back to whichever API IS being
-        built — otherwise the AssetCompiler would look for D3D11 assemblies that don't exist.-->
+        built â€” otherwise the AssetCompiler would look for D3D11 assemblies that don't exist.-->
     <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == '' And $([MSBuild]::IsOSPlatform('Windows')) And ($(StrideGraphicsApis.Contains('Direct3D11')) Or '$(StrideGraphicsApi)' == 'Direct3D11')">Direct3D11</StrideHostGraphicsApi>
     <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == '' And $([MSBuild]::IsOSPlatform('Windows')) And '$(StrideGraphicsApi)' != ''">$(StrideGraphicsApi)</StrideHostGraphicsApi>
     <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">Direct3D11</StrideHostGraphicsApi>
     <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == ''">Vulkan</StrideHostGraphicsApi>
   </PropertyGroup>
 
-  <!-- Inline sort task: ordinal-sort an item list. Used to make WriteLinesToFile output
-       deterministic (glob enumeration order is unspecified). -->
-  <UsingTask TaskName="StrideSortItems"
+  <!-- Inline task: the state of each file as "full path|last write time (UTC)|size", a missing file as its path alone.
+       Ordinal-sorted, so the list changes only when a file does (glob enumeration order is unspecified). -->
+  <UsingTask TaskName="StrideGetFileStates"
              TaskFactory="RoslynCodeTaskFactory"
              AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
-      <InputItems  ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
-      <OutputItems ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+      <Files  ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <States ParameterType="System.String[]" Output="true" />
     </ParameterGroup>
     <Task>
+      <Using Namespace="System.Globalization" />
+      <Using Namespace="System.IO" />
       <Using Namespace="System.Linq" />
       <Code Type="Fragment" Language="cs"><![CDATA[
-        OutputItems = InputItems.OrderBy(x => x.ItemSpec, System.StringComparer.Ordinal).ToArray();
+        States = Files
+          .Select(x => new FileInfo(x.GetMetadata("FullPath")))
+          .Select(x => x.Exists ? x.FullName + "|" + x.LastWriteTimeUtc.ToString("o", CultureInfo.InvariantCulture) + "|" + x.Length.ToString(CultureInfo.InvariantCulture) : x.FullName)
+          .OrderBy(x => x, System.StringComparer.Ordinal)
+          .ToArray();
       ]]></Code>
     </Task>
   </UsingTask>
-  <!-- Import up-to-date check file to skip asset build altogether if everything is still up to date
-       Details: https://github.com/dotnet/project-system/blob/16.3.1/docs/up-to-date-check.md -->
+  <!-- Up-to-date check of the asset build: it runs when an input differs from the last successful build (another date, older or newer,
+       or another size) or an output is missing. After a successful build, the asset compiler lists its inputs (wildcards included) in
+       .inputs and its outputs in .outputs; the targets then write .inputs.expanded, the state of each input file, and touch .stamp.
+       Each build writes .inputs.expanded again, only when it differs: then it is newer than .stamp. -->
   <Target Name="_StrideCollectUpToDateCheckInputDesignTime" Condition="'$(StrideIsExecutable)' == 'true'">
     <ReadLinesFromFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs" Condition="Exists('$(StrideCompileAssetUpToDateCheckFileBase).inputs')">
-      <Output TaskParameter="Lines" ItemName="StrideAssetInputRaw"/>
+      <Output TaskParameter="Lines" ItemName="_StrideAssetInputPattern"/>
     </ReadLinesFromFile>
-    <!-- Use CreateItem to force wildcard expansion -->
-    <CreateItem Include="@(StrideAssetInputRaw)">
-      <Output TaskParameter="Include" ItemName="StrideAssetInputUnsorted" />
+    <!-- CreateItem expands the wildcards -->
+    <CreateItem Include="@(_StrideAssetInputPattern)">
+      <Output TaskParameter="Include" ItemName="_StrideAssetInputFile" />
     </CreateItem>
-    <!-- We need to sort to make sure expanded list is written to only if there's an actual change (rather than simply non-deterministic file enumeration order) -->
-    <StrideSortItems InputItems="@(StrideAssetInputUnsorted)">
-      <Output TaskParameter="OutputItems" ItemName="StrideAssetInput" />
-    </StrideSortItems>
-      
-    <!-- Write expanded list (use WriteOnlyWhenDifferent to keep timestamp if no changes) -->
-    <WriteLinesToFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs.expanded" Overwrite="true" Lines="@(StrideAssetInput)" WriteOnlyWhenDifferent="true"/>
+    <StrideGetFileStates Files="@(_StrideAssetInputFile)">
+      <Output TaskParameter="States" ItemName="_StrideAssetInputState" />
+    </StrideGetFileStates>
+    <WriteLinesToFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs.expanded" Overwrite="true" Lines="@(_StrideAssetInputState)" WriteOnlyWhenDifferent="true"/>
 
     <ItemGroup>
-      <!-- If not input (yet), make sure build doesn't skip by adding a fake input file -->
-      <StrideAssetInput Condition="'@(StrideAssetInput)' == ''" Include="FakeInputForceBuild.file" />
-      <!-- Also include expanded list -->
       <StrideAssetInput Include="$(StrideCompileAssetUpToDateCheckFileBase).inputs.expanded" Condition="Exists('$(StrideCompileAssetUpToDateCheckFileBase).inputs')" />
-      <!-- Currently disabled, it doesn't work well with wildcards
-      <UpToDateCheckInput Include="@(StrideAssetInput)" Set="StrideAssets" />-->
+      <!-- Before the first build, an input that does not exist runs it -->
+      <StrideAssetInput Condition="'@(StrideAssetInput)' == ''" Include="FakeInputForceBuild.file" />
     </ItemGroup>
   </Target>
   <Target Name="_StrideCollectUpToDateCheckOutputDesignTime" Condition="'$(StrideIsExecutable)' == 'true'">
     <ReadLinesFromFile File="$(StrideCompileAssetUpToDateCheckFileBase).outputs" Condition="Exists('$(StrideCompileAssetUpToDateCheckFileBase).outputs')">
-      <Output TaskParameter="Lines" ItemName="StrideAssetOutputRaw" />
+      <Output TaskParameter="Lines" ItemName="_StrideAssetOutputFile" />
     </ReadLinesFromFile>
-    <!-- Use CreateItem to force wildcard expansion -->
-    <CreateItem Include="@(StrideAssetOutputRaw)">
-      <Output TaskParameter="Include" ItemName="StrideAssetOutput" />
-    </CreateItem>
 
     <ItemGroup>
-      <!-- If not output (yet), make sure build doesn't skip by adding a fake output file -->
-      <StrideAssetOutput Condition="'@(StrideAssetOutput)' == ''" Include="FakeBundleForceBuild.bundle" />
-      <!-- Currently disabled, it doesn't work well with wildcards
-      <UpToDateCheckOutput Include="@(StrideAssetOutput)" Set="StrideAssets" />-->
+      <StrideAssetOutput Include="$(StrideCompileAssetUpToDateCheckFileBase).stamp" />
+      <!-- A missing output (a deleted bundle) runs the build; the dates of the outputs that exist play no part -->
+      <StrideAssetOutput Include="@(_StrideAssetOutputFile)" Condition="!Exists('%(FullPath)')" />
     </ItemGroup>
   </Target>
   
@@ -289,8 +286,8 @@
     </Exec>
 
     <!-- Adopt any minidump createdump wrote (the master's or an inherited slave's) into the crash store, signing
-         and deduping it, then send on CI or leave it for 'stride crash send'. Runs regardless of the exit code —
-         a slave can crash while the master exits cleanly — but only when a dump actually exists. -->
+         and deduping it, then send on CI or leave it for 'stride crash send'. Runs regardless of the exit code â€”
+         a slave can crash while the master exits cleanly â€” but only when a dump actually exists. -->
     <ItemGroup Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'">
       <_StrideNativeCrashDump Include="$(_StrideCompileAssetNativeDumpDir)*.dmp" />
     </ItemGroup>
@@ -307,6 +304,20 @@
     <Warning Condition="'$(_StrideCompileAssetExitCode)' != '0' And '$(_StrideCompileAssetExitCode)' != '1' And '$(_StrideCompileAssetExitCode)' != '2' And '$(_StrideCompileAssetExitCode)' != '100' And '@(_StrideNativeCrashDump)' == ''"
              Text="The asset compiler crashed (exit code $(_StrideCompileAssetExitCode)). A crash report was saved; review and submit it with 'stride crash send'." />
     <Error Condition="'$(_StrideCompileAssetExitCode)' != '0'" Text="Asset compilation failed (exit code $(_StrideCompileAssetExitCode))." />
+
+    <!-- Record the inputs of this build from the .inputs the compiler just wrote (on the first build, or with a new asset folder, it
+         differs from the one read above), then the stamp, last: a list written later than the stamp means a change. -->
+    <ReadLinesFromFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs" Condition="Exists('$(StrideCompileAssetUpToDateCheckFileBase).inputs')">
+      <Output TaskParameter="Lines" ItemName="_StrideBuiltAssetInputPattern"/>
+    </ReadLinesFromFile>
+    <CreateItem Include="@(_StrideBuiltAssetInputPattern)">
+      <Output TaskParameter="Include" ItemName="_StrideBuiltAssetInputFile" />
+    </CreateItem>
+    <StrideGetFileStates Files="@(_StrideBuiltAssetInputFile)">
+      <Output TaskParameter="States" ItemName="_StrideBuiltAssetInputState" />
+    </StrideGetFileStates>
+    <WriteLinesToFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs.expanded" Overwrite="true" Lines="@(_StrideBuiltAssetInputState)" WriteOnlyWhenDifferent="true"/>
+    <Touch Files="$(StrideCompileAssetUpToDateCheckFileBase).stamp" AlwaysCreate="true" />
 
     <!-- With detailed output the compiler's own summary went out at Normal; this one High line
          stands in for it, the way the SDK reports a project's output. -->
@@ -424,7 +435,7 @@
     <!-- Declare the host-loadable asset assembly (this package's own dll under lib/<tfm>/) so a consumer
          loads the build matching its asset compiler runtime. Enumerate the produced TFMs (multi-TFM:
          $(TargetFrameworks); single: $(TargetFramework)) and keep only the host-compatible ones the asset
-         compiler can load — a base netX.0 (no platform suffix) or a net*-windows* — emitting one entry
+         compiler can load â€” a base netX.0 (no platform suffix) or a net*-windows* â€” emitting one entry
          per match (';'-separated; the consumer picks the one matching its runtime). -->
     <PropertyGroup Condition="'$(StrideContainsAssetTypes)' == 'true'">
       <_StrideSingleTargetFramework>$(TargetFramework)</_StrideSingleTargetFramework>

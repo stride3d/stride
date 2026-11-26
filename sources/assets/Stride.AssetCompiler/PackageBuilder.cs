@@ -193,10 +193,7 @@ namespace Stride.AssetCompiler
 
                 var aliasesFile = WriteContentAliases(builderOptions.Logger, projectSession, selfPackages, outputDirectory);
 
-                // Only write the up-to-date marker on success — otherwise MSBuild's Inputs/Outputs
-                // check on StrideCompileAsset would skip re-running CompilerApp next build, leaving
-                // the partial bundle in place and silently packing it into the APK.
-                if (result == BuildResultCode.Successful && builderOptions.MSBuildUpToDateCheckFileBase != null)
+                if (builderOptions.MSBuildUpToDateCheckFileBase != null)
                     SaveBuildUpToDateFile(builderOptions.MSBuildUpToDateCheckFileBase, builderOptions.PackageFile, package, bundleFiles, aliasesFile);
 
                 return result;
@@ -377,16 +374,9 @@ namespace Stride.AssetCompiler
             }
             outputs.Add(aliasesFile);
 
-            // Generate MSBuild up-to-date check property files
+            // Read by the up-to-date check of Stride.AssetCompiler.targets
             File.WriteAllLines(msbuildUpToDateCheckFileBase + ".inputs", inputs, Encoding.UTF8);
             File.WriteAllLines(msbuildUpToDateCheckFileBase + ".outputs", outputs, Encoding.UTF8);
-
-            // Touch bundle files so that up-to-date check can work
-            // We do that after touching the msbuildUpToDateCheckFile
-            foreach (var bundleFile in bundleFiles)
-            {
-                File.SetLastWriteTimeUtc(bundleFile, DateTime.UtcNow);
-            }
         }
 
         private void RegisterBuildStepProcessedHandler(object sender, AssetCompiledArgs e)
