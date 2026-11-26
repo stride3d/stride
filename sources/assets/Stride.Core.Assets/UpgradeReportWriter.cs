@@ -3,37 +3,148 @@
 
 using System.Globalization;
 using System.Text;
+using Stride.Core.IO;
+using Stride.Core.Solutions;
 
 namespace Stride.Core.Assets;
 
 /// <summary>
-/// Writes an <see cref="UpgradeReport"/> as Markdown: the <see cref="FileName"/> file of a project, and the report of a whole upgrade.
+/// Writes an <see cref="UpgradeReport"/> as Markdown: the <see cref="FileName"/> file of a solution, and the report of a whole upgrade.
 /// </summary>
 public static class UpgradeReportWriter
 {
-    /// <summary>The name of the file, next to the project file, that lists what the upgrades of the project left to do by hand.</summary>
+    /// <summary>
+    /// The name of the file that lists what the upgrades left to do by hand: next to the solution that lists the projects, or
+    /// next to a project no solution lists (see <see cref="FindOwner"/>).
+    /// </summary>
     public const string FileName = "upgrade-report.md";
-
-    private const string ProjectFileIntro = "Upgrades of this project left the items below to do by hand. Delete this file once every item is handled. The newest upgrade is first.";
 
     // The number of frames of an exception the report shows: the log has the whole stack
     private const int StackFrameCount = 3;
 
     /// <summary>
-    /// The text of the <see cref="FileName"/> file of the project, with the upgrade of <paramref name="project"/> on top of
-    /// the upgrades the file already lists.
+    /// The file whose folder holds the <see cref="FileName"/> of the project: the solution nearest to the project that lists it
+    /// (see <see cref="Solution.FindContaining"/>), else the project.
+    /// </summary>
+    /// <param name="projectPath">The project file.</param>
+    public static string FindOwner(string projectPath)
+    {
+        ArgumentNullException.ThrowIfNull(projectPath);
+        return Solution.FindContaining(projectPath) ?? Path.GetFullPath(projectPath);
+    }
+
+    /// <summary>
+    /// The full path of the <see cref="FileName"/> next to <paramref name="ownerPath"/>.
+    /// </summary>
+    /// <param name="ownerPath">The solution or project, as <see cref="FindOwner"/> finds it.</param>
+    public static string GetPath(string ownerPath)
+    {
+        ArgumentNullException.ThrowIfNull(ownerPath);
+        return Path.Combine(DirectoryOf(ownerPath), FileName);
+    }
+
+    /// <summary>
+    /// The text of the <see cref="FileName"/> of <paramref name="ownerPath"/>, with the upgrade of <paramref name="projects"/>
+    /// on top of the upgrades the file already lists.
     /// </summary>
     /// <param name="existingText">The text of the file, or <c>null</c> when there is none.</param>
-    /// <param name="project">The report of the project.</param>
+    /// <param name="ownerPath">The solution or project, as <see cref="FindOwner"/> finds it.</param>
+    /// <param name="projects">The reports of the projects of the upgrade whose report is this file.</param>
     /// <param name="time">When the upgrade ran.</param>
-    public static string AddToProjectFile(string? existingText, ProjectUpgradeReport project, DateTime time)
+    public static string AddUpgrade(string? existingText, string ownerPath, IReadOnlyCollection<ProjectUpgradeReport> projects, DateTime time)
     {
-        ArgumentNullException.ThrowIfNull(project);
-        var section = FormatSection(project, time, withProjectName: false);
-        if (string.IsNullOrEmpty(existingText))
-            return $"# Upgrade report: {project.ProjectFullPath.GetFileName()}\n\n{ProjectFileIntro}\n\n{section}";
+        ArgumentNullException.ThrowIfNull(ownerPath);
+        ArgumentNullException.ThrowIfNull(projects);
+        return AddSection(existingText, ownerPath, FormatSection(projects, time, DirectoryOf(ownerPath)));
+    }
 
-        // The newest upgrade goes before the first one the file lists; a file without one, edited by hand, gets it at its end
+    /// <summary>
+    /// The text of the <see cref="FileName"/> of <paramref name="ownerPath"/>, with the revert of the last upgrade on top (see
+    /// <see cref="PackageSession.RevertUpgrades"/>).
+    /// </summary>
+    /// <param name="existingText">The text of the file, or <c>null</c> when there is none.</param>
+    /// <param name="ownerPath">The solution or project, as <see cref="FindOwner"/> finds it.</param>
+    /// <param name="projects">The names of the projects the revert put back files of.</param>
+    /// <param name="revert">What the revert did to the backups that hold files of these projects.</param>
+    /// <param name="versions">The records the revert changed, in the order of the projects and their records: the first is in the heading.</param>
+    /// <param name="time">When the revert ran.</param>
+    public static string AddRevert(string? existingText, string ownerPath, IReadOnlyList<string> projects, UpgradeRevert revert, IReadOnlyList<RevertedVersion> versions, DateTime time)
+    {
+        ArgumentNullException.ThrowIfNull(ownerPath);
+        ArgumentNullException.ThrowIfNull(projects);
+        ArgumentNullException.ThrowIfNull(revert);
+        ArgumentNullException.ThrowIfNull(versions);
+        var directory = DirectoryOf(ownerPath);
+        var backups = string.Join(", ", revert.BackupFolders.Select(x => Code(Relative(directory, x))));
+        var kept = string.Join(", ", revert.KeptFolders.Select(x => Code(Relative(directory, x))));
+        var versionTexts = versions.Select(FormatVersions).Distinct().ToList();
+        var what = versionTexts.Count > 0 ? versionTexts[0] : "Last upgrade";
+        var itemCount = revert.NotPutBack.Count + revert.ChangedFiles.Count;
+        var outcome = revert.NotPutBack.Count > 0 ? "partly reverted" : "reverted";
+        // The report of a solution names the projects; the report of a project is about that project
+        var where = Solution.IsSolutionFile(ownerPath) && projects.Count > 0 ? $" in {string.Join(", ", projects.Select(Code))}" : "";
+        var builder = new StringBuilder();
+        builder.Append($"## {FormatTime(time)} · {what} · {outcome}{(itemCount > 0 ? $", {Plural(itemCount, "item")} left" : "")}\n\n");
+        builder.Append(revert.NotPutBack.Count == 0
+            ? $"Every file the last upgrade and its retries changed{where} is put back as it was, from {backups}. Its items below are no longer to do: the next upgrade runs its steps again."
+            : $"Some files the last upgrade and its retries changed{where} could not be put back as they were: copy them from {backups}, then open the {(projects.Count > 1 ? "projects" : "project")} again.");
+        if (versionTexts.Count > 1)
+            builder.Append(" Also reverted: ").Append(string.Join(", ", versionTexts.Skip(1))).Append('.');
+        if (revert.KeptFolders.Count > 0)
+            builder.Append(" The files as they were before the revert are in ").Append(kept).Append('.');
+        builder.Append('\n');
+
+        if (revert.NotPutBack.Count > 0)
+        {
+            builder.Append("\n### Not put back\n\n");
+            foreach (var path in revert.NotPutBack)
+            {
+                // A backup folder that could not be read puts back none of its files
+                var item = revert.BackupFolders.Contains(path, StringComparer.OrdinalIgnoreCase) ? $"The files of {Code(Relative(directory, path))}" : Code(Relative(directory, path));
+                builder.Append("- [ ] ").Append(item).Append('\n');
+            }
+        }
+
+        if (revert.ChangedFiles.Count > 0)
+        {
+            builder.Append("\n### Changed since the upgrade\n\n");
+            builder.Append($"Your changes to these files are only in {kept}: copy back what you want to keep.\n\n");
+            foreach (var path in revert.ChangedFiles)
+                builder.Append("- [ ] ").Append(Code(Relative(directory, path))).Append('\n');
+        }
+        return AddSection(existingText, ownerPath, builder.ToString());
+    }
+
+    /// <summary>
+    /// The text of the <see cref="FileName"/> of <paramref name="ownerPath"/>, with the last upgrade of these projects marked as
+    /// finished on top (see <see cref="PackageSession.MarkUpgradesFinished"/>).
+    /// </summary>
+    /// <param name="existingText">The text of the file, or <c>null</c> when there is none.</param>
+    /// <param name="ownerPath">The solution or project, as <see cref="FindOwner"/> finds it.</param>
+    /// <param name="projects">
+    /// The name of each project, with the steps its upgrade left, done by hand, or the titles of the parts of it that are not steps.
+    /// </param>
+    /// <param name="time">When the upgrade was marked as finished.</param>
+    public static string AddMarkedFinished(string? existingText, string ownerPath, IReadOnlyCollection<(string Project, IReadOnlyList<string> Steps)> projects, DateTime time)
+    {
+        ArgumentNullException.ThrowIfNull(ownerPath);
+        ArgumentNullException.ThrowIfNull(projects);
+        var builder = new StringBuilder();
+        builder.Append($"## {FormatTime(time)} · Last upgrade marked as finished\n\nIts items below are done by hand:\n\n");
+        foreach (var (project, steps) in projects)
+            builder.Append("- ").Append(project).Append(": ").Append(string.Join(", ", steps.Select(x => UpgradeStepInfo.IsStepId(x) ? Code(x) : x))).Append('\n');
+        return AddSection(existingText, ownerPath, builder.ToString());
+    }
+
+    private static string AddSection(string? existingText, string ownerPath, string section)
+    {
+        if (string.IsNullOrEmpty(existingText))
+        {
+            var intro = $"Upgrades of this {(Solution.IsSolutionFile(ownerPath) ? "solution" : "project")} left the items below to do by hand. The newest upgrade is first. Once every item is handled, remove this file and the backup of the upgrades with **Remove the report and backup** in Game Studio: deleting only this file keeps the backup, which a revert still puts back.";
+            return $"# Upgrade report: {Path.GetFileName(ownerPath)}\n\n{intro}\n\n{section}";
+        }
+
+        // The newest section goes before the first one the file lists; a file without one, edited by hand, gets it at its end
         var text = existingText.ReplaceLineEndings("\n");
         var firstSection = text.StartsWith("## ", StringComparison.Ordinal) ? 0 : text.IndexOf("\n## ", StringComparison.Ordinal) is var index and >= 0 ? index + 1 : -1;
         return firstSection >= 0
@@ -45,33 +156,28 @@ public static class UpgradeReportWriter
     /// The report of every project of an upgrade, as Markdown.
     /// </summary>
     /// <param name="report">The report of the session.</param>
-    /// <param name="inputName">The name of the solution or project that was upgraded.</param>
+    /// <param name="inputPath">The solution or project that was upgraded: the paths of the report are relative to its folder.</param>
     /// <param name="time">When the upgrade ran.</param>
-    public static string FormatUpgrade(UpgradeReport report, string inputName, DateTime time)
+    public static string FormatUpgrade(UpgradeReport report, string inputPath, DateTime time)
     {
         ArgumentNullException.ThrowIfNull(report);
-        return FormatUpgrade(report.Projects, inputName, time);
+        return FormatUpgrade(report.Projects, inputPath, time);
     }
 
     /// <summary>
     /// The report of these projects of an upgrade, as Markdown.
     /// </summary>
     /// <param name="projects">The reports of the projects.</param>
-    /// <param name="inputName">The name of the solution or project that was upgraded.</param>
+    /// <param name="inputPath">The solution or project that was upgraded: the paths of the report are relative to its folder.</param>
     /// <param name="time">When the upgrade ran.</param>
-    public static string FormatUpgrade(IReadOnlyCollection<ProjectUpgradeReport> projects, string inputName, DateTime time)
+    public static string FormatUpgrade(IReadOnlyCollection<ProjectUpgradeReport> projects, string inputPath, DateTime time)
     {
         ArgumentNullException.ThrowIfNull(projects);
-        var builder = new StringBuilder();
-        builder.Append($"# Upgrade report: {inputName}\n\n");
-        builder.Append($"The upgrade of {FormatTime(time)}.");
-        if (projects.Count == 0)
-            return builder.Append(" No project needed an upgrade.\n").ToString();
-
-        builder.Append('\n');
-        foreach (var project in projects)
-            builder.Append('\n').Append(FormatSection(project, time, withProjectName: true));
-        return builder.ToString();
+        ArgumentNullException.ThrowIfNull(inputPath);
+        var title = $"# Upgrade report: {Path.GetFileName(inputPath)}\n\n";
+        return projects.Count == 0
+            ? $"{title}The upgrade of {FormatTime(time)}: no project needed an upgrade.\n"
+            : title + FormatSection(projects, time, DirectoryOf(inputPath));
     }
 
     /// <summary>
@@ -80,7 +186,7 @@ public static class UpgradeReportWriter
     public static string FormatSummary(ProjectUpgradeReport project)
     {
         ArgumentNullException.ThrowIfNull(project);
-        return $"{FormatVersions(project, " to ")}: {FormatOutcome(project)}";
+        return $"{FormatVersions(project, " to ")}: {FormatOutcome([project])}";
     }
 
     /// <summary>
@@ -124,14 +230,36 @@ public static class UpgradeReportWriter
         return string.Join("\n", steps.Select(step => step.Id.Length == 0 ? $"- {step.Title}" : $"- {FormatIdLink(step.Id, step.HelpLink)} {step.Title}".TrimEnd()));
     }
 
-    private static string FormatSection(ProjectUpgradeReport project, DateTime time, bool withProjectName)
+    // The section of an upgrade: what is of the whole upgrade (versions, outcome, backup), then a subsection per project, which
+    // names its versions when they aren't the ones of the heading
+    private static string FormatSection(IReadOnlyCollection<ProjectUpgradeReport> projects, DateTime time, string directory)
+    {
+        var versions = FormatVersions(projects.First(), " → ");
+        var builder = new StringBuilder();
+        builder.Append($"## {FormatTime(time)} · {versions} · {FormatOutcome(projects)}\n");
+
+        var paragraph = new List<string>();
+        if (FormatEnd(projects) is { } end)
+            paragraph.Add(end);
+        // The report of a reverted upgrade is in its backup folder
+        if (Outcome(projects) != UpgradeOutcome.Reverted && projects.Select(x => x.BackupFolder).FirstOrDefault(x => x is not null) is { } backup)
+            paragraph.Add($"The files it changed are backed up in {Code(Relative(directory, backup))}.");
+        if (paragraph.Count > 0)
+            builder.Append('\n').Append(string.Join(' ', paragraph)).Append('\n');
+
+        foreach (var project in projects)
+        {
+            var projectVersions = FormatVersions(project, " → ");
+            builder.Append($"\n### {project.ProjectFullPath.GetFileNameWithoutExtension()}{(projectVersions != versions ? $" · {projectVersions}" : "")} · {FormatOutcome([project], withEnd: false)}\n\n");
+            AppendProject(builder, project, directory);
+        }
+        return builder.ToString();
+    }
+
+    // The steps of the upgrade of a project: their counts, the items left grouped by status, then the steps done
+    private static void AppendProject(StringBuilder builder, ProjectUpgradeReport project, string directory)
     {
         var steps = project.Upgraders.SelectMany(x => x.Steps).ToList();
-        var builder = new StringBuilder();
-        builder.Append(withProjectName
-            ? $"## {project.ProjectFullPath.GetFileName()} · {FormatVersions(project, " → ")} · {FormatOutcome(project)}\n\n"
-            : $"## {FormatTime(time)} · {FormatVersions(project, " → ")} · {FormatOutcome(project)}\n\n");
-
         var counts = string.Join(", ", new[] { UpgradeStepStatus.Done, UpgradeStepStatus.Failed, UpgradeStepStatus.Partial, UpgradeStepStatus.NotRun }
             .Select(status => (Status: status, Count: steps.Count(x => x.Status == status)))
             .Where(x => x.Count > 0)
@@ -139,14 +267,9 @@ public static class UpgradeReportWriter
         builder.Append(steps.Count == 0 ? "No step." : $"{Plural(steps.Count, "step")}: {counts}.");
         if (project.Upgraders.Count > 1)
             builder.Append(" Also upgraded: ").Append(string.Join(", ", project.Upgraders.Skip(1).Select(x => FormatVersions(x, " → ")))).Append('.');
-        if (FormatEnd(project) is { } end)
-            builder.Append(' ').Append(end);
-        if (project.ContinuedFromUnfinished.Count > 0)
-            builder.Append(" It continued an upgrade marked as finished, which had left ").Append(string.Join(", ", project.ContinuedFromUnfinished.Select(Code))).Append(" to finish by hand.");
         builder.Append('\n');
 
         // The leftovers of a step that may change behaviour silently come first: the build doesn't point to them
-        var directory = project.ProjectFullPath.GetFullDirectory().ToOSPath();
         var silent = steps.Where(x => x.IsLeftover && x.MayChangeBehaviour).ToList();
         AppendGroup("May change behaviour silently", silent);
         foreach (var (status, heading) in new[] { (UpgradeStepStatus.Failed, "Failed"), (UpgradeStepStatus.Partial, "Partial"), (UpgradeStepStatus.NotRun, "Not run") })
@@ -169,14 +292,13 @@ public static class UpgradeReportWriter
             }
             builder.Append("\n</details>\n");
         }
-        return builder.ToString();
 
         void AppendGroup(string heading, List<UpgradeStepResult> group)
         {
             if (group.Count == 0)
                 return;
 
-            builder.Append($"\n### {heading}\n\n");
+            builder.Append($"\n#### {heading}\n\n");
             foreach (var step in group)
             {
                 builder.Append(project.Outcome == UpgradeOutcome.Reverted ? "- " : "- [ ] ").Append(FormatStep(step));
@@ -215,18 +337,24 @@ public static class UpgradeReportWriter
         builder.Append("    ```\n");
     }
 
-    // What the upgrade did to the files after a step of the whole project failed
-    private static string? FormatEnd(ProjectUpgradeReport project)
+    // What the upgrade did to the files after a step of a whole project failed
+    private static string? FormatEnd(IReadOnlyCollection<ProjectUpgradeReport> projects)
     {
-        var upgrader = project.Upgraders.FirstOrDefault();
-        return project.Outcome switch
+        var outcome = Outcome(projects);
+        var upgrader = projects.First(x => x.Outcome == outcome).Upgraders.FirstOrDefault();
+        var them = projects.Count > 1 ? "the projects" : "the project";
+        return outcome switch
         {
-            UpgradeOutcome.Reverted => $"A step of a project of the solution failed, so every file the upgrade changed, in every project, was put back as it was: the project stays on {upgrader?.Name} {upgrader?.FromVersion}. Nothing below is to do by hand: fix why the upgrade failed, and its next upgrade runs these steps again.",
-            UpgradeOutcome.Kept => "A step failed, and the files were kept as the upgrade left them: finish the items below by hand, then mark the upgrade as finished. No upgrade runs on the project before that.",
-            UpgradeOutcome.PartlyReverted => "A step failed, and some files the upgrade changed could not be put back as they were: copy them from the backup, then mark the upgrade as finished. No upgrade runs on the project before that.",
+            UpgradeOutcome.Reverted => $"A step of a project of the solution failed, so every file the upgrade changed, in every project, was put back as it was: {them} {(projects.Count > 1 ? "stay" : "stays")} on {upgrader?.Name} {upgrader?.FromVersion}. Nothing below is to do by hand: fix why the upgrade failed, and its next upgrade runs these steps again.",
+            UpgradeOutcome.Kept => $"A step failed, and the files were kept as the upgrade left them: finish the items below by hand, then mark the upgrade as finished. No upgrade runs on {them} before that.",
+            UpgradeOutcome.PartlyReverted => $"A step failed, and some files the upgrade changed could not be put back as they were: copy them from the backup, then mark the upgrade as finished. No upgrade runs on {them} before that.",
             _ => null,
         };
     }
+
+    // How the upgrade of the projects ended: a failure ends the upgrade of every project of the solution as one
+    private static UpgradeOutcome Outcome(IEnumerable<ProjectUpgradeReport> projects)
+        => projects.Select(x => x.Outcome).FirstOrDefault(x => x != UpgradeOutcome.Completed);
 
     // What a step that is done changed: " (5 edits in 3 files)"
     private static string FormatChangeCounts(UpgradeStepResult step)
@@ -257,15 +385,17 @@ public static class UpgradeReportWriter
     // The ID of a step, as a link to its section of the upgrade guide when it has one
     private static string FormatIdLink(string id, string? helpLink) => helpLink is null ? Code(id) : $"[{id}]({helpLink})";
 
-    private static string FormatOutcome(ProjectUpgradeReport project)
+    // The outcome of the upgrade, then the items left or the steps done; withEnd: false leaves out how a failed upgrade ended,
+    // which the heading of a project shares with the heading of its upgrade
+    private static string FormatOutcome(IReadOnlyCollection<ProjectUpgradeReport> projects, bool withEnd = true)
     {
-        var steps = project.Upgraders.SelectMany(x => x.Steps).ToList();
+        var steps = projects.SelectMany(x => x.Upgraders).SelectMany(x => x.Steps).ToList();
         // A reverted upgrade leaves nothing to do by hand: its next upgrade runs the steps again
-        if (project.Outcome == UpgradeOutcome.Reverted)
+        if (Outcome(projects) == UpgradeOutcome.Reverted)
             return "reverted";
 
         var left = steps.Count(x => x.IsLeftover);
-        var outcome = project.Outcome switch
+        var outcome = !withEnd ? "" : Outcome(projects) switch
         {
             UpgradeOutcome.Kept => "kept, ",
             UpgradeOutcome.PartlyReverted => "partly reverted, ",
@@ -290,6 +420,9 @@ public static class UpgradeReportWriter
             : upgrader.ToVersion is null ? $"{upgrader.Name} from {upgrader.FromVersion}"
             : $"{upgrader.Name} {upgrader.FromVersion}{arrow}{upgrader.ToVersion}";
 
+    private static string FormatVersions(RevertedVersion version)
+        => version.To is null ? $"{version.Upgrader} {version.From}" : $"{version.Upgrader} {version.From} → {version.To}";
+
     private static string FormatTime(DateTime time) => time.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
     private static string StatusName(UpgradeStepStatus status) => status switch
@@ -308,7 +441,10 @@ public static class UpgradeReportWriter
         _ => "Not run",
     };
 
-    // A path relative to the folder of the project, with forward slashes
+    // The folder of a solution or project file
+    private static string DirectoryOf(string path) => Path.GetDirectoryName(Path.GetFullPath(path))!;
+
+    // A path relative to the folder of the report, with forward slashes
     private static string Relative(string directory, string path) => Path.GetRelativePath(directory, path).Replace('\\', '/');
 
     // Inline code, also for a text with a backtick

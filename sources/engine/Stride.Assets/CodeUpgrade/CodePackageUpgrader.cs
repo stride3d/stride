@@ -92,13 +92,20 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
     /// <inheritdoc/>
     public override void RetrySteps(PackageSession session, SolutionProject project, UpgraderReport report, ILogger log)
     {
+        var left = report.Steps.Select(x => x.Id).OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
+        RunProjectSteps(session, project, RetryableSteps().Where(step => left.Contains(step.Id)).ToArray(), report, log);
+    }
+
+    /// <inheritdoc/>
+    public override bool CanRetryStep(string id)
+        => RetryableSteps().Any(step => string.Equals(step.Id, id, StringComparison.OrdinalIgnoreCase));
+
+    // The steps a retry runs: the project steps the upgrader still declares
+    private IEnumerable<DeclaredUpgradeStep> RetryableSteps()
+    {
         var registry = new UpgradeRegistry();
         DeclareUpgrades(registry);
-        var left = report.Steps.Select(x => x.Id).OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var steps = registry.GetSteps(Attribute.Name)
-            .Where(step => step.Declaration is ProjectUpgradeRegistration && !step.IsRetired && left.Contains(step.Id))
-            .ToArray();
-        RunProjectSteps(session, project, steps, report, log);
+        return registry.GetSteps(Attribute.Name).Where(step => step.Declaration is ProjectUpgradeRegistration && !step.IsRetired);
     }
 
     // Runs the project steps on the project loaded once. Each step is saved once it returned, so a step that throws leaves the

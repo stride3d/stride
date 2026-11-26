@@ -53,6 +53,18 @@ public sealed class TestSessionLoadChanges
     }
 
     [Fact]
+    public async Task ClosingASessionWhoseUnsavedChangesAreDroppedDoesntAsk()
+    {
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Echo", "editor"), ("Echo" + EditorSessionFixture.OtherSuffix, "other"));
+
+        fixture.Session.DropUnsavedChanges();
+
+        Assert.True(await fixture.Session.CloseAsync());
+        Assert.Empty(fixture.Dialogs.Messages);
+        Assert.Equal(CollidingFiles, fixture.AssetFiles());
+    }
+
+    [Fact]
     public async Task AnAcceptedPackageUpgradeIsSavedWhenTheSessionOpens()
     {
         await using var fixture = await EditorSessionFixture.OpenAsync(UpgradePackage, ("Wood", "wood"));

@@ -63,6 +63,11 @@ public enum UpgradeOutcome
 public sealed record UpgradeStepInfo(string Id, string Title, string? HelpLink, bool MayChangeBehaviour = false)
 {
     /// <summary>
+    /// Whether a retry of the unfinished upgrade that left the step runs it again (see <see cref="PackageUpgrader.CanRetryStep"/>).
+    /// </summary>
+    public bool CanRetry { get; init; }
+
+    /// <summary>
     /// Whether an entry of the steps an upgrade left (see <see cref="PackageUpgrader.UnfinishedMetadata"/>) is the ID of a step,
     /// or the title of a part of the upgrade that is not a step, such as "Put the files back as they were".
     /// </summary>
@@ -75,14 +80,40 @@ public sealed record UpgradeStepInfo(string Id, string Title, string? HelpLink, 
 /// <param name="Upgrader">The <see cref="PackageUpgraderAttribute.Name"/> of the upgrader.</param>
 /// <param name="Version">The version the record holds.</param>
 /// <param name="Steps">The IDs of the steps left to finish by hand, or the titles of parts of the upgrade that are not steps.</param>
-public sealed record UnfinishedUpgrade(string Upgrader, string Version, IReadOnlyList<string> Steps);
+/// <param name="Backup">
+/// The full path of the backup folder of the upgrade (see <see cref="PackageUpgrader.BackupMetadata"/>), or <c>null</c>.
+/// </param>
+public sealed record UnfinishedUpgrade(string Upgrader, string Version, IReadOnlyList<string> Steps, string? Backup = null);
+
+/// <summary>
+/// What putting back the files of the last upgrade did (see <see cref="PackageSession.RevertUpgrades"/>).
+/// </summary>
+/// <param name="BackupFolders">The backup folders the files were put back from.</param>
+/// <param name="NotPutBack">The files that could not be put back, or the backup folders that could not be read.</param>
+/// <param name="KeptFolders">The folders of the backups that keep the files as they were before the revert.</param>
+/// <param name="ChangedFiles">
+/// The files put back that changed since the upgrade (see <see cref="UpgradeBackup.GetChangedFiles"/>): these changes are now
+/// only in <paramref name="KeptFolders"/>.
+/// </param>
+public sealed record UpgradeRevert(IReadOnlyList<string> BackupFolders, IReadOnlyList<string> NotPutBack, IReadOnlyList<string> KeptFolders, IReadOnlyList<string> ChangedFiles);
+
+/// <summary>
+/// The version an upgrader recorded in a project before and after a revert of its upgrade (see <see cref="PackageSession.RevertUpgrades"/>).
+/// </summary>
+/// <param name="Upgrader">The <see cref="PackageUpgraderAttribute.Name"/> of the upgrader.</param>
+/// <param name="From">The version the upgrade went to.</param>
+/// <param name="To">The version the revert put back, or <c>null</c> when the project had no record before the upgrade.</param>
+public sealed record RevertedVersion(string Upgrader, string From, string? To);
 
 /// <summary>
 /// What running again the steps of the unfinished upgrades of a project did (see <see cref="PackageSession.RetryUnfinishedUpgrades"/>).
 /// </summary>
-/// <param name="StepsLeft">The steps still left, or the titles of the parts of the upgrade that are not steps.</param>
+/// <param name="StepsLeft">
+/// The steps still left, as <see cref="PackageSession.DescribeUnfinishedSteps"/> describes them: a part of the upgrade that is
+/// not a step has only its title.
+/// </param>
 /// <param name="ChangedProject">Whether a step changed a file: the project is restored and loaded again to take it.</param>
-public sealed record UnfinishedUpgradeRetry(IReadOnlyList<string> StepsLeft, bool ChangedProject);
+public sealed record UnfinishedUpgradeRetry(IReadOnlyList<UpgradeStepInfo> StepsLeft, bool ChangedProject);
 
 /// <summary>
 /// A file an upgrade step could not change, and why.
@@ -233,11 +264,8 @@ public sealed class ProjectUpgradeReport
     /// <summary>How the upgrade ended.</summary>
     public UpgradeOutcome Outcome { get; set; }
 
-    /// <summary>
-    /// The IDs of the steps an earlier upgrade left to finish by hand, which the user marked as finished before this upgrade,
-    /// or empty.
-    /// </summary>
-    public List<string> ContinuedFromUnfinished { get; } = [];
+    /// <summary>The full path of the backup folder of the files the upgrade changed, or <c>null</c> without one.</summary>
+    public string? BackupFolder { get; set; }
 
     // The session logged the report and wrote upgrade-report.md: a later load of the missing references does not again
     internal bool IsPublished { get; set; }

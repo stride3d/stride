@@ -174,9 +174,10 @@ public sealed class PackageLoadParameters
     /// <summary>
     /// Occurs when an upgrade of a package is pending, and its project records an earlier upgrade that was kept unfinished (see
     /// <see cref="PackageUpgrader.UnfinishedMetadata"/>), with the steps it left (only their ID when the upgrader no longer declares
-    /// them). Without it, the upgrade stays unfinished, and the package isn't upgraded.
+    /// them), and the backup folder that <see cref="UnfinishedUpgradeAnswer.Revert"/> puts the files back from, or <c>null</c>.
+    /// Without it, the upgrade stays unfinished, and the package isn't upgraded.
     /// </summary>
-    public Func<Package, IReadOnlyList<UpgradeStepInfo>, UnfinishedUpgradeAnswer>? UnfinishedUpgradeFound { get; set; }
+    public Func<Package, IReadOnlyList<UpgradeStepInfo>, string?, UnfinishedUpgradeAnswer>? UnfinishedUpgradeFound { get; set; }
 
     /// <summary>
     /// Whether the steps that upgrades kept unfinished left run again (see <see cref="PackageUpgrader.RetrySteps"/>), without

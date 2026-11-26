@@ -29,6 +29,8 @@ namespace Stride.AssetCompiler
         public bool RetryUnfinishedUpgrade { get; set; }
         // Upgrade verb only: nothing to upgrade, only mark finished or retry the upgrades kept unfinished.
         public bool UnfinishedUpgradeOnly { get; set; }
+        // Upgrade verb only: put back the files of the last upgrade from its backups, and don't upgrade.
+        public bool RevertUpgrade { get; set; }
         // This should not be a list
         public bool DisableAutoCompileProjects { get; set; }
         public string ProjectConfiguration { get; set; }

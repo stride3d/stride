@@ -143,6 +143,7 @@ namespace Stride.AssetCompiler
                 { "mark-finished", "Upgrade verb only: mark the upgrades kept unfinished as finished, and upgrade.", v => options.MarkUpgradeFinished = v != null },
                 { "retry", "Upgrade verb only: run again the project steps the upgrades kept unfinished left, and upgrade once none is left.", v => options.RetryUnfinishedUpgrade = v != null },
                 { "unfinished-only", "Upgrade verb only: with --mark-finished or --retry, don't upgrade: the project is on the version to upgrade to.", v => options.UnfinishedUpgradeOnly = v != null },
+                { "revert", "Upgrade verb only: put back every file the last upgrade changed, in every project, from the backups its records name, and don't upgrade.", v => options.RevertUpgrade = v != null },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
                 {
                     if (!string.IsNullOrEmpty(v))
@@ -458,7 +459,7 @@ namespace Stride.AssetCompiler
             var upgradeTarget = options.PackageFile;
             if (upgradeTarget.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
             {
-                var containingSolution = FindContainingSolution(upgradeTarget);
+                var containingSolution = Stride.Core.Solutions.Solution.FindContaining(upgradeTarget);
                 if (containingSolution != null)
                 {
                     options.Logger.Info($"Resolved [{System.IO.Path.GetFileName(upgradeTarget)}] to its solution [{System.IO.Path.GetFileName(containingSolution)}] — upgrading the whole solution.");
@@ -476,18 +477,17 @@ namespace Stride.AssetCompiler
                 return (int)BuildResultCode.CommandLineError;
             }
 
+            if (options.RevertUpgrade)
+                return RevertLastUpgrade(upgradeTarget, options.Logger);
+
             // Marked before the load, the upgrades kept unfinished no longer stop the upgrade of their projects. Without an
             // upgrade, the project files are all that change: no load.
             if (options.MarkUpgradeFinished)
             {
-                foreach (var projectPath in ProjectFilesOf(upgradeTarget, options.Logger))
-                {
-                    if (VSProjectHelper.MarkUpgradesFinished(projectPath))
-                        options.Logger.Info($"The last upgrade of [{System.IO.Path.GetFileNameWithoutExtension(projectPath)}] is marked as finished.");
-                }
+                PackageSession.MarkUpgradesFinished(ProjectFilesOf(upgradeTarget, options.Logger), options.Logger);
                 if (options.UnfinishedUpgradeOnly)
                 {
-                    // No upgrade runs: the report says that no project needed one
+                    // No upgrade runs: the marks are in the upgrade-report.md of the projects
                     WriteUpgradeReport(options, new UpgradeReport(), upgradeTarget);
                     return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
                 }
@@ -564,12 +564,46 @@ namespace Stride.AssetCompiler
                 return;
             try
             {
-                System.IO.File.WriteAllText(options.UpgradeReportPath, UpgradeReportWriter.FormatUpgrade(report, System.IO.Path.GetFileName(upgradeTarget), DateTime.Now));
+                System.IO.File.WriteAllText(options.UpgradeReportPath, UpgradeReportWriter.FormatUpgrade(report, upgradeTarget, DateTime.Now));
             }
             catch (Exception e) when (e is System.IO.IOException or UnauthorizedAccessException)
             {
                 options.Logger.Error($"Could not write the upgrade report [{options.UpgradeReportPath}]", e);
             }
+        }
+
+        // Puts back every file the last upgrade changed, from the backups the records of the projects name, as Revert in Game
+        // Studio does: the project files are all that is read, no load
+        private static int RevertLastUpgrade(string upgradeTarget, LoggerResult logger)
+        {
+            var folders = new List<string>();
+            foreach (var projectPath in ProjectFilesOf(upgradeTarget, logger))
+            {
+                try
+                {
+                    folders.AddRange(VSProjectHelper.GetUpgradeRecords(projectPath).Backups);
+                }
+                catch (Exception e)
+                {
+                    logger.Error($"Could not read the upgrade records of [{projectPath}]", e);
+                }
+            }
+            folders = folders.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            if (folders.Count == 0)
+            {
+                logger.Error($"The records of [{System.IO.Path.GetFileName(upgradeTarget)}] name no backup of the last upgrade: only an upgrade that left items to do by hand names its backup, until its report is removed. Copy the files back from its backup folder by hand.");
+                return (int)BuildResultCode.BuildError;
+            }
+            var missing = folders.Where(x => !UpgradeBackup.CanOpen(x)).ToList();
+            if (missing.Count == folders.Count)
+            {
+                // Version control has the records, not the backup folders
+                logger.Error($"The records of [{System.IO.Path.GetFileName(upgradeTarget)}] name the backup {string.Join(", ", missing.Select(x => $"[{x}]"))} of the last upgrade, which is not on this computer, or can't be read. Revert on the computer that ran the upgrade, or restore the files from version control.");
+                return (int)BuildResultCode.BuildError;
+            }
+            folders = [.. folders.Except(missing)];
+            PackageSession.RevertUpgrades(folders, logger);
+            return (int)(logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);
         }
 
         // The project files of a solution, or the project file itself
@@ -695,63 +729,6 @@ namespace Stride.AssetCompiler
                 builder.Append(exceptionInfo);
             }
             return builder.ToString();
-        }
-
-        // Finds the nearest ancestor solution that includes the given project, or null if none.
-        private static string FindContainingSolution(string projectPath)
-        {
-            string projectFull;
-            try
-            {
-                projectFull = System.IO.Path.GetFullPath(projectPath);
-            }
-            catch
-            {
-                return null;
-            }
-
-            for (var dir = System.IO.Path.GetDirectoryName(projectFull); dir != null; dir = System.IO.Path.GetDirectoryName(dir))
-            {
-                string[] solutionFiles;
-                try
-                {
-                    solutionFiles = Stride.Core.Solutions.Solution.SolutionExtensions
-                        .SelectMany(ext => System.IO.Directory.GetFiles(dir, "*" + ext))
-                        .ToArray();
-                }
-                catch
-                {
-                    // Unreadable ancestor directory — skip it and keep walking up.
-                    continue;
-                }
-
-                foreach (var solutionPath in solutionFiles)
-                {
-                    try
-                    {
-                        var solutionDir = System.IO.Path.GetDirectoryName(solutionPath);
-                        var solution = Stride.Core.Solutions.Solution.FromFile(solutionPath);
-                        foreach (var project in solution.Projects)
-                        {
-                            if (project.FullPath == null)
-                                continue;
-
-                            // Solution project paths are relative to the solution; resolve before comparing.
-                            var resolved = System.IO.Path.IsPathRooted(project.FullPath)
-                                ? project.FullPath
-                                : System.IO.Path.Combine(solutionDir, project.FullPath);
-                            if (string.Equals(System.IO.Path.GetFullPath(resolved), projectFull, StringComparison.OrdinalIgnoreCase))
-                                return solutionPath;
-                        }
-                    }
-                    catch
-                    {
-                        // Unparseable or foreign solution — ignore and keep looking.
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }

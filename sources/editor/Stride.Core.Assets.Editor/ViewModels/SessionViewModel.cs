@@ -62,6 +62,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     private string rootAssetToggleHeader = string.Empty;
     private bool selectionIsRoot;
     private bool hasUnsavedChanges;
+    private bool unsavedChangesDropped;
     private ICommandBase? importEffectLogCommand;
     private int importEffectLogPendingCount;
     private bool isUpdatePackageEnabled;
@@ -855,6 +856,12 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     {
         Dispatcher.EnsureAccess();
 
+        if (unsavedChangesDropped)
+        {
+            await Dialogs.MessageBoxAsync(Tr._p("Message", "A revert of the last upgrade put back the files of the project under the session: open the project again before you save it."), MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
         IsSaving = true;
         try
         {
@@ -981,6 +988,11 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         Dispatcher.EnsureAccess();
 
         var sessionResult = new LoggerResult();
+        if (unsavedChangesDropped)
+        {
+            sessionResult.Error(Tr._p("Log", "The session is not saved: a revert of the last upgrade put back the files of the project under it."));
+            return sessionResult;
+        }
         try
         {
             CheckConsistency();
@@ -1009,7 +1021,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     public async Task<bool> CloseAsync(bool allowCancel = true)
     {
         // Check if either view model is dirty, or any LocalPackage.Assets is (since some view models such as scripts don't make package dirty)
-        if (HasUnsavedAssets())
+        if (!unsavedChangesDropped && HasUnsavedAssets())
         {
             var captions = new List<string> { Tr._p("Button", "Save"), Tr._p("Button", "Don't save") };
             if (allowCancel)
@@ -1050,6 +1062,12 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
         return true;
     }
+
+    /// <summary>
+    /// Drops the unsaved changes of the session: the files of the projects changed under it (a revert of the last upgrade), so
+    /// <see cref="CloseAsync"/> closes it without offering to save them over these files, and the session no longer saves.
+    /// </summary>
+    public void DropUnsavedChanges() => unsavedChangesDropped = true;
 
     public bool HasUnsavedAssets()
     {

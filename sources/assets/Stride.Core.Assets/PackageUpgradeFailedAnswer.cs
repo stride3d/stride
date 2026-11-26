@@ -14,7 +14,7 @@ public enum PackageUpgradeFailedAnswer
 
     /// <summary>
     /// Keep the files as the upgrade left them: each project that failed records the upgrade with the steps to finish by hand,
-    /// and no upgrade runs on it until they are marked as finished.
+    /// and no upgrade runs on it until they are marked as finished, or the upgrade is reverted from its backup.
     /// </summary>
     Keep,
 }
@@ -35,4 +35,11 @@ public enum UnfinishedUpgradeAnswer
 
     /// <summary>Mark it as finished, the steps it left being done by hand: an upgrade of the project can run again.</summary>
     MarkFinished,
+
+    /// <summary>
+    /// Put back from its backup every file it changed, in every project, as it was before it (see
+    /// <see cref="PackageSession.RevertUpgrades"/>). The session then holds files that are no longer there, and no
+    /// upgrade runs in it: it is loaded again, to upgrade the projects again (see <see cref="PackageSession.RevertedUnfinishedUpgrade"/>).
+    /// </summary>
+    Revert,
 }

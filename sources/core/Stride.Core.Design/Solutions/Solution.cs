@@ -81,6 +81,43 @@ public class Solution
         => SolutionExtensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
+    /// The solution nearest to the project that lists it, in the folder of the project or a folder above, or <c>null</c>.
+    /// </summary>
+    /// <param name="projectPath">The project file.</param>
+    public static string? FindContaining(string projectPath)
+    {
+        var projectFull = Path.GetFullPath(projectPath);
+        for (var directory = Path.GetDirectoryName(projectFull); directory is not null; directory = Path.GetDirectoryName(directory))
+        {
+            string[] solutionFiles;
+            try
+            {
+                solutionFiles = [.. Directory.EnumerateFiles(directory).Where(IsSolutionFile).Order(StringComparer.OrdinalIgnoreCase)];
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                continue;
+            }
+
+            foreach (var solutionPath in solutionFiles)
+            {
+                try
+                {
+                    // The paths of the projects are relative to the solution
+                    if (FromFile(solutionPath).Projects.Any(x => x.FullPath is not null
+                        && string.Equals(Path.GetFullPath(x.FullPath, directory), projectFull, StringComparison.OrdinalIgnoreCase)))
+                        return solutionPath;
+                }
+                catch (Exception)
+                {
+                    // A solution that can't be read lists no project
+                }
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
     /// Gets or sets the full path. If it's a solution folder, it should just be the name of the folder.
     /// </summary>
     /// <value>The full path.</value>

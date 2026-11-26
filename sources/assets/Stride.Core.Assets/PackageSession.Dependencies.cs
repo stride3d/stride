@@ -118,7 +118,9 @@ partial class PackageSession
         var upgradesPerProject = new Dictionary<SolutionProject, List<(PendingCodeUpgrade Code, PendingPackageUpgrade Package)>?>();
         foreach (var project in Projects.OfType<SolutionProject>())
             Detect(project);
-        return result;
+        // A revert of an unfinished upgrade put back the files the session read: no code is migrated, not even of the projects
+        // confirmed before it
+        return RevertedUnfinishedUpgrade is null ? result : [];
 
         // As in PreLoadPackageDependencies, a project gets the upgraders of the projects it references: an executable
         // gets Stride through its game library, and its code is migrated with the library's

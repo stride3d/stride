@@ -116,26 +116,49 @@ public class TestUpgradedVersionRecord : IDisposable
 
     private const string SecondStepBlocked = "UpgradeRecord.SecondStepBlocked";
 
-    // Each project step sets a property; the second one throws while the project has a Blocked.txt file
+    // Each project step sets a property and writes a file next to the project; the second one throws while the project has a
+    // Blocked.txt file
     [PackageUpgrader([SecondStepBlocked], "1.0.0", "2.0.0")]
     public class SecondStepBlockedUpgrader : global::Stride.Assets.CodePackageUpgrader
     {
         public override void DeclareUpgrades(global::Stride.Assets.UpgradeRegistry registry)
         {
-            registry.Project("2.0.0", "First", context => SetProperty(context, "First"));
+            registry.Project("2.0.0", "First", context => Change(context, "First"));
             registry.Project("2.0.0", "Second", context =>
             {
                 if (File.Exists(Path.Combine(context.ProjectFullPath.GetFullDirectory().ToOSPath(), "Blocked.txt")))
                     throw new InvalidOperationException("The second step is blocked");
-                SetProperty(context, "Second");
+                Change(context, "Second");
             });
-            registry.Project("2.0.0", "Third", context => SetProperty(context, "Third"));
+            registry.Project("2.0.0", "Third", context => Change(context, "Third"));
         }
 
-        private static void SetProperty(global::Stride.Assets.ProjectUpgradeContext context, string name)
+        private static void Change(global::Stride.Assets.ProjectUpgradeContext context, string step)
         {
-            context.Project.SetProperty(name, "true");
+            context.Project.SetProperty(step, "true");
             context.IsDirty = true;
+            context.WriteFile(SideFile(context, step), step, System.Text.Encoding.UTF8);
+        }
+    }
+
+    private const string RetryHook = "UpgradeRecord.RetryHook";
+
+    // Its first project step writes a file next to the project; the second one throws while the project has a Blocked.txt file,
+    // and calls DuringSecondStep otherwise
+    [PackageUpgrader([RetryHook], "1.0.0", "2.0.0")]
+    public class RetryHookUpgrader : global::Stride.Assets.CodePackageUpgrader
+    {
+        public static Action? DuringSecondStep;
+
+        public override void DeclareUpgrades(global::Stride.Assets.UpgradeRegistry registry)
+        {
+            registry.Project("2.0.0", "First", context => context.WriteFile(SideFile(context, "First"), "First", System.Text.Encoding.UTF8));
+            registry.Project("2.0.0", "Second", context =>
+            {
+                if (File.Exists(Path.Combine(context.ProjectFullPath.GetFullDirectory().ToOSPath(), "Blocked.txt")))
+                    throw new InvalidOperationException("The second step is blocked");
+                DuringSecondStep?.Invoke();
+            });
         }
     }
 
@@ -333,7 +356,8 @@ public class TestUpgradedVersionRecord : IDisposable
         var before = ReadFiles(game, windows);
 
         // Without its restore, the source migration of the solution can't run
-        var result = LoadAndSave(WriteSolution(game, windows), out var report);
+        var solution = WriteSolution(game, windows);
+        var result = LoadAndSave(solution, out var report);
 
         Assert.Equal(before, ReadFiles(game, windows));
         // The executable is migrated with its game library, so it stops for the same reason
@@ -342,8 +366,14 @@ public class TestUpgradedVersionRecord : IDisposable
             AssertError(result, $"The upgrade of [{name}] is stopped: the solution [Game.slnx] isn't restored");
             Assert.Equal(new Dictionary<string, UpgradeStepStatus> { ["Continue the upgrade"] = UpgradeStepStatus.Failed },
                 StepStatuses(report, project, "UpgradeRecord.CodeRules"));
-            Assert.True(File.Exists(ReportFile(project)));
+            Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(project)!, UpgradeReportWriter.FileName)));
         }
+        // One report next to the solution, with a section of the upgrade and a subsection per project
+        var text = File.ReadAllText(Path.Combine(Path.GetDirectoryName(solution)!, UpgradeReportWriter.FileName));
+        Assert.StartsWith("# Upgrade report: Game.slnx\n\nUpgrades of this solution left", text, StringComparison.Ordinal);
+        Assert.Single(text.Split('\n'), x => x.StartsWith("## ", StringComparison.Ordinal));
+        Assert.Contains("\n### Game · 1 item left\n", text, StringComparison.Ordinal);
+        Assert.Contains("\n### Game.Windows · 1 item left\n", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -510,8 +540,8 @@ public class TestUpgradedVersionRecord : IDisposable
         var text = File.ReadAllText(ReportFile(game));
         Assert.StartsWith("# Upgrade report: Game.csproj\n", text);
         Assert.Contains(" · UpgradeRecord.SecondStepThrows 1.0.0 → 2.0.0 · kept, 2 items left\n", text);
-        Assert.Contains("### Failed\n\n- [ ] `UpgradeRecord.SecondStepThrows-2.0.0-P2` Second\n", text);
-        Assert.Contains("### Not run\n\n- [ ] `UpgradeRecord.SecondStepThrows-2.0.0-P3` Third\n", text);
+        Assert.Contains("#### Failed\n\n- [ ] `UpgradeRecord.SecondStepThrows-2.0.0-P2` Second\n", text);
+        Assert.Contains("#### Not run\n\n- [ ] `UpgradeRecord.SecondStepThrows-2.0.0-P3` Third\n", text);
         Assert.Contains("<summary>Done (1)</summary>\n\n- `UpgradeRecord.SecondStepThrows-2.0.0-P1` First (2 files)\n", text);
     }
 
@@ -524,7 +554,7 @@ public class TestUpgradedVersionRecord : IDisposable
 
         // Each file with why it was left; one that threw with the first frames of its stack
         var text = File.ReadAllText(ReportFile(game));
-        Assert.Contains("### Partial\n\n- [ ] `UpgradeRecord.FileFails-2.0.0-P1` Write files\n  - `Reported.txt` is left unchanged: The file can't be read\n  - `Missing.txt` is left unchanged: ", text);
+        Assert.Contains("#### Partial\n\n- [ ] `UpgradeRecord.FileFails-2.0.0-P1` Write files\n  - `Reported.txt` is left unchanged: The file can't be read\n  - `Missing.txt` is left unchanged: ", text);
         Assert.Matches(@"`Missing\.txt` is left unchanged: [^\n]+\n    ```\n(    at [^\n]+\n){1,3}    ```\n", text);
     }
 
@@ -537,7 +567,7 @@ public class TestUpgradedVersionRecord : IDisposable
         LoadAndSave(game);
 
         var text = File.ReadAllText(ReportFile(game));
-        Assert.Matches(@"^# Upgrade report: Game\.csproj\n\nIntro\.\n\n## [0-9-]+ [0-9:]+ · Succeeds 1\.0\.0 → 2\.0\.0 · done\n\nNo step\.\n\n## 2026-11-21 14:32 · Succeeds 0\.9\.0 → 1\.0\.0 · 1 item left\n$", text);
+        Assert.Matches(@"^# Upgrade report: Game\.csproj\n\nIntro\.\n\n## [0-9-]+ [0-9:]+ · Succeeds 1\.0\.0 → 2\.0\.0 · done\n\n### Game · done\n\nNo step\.\n\n## 2026-11-21 14:32 · Succeeds 0\.9\.0 → 1\.0\.0 · 1 item left\n$", text);
     }
 
     [Fact]
@@ -680,7 +710,7 @@ public class TestUpgradedVersionRecord : IDisposable
 
         var result = LoadAndSave(WriteSolution(game, windows), parameters =>
         {
-            parameters.UnfinishedUpgradeFound = (_, _) => answer;
+            parameters.UnfinishedUpgradeFound = (_, _, _) => answer;
             parameters.PackageUpgradeFailed = _ =>
             {
                 failed = true;
@@ -757,8 +787,9 @@ public class TestUpgradedVersionRecord : IDisposable
         // Nothing is left to do in the project: the report of the upgrade is in the backup, without items to do by hand
         Assert.False(File.Exists(ReportFile(game)));
         var text = File.ReadAllText(Path.Combine(Directory.GetDirectories(gameDirectory, UpgradeBackup.FolderNamePrefix + "*").Single(), UpgradeReportWriter.FileName));
-        Assert.Contains("## Game.csproj · UpgradeRecord.SecondStepThrows 1.0.0 → 2.0.0 · reverted\n", text, StringComparison.Ordinal);
-        Assert.Contains("### Failed\n\n- `UpgradeRecord.SecondStepThrows-2.0.0-P2` Second\n", text, StringComparison.Ordinal);
+        Assert.Matches(@"^# Upgrade report: Game\.csproj\n\n## [0-9-]+ [0-9:]+ · UpgradeRecord\.SecondStepThrows 1\.0\.0 → 2\.0\.0 · reverted\n", text);
+        Assert.Contains("\n### Game · reverted\n", text, StringComparison.Ordinal);
+        Assert.Contains("#### Failed\n\n- `UpgradeRecord.SecondStepThrows-2.0.0-P2` Second\n", text, StringComparison.Ordinal);
         Assert.DoesNotContain("- [ ]", text, StringComparison.Ordinal);
     }
 
@@ -853,7 +884,9 @@ public class TestUpgradedVersionRecord : IDisposable
         Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(game)!, "First.txt")));
         Assert.Equal(new Dictionary<string, string> { ["UpgradeRecord.SecondStepThrows"] = "2.0.0" }, ReadRecords(game));
         Assert.Equal("UpgradeRecord.SecondStepThrows-2.0.0-P2;UpgradeRecord.SecondStepThrows-2.0.0-P3", ReadUnfinished(game, "UpgradeRecord.SecondStepThrows"));
-        Assert.Contains(" · kept, 2 items left\n", File.ReadAllText(ReportFile(game)), StringComparison.Ordinal);
+        var text = File.ReadAllText(ReportFile(game));
+        Assert.Contains(" · kept, 2 items left\n", text, StringComparison.Ordinal);
+        Assert.Contains($" The files it changed are backed up in `{UpgradeBackup.FolderNamePrefix}", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -897,7 +930,7 @@ public class TestUpgradedVersionRecord : IDisposable
         var before = ReadFiles(game);
         var asked = false;
 
-        var result = LoadAndSave(game, parameters => parameters.UnfinishedUpgradeFound = (_, _) =>
+        var result = LoadAndSave(game, parameters => parameters.UnfinishedUpgradeFound = (_, _, _) =>
         {
             asked = true;
             return UnfinishedUpgradeAnswer.Retry;
@@ -962,14 +995,118 @@ public class TestUpgradedVersionRecord : IDisposable
         using var session = result.Session;
 
         // As the banner of Game Studio does
-        var retry = session.RetryUnfinishedUpgrades(session.Projects.OfType<SolutionProject>().Single(), result);
+        var retry = session.RetryUnfinishedUpgrades([session.Projects.OfType<SolutionProject>().Single()], result).Single();
 
         Assert.True(retry.ChangedProject);
         // A part of the upgrade that is not a step is still left
-        Assert.Equal(["Put the files back as they were"], retry.StepsLeft);
+        Assert.Equal([new UpgradeStepInfo("", "Put the files back as they were", null)], retry.StepsLeft);
         Assert.Equal("Put the files back as they were", ReadUnfinished(game, SecondStepBlocked));
         Assert.Contains("Second", XDocument.Load(game).Descendants("PropertyGroup").Elements().Select(x => x.Name.LocalName));
-        Assert.Contains("\n### Not run\n\n- [ ] Put the files back as they were\n", File.ReadAllText(ReportFile(game)), StringComparison.Ordinal);
+        Assert.Contains("\n#### Not run\n\n- [ ] Put the files back as they were\n", File.ReadAllText(ReportFile(game)), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ARetryOfTheProjectsOfTwoUpgradesBacksUpInTheBackupOfEach()
+    {
+        var game = WriteProject("Game", $"""<PackageReference Include="{SecondStepBlocked}" Version="1.0.0" />""");
+        var extra = WriteProject("Extra", $"""<PackageReference Include="{SecondStepBlocked}" Version="1.0.0" />""");
+        string[] projects = [game, extra];
+        // Each upgraded alone, so that each upgrade has a backup of its own, and kept unfinished
+        foreach (var project in projects)
+        {
+            var blocked = Path.Combine(Path.GetDirectoryName(project)!, "Blocked.txt");
+            File.WriteAllText(blocked, "");
+            LoadAndSave(project, parameters =>
+            {
+                parameters.BackupBeforeUpgrade = true;
+                parameters.PackageUpgradeFailed = _ => PackageUpgradeFailedAnswer.Keep;
+            });
+            File.Delete(blocked);
+        }
+        var backups = projects.Select(x => VSProjectHelper.GetUnfinishedUpgrades(x).Single().Backup!).ToList();
+        Assert.NotEqual(backups[0], backups[1], StringComparer.OrdinalIgnoreCase);
+        var result = new PackageSessionResult();
+        PackageSession.Load(WriteSolution(game, extra), result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false });
+        using var session = result.Session;
+
+        // As the banner of Game Studio does
+        var retries = session.RetryUnfinishedUpgrades([.. session.Projects.OfType<SolutionProject>()], result);
+
+        Assert.All(retries, x => Assert.Empty(x.StepsLeft));
+        for (var i = 0; i < projects.Length; i++)
+        {
+            // The record still names the backup of its upgrade, which has the file the retry created
+            Assert.Equal([backups[i]], VSProjectHelper.GetUpgradeRecords(projects[i]).Backups);
+            Assert.Contains(Path.Combine(Path.GetDirectoryName(projects[i])!, "Third.txt"), UpgradeBackup.Open(backups[i])!.GetFiles(), StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    [Fact]
+    public async Task ASaveDuringARetryWaitsForItAndDoesNotBackUpInTheBackupOfTheUpgrade()
+    {
+        var game = WriteProject("Game", $"""<PackageReference Include="{RetryHook}" Version="1.0.0" />""");
+        var blocked = Path.Combine(Path.GetDirectoryName(game)!, "Blocked.txt");
+        File.WriteAllText(blocked, "");
+        LoadAndSave(game, parameters =>
+        {
+            parameters.BackupBeforeUpgrade = true;
+            parameters.PackageUpgradeFailed = _ => PackageUpgradeFailedAnswer.Keep;
+        });
+        File.Delete(blocked);
+        var backup = VSProjectHelper.GetUnfinishedUpgrades(game).Single().Backup!;
+        var result = new PackageSessionResult();
+        PackageSession.Load(game, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false });
+        using var session = result.Session;
+        var package = session.LocalPackages.Single();
+
+        // As Game Studio does when the user saves while the banner retries
+        Task? save = null;
+        var saveEndedDuringRetry = false;
+        RetryHookUpgrader.DuringSecondStep = () =>
+        {
+            package.IsDirty = true;
+            save = Task.Run(() => session.Save(new LoggerResult()));
+            saveEndedDuringRetry = save.Wait(TimeSpan.FromMilliseconds(500));
+        };
+        try
+        {
+            var retry = session.RetryUnfinishedUpgrades([session.Projects.OfType<SolutionProject>().Single()], result).Single();
+            Assert.Empty(retry.StepsLeft);
+        }
+        finally
+        {
+            RetryHookUpgrader.DuringSecondStep = null;
+        }
+
+        Assert.NotNull(save);
+        await save;
+        Assert.False(saveEndedDuringRetry);
+        Assert.False(package.IsDirty);
+        Assert.DoesNotContain(package.FullPath.ToOSPath(), UpgradeBackup.Open(backup)!.GetFiles(), StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void AChangeMadeBeforeARetryStillCountsAsChangedSinceTheUpgrade()
+    {
+        var game = WriteProject("Game", $"""<PackageReference Include="{SecondStepBlocked}" Version="1.0.0" />""");
+        var gameDirectory = Path.GetDirectoryName(game)!;
+        var blocked = Path.Combine(gameDirectory, "Blocked.txt");
+        File.WriteAllText(blocked, "");
+        LoadAndSave(game, parameters =>
+        {
+            parameters.BackupBeforeUpgrade = true;
+            parameters.PackageUpgradeFailed = _ => PackageUpgradeFailedAnswer.Keep;
+        });
+        var backup = VSProjectHelper.GetUnfinishedUpgrades(game).Single().Backup!;
+
+        // A change to a file of the upgrade that the retry doesn't write
+        var first = Path.Combine(gameDirectory, "First.txt");
+        File.WriteAllText(first, "Mine");
+        File.Delete(blocked);
+        LoadAndSave(game, parameters => parameters.RetryUnfinishedUpgrades = true);
+
+        Assert.Null(ReadUnfinished(game, SecondStepBlocked));
+        Assert.Equal([first], UpgradeBackup.Open(backup)!.GetChangedFiles());
     }
 
     [Fact]
@@ -989,15 +1126,234 @@ public class TestUpgradedVersionRecord : IDisposable
     }
 
     [Fact]
+    public void TheQuestionAboutAnUnfinishedUpgradeSaysWhichStepsRunAgain()
+    {
+        var game = WriteProject("Game", $"""
+            <PackageReference Include="{SecondStepBlocked}" Version="1.0.0" />
+            <StridePackageUpgradeRecord Include="{SecondStepBlocked}" Version="1.0.0" Unfinished="{SecondStepBlocked}-2.0.0-C1;{SecondStepBlocked}-2.0.0-P2;Put the files back as they were" />
+            """);
+        IReadOnlyList<UpgradeStepInfo>? asked = null;
+
+        LoadAndSave(game, parameters => parameters.UnfinishedUpgradeFound = (_, steps, _) =>
+        {
+            asked = steps;
+            return UnfinishedUpgradeAnswer.Leave;
+        });
+
+        // A code step, and a part of the upgrade that is not a step, don't run again
+        Assert.Equal([false, true, false], asked!.Select(x => x.CanRetry));
+    }
+
+    [Fact]
+    public void AKeptUpgradeIsRevertedWhenTheProjectOpens()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.SecondStepThrows" Version="1.0.0" />""");
+        var before = ReadFiles(game);
+        LoadAndSave(game, parameters =>
+        {
+            parameters.BackupBeforeUpgrade = true;
+            parameters.PackageUpgradeFailed = _ => PackageUpgradeFailedAnswer.Keep;
+        });
+        // Its upgrade is still pending, as in a project the failure stopped before its references changed
+        var document = XDocument.Load(game);
+        document.Descendants("PackageReference").Single().SetAttributeValue("Version", "1.0.0");
+        document.Save(game);
+        string? asked = null;
+
+        var result = new PackageSessionResult();
+        PackageSession.Load(game, result, new PackageLoadParameters
+        {
+            AutoCompileProjects = false,
+            LoadAssemblyReferences = false,
+            UnfinishedUpgradeFound = (_, _, backup) =>
+            {
+                asked = backup;
+                return UnfinishedUpgradeAnswer.Revert;
+            },
+        });
+        using var session = result.Session;
+        session.Save(result);
+
+        Assert.Empty(VSProjectHelper.GetUnfinishedUpgrades(game));
+        Assert.StartsWith(UpgradeBackup.FolderNamePrefix, Path.GetFileName(asked), StringComparison.Ordinal);
+        Assert.Equal([asked], session.RevertedUnfinishedUpgrade!.BackupFolders);
+        Assert.Empty(session.RevertedUnfinishedUpgrade.NotPutBack);
+        // The session, which read the files of the upgrade, saves none of them
+        Assert.Equal(before, ReadFiles(game));
+        Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(game)!, "First.txt")));
+    }
+
+    [Fact]
+    public void ARevertOfAnUpgradeWithoutBackupLeavesItUnfinished()
+    {
+        // Kept without a backup: nothing to put the files back from
+        var game = WriteProject("Game", $"""
+            <PackageReference Include="{SecondStepBlocked}" Version="1.0.0" />
+            <StridePackageUpgradeRecord Include="{SecondStepBlocked}" Version="1.0.0" Unfinished="{SecondStepBlocked}-2.0.0-P2" />
+            """);
+
+        var result = new PackageSessionResult();
+        PackageSession.Load(game, result, new PackageLoadParameters
+        {
+            AutoCompileProjects = false,
+            LoadAssemblyReferences = false,
+            UnfinishedUpgradeFound = (_, _, _) => UnfinishedUpgradeAnswer.Revert,
+        });
+        using var session = result.Session;
+
+        Assert.Null(session!.RevertedUnfinishedUpgrade);
+        AssertError(result, "names no backup on this computer");
+        Assert.Equal([$"{SecondStepBlocked}-2.0.0-P2"], VSProjectHelper.GetUnfinishedUpgrades(game).Single().Steps);
+        Assert.Equal("1.0.0", ReadPackageVersion(game, SecondStepBlocked));
+    }
+
+    [Fact]
+    public void ARevertWhenAProjectOpensStopsTheCodeMigrationOfTheOtherProjects()
+    {
+        var kept = WriteProject("Kept", """<PackageReference Include="UpgradeRecord.SecondStepThrows" Version="1.0.0" />""");
+        LoadAndSave(kept, parameters =>
+        {
+            parameters.BackupBeforeUpgrade = true;
+            parameters.PackageUpgradeFailed = _ => PackageUpgradeFailedAnswer.Keep;
+        });
+        var document = XDocument.Load(kept);
+        document.Descendants("PackageReference").Single().SetAttributeValue("Version", "1.0.0");
+        document.Save(kept);
+        // Listed first, so its upgrade is confirmed before the question about the unfinished upgrade
+        var code = WriteProject("Code", """<PackageReference Include="UpgradeRecord.CodeRules" Version="1.0.0" />""");
+
+        LoadAndSave(WriteSolution(code, kept), parameters =>
+        {
+            parameters.AutoCompileProjects = true;
+            parameters.UnfinishedUpgradeFound = (_, _, _) => UnfinishedUpgradeAnswer.Revert;
+        });
+
+        Assert.DoesNotContain(new UFile(code), CodeRunner.MigratedProjects);
+        Assert.Equal("1.0.0", ReadPackageVersion(code, "UpgradeRecord.CodeRules"));
+    }
+
+    [Fact]
+    public void ARevertPutsBackTheFilesOfTheRetriesToo()
+    {
+        var game = WriteProject("Game", $"""<PackageReference Include="{SecondStepBlocked}" Version="1.0.0" />""");
+        var gameDirectory = Path.GetDirectoryName(game)!;
+        var blocked = Path.Combine(gameDirectory, "Blocked.txt");
+        File.WriteAllText(blocked, "");
+        var before = ReadFiles(game);
+        LoadAndSave(game, parameters =>
+        {
+            parameters.BackupBeforeUpgrade = true;
+            parameters.PackageUpgradeFailed = _ => PackageUpgradeFailedAnswer.Keep;
+        });
+        var kept = VSProjectHelper.GetUnfinishedUpgrades(game).Single();
+        Assert.StartsWith(UpgradeBackup.FolderNamePrefix, Path.GetFileName(kept.Backup), StringComparison.Ordinal);
+
+        // A retry, without a backup of its own, once the step is no longer blocked: a code step is still left
+        File.Delete(blocked);
+        var document = XDocument.Load(game);
+        document.Descendants(PackageUpgrader.UpgradeRecordItem).Single().SetAttributeValue(PackageUpgrader.UnfinishedMetadata, $"{SecondStepBlocked}-2.0.0-C1;{SecondStepBlocked}-2.0.0-P2;{SecondStepBlocked}-2.0.0-P3");
+        document.Save(game);
+        LoadAndSave(game, parameters => parameters.RetryUnfinishedUpgrades = true);
+        var retried = VSProjectHelper.GetUnfinishedUpgrades(game).Single();
+        Assert.Equal([$"{SecondStepBlocked}-2.0.0-C1"], retried.Steps);
+        Assert.Equal(kept.Backup, retried.Backup);
+        Assert.True(File.Exists(Path.Combine(gameDirectory, "Third.txt")));
+        // The backup records the files as the retry left them: only a change made since counts
+        Assert.Empty(UpgradeBackup.Open(retried.Backup!)!.GetChangedFiles());
+        File.WriteAllText(Path.Combine(gameDirectory, "First.txt"), "Mine");
+        Assert.Equal([Path.Combine(gameDirectory, "First.txt")], UpgradeBackup.Open(retried.Backup!)!.GetChangedFiles());
+
+        // As the banner of Game Studio does
+        var revert = PackageSession.RevertUpgrades([retried.Backup!], new LoggerResult());
+
+        Assert.Empty(revert.NotPutBack);
+        Assert.Equal(before, ReadFiles(game));
+        Assert.Empty(Directory.GetFiles(gameDirectory, "*.txt"));
+        // The files as they were before the revert are kept in the backup
+        var reverted = Directory.GetDirectories(retried.Backup!, "reverted-*").Single();
+        Assert.Equal("Mine", File.ReadAllText(Path.Combine(reverted, "First.txt")));
+        Assert.True(File.Exists(Path.Combine(reverted, "Third.txt")));
+        Assert.Equal([reverted], revert.KeptFolders);
+        // The report, which the revert doesn't put back, says the upgrade below is reverted
+        var report = File.ReadAllText(ReportFile(game));
+        var top = report[report.IndexOf("\n## ", StringComparison.Ordinal)..];
+        // The project had no record before the upgrade
+        Assert.EndsWith($" · {SecondStepBlocked} 2.0.0 · reverted, 1 item left", top.Split('\n')[1], StringComparison.Ordinal);
+        Assert.Contains($" · reverted, 1 item left\n\nEvery file the last upgrade and its retries changed is put back as it was, from `{Path.GetFileName(retried.Backup)}`.", top, StringComparison.Ordinal);
+        Assert.Contains($"The files as they were before the revert are in `{Path.GetFileName(retried.Backup)}/{Path.GetFileName(reverted)}`.\n", top, StringComparison.Ordinal);
+        Assert.Contains("### Changed since the upgrade\n", top, StringComparison.Ordinal);
+        Assert.Contains("\n- [ ] `First.txt`\n", top, StringComparison.Ordinal);
+        Assert.Equal([Path.Combine(gameDirectory, "First.txt")], revert.ChangedFiles);
+    }
+
+    [Fact]
+    public void ARetryWhenProjectsOpenBacksUpEachProjectInTheBackupOfItsUpgrade()
+    {
+        // Two upgrades, each kept unfinished with a backup of its own, once their step is no longer blocked: a code step is still left
+        var projects = new[] { WriteProject("First", $"""<PackageReference Include="{SecondStepBlocked}" Version="1.0.0" />"""), WriteProject("Second", $"""<PackageReference Include="{SecondStepBlocked}" Version="1.0.0" />""") };
+        var backups = new List<string>();
+        foreach (var project in projects)
+        {
+            var blocked = Path.Combine(Path.GetDirectoryName(project)!, "Blocked.txt");
+            File.WriteAllText(blocked, "");
+            LoadAndSave(project, parameters =>
+            {
+                parameters.BackupBeforeUpgrade = true;
+                parameters.PackageUpgradeFailed = _ => PackageUpgradeFailedAnswer.Keep;
+            });
+            File.Delete(blocked);
+            var document = XDocument.Load(project);
+            document.Descendants(PackageUpgrader.UpgradeRecordItem).Single().SetAttributeValue(PackageUpgrader.UnfinishedMetadata, $"{SecondStepBlocked}-2.0.0-C1;{SecondStepBlocked}-2.0.0-P2;{SecondStepBlocked}-2.0.0-P3");
+            document.Save(project);
+            backups.Add(VSProjectHelper.GetUnfinishedUpgrades(project).Single().Backup!);
+        }
+        Assert.NotEqual(backups[0], backups[1], StringComparer.OrdinalIgnoreCase);
+
+        LoadAndSave(WriteSolution(projects), parameters => parameters.RetryUnfinishedUpgrades = true);
+
+        for (var i = 0; i < projects.Length; i++)
+        {
+            var retried = VSProjectHelper.GetUnfinishedUpgrades(projects[i]).Single();
+            Assert.Equal([$"{SecondStepBlocked}-2.0.0-C1"], retried.Steps);
+            Assert.Equal(backups[i], retried.Backup);
+            // The files of the retry are in that backup, as the retry left them
+            var backup = UpgradeBackup.Open(backups[i])!;
+            Assert.Contains(Path.Combine(Path.GetDirectoryName(projects[i])!, "Third.txt"), backup.GetFiles(), StringComparer.OrdinalIgnoreCase);
+            Assert.Empty(backup.GetChangedFiles());
+        }
+    }
+
+    [Fact]
+    public void AnUpgradeThatLeftItemsNamesItsBackupUntilItIsRemoved()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.FileFails" Version="1.0.0" />""");
+
+        LoadAndSave(game, parameters => parameters.BackupBeforeUpgrade = true);
+
+        // The upgrade completed, with files left to change by hand
+        var (unfinished, backups) = VSProjectHelper.GetUpgradeRecords(game);
+        Assert.Empty(unfinished);
+        var backup = Assert.Single(backups);
+        Assert.StartsWith(UpgradeBackup.FolderNamePrefix, Path.GetFileName(backup), StringComparison.Ordinal);
+        Assert.Empty(UpgradeBackup.Open(backup)!.GetChangedFiles());
+
+        // As removing the report and backup in Game Studio does
+        Assert.Equal([backup], VSProjectHelper.RemoveUpgradeBackups(game));
+        Assert.Empty(VSProjectHelper.GetUpgradeRecords(game).Backups);
+        Assert.Equal(new Dictionary<string, string> { ["UpgradeRecord.FileFails"] = "2.0.0" }, ReadRecords(game));
+    }
+
+    [Fact]
     public void AnUnfinishedUpgradeMarkedAsFinishedLetsTheNextOneRun()
     {
         var game = WriteProject("Game", """
             <PackageReference Include="UpgradeRecord.Succeeds" Version="1.0.0" />
             <StridePackageUpgradeRecord Include="Succeeds" Version="1.0.0" Unfinished="Succeeds-1.0.0-P2;Succeeds-0.9.0-P1" />
             """);
+        File.WriteAllText(ReportFile(game), "# Upgrade report: Game.csproj\n\nIntro.\n\n## 2026-11-21 14:32 · Succeeds 0.9.0 → 1.0.0 · kept, 2 items left\n");
         IReadOnlyList<UpgradeStepInfo>? asked = null;
 
-        LoadAndSave(game, out var report, parameters => parameters.UnfinishedUpgradeFound = (_, steps) =>
+        LoadAndSave(game, parameters => parameters.UnfinishedUpgradeFound = (_, steps, _) =>
         {
             asked = steps;
             return UnfinishedUpgradeAnswer.MarkFinished;
@@ -1007,7 +1363,12 @@ public class TestUpgradedVersionRecord : IDisposable
         Assert.Equal([new UpgradeStepInfo("Succeeds-1.0.0-P2", "Move the settings", "https://doc/1.0.html#succeeds-1.0.0-p2"), new UpgradeStepInfo("Succeeds-0.9.0-P1", "", null)], asked);
         Assert.Equal(new Dictionary<string, string> { ["Succeeds"] = "2.0.0" }, ReadRecords(game));
         Assert.Null(ReadUnfinished(game, "Succeeds"));
-        Assert.Equal(["Succeeds-1.0.0-P2", "Succeeds-0.9.0-P1"], report.Projects.Single().ContinuedFromUnfinished);
+        // The report gets the mark, then the upgrade that ran after it on top
+        var text = File.ReadAllText(ReportFile(game));
+        var upgrade = text.IndexOf(" · Succeeds 1.0.0 → 2.0.0 · ", StringComparison.Ordinal);
+        var mark = text.IndexOf(" · Last upgrade marked as finished\n\nIts items below are done by hand:\n\n- Game: `Succeeds-1.0.0-P2`, `Succeeds-0.9.0-P1`\n", StringComparison.Ordinal);
+        var kept = text.IndexOf(" · Succeeds 0.9.0 → 1.0.0 · ", StringComparison.Ordinal);
+        Assert.True(upgrade > 0 && upgrade < mark && mark < kept, text);
     }
 
     [Fact]
@@ -1017,7 +1378,8 @@ public class TestUpgradedVersionRecord : IDisposable
         var inside = Path.Combine(root, "Game", "Player.cs");
         var outside = Path.Combine(directory, "Shared", "Lib.cs");
         var created = Path.Combine(root, "Game", "New.cs");
-        foreach (var file in new[] { inside, outside })
+        var moved = Path.Combine(root, "Game", "Water.sdsl.cs");
+        foreach (var file in new[] { inside, outside, moved })
         {
             Directory.CreateDirectory(Path.GetDirectoryName(file)!);
             File.WriteAllText(file, "Before");
@@ -1029,13 +1391,21 @@ public class TestUpgradedVersionRecord : IDisposable
             backup.Snapshot(file);
             File.WriteAllText(file, "After");
         }
+        backup.SnapshotMove(moved, moved + ".bak");
+        File.Move(moved, moved + ".bak");
         Assert.True(backup.HasChanges(x => x == outside));
 
-        Assert.Empty(backup.Restore(_ => true));
+        // A later session opens it from its folder
+        var opened = UpgradeBackup.Open(backup.FolderPath!)!;
+        Assert.Empty(opened.Restore(_ => true));
         Assert.Equal("Before", File.ReadAllText(inside));
         Assert.Equal("Before", File.ReadAllText(outside));
+        Assert.Equal("Before", File.ReadAllText(moved));
         Assert.False(File.Exists(created));
-        Assert.False(backup.HasChanges(_ => true));
+        Assert.False(File.Exists(moved + ".bak"));
+        Assert.False(opened.HasChanges(_ => true));
+        // The folder lists only the files still to put back
+        Assert.False(UpgradeBackup.Open(backup.FolderPath!)!.HasChanges(_ => true));
     }
 
     [Fact]
@@ -1179,7 +1549,7 @@ public class TestUpgradedVersionRecord : IDisposable
 
     private static string[] ReadFiles(params string[] files) => files.Select(File.ReadAllText).ToArray();
 
-    private static string ReportFile(string project) => Path.Combine(Path.GetDirectoryName(project)!, UpgradeReportWriter.FileName);
+    private static string ReportFile(string project) => UpgradeReportWriter.GetPath(UpgradeReportWriter.FindOwner(project));
 
     // An error that holds all the texts
     private static void AssertError(LoggerResult result, params string[] texts)
