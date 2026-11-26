@@ -8,7 +8,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG005";
     private const string Title = "Read-only member type is not supported";
-    private const string MessageFormat = "The [DataMember] attribute is applied to a read-only member '{0}' with a non supported type. Only mutable reference types are supported for read-only members.";
+    private const string MessageFormat = "The [DataMember] attribute is applied to a read-only member '{0}' with a non-supported type. Only mutable reference types are supported for read-only members.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new(
