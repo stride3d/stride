@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
@@ -317,6 +319,38 @@ public static class VSProjectHelper
         element.Update = update;
         project.AddItemGroup().AppendChild(element);
         return element;
+    }
+
+    /// <summary>
+    /// The text of a project file without what no build reads, so that two project files with the same text here build the same
+    /// code: the formatting, the comments, the order of the attributes, the upgrade records (see
+    /// <see cref="PackageUpgrader.UpgradeRecordItem"/>) and the <c>Folder</c> items (Visual Studio writes one for an empty folder).
+    /// </summary>
+    /// <param name="projectFileText">The text of the project file.</param>
+    /// <returns>The project as XML on one line, or the text as it is when it is not XML, such as a file being written.</returns>
+    public static string WithoutBuildNeutralItems(string projectFileText)
+    {
+        XDocument document;
+        try
+        {
+            // Drops the whitespace between elements
+            document = XDocument.Parse(projectFileText);
+        }
+        catch (XmlException)
+        {
+            return projectFileText;
+        }
+        document.DescendantNodes().OfType<XComment>().Remove();
+        var items = document.Descendants()
+            .Where(x => x.Name.LocalName is PackageUpgrader.UpgradeRecordItem or "Folder" && x.Parent?.Name.LocalName == "ItemGroup")
+            .ToList();
+        var groups = items.Select(x => x.Parent!).Distinct().ToList();
+        items.Remove();
+        groups.Where(x => !x.HasElements).Remove();
+        // The order of the attributes means nothing in XML; the order of the elements stays (the order of Compile items changes the build)
+        foreach (var element in document.Descendants().ToList())
+            element.ReplaceAttributes(element.Attributes().OrderBy(x => x.Name.ToString(), StringComparer.Ordinal).ToList());
+        return document.ToString(SaveOptions.DisableFormatting);
     }
 
     public static MicrosoftProject LoadProject(string fullProjectLocation, string configuration = "Debug", string platform = "AnyCPU", Dictionary<string, string>? extraProperties = null)
