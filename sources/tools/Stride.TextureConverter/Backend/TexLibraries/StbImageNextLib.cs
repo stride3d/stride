@@ -17,7 +17,7 @@ using StridePixelFormat = Stride.Graphics.PixelFormat;
 namespace Stride.TextureConverter.TexLibraries
 {
     /// <summary>
-    /// A bitmap of BGRA pixels, used by <see cref="ImageSharpTexLib"/>.
+    /// A bitmap of BGRA pixels, used by <see cref="StbImageNextLib"/>.
     /// </summary>
     internal sealed class TextureBitmap
     {
@@ -49,9 +49,9 @@ namespace Stride.TextureConverter.TexLibraries
     }
 
     /// <summary>
-    /// Per-image data held by <see cref="ImageSharpTexLib"/>.
+    /// Per-image data held by <see cref="StbImageNextLib"/>.
     /// </summary>
-    internal class ImageSharpTextureLibraryData : ITextureLibraryData
+    internal class StbImageNextTextureLibraryData : ITextureLibraryData
     {
         public TextureBitmap[] Bitmaps { get; set; }
 
@@ -62,17 +62,17 @@ namespace Stride.TextureConverter.TexLibraries
     /// Performs <see cref="TextureTool"/> requests using managed image codecs and pixel buffers:
     /// common bitmap I/O plus pixel-space operations (rescale, flip, R/B channel switch, gamma, sub-image swap).
     /// </summary>
-    internal class ImageSharpTexLib : ITexLibrary
+    internal class StbImageNextLib : ITexLibrary
     {
-        private static readonly Logger Log = GlobalLogger.GetLogger("ImageSharpTexLib");
+        private static readonly Logger Log = GlobalLogger.GetLogger("StbImageNextLib");
 
-        public ImageSharpTexLib() { }
+        public StbImageNextLib() { }
 
         public void Dispose() { }
 
         public void Dispose(TexImage image)
         {
-            var libraryData = (ImageSharpTextureLibraryData)image.LibraryData[this];
+            var libraryData = (StbImageNextTextureLibraryData)image.LibraryData[this];
             if (libraryData.Data != IntPtr.Zero)
                 Marshal.FreeHGlobal(libraryData.Data);
         }
@@ -110,14 +110,14 @@ namespace Stride.TextureConverter.TexLibraries
         {
             if (image.Format.IsCompressed)
             {
-                Log.Error("ImageSharpTexLib can't process compressed texture.");
-                throw new TextureToolsException("ImageSharpTexLib can't process compressed texture.");
+                Log.Error("StbImageNextLib can't process compressed texture.");
+                throw new TextureToolsException("StbImageNextLib can't process compressed texture.");
             }
 
             if (!IsSupportedPixelFormat(image.Format, out bool swapRedBlue))
-                throw new ArgumentException($"The pixel format '{image.Format}' is not supported by ImageSharpTexLib");
+                throw new ArgumentException($"The pixel format '{image.Format}' is not supported by StbImageNextLib");
 
-            var libraryData = new ImageSharpTextureLibraryData();
+            var libraryData = new StbImageNextTextureLibraryData();
             image.LibraryData[this] = libraryData;
             libraryData.Bitmaps = new TextureBitmap[image.SubImageArray.Length];
 
@@ -138,7 +138,7 @@ namespace Stride.TextureConverter.TexLibraries
         {
             if (!image.LibraryData.ContainsKey(this))
                 return;
-            var libraryData = (ImageSharpTextureLibraryData)image.LibraryData[this];
+            var libraryData = (StbImageNextTextureLibraryData)image.LibraryData[this];
             if (libraryData.Bitmaps == null)
                 return;
 
@@ -193,7 +193,7 @@ namespace Stride.TextureConverter.TexLibraries
 
         public void Execute(TexImage image, IRequest request)
         {
-            var libraryData = image.LibraryData.TryGetValue(this, out var libData) ? (ImageSharpTextureLibraryData)libData : null;
+            var libraryData = image.LibraryData.TryGetValue(this, out var libData) ? (StbImageNextTextureLibraryData)libData : null;
 
             switch (request.Type)
             {
@@ -230,8 +230,8 @@ namespace Stride.TextureConverter.TexLibraries
                     break;
 
                 default:
-                    Log.Error("ImageSharpTexLib can't handle this request: " + request.Type);
-                    throw new TextureToolsException("ImageSharpTexLib can't handle this request: " + request.Type);
+                    Log.Error("StbImageNextLib can't handle this request: " + request.Type);
+                    throw new TextureToolsException("StbImageNextLib can't handle this request: " + request.Type);
             }
         }
 
@@ -280,7 +280,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.SubImageArray[0].RowPitch = rowPitch;
             image.SubImageArray[0].SlicePitch = slicePitch;
 
-            var libraryData = new ImageSharpTextureLibraryData
+            var libraryData = new StbImageNextTextureLibraryData
             {
                 Bitmaps = new[] { bitmap },
                 Data = buffer,
@@ -289,7 +289,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.DisposingLibrary = this;
         }
 
-        private void Rescale(TexImage image, ImageSharpTextureLibraryData libraryData, RescalingRequest rescale)
+        private void Rescale(TexImage image, StbImageNextTextureLibraryData libraryData, RescalingRequest rescale)
         {
             int width = rescale.ComputeWidth(image);
             int height = rescale.ComputeHeight(image);
@@ -340,7 +340,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.DataSize = slicePitch * image.ArraySize * image.FaceCount * image.Depth;
         }
 
-        private void SwitchChannels(TexImage image, ImageSharpTextureLibraryData libraryData)
+        private void SwitchChannels(TexImage image, StbImageNextTextureLibraryData libraryData)
         {
             // libraryData.Bitmaps always stay in canonical Bgra32.
             // Actual R/B byte swap happens when saving.
@@ -349,7 +349,7 @@ namespace Stride.TextureConverter.TexLibraries
                 : StridePixelFormat.B8G8R8A8_UNorm;
         }
 
-        private void Flip(TexImage image, ImageSharpTextureLibraryData libraryData, FlippingRequest flip)
+        private void Flip(TexImage image, StbImageNextTextureLibraryData libraryData, FlippingRequest flip)
         {
             Log.Verbose($"Flipping image : {flip.Flip} ...");
 
@@ -359,7 +359,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.Flip(flip.Flip);
         }
 
-        private void FlipSub(ImageSharpTextureLibraryData libraryData, FlippingSubRequest flipSub)
+        private void FlipSub(StbImageNextTextureLibraryData libraryData, FlippingSubRequest flipSub)
         {
             Log.Verbose($"Flipping image : sub-image {flipSub.SubImageIndex} {flipSub.Flip} ...");
 
@@ -373,7 +373,7 @@ namespace Stride.TextureConverter.TexLibraries
             }
         }
 
-        private void Swap(ImageSharpTextureLibraryData libraryData, SwappingRequest swap)
+        private void Swap(StbImageNextTextureLibraryData libraryData, SwappingRequest swap)
         {
             Log.Verbose($"Swapping image : sub-image {swap.FirstSubImageIndex} and {swap.SecondSubImageIndex} ...");
 
@@ -389,7 +389,7 @@ namespace Stride.TextureConverter.TexLibraries
             }
         }
 
-        private void Export(TexImage image, ImageSharpTextureLibraryData libraryData, ExportRequest request)
+        private void Export(TexImage image, StbImageNextTextureLibraryData libraryData, ExportRequest request)
         {
             string directory = Path.GetDirectoryName(request.FilePath);
             string fileName = Path.GetFileNameWithoutExtension(request.FilePath);
@@ -433,7 +433,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.Save(request.FilePath);
         }
 
-        private void CorrectGamma(ImageSharpTextureLibraryData libraryData, GammaCorrectionRequest request)
+        private void CorrectGamma(StbImageNextTextureLibraryData libraryData, GammaCorrectionRequest request)
         {
             Log.Verbose($"Applying a gamma correction of {request.Gamma} ...");
 

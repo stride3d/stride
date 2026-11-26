@@ -76,7 +76,7 @@ namespace Stride.TextureConverter.Tests
                 using var textureTool = new TextureTool();
                 using var image = textureTool.Load(path, false);
 
-                // Off Windows, ImageSharpTexLib loads every PNG at 8 bits per channel
+                // Off Windows, StbImageNextLib loads every PNG at 8 bits per channel
                 if (OperatingSystem.IsWindows())
                 {
                     Assert.Equal(PixelFormat.R16G16B16A16_UNorm, image.Format);

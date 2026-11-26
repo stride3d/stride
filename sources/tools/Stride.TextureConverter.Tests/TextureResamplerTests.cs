@@ -50,7 +50,7 @@ public class TextureResamplerTests
     [InlineData(".tiff")]
     public void UnsupportedFormatsAreNotClaimed(string extension)
     {
-        using var library = new ImageSharpTexLib();
+        using var library = new StbImageNextLib();
         Assert.False(library.CanHandleRequest(PixelFormat.B8G8R8A8_UNorm, new FileLoadingRequest("texture" + extension, false)));
         Assert.False(library.CanHandleRequest(PixelFormat.B8G8R8A8_UNorm, new ExportRequest("texture" + extension, 0)));
     }
@@ -58,7 +58,7 @@ public class TextureResamplerTests
     [Fact]
     public void GifCanBeLoadedButNotExported()
     {
-        using var library = new ImageSharpTexLib();
+        using var library = new StbImageNextLib();
         Assert.True(library.CanHandleRequest(PixelFormat.B8G8R8A8_UNorm, new FileLoadingRequest("texture.GIF", false)));
         Assert.False(library.CanHandleRequest(PixelFormat.B8G8R8A8_UNorm, new ExportRequest("texture.gif", 0)));
     }
@@ -79,7 +79,7 @@ public class TextureResamplerTests
                 using var stream = File.Create(sourcePath);
                 source.Save(stream, ImageFileType.Png);
             }
-            using var library = new ImageSharpTexLib();
+            using var library = new StbImageNextLib();
             using var image = new TexImage();
             library.Execute(image, new FileLoadingRequest(sourcePath, false));
             library.Execute(image, new ExportRequest(outputPath, 0));
@@ -111,7 +111,7 @@ public class TextureResamplerTests
                 using var stream = File.Create(path);
                 source.Save(stream, ImageFileType.Png);
             }
-            using var library = new ImageSharpTexLib();
+            using var library = new StbImageNextLib();
             using var image = new TexImage();
             library.Execute(image, new FileLoadingRequest(path, false));
             var sourceBytes = new byte[16];

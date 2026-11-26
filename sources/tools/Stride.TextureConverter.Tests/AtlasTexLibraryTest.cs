@@ -14,7 +14,7 @@ namespace Stride.TextureConverter.Tests
     public class AtlasTexLibraryTest : IDisposable
     {
         private readonly AtlasTexLibrary library = new AtlasTexLibrary();
-        private readonly ImageSharpTexLib fiLib = new ImageSharpTexLib();
+        private readonly StbImageNextLib fiLib = new StbImageNextLib();
         private readonly DxtTexLib dxtLib = new DxtTexLib();
 
         public AtlasTexLibraryTest()

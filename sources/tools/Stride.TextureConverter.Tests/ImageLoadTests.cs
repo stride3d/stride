@@ -61,7 +61,7 @@ namespace Stride.TextureConverter.Tests
             try
             {
                 File.WriteAllBytes(path, GifData);
-                using var library = new ImageSharpTexLib();
+                using var library = new StbImageNextLib();
                 using var image = new TexImage();
                 library.Execute(image, new FileLoadingRequest(path, false));
                 Assert.Equal(2, image.Width);
@@ -87,7 +87,7 @@ namespace Stride.TextureConverter.Tests
                 using var image = tool.Load(path, false);
                 Assert.Equal(2, image.Width);
                 Assert.Equal(1, image.Height);
-                Assert.Contains(image.LibraryData.Keys, library => OperatingSystem.IsWindows() ? library is DxtTexLib : library is ImageSharpTexLib);
+                Assert.Contains(image.LibraryData.Keys, library => OperatingSystem.IsWindows() ? library is DxtTexLib : library is StbImageNextLib);
                 Assert.True(image.OriginalAlphaDepth > 0);
                 var pixels = new byte[8];
                 Marshal.Copy(image.Data, pixels, 0, pixels.Length);

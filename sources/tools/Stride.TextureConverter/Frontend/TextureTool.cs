@@ -64,7 +64,7 @@ namespace Stride.TextureConverter
             textureLibraries = new List<ITexLibrary>
             {
                 new DxtTexLib(), // used to compress/decompress texture to DXT1-5 and load/save *.dds compressed texture files.
-                new ImageSharpTexLib(), // used to open/save common bitmap image formats.
+                new StbImageNextLib(), // used to open/save common bitmap image formats.
                 new StrideTexLibrary(), // used to save/load stride texture format.
                 new AstcTexLib(), // used to compress/decompress textures to/from ASTC LDR (4x4..12x12 block sizes).
                 new ColorKeyTexLibrary(), // used to apply ColorKey on R8G8B8A8/B8G8R8A8_Unorm
@@ -1461,7 +1461,7 @@ namespace Stride.TextureConverter
                 }
                 else if (request is RescalingRequest rescaling && rescaling.Filter != Filter.Rescaling.Bicubic)
                 {
-                    // Only ImageSharpTexLib implements this filter, and it handles 8-bit BGRA/RGBA only.
+                    // Only StbImageNextLib implements this filter, and it handles 8-bit BGRA/RGBA only.
                     // DxtTexLib rescales every uncompressed format, so retry with the best filter it offers.
                     Log.Warning($"No library can rescale a {image.Format} image with the {rescaling.Filter} filter, falling back to {Filter.Rescaling.Bicubic}.");
                     ExecuteRequest(image, new FixedRescalingRequest(rescaling.ComputeWidth(image), rescaling.ComputeHeight(image), Filter.Rescaling.Bicubic));
