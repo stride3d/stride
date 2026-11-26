@@ -72,7 +72,7 @@ namespace Stride.Assets.Tests
 
         private static string Normalize(string path) => Path.GetFullPath(path.Replace('\\', Path.DirectorySeparatorChar));
 
-        private static string TargetsPath()
+        internal static string TargetsPath()
         {
             for (var current = new DirectoryInfo(AppContext.BaseDirectory); current is not null; current = current.Parent)
             {
