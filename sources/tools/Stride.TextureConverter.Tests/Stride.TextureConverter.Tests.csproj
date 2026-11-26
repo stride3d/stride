@@ -11,6 +11,10 @@
       <Link>InputImages\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\data\tests\TiffImage.tif">
+      <Link>InputImages\TiffImage.tif</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.TextureConverter\Stride.TextureConverter.csproj" />

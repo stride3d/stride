@@ -53,6 +53,7 @@ namespace Stride.TextureConverter.TexLibraries
             ".jpeg",
             ".jpe",
             ".png",
+            ".gif",
             ".tiff",
             ".tif",
         };

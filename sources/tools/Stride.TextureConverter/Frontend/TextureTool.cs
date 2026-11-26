@@ -19,7 +19,7 @@ namespace Stride.TextureConverter
     /// <summary>
     /// Provides method to load images or textures, to modify them and to convert them with different texture compression format.
     /// Input supported format : png, jpg, bmp, gif, tga, tif/tiff, dds, pvr, ktx.
-    /// Output format : png, jpg, bmp, gif, tga, tif/tiff, dds, pvr, ktx.
+    /// Output format : png, jpg, bmp, tga, dds, pvr, ktx.
     /// Compression format : DXT1-5, ETC1-2, uncompressed formats (BGRA8888, RGBA8888)
     /// Image processing : resize, flip, gamma correction
     /// Texture utilities : Mipmap generation, normal map generation

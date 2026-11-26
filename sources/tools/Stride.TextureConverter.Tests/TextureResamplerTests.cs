@@ -46,6 +46,8 @@ public class TextureResamplerTests
     [InlineData(".webp")]
     [InlineData(".qoi")]
     [InlineData(".pbm")]
+    [InlineData(".tif")]
+    [InlineData(".tiff")]
     public void UnsupportedFormatsAreNotClaimed(string extension)
     {
         using var library = new ImageSharpTexLib();
@@ -53,12 +55,18 @@ public class TextureResamplerTests
         Assert.False(library.CanHandleRequest(PixelFormat.B8G8R8A8_UNorm, new ExportRequest("texture" + extension, 0)));
     }
 
+    [Fact]
+    public void GifCanBeLoadedButNotExported()
+    {
+        using var library = new ImageSharpTexLib();
+        Assert.True(library.CanHandleRequest(PixelFormat.B8G8R8A8_UNorm, new FileLoadingRequest("texture.GIF", false)));
+        Assert.False(library.CanHandleRequest(PixelFormat.B8G8R8A8_UNorm, new ExportRequest("texture.gif", 0)));
+    }
+
     [Theory]
     [InlineData(".png")]
     [InlineData(".bmp")]
     [InlineData(".tga")]
-    [InlineData(".gif")]
-    [InlineData(".tiff")]
     public void BackendRoundTripsImageFormats(string extension)
     {
         var sourcePath = Path.Combine(Path.GetTempPath(), $"stride-codec-{Guid.NewGuid():N}.png");
@@ -74,25 +82,12 @@ public class TextureResamplerTests
             using var library = new ImageSharpTexLib();
             using var image = new TexImage();
             library.Execute(image, new FileLoadingRequest(sourcePath, false));
-            if (!OperatingSystem.IsWindows() && extension is ".gif" or ".tiff")
-            {
-                Assert.Throws<PlatformNotSupportedException>(() => library.Execute(image, new ExportRequest(outputPath, 0)));
-                return;
-            }
             library.Execute(image, new ExportRequest(outputPath, 0));
             using var loaded = new TexImage();
             library.Execute(loaded, new FileLoadingRequest(outputPath, false));
             var actual = new byte[4];
             Marshal.Copy(loaded.Data, actual, 0, actual.Length);
-            if (extension == ".gif")
-            {
-                // GIF's indexed palette quantizes RGB values during encoding.
-                Assert.Equal(new byte[] { 51, 43, 0, 255 }, actual);
-            }
-            else
-            {
-                Assert.Equal(new byte[] { 60, 40, 20, 255 }, actual);
-            }
+            Assert.Equal(new byte[] { 60, 40, 20, 255 }, actual);
         }
         finally
         {

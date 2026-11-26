@@ -86,10 +86,10 @@ namespace Stride.TextureConverter.TexLibraries
             switch (request.Type)
             {
                 case RequestType.Loading:
-                    return request is FileLoadingRequest file && IsSupportedFile(file.FilePath);
+                    return request is FileLoadingRequest file && IsSupportedFile(file.FilePath, isLoading: true);
 
                 case RequestType.Export:
-                    return IsSupportedFile(((ExportRequest)request).FilePath);
+                    return IsSupportedFile(((ExportRequest)request).FilePath, isLoading: false);
 
                 case RequestType.Rescaling:
                     return ((RescalingRequest)request).Filter != Filter.Rescaling.Nearest && IsSupportedPixelFormat(imageFormat, out _);
@@ -243,44 +243,11 @@ namespace Stride.TextureConverter.TexLibraries
             int alphaSize;
             try
             {
-                string extension = Path.GetExtension(loader.FilePath).ToLowerInvariant();
-                if (extension is ".gif" or ".tif" or ".tiff")
-                {
-                    if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
-                    {
-                        Log.Error("Loading file " + loader.FilePath + " failed: GIF and TIFF images are supported only on Windows.");
-                        throw new TextureToolsException("Loading file " + loader.FilePath + " failed: GIF and TIFF images are supported only on Windows.");
-                    }
-
-                    using var decoded = (System.Drawing.Bitmap)System.Drawing.Image.FromFile(loader.FilePath);
-                    var rect = new System.Drawing.Rectangle(0, 0, decoded.Width, decoded.Height);
-                    var data = decoded.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                    try
-                    {
-                        bitmap = WrapAsImage(data.Scan0, decoded.Width, decoded.Height, data.Stride, false);
-                    }
-                    finally
-                    {
-                        decoded.UnlockBits(data);
-                    }
-                    if (extension == ".gif")
-                    {
-                        for (int i = 0; i < bitmap.Pixels.Length; i += 4)
-                        {
-                            if (bitmap.Pixels[i + 3] == 0)
-                                bitmap.Pixels.AsSpan(i, 3).Clear(); // Set RGB to 0 for fully transparent pixels
-                        }
-                    }
-                    alphaSize = 8;
-                }
-                else
-                {
-                    using var stream = File.OpenRead(loader.FilePath);
-                    var decoded = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
-                    alphaSize = decoded.SourceComp is ColorComponents.GreyAlpha or ColorComponents.RedGreenBlueAlpha ? 8 : 0;
-                    SwapRedBlue(decoded.Data);
-                    bitmap = new TextureBitmap(decoded.Width, decoded.Height, decoded.Data);
-                }
+                using var stream = File.OpenRead(loader.FilePath);
+                var decoded = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+                alphaSize = decoded.SourceComp is ColorComponents.GreyAlpha or ColorComponents.RedGreenBlueAlpha ? 8 : 0;
+                SwapRedBlue(decoded.Data);
+                bitmap = new TextureBitmap(decoded.Width, decoded.Height, decoded.Data);
             }
             catch (Exception e) when (e is not TextureToolsException)
             {
@@ -544,31 +511,9 @@ namespace Stride.TextureConverter.TexLibraries
             }
         }
 
-        private static unsafe void SaveImage(TextureBitmap bmp, string filePath)
+        private static void SaveImage(TextureBitmap bmp, string filePath)
         {
             string ext = Path.GetExtension(filePath).ToLowerInvariant();
-            if (ext is ".gif" or ".tif" or ".tiff")
-            {
-                if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
-                    throw new PlatformNotSupportedException("GIF and TIFF images are supported only on Windows.");
-
-                using var systemDrawingBitmap = new System.Drawing.Bitmap(bmp.Width, bmp.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                var data = systemDrawingBitmap.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                try
-                {
-                    for (int y = 0; y < bmp.Height; y++)
-                    {
-                        var row = (byte*)data.Scan0 + y * data.Stride;
-                        new ReadOnlySpan<byte>(bmp.Pixels, y * bmp.Width * 4, bmp.Width * 4).CopyTo(new Span<byte>(row, bmp.Width * 4));
-                    }
-                }
-                finally
-                {
-                    systemDrawingBitmap.UnlockBits(data);
-                }
-                systemDrawingBitmap.Save(filePath, ext == ".gif" ? System.Drawing.Imaging.ImageFormat.Gif : System.Drawing.Imaging.ImageFormat.Tiff);
-                return;
-            }
             var pixels = (byte[])bmp.Pixels.Clone();
             SwapRedBlue(pixels);
             using var stream = File.Create(filePath);
@@ -598,13 +543,13 @@ namespace Stride.TextureConverter.TexLibraries
             return new TextureBitmap(width, height, TextureResampler.Resize(image.Pixels, image.Width, image.Height, width, height, filter));
         }
 
-        private static bool IsSupportedFile(string filePath)
+        private static bool IsSupportedFile(string filePath, bool isLoading)
         {
             string ext = Path.GetExtension(filePath).ToLowerInvariant();
             return ext switch
             {
                 ".png" or ".jpg" or ".jpeg" or ".bmp" or ".tga" => true,
-                ".gif" or ".tif" or ".tiff" => OperatingSystem.IsWindows(),
+                ".gif" => isLoading,
                 _ => false,
             };
         }

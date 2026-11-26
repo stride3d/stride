@@ -191,8 +191,7 @@ namespace Stride.Graphics.Tests
                     {
                         foreach (ImageFileType intermediateFormat in Enum.GetValues<ImageFileType>())
                         {
-                            if (!OperatingSystem.IsWindows() && (intermediateFormat is ImageFileType.Gif or ImageFileType.Tiff ||
-                                sourceFormat is ImageFileType.Gif or ImageFileType.Tiff))
+                            if (intermediateFormat is ImageFileType.Gif or ImageFileType.Tiff || sourceFormat == ImageFileType.Tiff)
                                 continue;
 
                             if (intermediateFormat == ImageFileType.Tga || sourceFormat == ImageFileType.Tga) // TODO remove this when Load/Save methods are implemented for Tga.
@@ -316,22 +315,11 @@ namespace Stride.Graphics.Tests
         [Theory]
         [InlineData(ImageFileType.Gif)]
         [InlineData(ImageFileType.Tiff)]
-        public void GifAndTiffAreWindowsOnly(ImageFileType format)
+        public void GifAndTiffSavingIsNotSupported(ImageFileType format)
         {
             using var source = Image.New2D(1, 1, 1, PixelFormat.R8G8B8A8_UNorm);
-            source.PixelBuffer[0].SetPixel(0, 0, 0xFF0000FFu);
             using var stream = new MemoryStream();
-            if (!OperatingSystem.IsWindows())
-            {
-                Assert.Throws<PlatformNotSupportedException>(() => source.Save(stream, format));
-                var header = format == ImageFileType.Gif ? new byte[] { 71, 73, 70, 56 } : new byte[] { 73, 73, 42, 0 };
-                Assert.Throws<PlatformNotSupportedException>(() => Image.Load(header));
-                return;
-            }
-
-            source.Save(stream, format);
-            using var loaded = Image.Load(stream.ToArray());
-            Assert.Equal(0xFF0000FFu, loaded.PixelBuffer[0].GetPixel<uint>(0, 0));
+            Assert.Throws<NotSupportedException>(() => source.Save(stream, format));
         }
 
         [Theory]
@@ -340,9 +328,6 @@ namespace Stride.Graphics.Tests
         [InlineData(AlphaLoadMode.EnsurePremultiplied)]
         public void GifTransparentPaletteEntryHasZeroRgb(AlphaLoadMode alphaLoadMode)
         {
-            if (!OperatingSystem.IsWindows())
-                return;
-
             byte[] data = [
                 0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 2, 0, 1, 0, 0x80, 0, 0,
                 0xFF, 0xFF, 0xFF, 0xFF, 0, 0,
@@ -355,17 +340,14 @@ namespace Stride.Graphics.Tests
             Assert.Equal(0xFF0000FFu, loaded.PixelBuffer[0].GetPixel<uint>(1, 0));
         }
 
-        [Fact]
-        public void TiffPreservesStraightAlphaOnWindows()
+        [Theory]
+        [InlineData(0x49, 0x49, 42, 0)]
+        [InlineData(0x49, 0x49, 43, 0)]
+        [InlineData(0x4D, 0x4D, 0, 42)]
+        [InlineData(0x4D, 0x4D, 0, 43)]
+        public void TiffLoadingIsNotSupported(byte first, byte second, byte third, byte fourth)
         {
-            if (!OperatingSystem.IsWindows())
-                return;
-            using var source = Image.New2D(1, 1, 1, PixelFormat.R8G8B8A8_UNorm);
-            source.PixelBuffer[0].SetPixel(0, 0, 0x0D000003u);
-            using var stream = new MemoryStream();
-            source.Save(stream, ImageFileType.Tiff);
-            using var loaded = Image.Load(stream.ToArray());
-            Assert.Equal(0x0D000003u, loaded.PixelBuffer[0].GetPixel<uint>(0, 0));
+            Assert.Throws<NotSupportedException>(() => Image.Load(new[] { first, second, third, fourth }));
         }
 
         private void ProcessFiles(Game game, ImageFileType sourceFormat, ImageFileType intermediateFormat)
@@ -406,13 +388,11 @@ namespace Stride.Graphics.Tests
                 using (var outStream = VirtualFileSystem.ApplicationCache.OpenStream(fileName + extension, VirtualFileMode.Create, VirtualFileAccess.Write))
                     image.Save(outStream, intermediateFormat);
 
-                if (intermediateFormat == ImageFileType.Stride || intermediateFormat == ImageFileType.Dds || (sourceFormat == intermediateFormat
-                    && intermediateFormat != ImageFileType.Gif)) // TODO: remove this when Giff compression/decompression is fixed
+                if (intermediateFormat == ImageFileType.Stride || intermediateFormat == ImageFileType.Dds || sourceFormat == intermediateFormat)
                 {
                     int allowSmallDifferences;
                     switch (intermediateFormat)
                     {
-                        case ImageFileType.Tiff:// TODO: remove this when tiff encryption implementation is stable
                         case ImageFileType.Png: // TODO: remove this when png  encryption implementation is stable
                             allowSmallDifferences = 1;
                             break;
@@ -439,7 +419,7 @@ namespace Stride.Graphics.Tests
             GC.Collect();
             GC.WaitForPendingFinalizers();
             var testMemoryAfter = GC.GetTotalMemory(true);
-            Log.Info($"Loaded {imageCount} and convert to (Dds, Jpg, Png, Gif, Bmp, Tiff) image from DirectXSDK test Memory: {testMemoryAfter - testMemoryBefore} bytes, in {time}ms");
+            Log.Info($"Loaded {imageCount} and convert to (Dds, Jpg, Png, Bmp) image from DirectXSDK test Memory: {testMemoryAfter - testMemoryBefore} bytes, in {time}ms");
         }
 
         internal static void CompareImage(Image from, Image to, bool ignoreAlpha, int allowedDifference = 0, string file = null)

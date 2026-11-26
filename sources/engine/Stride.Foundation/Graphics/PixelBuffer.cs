@@ -173,7 +173,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="imageStream">The destination stream.</param>
         /// <param name="fileType">Specify the output format.</param>
-        /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
+        /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, wmp, tga</c>.</remarks>
         public void Save(Stream imageStream, ImageFileType fileType)
         {
             var description = new ImageDescription()
