@@ -379,7 +379,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 {
                     // One save raises several events, handled one after the other (each waits for the reload below).
                     // An empty file is a save in progress: a later event brings its content. The same content as
-                    // the last load has nothing new.
+                    // the last load, once what no build reads is left out (VSProjectHelper.WithoutBuildNeutralItems), has nothing new.
                     var projectFileContent = TryReadProjectFile(changedFile);
                     if (projectFileContent == string.Empty || (projectFileContent != null && projectFileContent == trackedAssembly.ProjectFileContent))
                         return null;
@@ -650,7 +650,7 @@ namespace Stride.Assets.Presentation.AssetEditors
             {
                 using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
                 using var reader = new StreamReader(stream);
-                return reader.ReadToEnd();
+                return VSProjectHelper.WithoutBuildNeutralItems(reader.ReadToEnd());
             }
             catch (IOException)
             {
@@ -860,7 +860,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             public Project Project { get; set; }
 
-            /// <summary>The .csproj text when <see cref="Project"/> was loaded, or null if it could not be read.</summary>
+            /// <summary>The .csproj text when <see cref="Project"/> was loaded, as <see cref="VSProjectHelper.WithoutBuildNeutralItems"/> returns it, or null if it could not be read.</summary>
             public string ProjectFileContent { get; set; }
         }
     }

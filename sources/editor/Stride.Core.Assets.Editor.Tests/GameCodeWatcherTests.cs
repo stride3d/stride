@@ -67,7 +67,7 @@ public sealed class GameCodeWatcherTests : IDisposable
         using var watcher = CreateWatcher(OneBurstDelay);
         var bursts = Record(watcher);
         var gameDirectory = Path.GetDirectoryName(game)!;
-        File.WriteAllText(game, ProjectFile("MyGame") + "<!-- edited -->");
+        File.WriteAllText(game, ProjectFile("MyGame.Renamed"));
 
         Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, "Player.cs"));
         Change(watcher, FileEventChangeType.Created, Path.Combine(gameDirectory, "Scripts", "Enemy.cs"));
@@ -84,6 +84,22 @@ public sealed class GameCodeWatcherTests : IDisposable
         Assert.Equal(
             new[] { "Player.cs", Path.Combine("Scripts", "Enemy.cs"), "Old.CS", "New.cs", Path.Combine("Views", "StoryEditorView.axaml"), Path.Combine("Views", "DialogueView.xaml"), Path.Combine("Properties", "Resources.resx"), "MyGame.csproj" },
             burst.Select(x => Path.GetRelativePath(gameDirectory, x.FilePath)));
+    }
+
+    [Fact]
+    public async Task AProjectFileWriteThatABuildReadsCounts()
+    {
+        using var watcher = CreateWatcher();
+        var bursts = Record(watcher);
+
+        // The order of Compile items changes the build (field initializers of partial types)
+        File.WriteAllText(game, ProjectFile("MyGame", """<Compile Include="..\Shared\B.cs" Link="Shared\B.cs" /><Compile Include="..\Shared\A.cs" Link="Shared\A.cs" />"""));
+        Change(watcher, FileEventChangeType.Changed, game);
+        Assert.Equal(game, Assert.Single(await bursts.Reader.ReadAsync().AsTask().WaitAsync(Timeout)).FilePath);
+
+        File.WriteAllText(game, ProjectFile("MyGame.Renamed"));
+        Change(watcher, FileEventChangeType.Changed, game);
+        Assert.Equal(game, Assert.Single(await bursts.Reader.ReadAsync().AsTask().WaitAsync(Timeout)).FilePath);
     }
 
     [Fact]
@@ -107,6 +123,36 @@ public sealed class GameCodeWatcherTests : IDisposable
         Change(watcher, FileEventChangeType.Changed, game);
         File.WriteAllText(game, string.Empty);
         Change(watcher, FileEventChangeType.Changed, game);
+        // Writes of the project file that no build reads
+        string[] buildNeutralWrites =
+        [
+            // The upgrade records, which upgrades write
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <AssemblyName>MyGame</AssemblyName>
+              </PropertyGroup>
+              <ItemGroup>
+                <Compile Include="..\Shared\A.cs" Link="Shared\A.cs" />
+                <Compile Include="..\Shared\B.cs" Link="Shared\B.cs" />
+              </ItemGroup>
+              <ItemGroup>
+                <StridePackageUpgradeRecord Include="Stride" Version="4.5.5" />
+                <StridePackageUpgradeRecord Update="Stride" Version="4.5.6" />
+              </ItemGroup>
+            </Project>
+            """,
+            ProjectFile("MyGame", "<!-- Shared code -->" + SharedItems),
+            // Visual Studio writes a Folder item for an empty folder
+            ProjectFile("MyGame", SharedItems + """<Folder Include="Assets\" />"""),
+            ProjectFile("MyGame", """<Compile Link="Shared\A.cs" Include="..\Shared\A.cs" /><Compile Link="Shared\B.cs" Include="..\Shared\B.cs" />"""),
+            "<Project Sdk=\"Microsoft.NET.Sdk\">\n\t<PropertyGroup><AssemblyName>MyGame</AssemblyName></PropertyGroup>\n\t<ItemGroup>\n\t\t" + SharedItems + "\n\t</ItemGroup>\n</Project>\n",
+        ];
+        foreach (var write in buildNeutralWrites)
+        {
+            File.WriteAllText(game, write);
+            Change(watcher, FileEventChangeType.Changed, game);
+        }
         // Another folder whose name starts like the one of the project
         Change(watcher, FileEventChangeType.Changed, Path.Combine(directory, "MyGame2", "Other.cs"));
 
@@ -249,5 +295,17 @@ public sealed class GameCodeWatcherTests : IDisposable
         return path;
     }
 
-    private static string ProjectFile(string name) => $"<Project Sdk=\"Microsoft.NET.Sdk\"><!-- {name} --></Project>";
+    private const string SharedItems = """<Compile Include="..\Shared\A.cs" Link="Shared\A.cs" /><Compile Include="..\Shared\B.cs" Link="Shared\B.cs" />""";
+
+    private static string ProjectFile(string assemblyName, string items = SharedItems)
+        => $"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <AssemblyName>{assemblyName}</AssemblyName>
+              </PropertyGroup>
+              <ItemGroup>
+                {items}
+              </ItemGroup>
+            </Project>
+            """;
 }

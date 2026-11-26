@@ -359,7 +359,8 @@ public sealed class GameCodeWatcher : IDisposable
 
         /// <summary>
         /// Whether the project file has a new content since the last call: one save raises several events, a file being written is
-        /// empty, and a project file saved as it was (the editor saves its projects with the session) has nothing new.
+        /// empty, and a project file saved as it was (the editor saves its projects with the session) has nothing new, nor one
+        /// changed only where no build reads it (see <see cref="VSProjectHelper.WithoutBuildNeutralItems"/>).
         /// </summary>
         public bool HasNewContent(FileEventChangeType changeType)
         {
@@ -377,7 +378,7 @@ public sealed class GameCodeWatcher : IDisposable
         {
             try
             {
-                return File.ReadAllText(ProjectPath);
+                return VSProjectHelper.WithoutBuildNeutralItems(File.ReadAllText(ProjectPath));
             }
             catch (IOException)
             {
