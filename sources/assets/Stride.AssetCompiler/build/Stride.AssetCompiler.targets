@@ -36,7 +36,7 @@
   <!-- Asset compile hooks directly via BeforeTargets="CopyFilesToOutputDirectory" on the
        StrideCompileAsset target itself (defined below). PrepareForRunDependsOn injection is
        unreliable because Microsoft.NET.Sdk Sdk.targets unconditionally resets the property
-       when imported after this file â€” same import-order issue documented on
+       when imported after this file - same import-order issue documented on
        StrideRunAssemblyProcessor in Stride.AssemblyProcessor.targets. -->
 
   <PropertyGroup>
@@ -77,11 +77,11 @@
     <StrideCompileAssetUpToDateCheckFileBase>$([MSBuild]::NormalizePath('$(ProjectDir)', '$(IntermediateOutputPath)', 'stride\assetcompiler-uptodatecheck'))</StrideCompileAssetUpToDateCheckFileBase>
 
     <!--The AssetCompiler runs on the build host: it loads host-built engine assemblies for type
-        discovery only, so it resolves project references for the host's native graphics API â€”
+        discovery only, so it resolves project references for the host's native graphics API -
         never the device API a project targets (the device asset output is driven by the
         platform switch). Prefer D3D11 on Windows since it's the most universally-available
         host API, but if a single-API build excluded it, fall back to whichever API IS being
-        built â€” otherwise the AssetCompiler would look for D3D11 assemblies that don't exist.-->
+        built - otherwise the AssetCompiler would look for D3D11 assemblies that don't exist.-->
     <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == '' And $([MSBuild]::IsOSPlatform('Windows')) And ($(StrideGraphicsApis.Contains('Direct3D11')) Or '$(StrideGraphicsApi)' == 'Direct3D11')">Direct3D11</StrideHostGraphicsApi>
     <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == '' And $([MSBuild]::IsOSPlatform('Windows')) And '$(StrideGraphicsApi)' != ''">$(StrideGraphicsApi)</StrideHostGraphicsApi>
     <StrideHostGraphicsApi Condition="'$(StrideHostGraphicsApi)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">Direct3D11</StrideHostGraphicsApi>
@@ -286,8 +286,8 @@
     </Exec>
 
     <!-- Adopt any minidump createdump wrote (the master's or an inherited slave's) into the crash store, signing
-         and deduping it, then send on CI or leave it for 'stride crash send'. Runs regardless of the exit code â€”
-         a slave can crash while the master exits cleanly â€” but only when a dump actually exists. -->
+         and deduping it, then send on CI or leave it for 'stride crash send'. Runs regardless of the exit code -
+         a slave can crash while the master exits cleanly - but only when a dump actually exists. -->
     <ItemGroup Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'">
       <_StrideNativeCrashDump Include="$(_StrideCompileAssetNativeDumpDir)*.dmp" />
     </ItemGroup>
@@ -435,7 +435,7 @@
     <!-- Declare the host-loadable asset assembly (this package's own dll under lib/<tfm>/) so a consumer
          loads the build matching its asset compiler runtime. Enumerate the produced TFMs (multi-TFM:
          $(TargetFrameworks); single: $(TargetFramework)) and keep only the host-compatible ones the asset
-         compiler can load â€” a base netX.0 (no platform suffix) or a net*-windows* â€” emitting one entry
+         compiler can load - a base netX.0 (no platform suffix) or a net*-windows* - emitting one entry
          per match (';'-separated; the consumer picks the one matching its runtime). -->
     <PropertyGroup Condition="'$(StrideContainsAssetTypes)' == 'true'">
       <_StrideSingleTargetFramework>$(TargetFramework)</_StrideSingleTargetFramework>
