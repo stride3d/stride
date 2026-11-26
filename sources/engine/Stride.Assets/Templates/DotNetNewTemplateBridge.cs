@@ -258,7 +258,7 @@ public static class DotNetNewTemplateBridge
                 : null;
             var description = new TemplateDotNetNewDescription
             {
-                TemplateType = sdtpl?.Type ?? TemplateType.Sample,
+                TemplateType = sdtpl?.Type ?? (template.TagsCollection.TryGetValue("type", out var kind) && kind == "project" ? TemplateType.Standard : TemplateType.Sample),
                 Id = sdtpl?.Id ?? TryParseGuid(template.Identity),
                 Name = sdtpl?.Name ?? template.Name ?? shortName ?? template.Identity,
                 Description = sdtpl?.Description ?? template.Description,

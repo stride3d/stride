@@ -89,8 +89,6 @@ public sealed class NewProjectTemplateCollectionViewModel : ProjectTemplateColle
 
     private static bool ShouldProvideTemplate(TemplateDescription template)
     {
-        if (template.TemplateType == TemplateType.Standard)
-            return true;
-        return template.FullPath?.FullPath.EndsWith("ProjectExecutable.sdtpl", StringComparison.Ordinal) == true;
+        return template.TemplateType == TemplateType.Standard;
     }
 }

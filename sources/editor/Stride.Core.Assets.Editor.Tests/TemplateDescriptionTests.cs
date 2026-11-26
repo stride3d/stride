@@ -42,7 +42,7 @@ public sealed class TemplateDescriptionTests
             Assert.Equal(TestTemplatePackage.GameId, game.Id);
             Assert.Equal("A game for the tests", game.Description);
             Assert.Same(TestTemplatePackage.Game, game.GetTemplate());
-            // A plugin can start a session, a code library only adds to one; the asset templates are not projects
+            // Plugins, packages and asset templates shouldn't be available when creating a new project (solution)
             Assert.DoesNotContain(templates.NewProjectGroup.GetTemplatesRecursively(), x => x.Id == TestTemplatePackage.PluginId);
             Assert.DoesNotContain(templates.NewProjectGroup.GetTemplatesRecursively(), x => x.Id == TestTemplatePackage.LibraryId);
             Assert.DoesNotContain(templates.NewProjectGroup.GetTemplatesRecursively(), x => x.Id == TestTemplatePackage.AssetId);

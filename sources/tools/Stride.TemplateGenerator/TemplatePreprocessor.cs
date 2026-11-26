@@ -192,7 +192,7 @@ Cache/
 
         // Asset packs (!TemplateAssetPack) are content drops, not projects — they take a reduced
         // pipeline: stage Assets/ + Resources/, emit an item-template template.json, done.
-        if (Sdtpl?.Type == SdtplMetadata.TemplateType.AssetPack)
+        if (Sdtpl?.Type == TemplateType.AssetPack)
             return RunAssetPack(sdtplPath, logger);
 
         // Stage: recursively mirror input → output. Clean output first to avoid leftover files
