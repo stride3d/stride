@@ -60,6 +60,7 @@ TemplateProviders:
   Stride.Assets.Editor.Avalonia.Views.ShaderClassNodeMixinReferenceTemplateProvider ShaderClassNodeMixinReference
   Stride.Assets.Editor.Avalonia.Views.SpriteFontFontNameTemplateProvider SpriteFontFontName
   Stride.Assets.Editor.Avalonia.Views.SkeletonNodeListTemplateProvider SkeletonNodeInformationList
+  Stride.Assets.Editor.Avalonia.Views.HumanoidBoneListTemplateProvider SkeletonHumanoidBoneMappingList
   Stride.Assets.Editor.Avalonia.Views.AnimationFrameTemplateProvider AnimationFrameTemplateProvider
   Stride.Assets.Editor.Avalonia.Views.AnimationFrameBoxTemplateProvider AnimationFrameBoxTemplateProvider
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider SceneCameraSlotId

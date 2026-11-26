@@ -9,6 +9,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using Stride.Assets.Models.Humanoid;
 using Stride.Rendering;
 
 namespace Stride.Assets.Models
@@ -67,6 +68,14 @@ namespace Stride.Assets.Models
         [MemberCollection(ReadOnly = true)]
         [Display(Expand = ExpandRule.Once)]
         public List<NodeInformation> Nodes { get; } = new List<NodeInformation>();
+
+        /// <summary>
+        /// Gets the standard humanoid bones of this skeleton, each mapped to one of its <see cref="Nodes"/>.
+        /// </summary>
+        /// <remarks>An empty list means the skeleton is not humanoid.</remarks>
+        /// <userdoc>The standard humanoid bones of this skeleton. Used to retarget animations made for another humanoid skeleton.</userdoc>
+        [DataMember(30)]
+        public List<HumanoidBoneMapping> HumanoidBones { get; } = new();
 
         [DataMemberIgnore]
         public override UFile MainSource => Source;

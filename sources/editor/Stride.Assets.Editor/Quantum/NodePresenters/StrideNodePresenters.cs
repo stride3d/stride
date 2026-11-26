@@ -27,6 +27,7 @@ internal static class StrideNodePresenters
         context.NodePresenterCommands.Register(new SetComponentReferenceCommand());
         context.NodePresenterCommands.Register(new SetSymbolReferenceCommand());
         context.NodePresenterCommands.Register(new SkeletonNodePreserveAllCommand());
+        context.NodePresenterCommands.Register(new HumanoidAutoMapCommand());
         // Show the entity picker of the editor, if it has one (IEntityPickerService)
         context.NodePresenterCommands.Register(new PickupEntityCommand());
         context.NodePresenterCommands.Register(new PickupEntityComponentCommand());

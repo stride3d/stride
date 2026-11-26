@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
@@ -14,6 +15,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 using Stride.Animations;
 using Stride.Assets.Materials;
+using Stride.Assets.Models.Humanoid;
 
 namespace Stride.Assets.Models
 {
@@ -76,6 +78,13 @@ namespace Stride.Assets.Models
                 // Note: skeleton override values
                 sourceBuildCommand.ScaleImport = ((SkeletonAsset)skeleton.Asset).ScaleImport;
                 sourceBuildCommand.PivotPosition = ((SkeletonAsset)skeleton.Asset).PivotPosition;
+            }
+
+            if (asset.SourceSkeleton != null)
+            {
+                sourceBuildCommand.Retarget = CreateRetargetParameters(assetItem, asset, skeleton, result);
+                if (sourceBuildCommand.Retarget == null)
+                    return;
             }
 
             if (asset.Type.Type == AnimationAssetTypeEnum.AnimationClip)
@@ -164,6 +173,77 @@ namespace Stride.Assets.Models
             }
 
             result.BuildSteps = buildStep;
+        }
+
+        /// <summary>
+        /// Gets the inputs of the retargeting of an animation that has a source skeleton.
+        /// </summary>
+        /// <returns>The inputs, or <c>null</c> if the animation cannot be retargeted; the errors are in <paramref name="result"/>.</returns>
+        private static ImportModelCommand.HumanoidRetargetParameters CreateRetargetParameters(AssetItem assetItem, AnimationAsset asset, AssetItem skeleton, AssetCompilerResult result)
+        {
+            var sourceSkeleton = assetItem.Package.FindAssetFromProxyObject(asset.SourceSkeleton);
+            if (sourceSkeleton == null)
+            {
+                result.Error($"The source skeleton of the animation '{assetItem.Location}' cannot be found.");
+                return null;
+            }
+            if (skeleton == null)
+            {
+                result.Error($"The animation '{assetItem.Location}' has a source skeleton but no skeleton to retarget it to: set its Skeleton.");
+                return null;
+            }
+            if (asset.Type.Type != AnimationAssetTypeEnum.AnimationClip)
+            {
+                result.Error($"The animation '{assetItem.Location}' is a difference clip: difference clips cannot be retargeted. Remove its source skeleton.");
+                return null;
+            }
+
+            var source = (SkeletonAsset)sourceSkeleton.Asset;
+            var target = (SkeletonAsset)skeleton.Asset;
+            if (ReportMappingErrors(source, sourceSkeleton.Location, result) | ReportMappingErrors(target, skeleton.Location, result))
+                return null;
+
+            return new ImportModelCommand.HumanoidRetargetParameters
+            {
+                SourceSkeletonUrl = sourceSkeleton.Location,
+                SourceScaleImport = source.ScaleImport,
+                SourcePivotPosition = source.PivotPosition,
+                SourceBones = CopyMapping(source),
+                TargetBones = CopyMapping(target),
+            };
+
+            static List<HumanoidBoneMapping> CopyMapping(SkeletonAsset skeleton)
+                => skeleton.HumanoidBones.Select(x => new HumanoidBoneMapping { Bone = x.Bone, NodeName = x.NodeName }).ToList();
+        }
+
+        /// <summary>
+        /// Logs the errors of the humanoid bones of a skeleton: required bones not mapped, bones mapped twice, nodes missing or not preserved.
+        /// </summary>
+        /// <returns><c>true</c> if there is an error.</returns>
+        private static bool ReportMappingErrors(SkeletonAsset skeleton, string location, AssetCompilerResult result)
+        {
+            var hasErrors = false;
+            void Error(string message)
+            {
+                result.Error($"The skeleton '{location}' {message}");
+                hasErrors = true;
+            }
+
+            var missing = HumanoidBones.GetMissingRequired(skeleton.HumanoidBones);
+            if (missing.Count > 0)
+                Error($"does not map the required humanoid bones {string.Join(", ", missing)}. Use Auto-map in its humanoid bones, or set them by hand.");
+            // An entry with no node maps nothing, as for the retargeting: it is not a second mapping of its bone
+            foreach (var bone in skeleton.HumanoidBones.Where(x => !string.IsNullOrEmpty(x.NodeName)).GroupBy(x => x.Bone).Where(x => x.Count() > 1).Select(x => x.Key))
+                Error($"maps the humanoid bone {bone} more than once.");
+            foreach (var mapping in skeleton.HumanoidBones.Where(x => !string.IsNullOrEmpty(x.NodeName)))
+            {
+                var node = skeleton.Nodes.FirstOrDefault(x => x.Name == mapping.NodeName);
+                if (node == null)
+                    Error($"maps the humanoid bone {mapping.Bone} to the node '{mapping.NodeName}', which it does not have.");
+                else if (!node.Preserve)
+                    Error($"maps the humanoid bone {mapping.Bone} to the node '{mapping.NodeName}', which is not preserved: a node that is not preserved cannot be animated.");
+            }
+            return hasErrors;
         }
 
         internal class AdditiveAnimationCommand : AssetCommand<AdditiveAnimationParameters>

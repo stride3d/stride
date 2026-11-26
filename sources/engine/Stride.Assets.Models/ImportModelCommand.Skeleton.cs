@@ -95,15 +95,17 @@ namespace Stride.Assets.Models
             return filteredSkeleton;
         }
 
-        private void AdjustSkeleton(Skeleton skeleton)
+        private void AdjustSkeleton(Skeleton skeleton) => AdjustSkeleton(skeleton, PivotPosition, ScaleImport);
+
+        private static void AdjustSkeleton(Skeleton skeleton, Vector3 pivotPosition, float scaleImport)
         {
             // Translate node with parent 0 using PivotPosition
             for (int i = 0; i < skeleton.Nodes.Length; ++i)
             {
                 if (skeleton.Nodes[i].ParentIndex == 0)
-                    skeleton.Nodes[i].Transform.Position -= PivotPosition;
+                    skeleton.Nodes[i].Transform.Position -= pivotPosition;
 
-                skeleton.Nodes[i].Transform.Position *= ScaleImport;
+                skeleton.Nodes[i].Transform.Position *= scaleImport;
             }
         }
     }
