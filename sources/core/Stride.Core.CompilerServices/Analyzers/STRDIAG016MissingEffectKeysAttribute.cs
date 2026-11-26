@@ -7,8 +7,8 @@ namespace Stride.Core.CompilerServices.Analyzers;
 public class STRDIAG016MissingEffectKeysAttribute : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG016";
-    private const string Title = "Missing EffectKeysAttribute";
-    private const string MessageFormat = "Type '{0}' declares a static field whose type derives from ParameterKey, but is not marked with [EffectKeysAttribute].";
+    private const string Title = "Missing [EffectKeys]";
+    private const string MessageFormat = "Type '{0}' declares a static field whose type derives from ParameterKey, but is not marked with [EffectKeys].";
     private const string Category = DiagnosticCategory.Build;
 
     private static readonly DiagnosticDescriptor Rule = new(
