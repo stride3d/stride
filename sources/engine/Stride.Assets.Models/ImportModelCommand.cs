@@ -42,7 +42,8 @@ namespace Stride.Assets.Models
             AnimationRepeatMode = AnimationRepeatMode.LoopInfinite;
             ScaleImport = 1.0f;
 
-            Version = 3;
+            // Increase it every time the import result changes, to rebuild every model and animation
+            Version = 4;
         }
 
         private string ContextAsString => $"model [{Location}] from import [{SourcePath}]";
@@ -139,8 +140,6 @@ namespace Stride.Assets.Models
         protected override void ComputeParameterHash(BinarySerializationWriter writer)
         {
             base.ComputeParameterHash(writer);
-
-            writer.Write(6); // increase this integer everytime you modify the ImportModelCommand to regenerate the assets.
 
             //this serialized the parameters of the command
             writer.SerializeExtended(this, ArchiveMode.Serialize);
