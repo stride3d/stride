@@ -12,24 +12,28 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
 // Two questions about one project's stub, answered from the generator's files (see build/redirect-packages.cs):
-//  - Changed: the project's own inputs in the manifest ("<sha256>\t<path>" per line: csprojs and packed build/
-//    assets, those under ProjectDirectory) whose content changed since its stub was generated. A file older than
-//    the stub is trusted without being read; a newer one is confirmed by content hash, so mtime churn alone
-//    (touch, checkout, rebase) is not a change. A missing file counts as changed. The stub's own time, not the
-//    stamp's: every project's refresh rewrites the stamp, which would then hide the changes of the projects
-//    not built yet.
-//  - OwnStubFresh: the stubs file lists, per stub, the fingerprint of the fixed inputs (the script, the central
-//    package versions, the solution) it was generated with; the project's stub is fresh when its line carries the
-//    fingerprint of those files as they are now. Every stub depends on the fixed inputs, so each project judges
-//    its own stub instead of a shared "everything is stale" that the first refresh would hide from the others.
+//  - Changed: the project's own inputs in the manifest ("<sha256>\t<path>" per line: csprojs, packed build/
+//    assets and the tools/ files of a package started from there, those under ProjectDirectory) whose content
+//    changed since its stub was generated. A file older than the stub is trusted without being read; a newer one
+//    is confirmed by content hash, so mtime churn alone (touch, checkout, rebase) is not a change. A missing file
+//    counts as changed. The stub's own time, not the stamp's: every project's refresh rewrites the stamp, which
+//    would then hide the changes of the projects not built yet.
+//    With OutputDirectory, the check after the build: only the lines under that folder, each read, since a
+//    reference copied there keeps the time of its source, which the touch of a fresh stub makes older than the stub.
+//  - OwnStubFresh (not with OutputDirectory): the stubs file lists, per stub, the fingerprint of the fixed inputs
+//    (the script, the central package versions, the solution) it was generated with; the project's stub is fresh
+//    when its line carries the fingerprint of those files as they are now. Every stub depends on the fixed inputs,
+//    so each project judges its own stub instead of a shared "everything is stale" that the first refresh would
+//    hide from the others.
 public class StrideCheckDevPackageInputs : Task
 {
     [Required] public string ManifestPath { get; set; }
     [Required] public string StampPath { get; set; }
     [Required] public string StubsPath { get; set; }
-    [Required] public ITaskItem[] FixedInputs { get; set; }
+    public ITaskItem[] FixedInputs { get; set; } = new ITaskItem[0];
     [Required] public string OwnStub { get; set; }
     [Required] public string ProjectDirectory { get; set; }
+    public string OutputDirectory { get; set; }
     [Output] public ITaskItem[] Changed { get; set; }
     [Output] public bool OwnStubFresh { get; set; }
 
@@ -61,6 +65,8 @@ public class StrideCheckDevPackageInputs : Task
         if (!File.Exists(stubPath))
             return;
         var stubTime = File.GetLastWriteTimeUtc(stubPath);
+        var outputsOnly = !string.IsNullOrEmpty(OutputDirectory);
+        var directory = outputsOnly ? OutputDirectory : ProjectDirectory;
         foreach (var rawLine in File.Exists(ManifestPath) ? File.ReadAllLines(ManifestPath) : new string[0])
         {
             var line = rawLine.Trim();
@@ -69,19 +75,21 @@ public class StrideCheckDevPackageInputs : Task
             var expectedHash = tab >= 0 ? line.Substring(0, tab) : null;
             var path = tab >= 0 ? line.Substring(tab + 1) : line;
             // Case-insensitive: the manifest may carry a lowercase drive letter (paths pass through MSBuild properties)
-            if (!path.StartsWith(ProjectDirectory, StringComparison.OrdinalIgnoreCase))
+            if (!path.StartsWith(directory, StringComparison.OrdinalIgnoreCase))
                 continue;
             if (!File.Exists(path))
             {
                 changed.Add(new TaskItem(path));
                 continue;
             }
-            if (File.GetLastWriteTimeUtc(path) <= stubTime)
+            if (!outputsOnly && File.GetLastWriteTimeUtc(path) <= stubTime)
                 continue; // untouched since the stub was made: trusted without reading
             if (expectedHash == null || !string.Equals(ContentHash(path), expectedHash, StringComparison.OrdinalIgnoreCase))
                 changed.Add(new TaskItem(path));
         }
         Changed = changed.ToArray();
+        if (outputsOnly)
+            return;
 
         // Fresh = the stub file is in the feed (next to the stamp) and its recorded fingerprint is the current one.
         var fingerprint = Fingerprint(FixedInputs);
