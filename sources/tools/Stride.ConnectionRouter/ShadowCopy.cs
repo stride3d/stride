@@ -3,6 +3,8 @@
 
 using System;
 using System.IO;
+using Stride.Core;
+using Stride.Core.Assets;
 
 namespace Stride.ConnectionRouter
 {
@@ -12,6 +14,8 @@ namespace Stride.ConnectionRouter
     /// </summary>
     /// <remarks>
     /// Only one router runs at a time, so there is a single copy. It is replaced when a router of other files starts, once the previous router stopped.
+    /// The router loads its dependencies from copies in <see cref="AssembliesFolder"/>, so it locks neither the NuGet cache nor the build output of a checkout either.
+    /// A router of the same build keeps running after they change: the router protocol is compatible across versions.
     /// </remarks>
     internal static class ShadowCopy
     {
@@ -22,7 +26,20 @@ namespace Stride.ConnectionRouter
         /// </summary>
         public static string Folder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride", "router-shadowcopy");
 
+        /// <summary>
+        /// Gets the folder that a router running from the copy loads its dependencies from.
+        /// </summary>
+        public static string AssembliesFolder => Path.Combine(Folder, "assemblies");
+
         private static string SourceFile => Path.Combine(Folder, SourceFileName);
+
+        // Before the NuGet resolver is set up (-100000)
+        [ModuleInitializer(-200000)]
+        internal static void Initialize()
+        {
+            if (Environment.ProcessPath is { } processPath && IsInCopy(processPath))
+                NuGetAssemblyResolver.AssemblyCopyFolder = AssembliesFolder;
+        }
 
         /// <summary>
         /// Describes the files of an executable's folder: the path of the executable, the newest write time and the total size of the folder's files.
