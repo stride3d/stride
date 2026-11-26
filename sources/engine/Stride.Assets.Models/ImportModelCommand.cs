@@ -15,6 +15,7 @@ using Stride.Shaders;
 using System.Linq;
 using Stride.Core.Assets;
 using Stride.Core.Serialization.Contents;
+using Stride.Assets.Models.Humanoid;
 
 namespace Stride.Assets.Models
 {
@@ -156,6 +157,27 @@ namespace Stride.Assets.Models
             // Hashed only when on, so build caches of models that leave it off stay valid
             if (ShaderReadableBuffers)
                 writer.Write(nameof(ShaderReadableBuffers));
+
+            // Hashed only when set, so that a new version of the retargeting rebuilds only the animations it retargets
+            if (Retarget != null)
+            {
+                writer.Write(nameof(Retarget));
+                writer.Write(HumanoidRetargeter.Version);
+                writer.SerializeExtended(Retarget, ArchiveMode.Serialize);
+            }
+        }
+
+        public override IEnumerable<ObjectUrl> GetInputFiles()
+        {
+            foreach (var inputFile in base.GetInputFiles())
+                yield return inputFile;
+
+            // A retargeting reads the rest poses of both compiled skeletons, so a change of either one rebuilds the animation
+            if (Retarget != null)
+            {
+                yield return new ObjectUrl(UrlType.Content, SkeletonUrl);
+                yield return new ObjectUrl(UrlType.Content, Retarget.SourceSkeletonUrl);
+            }
         }
 
         /// <summary>

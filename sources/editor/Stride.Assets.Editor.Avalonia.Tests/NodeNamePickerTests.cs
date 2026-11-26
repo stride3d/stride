@@ -11,6 +11,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Models;
+using Stride.Assets.Models.Humanoid;
 using Stride.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -44,6 +45,25 @@ public sealed class NodeNamePickerTests
         Assert.False(provider.Match(new NodeViewModelContext().MemberOf(holder, nameof(LinkHolder.Link)).GetChild(nameof(NodeLink.NodeName))!));
         Assert.False(provider.Match(context.MemberOf(holder, nameof(LinkHolder.Name))));
         Assert.Equal("ModelNodeName", provider.Name);
+    }
+
+    [AvaloniaFact]
+    public void TheProviderMatchesTheNodeNameOfAHumanoidBone()
+    {
+        var skeleton = new SkeletonAsset();
+        skeleton.Nodes.AddRange(Nodes);
+        skeleton.HumanoidBones.Add(new HumanoidBoneMapping { Bone = HumanoidBone.Head, NodeName = "Head" });
+        // What SkeletonAssetNodeUpdater sets on each humanoid bone: the nodes of the skeleton
+        var context = new NodeViewModelContext(new Updater(node =>
+        {
+            if (node.Type == typeof(HumanoidBoneMapping))
+                node.AttachedProperties.Set(ModelNodeLinkData.Key, skeleton.Nodes);
+        }));
+
+        var bone = Assert.Single(context.RootOf(skeleton).GetChild(nameof(SkeletonAsset.HumanoidBones))!.Children);
+
+        Assert.True(Provider().Match(bone.GetChild(nameof(HumanoidBoneMapping.NodeName))!));
+        Assert.False(Provider().Match(bone.GetChild(nameof(HumanoidBoneMapping.Bone))!));
     }
 
     [AvaloniaFact]
@@ -190,6 +210,15 @@ public sealed class NodeNamePickerTests
             if (node.Name == nameof(NodeLink.NodeName) && node.Parent is { } parent)
                 parent.AttachedProperties.Set(ModelNodeLinkData.Key, Nodes);
         }
+
+        public void FinalizeTree(INodePresenter root)
+        {
+        }
+    }
+
+    private sealed class Updater(Action<INodePresenter> update) : INodePresenterUpdater
+    {
+        public void UpdateNode(INodePresenter node) => update(node);
 
         public void FinalizeTree(INodePresenter root)
         {

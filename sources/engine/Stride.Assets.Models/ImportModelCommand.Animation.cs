@@ -31,7 +31,11 @@ namespace Stride.Assets.Models
         {
             // Read from model file
             var modelSkeleton = LoadSkeleton(commandContext, contentManager); // we get model skeleton to compare it to real skeleton we need to map to
-            AdjustSkeleton(modelSkeleton);
+            // A retargeted animation stays in the space of the skeleton it was made for
+            if (Retarget != null)
+                AdjustSkeleton(modelSkeleton, Retarget.SourcePivotPosition, Retarget.SourceScaleImport);
+            else
+                AdjustSkeleton(modelSkeleton);
 
             TimeSpan duration;
             var animationClips = LoadAnimation(commandContext, contentManager, out duration);
@@ -62,8 +66,13 @@ namespace Stride.Assets.Models
             {
                 AnimationClip rootMotionAnimationClip = null;
 
+                if (Retarget != null)
+                {
+                    if (!ExportRetargetedAnimation(commandContext, contentManager, modelSkeleton, skeleton, animationClips, duration, animationClip))
+                        return null;
+                }
                 // If root motion is explicitely enabled, or if there is no skeleton, try to find root node and apply animation directly on TransformComponent
-                if ((AnimationRootMotion || skeleton == null || skeletonMapping.MapCount < 2) && modelSkeleton.Nodes.Length >= 1)
+                else if ((AnimationRootMotion || skeleton == null || skeletonMapping.MapCount < 2) && modelSkeleton.Nodes.Length >= 1)
                 {
                     // No skeleton, map root node only
                     // TODO: For now, it seems to be located on node 1 in FBX files. Need to check if always the case, and what happens with Assimp
@@ -94,16 +103,12 @@ namespace Stride.Assets.Models
                 }
 
                 // Load asset reference skeleton
-                if (SkeletonUrl != null)
-                {                  
+                if (SkeletonUrl != null && Retarget == null)
+                {
                     // Process missing nodes
                     foreach (var nodeAnimationClipEntry in animationClips)
                     {
-                        var nodeName = nodeAnimationClipEntry.Key;
-                        foreach (char c in System.IO.Path.GetInvalidFileNameChars())
-                        {
-                            nodeName = nodeName.Replace(c, '_');
-                        }   
+                        var nodeName = ToNodeName(nodeAnimationClipEntry.Key);
                         var nodeAnimationClip = nodeAnimationClipEntry.Value;
                         var nodeIndex = modelSkeleton.Nodes.IndexOf(x => x.Name == nodeName.ToString());
                         // Node doesn't exist in skeleton? skip it

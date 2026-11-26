@@ -133,6 +133,20 @@ namespace Stride.Assets.Models
         public Skeleton Skeleton { get; set; }
 
         /// <summary>
+        /// Gets or sets the skeleton the source file was animated for.
+        /// </summary>
+        /// <remarks>
+        /// When set, the animation is retargeted from it to <see cref="Skeleton"/> through the humanoid bones of both skeletons.
+        /// The nodes of <see cref="Skeleton"/> that no humanoid bone maps play the node of the same name in the source file.
+        /// </remarks>
+        /// <userdoc>
+        /// The skeleton the source file was animated for. When set, the animation is retargeted from it to Skeleton through their humanoid bones.
+        /// The other nodes of Skeleton play the node of the same name in the source file.
+        /// </userdoc>
+        [DataMember(55)]
+        public Skeleton SourceSkeleton { get; set; }
+
+        /// <summary>
         /// Gets or sets a boolean describing if root movement should be applied inside Skeleton (if false and a skeleton exists) or on TransformComponent (if true)
         /// </summary>
         /// <userdoc>

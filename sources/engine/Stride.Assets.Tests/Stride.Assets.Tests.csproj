@@ -56,6 +56,9 @@
     <Compile Include="TestModelImport.cs" />
     <Compile Include="TestModelMaterialSlots.cs" />
     <Compile Include="TestModelBones.cs" />
+    <Compile Include="TestHumanoidAutoMap.cs" />
+    <Compile Include="TestHumanoidRetarget.cs" />
+    <Compile Include="TestHumanoidRetargetImport.cs" />
     <Compile Include="TestMorphImport.cs" />
     <Compile Include="TestGltfMaterialImport.cs" />
     <Compile Include="TestLegacyTextureRoles.cs" />
@@ -85,6 +88,10 @@
     </Content>
     <Content Include="..\..\data\tests\knight\scenes\knight.fbx;..\..\data\tests\knight\scenes\mannequinModel.fbx;scenes\goblin.fbx">
       <Link>app_data\Stride.Assets.Tests\bones\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\data\tests\knight\scenes\Walk.fbx;retarget\mannequinModel Skeleton.sdskel">
+      <Link>app_data\Stride.Assets.Tests\retarget\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\data\tests\knight\scenes\knight.fbx">

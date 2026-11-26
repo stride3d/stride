@@ -40,37 +40,49 @@
     </DataTemplate>
   </aev:SpriteFontFontNameTemplateProvider>
 
-  <!-- The node list of a skeleton: the read-only header, with buttons that keep all the nodes or none -->
+  <!-- The header of the lists of a skeleton, with buttons: All and None keep all the nodes or none, Auto-map fills the humanoid
+       bones from the node names, and the humanoid bones can be added by hand. Each button shows on the list whose command it runs -->
+  <DataTemplate x:Key="SkeletonListHeaderTemplate" DataType="cpqvm:NodeViewModel">
+    <Grid x:Name="Grid" caev:PropertyViewHelper.Increment="0"
+          IsVisible="{Binding IsVisible}"
+          Margin="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 1,0,0,0}}">
+      <Border x:Name="PART_Name"
+              Background="{DynamicResource PropertyHeaderBackground}"
+              MinHeight="20" Margin="6" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+              ToolTip.Tip="{Binding [Documentation]}"/>
+      <DockPanel x:Name="HeaderDockPanel" Margin="10,8">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button Margin="6,0" Padding="8,2" VerticalAlignment="Center"
+                  Content="{sd:LocalizeString All, Context=Button}"
+                  Command="{Binding [SkeletonNodePreserveAll]}" CommandParameter="{sd:True}"
+                  IsVisible="{Binding [HasCommand_SkeletonNodePreserveAll]}"/>
+          <Button Margin="6,0" Padding="8,2" VerticalAlignment="Center"
+                  Content="{sd:LocalizeString None, Context=Button}"
+                  Command="{Binding [SkeletonNodePreserveAll]}" CommandParameter="{sd:False}"
+                  IsVisible="{Binding [HasCommand_SkeletonNodePreserveAll]}"/>
+          <Button Margin="6,0" Padding="8,2" VerticalAlignment="Center"
+                  Content="{sd:LocalizeString Auto-map, Context=Button}"
+                  ToolTip.Tip="{sd:LocalizeString Find the humanoid bones from the names of the nodes. Bones already set are kept., Context=ToolTip}"
+                  Command="{Binding [HumanoidAutoMap]}"
+                  IsVisible="{Binding [HasCommand_HumanoidAutoMap]}"/>
+          <Button Theme="{StaticResource AddNewItemButtonTheme}"/>
+        </StackPanel>
+        <ToggleButton DockPanel.Dock="Left"
+                      Width="8" Height="8" HorizontalAlignment="Left"
+                      Template="{StaticResource TreeExpanderToggleButton}"
+                      IsChecked="{Binding $parent[sd:PropertyViewItem].IsExpanded}"
+                      IsVisible="{Binding VisibleChildrenCount, Converter={sd:NumericToBool}}"/>
+        <TextBlock x:Name="HeaderTextBlock" Margin="8,0,0,0" FontSize="16" TextTrimming="CharacterEllipsis"
+                   Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+      </DockPanel>
+    </Grid>
+  </DataTemplate>
   <aev:SkeletonNodeListTemplateProvider x:Key="SkeletonNodeInformationListTemplateProvider"
-                                        caev:PropertyViewHelper.TemplateCategory="PropertyHeader" OverrideRule="Most">
-    <DataTemplate DataType="cpqvm:NodeViewModel">
-      <Grid x:Name="Grid" caev:PropertyViewHelper.Increment="0"
-            IsVisible="{Binding IsVisible}"
-            Margin="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 1,0,0,0}}">
-        <Border x:Name="PART_Name"
-                Background="{DynamicResource PropertyHeaderBackground}"
-                MinHeight="20" Margin="6" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                ToolTip.Tip="{Binding [Documentation]}"/>
-        <DockPanel x:Name="HeaderDockPanel" Margin="10,8">
-          <UniformGrid DockPanel.Dock="Right" Rows="1" HorizontalAlignment="Right">
-            <Button Margin="6,0" Padding="8,2" VerticalAlignment="Center"
-                    Content="{sd:LocalizeString All, Context=Button}"
-                    Command="{Binding [SkeletonNodePreserveAll]}" CommandParameter="{sd:True}"/>
-            <Button Margin="6,0" Padding="8,2" VerticalAlignment="Center"
-                    Content="{sd:LocalizeString None, Context=Button}"
-                    Command="{Binding [SkeletonNodePreserveAll]}" CommandParameter="{sd:False}"/>
-          </UniformGrid>
-          <ToggleButton DockPanel.Dock="Left"
-                        Width="8" Height="8" HorizontalAlignment="Left"
-                        Template="{StaticResource TreeExpanderToggleButton}"
-                        IsChecked="{Binding $parent[sd:PropertyViewItem].IsExpanded}"
-                        IsVisible="{Binding VisibleChildrenCount, Converter={sd:NumericToBool}}"/>
-          <TextBlock x:Name="HeaderTextBlock" Margin="8,0,0,0" FontSize="16" TextTrimming="CharacterEllipsis"
-                     Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-        </DockPanel>
-      </Grid>
-    </DataTemplate>
-  </aev:SkeletonNodeListTemplateProvider>
+                                        caev:PropertyViewHelper.TemplateCategory="PropertyHeader" OverrideRule="Most"
+                                        Template="{StaticResource SkeletonListHeaderTemplate}"/>
+  <aev:HumanoidBoneListTemplateProvider x:Key="HumanoidBoneListTemplateProvider"
+                                        caev:PropertyViewHelper.TemplateCategory="PropertyHeader" OverrideRule="Most"
+                                        Template="{StaticResource SkeletonListHeaderTemplate}"/>
 
   <!-- The start and end of an animation clip, in frames: a slider over the length of the source animation, and a box. The
        length of the animation comes from its source: the bounds are bound one way, as the box would write its frame rounding

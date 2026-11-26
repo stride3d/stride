@@ -2,7 +2,7 @@
 Id: a0d324bd-326a-4fd8-88a9-fc5e4dcc62e5
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../Resources/Models/mannequinModel.fbx
+Source: !file ../../Resources/Models/mannequinModel.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Nodes:
     2b83a4a0d5dde6216f7c2fe8b32bbfe2: {Name: RootNode, Depth: 0}
@@ -97,5 +97,56 @@ Nodes:
     10752b434ff056c52c1b26fad37c99cf: {Name: CATRigRLegPlatform, Depth: 1}
     f56e18ef821077a1cfc8beea9d7fb036: {Name: CATRigRArmIKTarget, Depth: 1}
     149861784d2d7288eb41824229d7a683: {Name: CATRigLArmIKTarget, Depth: 1}
+HumanoidBones:
+    c199bb4595c980e519aac94da51f1fd8: {Bone: Hips, NodeName: CATRigHub001}
+    9f67a82090a460f6b91f4e0d3cb9a324: {Bone: Spine, NodeName: CATRigSpine1}
+    adb747d5199149b77dc04e810a79bf23: {Bone: Chest, NodeName: CATRigSpine2}
+    6ff332e0a110720ca5a4d2383c2f7f45: {Bone: UpperChest, NodeName: CATRigSpine3}
+    b6fca9dfec13b8ca8f8e9cefaabc70da: {Bone: Neck, NodeName: CATRigSpin4435f}
+    25d4d3804adff7b712f13f5896a12db9: {Bone: Head, NodeName: CATRigRibcage0rtee}
+    e36860a73bffca0d0008d16c6c39717a: {Bone: LeftShoulder, NodeName: CATRigLArmCollarbone}
+    d4d07185cbe55c97f93724f826265657: {Bone: LeftUpperArm, NodeName: CATRigLArm1}
+    f2cecf19644bd7b4f769cf6362e853c9: {Bone: LeftLowerArm, NodeName: CATRigLArm2}
+    e8b391dab8babbc417d79af7246bf4b7: {Bone: LeftHand, NodeName: CATRigLArmPalm}
+    8ba637824bfdf23b2f8349fa854dd835: {Bone: RightShoulder, NodeName: CATRigRArmCollarbone}
+    3ceeb81817b9e5045b16983733ca9bda: {Bone: RightUpperArm, NodeName: CATRigRArm1}
+    8903e9da7dabcc466549fff374168c65: {Bone: RightLowerArm, NodeName: CATRigRArm2}
+    334e0c64a855a7770a2af4a84955f449: {Bone: RightHand, NodeName: CATRigRArmPalm}
+    d7f2e80dc2b9f83de05b03160b04d75e: {Bone: LeftUpperLeg, NodeName: CATRigLLeg1}
+    856912f0b4e1a6a0381890706b838530: {Bone: LeftLowerLeg, NodeName: CATRigLLeg2}
+    96f3a2416e2574993b13a7f4543cc5fe: {Bone: LeftFoot, NodeName: CATRigLLegAnkle}
+    af4efd904564b8ba8a4c8fa97367cf39: {Bone: RightUpperLeg, NodeName: CATRigRLeg1}
+    64b1651c62379342114796cd0023d351: {Bone: RightLowerLeg, NodeName: CATRigRLeg2}
+    6add356884bca5b1af1f14bf67f2c240: {Bone: RightFoot, NodeName: CATRigRLegAnkle}
+    ad03f09b6d2e13933cabeff657f6fe99: {Bone: LeftThumbMetacarpal, NodeName: CATRigLArmDigit11}
+    cdc2ee6a78ad27bd671bce6870cb4a2d: {Bone: LeftThumbProximal, NodeName: CATRigLArmDigit12}
+    9ef0f3669a7c58b9e2dd8f065aeba30e: {Bone: LeftThumbDistal, NodeName: CATRigLArmDigit13}
+    ac1953ed4a32a098cb5c499ff3d5e1b8: {Bone: LeftIndexProximal, NodeName: CATRigLArmDigit21}
+    7f8a023f7dc5dee7d0306a077b8d44ba: {Bone: LeftIndexIntermediate, NodeName: CATRigLArmDigit22}
+    da94a61f860033d34a1032be0daab0c7: {Bone: LeftIndexDistal, NodeName: CATRigLArmDigit23}
+    b80c96cf37ea145805e4c9d9f48ef186: {Bone: LeftMiddleProximal, NodeName: CATRigLArmDigit31}
+    cb6bc3df6e9f9713c909df89513111c3: {Bone: LeftMiddleIntermediate, NodeName: CATRigLArmDigit32}
+    4a1750a5b358140fc636670894fc1b39: {Bone: LeftMiddleDistal, NodeName: CATRigLArmDigit33}
+    e1f6937dd18cd165f8c2a24498bef79f: {Bone: LeftRingProximal, NodeName: CATRigLArmDigit41}
+    9adf07810f54fced7a40c6c19f502913: {Bone: LeftRingIntermediate, NodeName: CATRigLArmDigit42}
+    d9dc9057ea750ea46def3059f87bfc33: {Bone: LeftRingDistal, NodeName: CATRigLArmDigit43}
+    d41198b1a30e1fa88e72c97bc7e03fd4: {Bone: LeftLittleProximal, NodeName: CATRigLArmDigit51}
+    da7d6d8c95b9ecd209ff749c0666e5d3: {Bone: LeftLittleIntermediate, NodeName: CATRigLArmDigit52}
+    f2c2f0bd7a95434de647f4ce3cefa2a3: {Bone: LeftLittleDistal, NodeName: CATRigLArmDigit53}
+    b4feefbce99003951e7444fa8698bf5c: {Bone: RightThumbMetacarpal, NodeName: CATRigRArmDigit11}
+    39aa2908ab81b5cf5a0d9f6ed9017a18: {Bone: RightThumbProximal, NodeName: CATRigRArmDigit12}
+    972245490c5a9b090421962b3b897a8a: {Bone: RightThumbDistal, NodeName: CATRigRArmDigit13}
+    2ccb33fd7d8b8523544a5da269fc08b7: {Bone: RightIndexProximal, NodeName: CATRigRArmDigit21}
+    28fcf5ee70ba7448111468d61b64be15: {Bone: RightIndexIntermediate, NodeName: CATRigRArmDigit22}
+    06cd5aabf613edfaceb967940e8479f8: {Bone: RightIndexDistal, NodeName: CATRigRArmDigit23}
+    be3d9133ecdfdbaae977e781e3bf1049: {Bone: RightMiddleProximal, NodeName: CATRigRArmDigit31}
+    879556a3491e2610b40fd82ca46de1f9: {Bone: RightMiddleIntermediate, NodeName: CATRigRArmDigit32}
+    de8146f0df9249b00725873bdf3c7dfe: {Bone: RightMiddleDistal, NodeName: CATRigRArmDigit33}
+    b6faa636c71978e530317ecce78a1e0a: {Bone: RightRingProximal, NodeName: CATRigRArmDigit41}
+    4689b0e5e97e89ead04f160375469d5b: {Bone: RightRingIntermediate, NodeName: CATRigRArmDigit42}
+    525fcae77e66920e87f1b9ddd50653c4: {Bone: RightRingDistal, NodeName: CATRigRArmDigit43}
+    421b0b0d95279aec719917ab2aad6c06: {Bone: RightLittleProximal, NodeName: CATRigRArmDigit51}
+    8ac2e6ad8df69e3a72e109584070cfe8: {Bone: RightLittleIntermediate, NodeName: CATRigRArmDigit52}
+    9da57b7cc1b59f36c2f6ca9aa92911c5: {Bone: RightLittleDistal, NodeName: CATRigRArmDigit53}
 ~SourceHashes:
     43cd1cf030899832bf4f4ee7f84f7670~../../Resources/Models/mannequinModel.fbx: 41531d1299044bd0f0b265374610fb1d

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Stride.Assets.Models;
+using Stride.Assets.Models.Humanoid;
 using Stride.Core.Assets.Editor.View;
 using Stride.Core.Presentation.Quantum.ViewModels;
 
@@ -15,6 +16,7 @@ namespace Stride.Assets.Presentation.TemplateProviders
             Unset,
             NodeInformation,
             NodeInformationList,
+            HumanoidBoneMappingList,
         }
 
         public override string Name { get { return string.Format("Skeleton{0}", Property); } }
@@ -35,6 +37,8 @@ namespace Stride.Assets.Presentation.TemplateProviders
                     return node.Type == typeof(NodeInformation);
                 case SkeletonProperty.NodeInformationList:
                     return typeof(IEnumerable<NodeInformation>).IsAssignableFrom(node.Type);
+                case SkeletonProperty.HumanoidBoneMappingList:
+                    return typeof(IEnumerable<HumanoidBoneMapping>).IsAssignableFrom(node.Type);
                 default:
                     throw new InvalidOperationException("Model property is unset.");
             }

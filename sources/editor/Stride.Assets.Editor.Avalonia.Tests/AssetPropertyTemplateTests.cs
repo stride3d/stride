@@ -12,6 +12,7 @@ using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Assets.Models;
+using Stride.Assets.Models.Humanoid;
 using Stride.Assets.SpriteFont;
 using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Core.Assets.Editor.Avalonia.Views;
@@ -103,6 +104,30 @@ public sealed class AssetPropertyTemplateTests
         Assert.All(asset.Nodes, x => Assert.True(x.Preserve));
         Click(window, buttons.Single(x => (string?)x.Content == "None"));
         Assert.All(asset.Nodes, x => Assert.False(x.Preserve));
+        // The button of the humanoid bones is not there
+        Assert.False(buttons.Single(x => (string?)x.Content == "Auto-map").IsVisible);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void TheAutoMapButtonOfTheHumanoidBonesOfASkeletonFillsThem()
+    {
+        var asset = new SkeletonAsset();
+        foreach (var (name, depth) in new[] { ("Hips", 0), ("Spine", 1), ("Head", 2), ("LeftArm", 2), ("LeftForeArm", 3), ("LeftHand", 4) })
+            asset.Nodes.Add(new NodeInformation(name, depth, false));
+        var context = new NodeViewModelContext();
+        context.Commands.Add(new SkeletonNodePreserveAllCommand());
+        context.Commands.Add(new HumanoidAutoMapCommand());
+        var node = context.RootOf(asset).GetChild(nameof(SkeletonAsset.HumanoidBones))!;
+
+        var (window, content) = Show<HumanoidBoneListTemplateProvider>(node, PropertyViewHelper.Category.PropertyHeader);
+        var buttons = content.GetVisualDescendants().OfType<Button>().ToList();
+        Assert.False(buttons.Single(x => (string?)x.Content == "All").IsVisible);
+
+        Click(window, buttons.Single(x => (string?)x.Content == "Auto-map"));
+
+        Assert.Contains(asset.HumanoidBones, x => x.Bone == HumanoidBone.LeftLowerArm && x.NodeName == "LeftForeArm");
+        Assert.True(asset.Nodes.Single(x => x.Name == "LeftForeArm").Preserve);
         window.Close();
     }
 
