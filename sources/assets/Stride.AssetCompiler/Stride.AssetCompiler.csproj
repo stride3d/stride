@@ -80,7 +80,6 @@
                                        HostConfigurationOptions="@(RuntimeHostConfigurationOption)"
                                        AdditionalProbingPaths="@(AdditionalProbingPath)"
                                        IsSelfContained="$(SelfContained)"
-                                       GenerateRuntimeConfigDevFile="false"
                                        AlwaysIncludeCoreFramework="$(AlwaysIncludeCoreFrameworkInRuntimeConfig)" />
     <Error Condition="!$([System.IO.File]::ReadAllText('$(_StrideHostRuntimeConfigTemplate)').Contains('{MAJOR}.0.0-0'))"
            Text="The runtime config template $(_StrideHostRuntimeConfigTemplate) has no {MAJOR} placeholder; the SDK's runtimeconfig writer changed." />
