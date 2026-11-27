@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
@@ -308,6 +310,10 @@ public static class StrideXunitRunner
 
     private sealed class ConsoleExecutionSink : TestMessageSink
     {
+        // The log prints only SKIP and FAIL lines: name a test still running after this long, once,
+        // so that the log of a hung suite says which test hangs.
+        private static readonly TimeSpan SlowTestThreshold = TimeSpan.FromMinutes(1);
+
         public int Total;
         public int Passed;
         public int Failed;
@@ -315,8 +321,14 @@ public static class StrideXunitRunner
         public decimal ExecutionTime;
         public ManualResetEvent Finished { get; } = new(initialState: false);
 
+        private readonly ConcurrentDictionary<string, long> runningTests = new();
+        private readonly Timer slowTestTimer;
+
         public ConsoleExecutionSink()
         {
+            slowTestTimer = new Timer(_ => ReportSlowTests(), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+            Execution.TestStartingEvent     += a => runningTests[a.Message.Test.DisplayName] = Stopwatch.GetTimestamp();
+            Execution.TestFinishedEvent     += a => runningTests.TryRemove(a.Message.Test.DisplayName, out _);
             Execution.TestPassedEvent       += a => { Interlocked.Increment(ref Passed); Interlocked.Increment(ref Total); };
             Execution.TestSkippedEvent      += a => { Interlocked.Increment(ref Skipped); Interlocked.Increment(ref Total);
                 Console.WriteLine($"  SKIP {a.Message.Test.DisplayName}: {a.Message.Reason}"); };
@@ -324,7 +336,17 @@ public static class StrideXunitRunner
                 Console.WriteLine($"  FAIL {a.Message.Test.DisplayName}");
                 if (a.Message.Messages is { Length: > 0 } msgs) Console.WriteLine($"    {msgs[0]}");
                 if (a.Message.StackTraces is { Length: > 0 } st && st[0] is { Length: > 0 }) Console.WriteLine($"    {st[0].Replace("\n", "\n    ")}"); };
-            Execution.TestAssemblyFinishedEvent += a => { ExecutionTime = a.Message.ExecutionTime; Finished.Set(); };
+            Execution.TestAssemblyFinishedEvent += a => { slowTestTimer.Dispose(); ExecutionTime = a.Message.ExecutionTime; Finished.Set(); };
+        }
+
+        private void ReportSlowTests()
+        {
+            foreach (var (name, startTimestamp) in runningTests)
+            {
+                var elapsed = Stopwatch.GetElapsedTime(startTimestamp);
+                if (elapsed >= SlowTestThreshold && runningTests.TryRemove(name, out _))
+                    Console.WriteLine($"  SLOW {name}: still running after {elapsed.TotalSeconds:F0} s");
+            }
         }
     }
 
