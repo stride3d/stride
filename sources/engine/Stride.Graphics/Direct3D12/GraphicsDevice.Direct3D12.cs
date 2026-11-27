@@ -243,6 +243,11 @@ namespace Stride.Graphics
         ///   The size in bytes of a Descriptor in a Descriptor heap for Shader Resource Views (SRVs), Unordered Acess Views (UAVs), etc.
         /// </summary>
         internal int SrvHandleIncrementSize;
+
+        /// <summary>
+        ///   Counts the Graphics Resources recreated so far; a Command List compares it to know its Descriptor tables may be out of date.
+        /// </summary>
+        internal int DescriptorRecreateCount;
         /// <summary>
         ///   The size in bytes of a Descriptor in a Descriptor heap for Samplers.
         /// </summary>
