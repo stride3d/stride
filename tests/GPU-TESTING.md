@@ -27,7 +27,7 @@ This sets `STRIDE_TESTS_GPU=1`, which skips software rendering. Note that GPU re
 
 ### Vulkan — Lavapipe
 
-[Lavapipe](https://docs.mesa3d.org/drivers/llvmpipe.html) is Mesa's CPU-based Vulkan driver (the Vulkan front-end of `llvmpipe`). The `Stride.Dependencies.Lavapipe` NuGet package provides the software-Vulkan driver (`vulkan_lvp.dll` and its ICD JSON) for Windows, Linux, and macOS x64, built from Mesa source in `.github/workflows/dep-lavapipe.yml`.
+[Lavapipe](https://docs.mesa3d.org/drivers/llvmpipe.html) is Mesa's CPU-based Vulkan driver (the Vulkan front-end of `llvmpipe`). The `Stride.Dependencies.Lavapipe` NuGet package provides the software-Vulkan driver (`vulkan_lvp.dll` and its ICD JSON) for Windows (x64 and arm64), Linux x64 and macOS arm64, built from Mesa source in `.github/workflows/dep-lavapipe.yml`.
 
 Gold images are stored under `tests/baselines/<TestProject>/Windows.Vulkan/Lavapipe/` (and `Linux.Vulkan/Lavapipe/`, plus `Android.Vulkan/Lavapipe-LinuxHost/` and `Lavapipe-WindowsHost/` for the emulator).
 

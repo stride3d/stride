@@ -232,6 +232,7 @@ namespace Stride.Assets
             registry.Project("4.4.2.0", UpgradeEffectShaderKeywords);
             registry.Project("4.5.0.0", UpgradeProjectTo45);
             registry.Project("4.5.0.0", AddPluginPackageReferences);
+            registry.Project("4.5.5.0", UpgradeMacOSToArm64);
         }
 
         private static bool IsSkippedPackage(string packageName)

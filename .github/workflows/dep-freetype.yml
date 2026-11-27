@@ -152,13 +152,6 @@ jobs:
     name: Build FreeType (macOS)
     needs: resolve
     runs-on: macos-15
-    strategy:
-      matrix:
-        include:
-          - arch: arm64
-            rid: osx-arm64
-          - arch: x86_64
-            rid: osx-x64
     steps:
       - uses: actions/checkout@v7
         with: { path: stride-src, sparse-checkout: .github/scripts }
@@ -176,7 +169,7 @@ jobs:
           cmake -S freetype-src -B freetype-build \
             -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DFT_DISABLE_BZIP2=ON \
             -DFT_DISABLE_BROTLI=ON \
             -DFT_DISABLE_HARFBUZZ=ON \
@@ -189,19 +182,19 @@ jobs:
       - name: Collect output
         run: |
           stride-src/.github/scripts/dep-split-debug.sh freetype-build/libfreetype.dylib \
-            out/${{ matrix.rid }} symbols/${{ matrix.rid }}
+            out/osx-arm64 symbols/osx-arm64
 
       - name: Upload
         uses: actions/upload-artifact@v7
         with:
-          name: freetype-${{ matrix.rid }}
-          path: out/${{ matrix.rid }}/
+          name: freetype-osx-arm64
+          path: out/osx-arm64/
 
       - name: Upload symbols
         uses: actions/upload-artifact@v7
         with:
-          name: symbols-freetype-${{ matrix.rid }}
-          path: symbols/${{ matrix.rid }}/
+          name: symbols-freetype-osx-arm64
+          path: symbols/osx-arm64/
 
   build-android:
     name: Build FreeType (Android)
@@ -336,7 +329,7 @@ jobs:
           OUT=freetype-out
 
           # Desktop + iOS → dotnet/{rid}/
-          for rid in win-x64 win-arm64 linux-x64 osx-x64 osx-arm64 ios-arm64 iossimulator-arm64; do
+          for rid in win-x64 win-arm64 linux-x64 osx-arm64 ios-arm64 iossimulator-arm64; do
             mkdir -p $OUT/dotnet/$rid
             cp artifacts/freetype-$rid/* $OUT/dotnet/$rid/ 2>/dev/null || true
           done

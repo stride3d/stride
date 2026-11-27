@@ -38,7 +38,7 @@ internal static class BundledMoltenVK
         if (string.IsNullOrEmpty(asmDir)) asmDir = AppContext.BaseDirectory;
         // Host tool .exes (CompilerApp etc.) get runtimes/ next to the entry-point dll via
         // transitive copy, not next to Stride.Graphics.dll — search both.
-        var rid = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "osx-arm64" : "osx-x64";
+        const string rid = "osx-arm64";
         var searchDirs = (asmDir == AppContext.BaseDirectory)
             ? new[] { asmDir }
             : new[] { asmDir, AppContext.BaseDirectory };

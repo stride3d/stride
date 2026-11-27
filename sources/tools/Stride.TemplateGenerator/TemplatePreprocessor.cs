@@ -1707,7 +1707,7 @@ Cache/
                     { "choice": "host",    "description": "Detect host OS automatically" },
                     { "choice": "windows", "description": "Windows x64 desktop" },
                     { "choice": "linux",   "description": "Linux x64 desktop" },
-                    { "choice": "macos",   "description": "macOS arm64/x64" },
+                    { "choice": "macos",   "description": "macOS arm64" },
                     { "choice": "ios",     "description": "iOS arm64" },
                     { "choice": "android", "description": "Android arm64/x64" }
                   ]

@@ -33,7 +33,6 @@ dotnet/
   win-x86/        Windows x86
   win-arm64/      Windows ARM64
   linux-x64/      Linux x64
-  osx-x64/        macOS x64
   osx-arm64/      macOS ARM64
 Android/
   android-arm/    Android ARMv7

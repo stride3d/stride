@@ -102,7 +102,7 @@ public static class Lavapipe
         if (OperatingSystem.IsLinux())
             return "linux-x64";
         if (OperatingSystem.IsMacOS())
-            return RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "osx-arm64" : "osx-x64";
+            return "osx-arm64";
         throw new PlatformNotSupportedException();
     }
 }
