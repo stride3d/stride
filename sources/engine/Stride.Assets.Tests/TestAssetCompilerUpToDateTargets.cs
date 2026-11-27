@@ -16,6 +16,7 @@ namespace Stride.Assets.Tests
         private readonly string directory = Path.Combine(Path.GetTempPath(), $"stride-asset-compiler-uptodate-{Guid.NewGuid():N}");
         private readonly string project;
         private readonly string model;
+        private readonly string engine;
         private readonly string bundle;
         private readonly string runs;
         private readonly string failure;
@@ -34,6 +35,11 @@ namespace Stride.Assets.Tests
             Directory.CreateDirectory(Path.GetDirectoryName(bundle)!);
             File.WriteAllText(model, "model");
             File.SetLastWriteTimeUtc(model, DateTime.UtcNow.AddHours(-1));
+
+            // An engine assembly next to the compiler, as in the compiler's own output folder of a source checkout
+            engine = Path.Combine(directory, "Engine.dll");
+            File.WriteAllText(engine, "engine");
+            File.SetLastWriteTimeUtc(engine, DateTime.UtcNow.AddHours(-1));
 
             // A fake asset compiler: like the real one, it writes the bundle and, after a successful build, the lists of its inputs and outputs
             var fileBase = Path.Combine(game, "obj", "stride", "assetcompiler-uptodatecheck");
@@ -126,6 +132,20 @@ namespace Stride.Assets.Tests
             var date = File.GetLastWriteTimeUtc(model);
             File.WriteAllText(model, "a longer model");
             File.SetLastWriteTimeUtc(model, date);
+            Build();
+            Assert.Equal(2, Runs());
+        }
+
+        [Fact]
+        public void NewCompilerFileRunsTheCompiler()
+        {
+            Build();
+
+            // The engine is rebuilt, the game is not
+            File.WriteAllText(engine, "rebuilt engine");
+            Build();
+            Assert.Equal(2, Runs());
+
             Build();
             Assert.Equal(2, Runs());
         }

@@ -113,13 +113,17 @@
   <!-- Up-to-date check of the asset build: it runs when an input differs from the last successful build (another date, older or newer,
        or another size) or an output is missing. After a successful build, the asset compiler lists its inputs (wildcards included) in
        .inputs and its outputs in .outputs; the targets then write .inputs.expanded, the state of each input file, and touch .stamp.
-       Each build writes .inputs.expanded again, only when it differs: then it is newer than .stamp. -->
-  <Target Name="_StrideCollectUpToDateCheckInputDesignTime" Condition="'$(StrideIsExecutable)' == 'true'">
+       Each build writes .inputs.expanded again, only when it differs: then it is newer than .stamp.
+       The files of the compiler are inputs too: in a source checkout they change with the engine, with no change in the game. -->
+  <Target Name="_StrideCollectUpToDateCheckInputDesignTime" Condition="'$(StrideIsExecutable)' == 'true'" DependsOnTargets="_StridePrepareAssetCompiler">
+    <PropertyGroup>
+      <_StrideAssetCompilerFiles>$([System.IO.Path]::GetDirectoryName('$(StrideCompileAssetCommand)'))/**/*.dll</_StrideAssetCompilerFiles>
+    </PropertyGroup>
     <ReadLinesFromFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs" Condition="Exists('$(StrideCompileAssetUpToDateCheckFileBase).inputs')">
       <Output TaskParameter="Lines" ItemName="_StrideAssetInputPattern"/>
     </ReadLinesFromFile>
     <!-- CreateItem expands the wildcards -->
-    <CreateItem Include="@(_StrideAssetInputPattern)">
+    <CreateItem Include="@(_StrideAssetInputPattern);$(_StrideAssetCompilerFiles)">
       <Output TaskParameter="Include" ItemName="_StrideAssetInputFile" />
     </CreateItem>
     <StrideGetFileStates Files="@(_StrideAssetInputFile)">
@@ -310,7 +314,7 @@
     <ReadLinesFromFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs" Condition="Exists('$(StrideCompileAssetUpToDateCheckFileBase).inputs')">
       <Output TaskParameter="Lines" ItemName="_StrideBuiltAssetInputPattern"/>
     </ReadLinesFromFile>
-    <CreateItem Include="@(_StrideBuiltAssetInputPattern)">
+    <CreateItem Include="@(_StrideBuiltAssetInputPattern);$(_StrideAssetCompilerFiles)">
       <Output TaskParameter="Include" ItemName="_StrideBuiltAssetInputFile" />
     </CreateItem>
     <StrideGetFileStates Files="@(_StrideBuiltAssetInputFile)">
