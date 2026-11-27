@@ -31,7 +31,7 @@ param(
     [string]$GameStudioVersion,
     # start: a folder of .nupkg files that Stride packages come from first (release candidates)
     [string]$Feed,
-    [int]$MemoryMB = 16384,
+    [double]$MemoryGB = 16,
     [switch]$NoGpu,
     [switch]$NoHostCache,
     # start: the sandbox window on the user's desktop, instead of a hidden desktop
@@ -440,12 +440,18 @@ function Invoke-Start {
             }
         }
         $vgpu = if ($NoGpu) { 'Disable' } else { 'Enable' }
-        $config = "<Configuration><vGPU>$vgpu</vGPU><Networking>Enable</Networking><MemoryInMB>$MemoryMB</MemoryInMB><ClipboardRedirection>Disable</ClipboardRedirection><MappedFolders>$($maps -join '')</MappedFolders></Configuration>"
+        $config = "<Configuration><vGPU>$vgpu</vGPU><Networking>Enable</Networking><MemoryInMB>$([int]($MemoryGB * 1024))</MemoryInMB><ClipboardRedirection>Disable</ClipboardRedirection><MappedFolders>$($maps -join '')</MappedFolders></Configuration>"
 
         if ($reuseSetup) {
             Write-Host 'sandbox: its setup did not finish: running it again'
             Invoke-Setup (Read-Json $StatePath)
             return
+        }
+
+        # The sandbox takes its memory as it needs it: when the host runs out, the VM exits or freezes, and its worker may hang
+        $availableGB = [math]::Round((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB, 1)
+        if ($availableGB -lt $MemoryGB) {
+            throw "the host has $availableGB GB of memory available, less than -MemoryGB $MemoryGB. Close programs, or start with a smaller -MemoryGB (12 is enough for Game Studio)."
         }
 
         Write-Host 'sandbox: starting Windows Sandbox'
@@ -455,7 +461,7 @@ function Invoke-Start {
         $state.sandboxId = $id
         Write-Json $StatePath $state
         Write-Json $LockPath ([ordered]@{ owner = $Owner; workDir = $WorkDir; sandboxId = $id; state = 'running'; pid = $PID; started = (Now); lastUsed = (Now) })
-        Write-Host "sandbox: $id started (vGPU $vgpu, $MemoryMB MB)"
+        Write-Host "sandbox: $id started (vGPU $vgpu, $MemoryGB GB)"
 
         if ($fromRepo) {
             # Game Studio and the asset compiler write local, roaming and cache next to their exe, in the read-only repo:

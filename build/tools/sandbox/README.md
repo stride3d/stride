@@ -45,7 +45,7 @@ To check a released Game Studio instead, start with its version. It is restored 
 .\build\tools\sandbox\sandbox.ps1 start -GameStudioVersion 4.4.2
 ```
 
-Options of `start`: `-Configuration Release`, `-NoGpu` (WARP instead of the host's GPU), `-MemoryMB`, `-NoHostCache` (released Game Studio: restore everything from nuget.org), `-ShowWindow` (the sandbox window on your desktop), `-Fresh` (a new sandbox), `-WaitMinutes N` (wait for a sandbox in use).
+Options of `start`: `-Configuration Release`, `-NoGpu` (WARP instead of the host's GPU), `-MemoryGB` (16 by default, decimals such as 8.5 work, 12 is enough for Game Studio; `start` refuses when the host has less memory available, as the sandbox exits or freezes when the host runs out), `-NoHostCache` (released Game Studio: restore everything from nuget.org), `-ShowWindow` (the sandbox window on your desktop), `-Fresh` (a new sandbox), `-WaitMinutes N` (wait for a sandbox in use).
 
 ## The work folder
 
