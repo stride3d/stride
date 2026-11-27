@@ -1,0 +1,4 @@
+// Build settings of dep-moltenvk.yml, set as XCODE_XCCONFIG_FILE: debug info, and arm64 only, the one architecture
+// of the RIDs Stride ships (osx-arm64, ios-arm64, iossimulator-arm64).
+#include "dep-debug-info.xcconfig"
+ARCHS = arm64
