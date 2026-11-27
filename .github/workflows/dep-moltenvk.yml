@@ -5,8 +5,8 @@ name: "Dep: Build MoltenVK"
 # builds the macOS dylib + iOS + iOS-simulator static libs.
 #
 # Output per RID:
-#   osx-arm64           libvulkan.1.dylib  (arm64-thinned dynamic dylib,
-#                                           renamed + signed so dyld matches
+#   osx-arm64           libvulkan.1.dylib  (dynamic dylib, renamed +
+#                                           signed so dyld matches
 #                                           the leaf name Vortice.Vulkan
 #                                           dlopen()s)
 #   ios-arm64           libMoltenVK.a      (device static, statically linked
@@ -14,9 +14,10 @@ name: "Dep: Build MoltenVK"
 #                                           [DllImport("__Internal")])
 #   iossimulator-arm64  libMoltenVK.a      (Apple Silicon simulator static)
 #
-# RIDs covered: osx-arm64, ios-arm64, iossimulator-arm64.
+# RIDs covered: osx-arm64, ios-arm64, iossimulator-arm64. dep-moltenvk.xcconfig builds arm64 only.
 #
-# Debug files: dep-debug-info.xcconfig turns on debug info for the Xcode builds, which MoltenVK's Release turns off.
+# Debug files: dep-debug-info.xcconfig (in dep-moltenvk.xcconfig) turns on debug info for the Xcode builds, which
+# MoltenVK's Release turns off. The iOS static libraries are relinked to keep it.
 # The libraries ship without it (dep-split-debug.sh), and the debug files go to the symbols pre-release
 # (dep-symbols.yml).
 
@@ -39,7 +40,7 @@ jobs:
         with: { path: stride-src, sparse-checkout: .github/scripts }
 
       - name: Build MoltenVK from source
-        env: { XCODE_XCCONFIG_FILE: '${{ github.workspace }}/stride-src/.github/scripts/dep-debug-info.xcconfig' }
+        env: { XCODE_XCCONFIG_FILE: '${{ github.workspace }}/stride-src/.github/scripts/dep-moltenvk.xcconfig' }
         run: |
           # Shallow init + fetch supports both refnames (tags/branches) and raw
           # SHAs uniformly, unlike `git clone --branch`.
@@ -57,12 +58,42 @@ jobs:
           BUILT_SHA=$(git rev-parse --short HEAD)
           echo "MVK_BUILD_LABEL=${{ github.event.inputs.moltenvk-version }}@${BUILT_SHA}" >> $GITHUB_ENV
 
+      - name: Relink iOS static libraries with their debug info
+        run: |
+          # MoltenVK's static targets link their objects and libMoltenVKShaderConverter.a into one master object
+          # (ld -r), which keeps no DWARF: it writes a debug map that points at the .o files of DerivedData, lost once
+          # the archive leaves the runner. An archive of the objects its debug map names keeps each one with its DWARF:
+          # MoltenVK's objects, and the members of libMoltenVKShaderConverter.a (SPIRV-Cross, SPIRV-Tools) that ld -r
+          # took, which it names as <archive>(<member>).
+          build=(~/Library/Developer/Xcode/DerivedData/MoltenVKPackaging-*/Build)
+          [ ${#build[@]} -eq 1 ] || { echo "::error::not one MoltenVKPackaging DerivedData: ${build[*]}"; exit 1; }
+          for p in iphoneos:ios-arm64 iphonesimulator:iossimulator-arm64; do
+            sdk=${p%%:*} rid=${p#*:}
+            master=$build/Intermediates.noindex/MoltenVK.build/Release-$sdk/MoltenVK-iOS-static.build/Objects-normal/libMoltenVK.a-arm64-master.o
+            members=relinked/$rid/members
+            mkdir -p $members
+            inputs=()
+            while IFS= read -r object; do
+              case "$object" in
+                *\))
+                  archive=${object%%(*} member=${object#*(} member=${member%)}
+                  # ar x takes a member by its name
+                  [ -z "$(ar t "$archive" | sort | uniq -d)" ] || { echo "::error::$archive has two members of one name"; exit 1; }
+                  (cd $members && ar x "$archive" "$member")
+                  inputs+=("$members/$member")
+                  ;;
+                *) inputs+=("$object") ;;
+              esac
+            done < <(nm -ap "$master" | sed -n 's/.* OSO //p')
+            echo "$rid: ${#inputs[@]} objects in the debug map of $(basename "$master")"
+            xcrun libtool -static -arch_only arm64 -D -o relinked/$rid/libMoltenVK.a "${inputs[@]}"
+          done
+
       - name: Repackage macOS dylib (osx-arm64)
         run: |
-          # Slice arm64 out of the universal dylib, renaming to the Vulkan loader
-          # leaf name so Vortice.Vulkan's dlopen("libvulkan.1.dylib") matches.
-          lipo -thin arm64 mvk-src/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib \
-            -output libvulkan.1.dylib
+          # Rename to the Vulkan loader leaf name so Vortice.Vulkan's
+          # dlopen("libvulkan.1.dylib") matches.
+          cp mvk-src/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib libvulkan.1.dylib
           # Rewrite LC_ID_DYLIB so dyld's already-loaded match keys on the new
           # leaf name rather than the original "@rpath/libMoltenVK.dylib".
           install_name_tool -id libvulkan.1.dylib libvulkan.1.dylib
@@ -71,17 +102,12 @@ jobs:
 
       - name: Repackage iOS device static (ios-arm64)
         run: |
-          stride-src/.github/scripts/dep-split-debug.sh \
-            mvk-src/Package/Release/MoltenVK/static/MoltenVK.xcframework/ios-arm64/libMoltenVK.a \
-            out/dotnet/ios-arm64 symbols/ios-arm64
+          stride-src/.github/scripts/dep-split-debug.sh relinked/ios-arm64/libMoltenVK.a out/dotnet/ios-arm64 symbols/ios-arm64
 
       - name: Repackage iOS simulator static (iossimulator-arm64)
         run: |
-          # Upstream ships a fat arm64+x86_64 simulator slice; thin to arm64.
-          lipo -thin arm64 \
-            mvk-src/Package/Release/MoltenVK/static/MoltenVK.xcframework/ios-arm64_x86_64-simulator/libMoltenVK.a \
-            -output libMoltenVK.a
-          stride-src/.github/scripts/dep-split-debug.sh libMoltenVK.a out/dotnet/iossimulator-arm64 symbols/iossimulator-arm64
+          stride-src/.github/scripts/dep-split-debug.sh \
+            relinked/iossimulator-arm64/libMoltenVK.a out/dotnet/iossimulator-arm64 symbols/iossimulator-arm64
 
       - name: Version
         id: version
