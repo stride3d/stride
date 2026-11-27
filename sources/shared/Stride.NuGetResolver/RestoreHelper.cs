@@ -90,6 +90,7 @@ namespace Stride.Core.Assets
         /// <summary>
         /// Checks if a package has dev-redirect stub props and resolves assembly paths from HintPath.
         /// </summary>
+        /// <remarks>False when no HintPath file exists (the checkout didn't build it), so the package's lib/ is used.</remarks>
         private static bool TryResolveDevRedirect(string packageName, string libPath, string graphicsApi, List<string> assemblies)
         {
             // Look for build/<PackageId>.props in the package folder
@@ -112,6 +113,7 @@ namespace Stride.Core.Assets
                 var devConfig = doc.Descendants(ns + "StrideDevConfiguration").FirstOrDefault()?.Value ?? "Debug";
 
                 // Find all Reference HintPaths and resolve MSBuild properties
+                var count = assemblies.Count;
                 foreach (var reference in doc.Descendants(ns + "Reference"))
                 {
                     var hintPath = reference.Element(ns + "HintPath")?.Value;
@@ -144,7 +146,7 @@ namespace Stride.Core.Assets
                     }
                 }
 
-                return true;
+                return assemblies.Count > count;
             }
             catch
             {

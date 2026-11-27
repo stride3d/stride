@@ -950,7 +950,7 @@ static void MergeIntoZipEntry(ZipArchive zip, string entryPath, string addition)
 }
 
 // Props content: marker + paths read by the runtime resolvers
-// (AssemblyContainer.TryResolveDevRedirect / RestoreHelper.TryResolveDevRedirect). The
+// (RestoreHelper.TryResolveDevRedirect / NugetStore.GetDevRedirectAssemblies). The
 // Reference element sits under Condition="false" so MSBuild ignores it — the runtime
 // resolvers parse the XML directly with XLINQ and don't evaluate conditions, so they still
 // see the HintPath. Build-time substitution happens in GenerateRedirectTargets() below.
@@ -958,9 +958,10 @@ static string GenerateRedirectProps(string pkgId, ProjectInfo projInfo, string s
 {
     var relProjDir = Path.GetRelativePath(strideRoot, projInfo.ProjectDir).Replace('\\', '/');
 
+    // A runtime resolver has no TargetFramework to pick a folder with: the folder is chosen here
     var hintPath = projInfo.IsGraphicsDependent
         ? $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/net10.0/$(StrideGraphicsApi)/{projInfo.AssemblyName}.dll"
-        : $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/net10.0/{projInfo.AssemblyName}.dll";
+        : $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/{RuntimeTfm(projInfo.ProjectDir, configuration, projInfo.AssemblyName)}/{projInfo.AssemblyName}.dll";
 
     return $"""
         <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -1116,6 +1117,16 @@ static string? BuiltTfm(string projectDir, string configuration, string assembly
         .Where(dir => File.Exists(Path.Combine(dir, assemblyName + ".dll")))
         .Select(Path.GetFileName)
         .FirstOrDefault();
+}
+
+// The bin/<configuration>/<tfm> folder of <assemblyName>.dll for the runtime resolvers: net10.0 when built (also
+// when the project builds more TFMs), else the one built, else net10.0 (not built yet: the resolver then loads lib/).
+static string RuntimeTfm(string projectDir, string configuration, string assemblyName)
+{
+    var bin = Path.Combine(projectDir, "bin", configuration);
+    if (File.Exists(Path.Combine(bin, "net10.0", assemblyName + ".dll")))
+        return "net10.0";
+    return BuiltTfm(projectDir, configuration, assemblyName) ?? "net10.0";
 }
 
 // One block per analyzer the package ships and this checkout builds: the checkout's DLL replaces
