@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -712,6 +713,12 @@ namespace Stride.Graphics.Regression
         // silently target master. Any lookup failure leaves a fill-in placeholder.
         private static (string Repo, string Branch) ResolveRepoAndBranch()
         {
+            // On a pull request, GITHUB_REF_NAME is "<n>/merge", which workflow_dispatch can't run on, and
+            // a fork's branch exists only in the fork: use the PR's head branch, in its head repo. No git
+            // fallback: the checkout is the merge commit, with the base repo as its only remote.
+            if (Environment.GetEnvironmentVariable("GITHUB_EVENT_NAME") is "pull_request" or "pull_request_target")
+                return (ReadPullRequestHeadRepo(), Environment.GetEnvironmentVariable("GITHUB_HEAD_REF") ?? "");
+
             var repo = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
             var branch = Environment.GetEnvironmentVariable("GITHUB_REF_NAME");
             if (!string.IsNullOrEmpty(repo) && !string.IsNullOrEmpty(branch))
@@ -761,6 +768,30 @@ namespace Stride.Graphics.Regression
             catch { /* git unavailable / not a repo (e.g. Android) — leave gh to deduce */ }
 
             return (repo ?? "", branch ?? "");
+        }
+
+        // pull_request.head.repo.full_name of the event payload, or "" when it can't be read
+        // (head.repo is null when the fork was deleted).
+        private static string ReadPullRequestHeadRepo()
+        {
+            var path = Environment.GetEnvironmentVariable("GITHUB_EVENT_PATH");
+            if (string.IsNullOrEmpty(path))
+                return "";
+            try
+            {
+                using var payload = JsonDocument.Parse(File.ReadAllBytes(path));
+                return payload.RootElement.TryGetProperty("pull_request", out var pullRequest)
+                    && pullRequest.TryGetProperty("head", out var head)
+                    && head.TryGetProperty("repo", out var headRepo)
+                    && headRepo.ValueKind == JsonValueKind.Object
+                    && headRepo.TryGetProperty("full_name", out var fullName)
+                    ? fullName.GetString() ?? ""
+                    : "";
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException)
+            {
+                return "";
+            }
         }
 
         private static string RunGit(string root, string args)
