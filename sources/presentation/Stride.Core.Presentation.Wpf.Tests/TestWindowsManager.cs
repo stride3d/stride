@@ -184,6 +184,59 @@ namespace Stride.Core.Presentation.Tests
             WindowManagerHelper.ShutdownUIThread(dispatcher);
         }
 
+        [Fact]
+        public async Task TestDialogOwnedByBlockingWindowKeepsItDisabled()
+        {
+            LoggerResult loggerResult;
+            var dispatcher = await WindowManagerHelper.CreateUIThread();
+            using (WindowManagerHelper.InitWindowManager(dispatcher, out loggerResult))
+            {
+                var blockingWindow = dispatcher.Invoke(() => new TestWindow("BlockingWindow"));
+                await RunAndWait(dispatcher, () => WindowManager.ShowBlockingWindow(blockingWindow), WindowManagerHelper.NextWindowShown);
+
+                // As the upgrade question that a loading session asks in front of its progress window, before the main window shows
+                var dialog = dispatcher.Invoke(() => new TestWindow("Dialog") { Owner = blockingWindow });
+                await RunAndWait(dispatcher, () => dialog.ShowDialog(), WindowManagerHelper.NextWindowShown);
+
+                dispatcher.Invoke(() =>
+                {
+                    Assert.Equal(dialog, Assert.Single(WindowManager.ModalWindows).Window);
+                    Assert.True(Assert.Single(WindowManager.BlockingWindows).IsDisabled);
+                });
+
+                await RunAndWait(dispatcher, dialog.Close, WindowManagerHelper.NextWindowHidden);
+
+                dispatcher.Invoke(() =>
+                {
+                    Assert.Empty(WindowManager.ModalWindows);
+                    Assert.False(Assert.Single(WindowManager.BlockingWindows).IsDisabled);
+                });
+
+                await RunAndWait(dispatcher, blockingWindow.Close, WindowManagerHelper.NextWindowHidden);
+            }
+            WindowManagerHelper.ShutdownUIThread(dispatcher);
+        }
+
+        [Fact]
+        public async Task TestClosingBlockingWindowIsNotListed()
+        {
+            LoggerResult loggerResult;
+            var dispatcher = await WindowManagerHelper.CreateUIThread();
+            using (WindowManagerHelper.InitWindowManager(dispatcher, out loggerResult))
+            {
+                var blockingWindow = dispatcher.Invoke(() => new TestWindow("BlockingWindow"));
+                await RunAndWait(dispatcher, () => WindowManager.ShowBlockingWindow(blockingWindow), WindowManagerHelper.NextWindowShown);
+
+                // A dialog asked while the window closes, before its hide event, must not take it as owner
+                int? listedWhileClosing = null;
+                blockingWindow.Closed += (sender, e) => listedWhileClosing = WindowManager.BlockingWindows.Count;
+                await RunAndWait(dispatcher, blockingWindow.Close, WindowManagerHelper.NextWindowHidden);
+
+                Assert.Equal(0, listedWhileClosing);
+            }
+            WindowManagerHelper.ShutdownUIThread(dispatcher);
+        }
+
         private static async Task RunAndWait(Dispatcher dispatcher, Action action, Task windowManagerEvent)
         {
             dispatcher.InvokeAsync(action).Task.Forget();

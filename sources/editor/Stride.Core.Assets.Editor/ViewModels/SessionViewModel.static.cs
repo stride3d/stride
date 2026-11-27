@@ -432,10 +432,12 @@ partial class SessionViewModel
             }
             message.AppendLine(Tr._p("Message", "Upgrading assets might break them. We also recommend committing or backing up your project first."));
 
+            // A question closed without a button (0) upgrades nothing, as Skip
+            const int upgradeButton = 1;
             var buttons = new[]
             {
-                new DialogButtonInfo { Content = Tr._p("Button", "Upgrade"), Result = (int)PackageUpgradeRequestedAnswer.Upgrade },
-                new DialogButtonInfo { Content = Tr._p("Button", "Skip"), Result = (int)PackageUpgradeRequestedAnswer.DoNotUpgrade },
+                new DialogButtonInfo { Content = Tr._p("Button", "Upgrade"), Result = upgradeButton },
+                new DialogButtonInfo { Content = Tr._p("Button", "Skip"), Result = 2 },
             };
             var applyToAll = new DialogCheckBoxInfo { Content = Tr._p("Message", "Do this for every package in the solution"), IsChecked = false };
             var backup = new DialogCheckBoxInfo { Content = Tr._p("Message", "Back up each modified file to a timestamped folder under the solution"), IsChecked = loadParameters.BackupBeforeUpgrade, IsEnabled = !backupChoiceMade };
@@ -444,12 +446,10 @@ partial class SessionViewModel
 
             loadParameters.BackupBeforeUpgrade = backup.IsChecked == true;
             backupChoiceMade = true;
-            var result = (PackageUpgradeRequestedAnswer)buttonResult;
+            var upgrade = buttonResult == upgradeButton;
             if (applyToAll.IsChecked == true)
-            {
-                result = result == PackageUpgradeRequestedAnswer.Upgrade ? PackageUpgradeRequestedAnswer.UpgradeAll : PackageUpgradeRequestedAnswer.DoNotUpgradeAny;
-            }
-            return result;
+                return upgrade ? PackageUpgradeRequestedAnswer.UpgradeAll : PackageUpgradeRequestedAnswer.DoNotUpgradeAny;
+            return upgrade ? PackageUpgradeRequestedAnswer.Upgrade : PackageUpgradeRequestedAnswer.DoNotUpgrade;
         };
         return loadParameters;
     }

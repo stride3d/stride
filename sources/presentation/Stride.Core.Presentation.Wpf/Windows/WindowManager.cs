@@ -259,7 +259,9 @@ namespace Stride.Core.Presentation.Windows
                 RefreshDisabledStates();
         }
 
-        private static bool IsStale(WindowInfo windowInfo) => windowInfo.IsShown && (windowInfo.Hwnd == IntPtr.Zero || !NativeHelper.IsWindow(windowInfo.Hwnd));
+        // A closing WPF window has no source any more while its hwnd is still being destroyed
+        private static bool IsStale(WindowInfo windowInfo) => windowInfo.IsShown
+            && (windowInfo.Hwnd == IntPtr.Zero || !NativeHelper.IsWindow(windowInfo.Hwnd) || windowInfo.Window != null && WindowInfo.ToHwnd(windowInfo.Window) == IntPtr.Zero);
 
         private static void PruneClosed(List<WindowInfo> list)
         {

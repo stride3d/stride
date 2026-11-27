@@ -324,6 +324,36 @@ public class TestUpgradedVersionRecord : IDisposable
     }
 
     [Fact]
+    public void ALoadCancelledDuringTheUpgradeQuestionAsksNoMore()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.Succeeds" Version="1.0.0" />""");
+        var tools = WriteProject("Game.Tools", """<PackageReference Include="UpgradeRecord.Succeeds" Version="1.0.0" />""");
+        var before = ReadFiles(game, tools);
+
+        // As the progress window's Cancel under the question of the first project: the question closes, the load is cancelled
+        using var cancel = new CancellationTokenSource();
+        var asked = new List<string>();
+        var parameters = new PackageLoadParameters
+        {
+            AutoCompileProjects = false,
+            LoadAssemblyReferences = false,
+            CancelToken = cancel.Token,
+            PackageUpgradeRequested = (package, _) =>
+            {
+                asked.Add(package.Meta.Name);
+                cancel.Cancel();
+                return PackageUpgradeRequestedAnswer.Upgrade;
+            },
+        };
+        var result = new PackageSessionResult();
+        PackageSession.Load(WriteSolution(game, tools), result, parameters);
+        result.Session?.Dispose();
+
+        Assert.Single(asked);
+        Assert.Equal(before, ReadFiles(game, tools));
+    }
+
+    [Fact]
     public void AProjectStoppedAfterItsAssetsLoadedIsToldToRestoreFromTheBackup()
     {
         var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.FailsAfterAssets" Version="1.0.0" />""");

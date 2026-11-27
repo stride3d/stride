@@ -24,9 +24,13 @@ namespace Stride.Core.Presentation.Controls
                     NativeHelper.DisableMinimizeButton(handle);
                 }
             };
-            Owner = WindowManager.MainWindow?.Window ?? WindowManager.BlockingWindows.LastOrDefault()?.Window;
-            WindowStartupLocation = Owner != null ? WindowStartupLocation.CenterOwner : WindowStartupLocation.CenterScreen;
-            await Dispatcher.InvokeAsync(ShowDialog);
+            await Dispatcher.InvokeAsync(() =>
+            {
+                // The owner is chosen when the dialog shows: a blocking window can close before that
+                Owner = WindowManager.MainWindow?.Window ?? WindowManager.BlockingWindows.LastOrDefault()?.Window;
+                WindowStartupLocation = Owner != null ? WindowStartupLocation.CenterOwner : WindowStartupLocation.CenterScreen;
+                ShowDialog();
+            });
             return Result;
         }
 

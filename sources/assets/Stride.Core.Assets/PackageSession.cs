@@ -1227,6 +1227,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     // project references, assets) goes through here, so nothing is written before the user has answered.
     private PackageUpgradeRequestedAnswer RequestPackageUpgrade(Package package, IList<PendingPackageUpgrade> pendingPackageUpgrades, PackageLoadParameters loadParameters)
     {
+        // A cancelled load asks nothing more and upgrades nothing more: its session is dropped
+        if (loadParameters.CancelToken is { IsCancellationRequested: true })
+            return PackageUpgradeRequestedAnswer.DoNotUpgrade;
         if (packageUpgradeAllowed is { } allowed)
             return allowed ? PackageUpgradeRequestedAnswer.Upgrade : PackageUpgradeRequestedAnswer.DoNotUpgrade;
         // An answer given earlier holds also for a later load without the question (the load of the missing references)
@@ -1334,6 +1337,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 {
                     // The detection reads the project files: it needs no restore
                     pendingCodeUpgrades = DetectPendingCodeUpgrades(log, loadParameters);
+                    // A load cancelled during the upgrade questions migrates nothing, not even the projects answered before
+                    if (cancelToken is { IsCancellationRequested: true })
+                        return;
                     if (pendingCodeUpgrades.Count > 0 && codeUpgradeRunner.HasSourceMigrations(pendingCodeUpgrades))
                     {
                         if (solutionOnDisk && !dependenciesRestoredUpFront)
