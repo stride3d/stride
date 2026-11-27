@@ -23,7 +23,8 @@ namespace Stride.ConnectionRouter
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var showHelp = false;
             int exitCode = 0;
-            string logFileName = "routerlog.txt";
+            // Not in the working folder: the router inherits it from its caller, and it may be read-only
+            string logFileName = Path.Combine(RouterHelper.DataFolder, "log.txt");
 
             var p = new OptionSet
                 {
@@ -40,7 +41,7 @@ namespace Stride.ConnectionRouter
                     "=== Options ===",
                     string.Empty,
                     { "h|help", "Show this message and exit", v => showHelp = v != null },
-                    { "log-file=", "Log build in a custom file (default: routerlog.txt).", v => logFileName = v },
+                    { "log-file=", @"Log in a custom file (default: %LocalAppData%\stride\router\log.txt).", v => logFileName = v },
                 };
 
             try
@@ -56,20 +57,31 @@ namespace Stride.ConnectionRouter
                 if (commandArgs.Count > 0)
                     throw new OptionException("This command expect no additional arguments", "");
 
-                // Enable file logging
-                if (!string.IsNullOrEmpty(logFileName))
-                {
-                    var fileLogListener = new TextWriterLogListener(File.Open(logFileName, FileMode.Create, FileAccess.Write, FileShare.ReadWrite));
-                    GlobalLogger.GlobalMessageLogged += fileLogListener;
-                }
-
-                // TODO: Lock will be only for this folder but it should be shared across OS
-                using (var mutex = FileLock.TryLock("connectionrouter.lock"))
+                Directory.CreateDirectory(RouterHelper.DataFolder);
+                using (var mutex = FileLock.TryLock(Path.Combine(RouterHelper.DataFolder, "lock")))
                 {
                     if (mutex == null)
                     {
                         Console.WriteLine("Another instance of Stride Router is already running");
                         return -1;
+                    }
+
+                    // Opened once the lock is taken: opening it empties the log of a running router
+                    if (!string.IsNullOrEmpty(logFileName))
+                    {
+                        logFileName = Path.GetFullPath(logFileName);
+                        try
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(logFileName));
+                            var fileLogListener = new TextWriterLogListener(File.Open(logFileName, FileMode.Create, FileAccess.Write, FileShare.ReadWrite));
+                            GlobalLogger.GlobalMessageLogged += fileLogListener;
+                        }
+                        catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+                        {
+                            // The router works without its log
+                            Console.WriteLine("{0}: no log file: {1}", exeName, e.Message);
+                            logFileName = null;
+                        }
                     }
 
                     var router = new Router();
@@ -188,7 +200,7 @@ namespace Stride.ConnectionRouter
 
         private static void OnShowLogClick(string logFileName)
         {
-            System.Diagnostics.Process.Start(logFileName);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(logFileName) { UseShellExecute = true });
         }
 
         private static void OnExitClick()

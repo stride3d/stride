@@ -19,6 +19,11 @@ namespace Stride.ConnectionRouter
     {
         private const string LaunchMutexName = @"Local\Stride.ConnectionRouter.Launch";
 
+        /// <summary>
+        /// Gets the folder of the router's own files: the copy it runs from, its log and its lock.
+        /// </summary>
+        internal static string DataFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride", "router");
+
         private static string VersionWithoutSpecialPart(string version)
         {
             var indexOfDash = version.IndexOf('-');
