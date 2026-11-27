@@ -357,6 +357,10 @@ namespace Stride.AssetCompiler
                 {
                     inputs.Add(project.AssemblyProcessorSerializationHashFile);
                 }
+
+                // The assemblies of a NuGet dependency: in a source checkout, its build output, which changes with no change in the game
+                if (package.Container is StandalonePackage { IsDependencyPackage: true } dependency)
+                    inputs.AddRange(dependency.Assemblies);
             }
 
             // List input files
