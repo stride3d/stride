@@ -2,7 +2,7 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- This is a test helper library, not a test project. xunit.runner.visualstudio sets
+    <!-- This is a test helper library, not a test project. The xunit package sets
          IsTestProject=true which breaks StrideGraphicsApiDependent output paths. -->
     <IsTestProject>false</IsTestProject>
     <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
@@ -22,10 +22,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Xunit.SkippableFact" />
     <!--
       Keep the small managed DLL (and its ModuleInitializer) but skip the 70+ MB
