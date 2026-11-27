@@ -227,19 +227,12 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentException">The Graphics Resource does not have an Unordered Access View.</exception>
         public void SetUnorderedAccessView(int slot, GraphicsResource unorderedAccessView)
         {
-            var bindingOffset = BindingOffsets[slot];
-            Record(bindingOffset, unorderedAccessView, DescriptorSourceKind.UnorderedAccessView, offset: 0, size: 0);
-
-            WriteUnorderedAccessView(bindingOffset, unorderedAccessView);
-        }
-
-        private void WriteUnorderedAccessView(int bindingOffset, GraphicsResource unorderedAccessView)
-        {
             // TODO: Why this throws, but the SRVs just return?
 
             if (unorderedAccessView.NativeUnorderedAccessView.Ptr == 0)
                 throw new ArgumentException($"Resource '{unorderedAccessView}' has missing Unordered Access View.");
 
+            var bindingOffset = BindingOffsets[slot];
             var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) bindingOffset);
 
             nativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
@@ -248,9 +241,7 @@ namespace Stride.Graphics
 
         private void Record(int bindingOffset, GraphicsResource resource, DescriptorSourceKind kind, int offset, int size)
         {
-            if (pool?.SrvSources is not { } sources)
-                return;
-
+            var sources = pool!.SrvSources!;
             var index = srvIndex + bindingOffset / resource.GraphicsDevice.SrvHandleIncrementSize;
             sources[index] = new DescriptorSource(resource, resource.RenameVersion, kind, offset, size);
         }
@@ -260,9 +251,7 @@ namespace Stride.Graphics
         /// </summary>
         internal void RefreshStaleDescriptors()
         {
-            if (pool?.SrvSources is not { } sources)
-                return;
-
+            var sources = pool!.SrvSources!;
             var srvCount = Description!.SrvCount;
             for (var i = 0; i < srvCount; i++)
             {
@@ -295,10 +284,6 @@ namespace Stride.Graphics
                     WriteShaderResourceView(bindingOffset, resource);
                     break;
 
-                case DescriptorSourceKind.UnorderedAccessView:
-                    WriteUnorderedAccessView(bindingOffset, resource);
-                    break;
-
                 case DescriptorSourceKind.ConstantBuffer:
                     WriteConstantBuffer(bindingOffset, (Buffer) resource, source.Offset, source.Size);
                     break;
@@ -324,10 +309,10 @@ namespace Stride.Graphics
         }
     }
 
+    // Unordered Access Views are not recorded: a discard only recreates Dynamic resources, which can't have them
     internal enum DescriptorSourceKind : byte
     {
         ShaderResourceView,
-        UnorderedAccessView,
         ConstantBuffer
     }
 
