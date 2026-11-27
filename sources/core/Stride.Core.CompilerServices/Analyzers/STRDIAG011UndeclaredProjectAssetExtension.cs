@@ -13,7 +13,7 @@ public class STRDIAG011UndeclaredProjectAssetExtension : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG011";
     private const string Title = "Project-asset extension not declared in <StrideProjectAssetExtensions>";
-    private const string MessageFormat = "Asset type '{0}' declares file extension '{1}', which is missing from <StrideProjectAssetExtensions>. Add the <StrideProjectAssetExtensions>{1}</StrideProjectAssetExtensions> property to the .csproj or .targets file, so the asset compiler captures it into the .sdbuild manifest.";
+    private const string MessageFormat = "Asset type '{0}' declares file extension '{1}', which is missing from <StrideProjectAssetExtensions>. Add <StrideProjectAssetExtensions>$(StrideProjectAssetExtensions);{1}</StrideProjectAssetExtensions> to <PropertyGroup> in the .csproj or .targets file, so the asset compiler captures it into the .sdbuild manifest.";
     private const string Category = DiagnosticCategory.Build;
 
     private static readonly DiagnosticDescriptor Rule = new(

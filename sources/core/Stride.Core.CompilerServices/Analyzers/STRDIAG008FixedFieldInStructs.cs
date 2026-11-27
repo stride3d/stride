@@ -8,7 +8,7 @@ public class STRDIAG008FixedFieldInStructs : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG008";
     private const string Title = "Invalid struct member";
-    private const string MessageFormat = "Using [DataMember] on a struct members with the 'fixed' modifier is not allowed.";
+    private const string MessageFormat = "Serialization of struct member '{0}' with the 'fixed' modifier isn't supported. Consider adding the [DataMemberIgnore] attribute to it.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new(

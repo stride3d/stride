@@ -101,7 +101,7 @@ public class STRDIAG014UndeclaredAssetFileExtension : DiagnosticAnalyzer
                 continue;
 
             foreach (var location in symbol.Locations)
-                context.ReportDiagnostic(Diagnostic.Create(runtime is null ? NoRuntimeRule : NoRuntimeRule, location, symbol.Name, trimmed, contentType.ToDisplayString(), runtime is null ? contentType.ContainingAssembly?.Name : runtime));
+                context.ReportDiagnostic(Diagnostic.Create(runtime is null ? NoRuntimeRule : HasRuntimeRule, location, symbol.Name, trimmed, contentType.ToDisplayString(), runtime is null ? contentType.ContainingAssembly?.Name : runtime));
         }
     }
 
