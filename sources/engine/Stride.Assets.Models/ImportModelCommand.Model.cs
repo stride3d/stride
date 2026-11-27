@@ -97,22 +97,23 @@ namespace Stride.Assets.Models
             model.BoundingBox = BoundingBox.Empty;
 
             Skeleton skeleton;
-            if (SkeletonUrl != null || !MergeMeshes)
+            var skeletonUrl = SkeletonUrl;
+            if (skeletonUrl != null || !MergeMeshes)
             {
-                if (SkeletonUrl != null)
+                if (skeletonUrl != null)
                 {
                     // Load the skeleton
-                    skeleton = contentManager.Load<Skeleton>(SkeletonUrl);
+                    skeleton = contentManager.Load<Skeleton>(skeletonUrl);
                 }
                 else
                 {
                     skeleton = modelSkeleton;
-                    SkeletonUrl = Location + "_Skeleton_" + Guid.NewGuid();
-                    contentManager.Save(SkeletonUrl, skeleton);
+                    skeletonUrl = Location + "_Skeleton_" + Guid.NewGuid();
+                    contentManager.Save(skeletonUrl, skeleton);
                 }
 
                 // Assign skeleton to model
-                model.Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(AssetId.Empty, SkeletonUrl);
+                model.Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(AssetId.Empty, skeletonUrl);
             }
             else
             {

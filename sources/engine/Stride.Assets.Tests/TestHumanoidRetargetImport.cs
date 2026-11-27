@@ -149,15 +149,23 @@ public class TestHumanoidRetargetImport
     }
 
     [Fact]
-    public void RetargetedAnimationDependsOnBothSkeletons()
+    public void ImportDependsOnItsSkeletons()
     {
-        var command = new ImportThreeDCommand { SourcePath = AnimationPath, SkeletonUrl = "Models/Target Skeleton", Retarget = new() { SourceSkeletonUrl = "Mocap/Source Skeleton" } };
-
+        var command = new ImportThreeDCommand { Mode = ImportModelCommand.ExportMode.Animation, SourcePath = AnimationPath, SkeletonUrl = "Models/Target Skeleton" };
         var file = new ObjectUrl(UrlType.File, command.SourcePath);
-        Assert.Equal([file, new ObjectUrl(UrlType.Content, "Models/Target Skeleton"), new ObjectUrl(UrlType.Content, "Mocap/Source Skeleton")], command.GetInputFiles());
+        var target = new ObjectUrl(UrlType.Content, "Models/Target Skeleton");
+        Assert.Equal([file, target], command.GetInputFiles());
+
+        command.Retarget = new() { SourceSkeletonUrl = "Mocap/Source Skeleton" };
+        Assert.Equal([file, target, new ObjectUrl(UrlType.Content, "Mocap/Source Skeleton")], command.GetInputFiles());
 
         command.Retarget = null;
+        command.SkeletonUrl = null;
         Assert.Equal([file], command.GetInputFiles());
+
+        command.Mode = ImportModelCommand.ExportMode.Model;
+        command.SkeletonUrl = "Models/Target Skeleton";
+        Assert.Equal([file, target], command.GetInputFiles());
     }
 
     [Fact]

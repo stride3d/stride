@@ -171,12 +171,12 @@ namespace Stride.Assets.Models
             foreach (var inputFile in base.GetInputFiles())
                 yield return inputFile;
 
-            // A retargeting reads the rest poses of both compiled skeletons, so a change of either one rebuilds the animation
-            if (Retarget != null)
-            {
+            // Models and animations read the node indices of their compiled skeleton, and a retargeting also the rest pose of the source
+            // skeleton, so a change of either one rebuilds them
+            if (!string.IsNullOrWhiteSpace(SkeletonUrl))
                 yield return new ObjectUrl(UrlType.Content, SkeletonUrl);
+            if (Retarget != null)
                 yield return new ObjectUrl(UrlType.Content, Retarget.SourceSkeletonUrl);
-            }
         }
 
         /// <summary>
