@@ -45,8 +45,9 @@
 
   <Target Name="_ResolveVersion">
     <!-- The glob also matches other packages (Stride.GameStudio.Avalonia, .AutoTesting, ...): keep the names
-         where a version, so a digit, follows the 'Stride.GameStudio.' prefix (18 chars). -->
-    <ItemGroup Condition="'$(GameStudioVersion)' == ''">
+         where a version, so a digit, follows the 'Stride.GameStudio.' prefix (18 chars). With no candidate,
+         MSBuild still evaluates the condition once with an empty '%(Filename)', so skip the filter then. -->
+    <ItemGroup Condition="'$(GameStudioVersion)' == '' and '@(_GameStudioNupkgCandidate)' != ''">
       <_GameStudioNupkg Include="@(_GameStudioNupkgCandidate)" Condition="$([System.Char]::IsDigit('%(Filename)', 18))" />
     </ItemGroup>
     <PropertyGroup Condition="'$(GameStudioVersion)' == ''">
