@@ -52,7 +52,7 @@ The old `PrerequisitesValidator` has no replacement. On a Windows machine withou
 ### Future work (post-merge)
 
 - **Linux packaging.** `dotnet publish -r linux-x64 --self-contained` works today. Decide on distribution format (tarball, AppImage, Flatpak, `.deb`/`.rpm`) and document in [packaging.md](packaging.md).
-- **macOS support.** No RID yet. Needs `osx-x64`/`osx-arm64` targets, `.app` bundle, codesigning/notarization, and window-chrome review.
+- **macOS support.** No RID yet. Needs an `osx-arm64` target, `.app` bundle, codesigning/notarization, and window-chrome review.
 - **Self-update reinstall on Linux.** The reinstall path (`reinstall-below`) is Windows-only: on Linux, a package that needs one isn't taken. A full breaking-change upgrade on Linux has no equivalent yet — options are a Linux-specific download path or "update via package manager". See [self-update.md](self-update.md).
 - **Integration tests.** The existing unit tests cover view-model logic only. Avalonia headless-platform tests for the real `MainWindow` + `MainView` (close-confirmation dialog, tab persistence, HWND capture) are still missing, as is CI wiring on `ubuntu-latest`.
 - **Persist the selected alternate version.** `ActiveVersion` stores only `"Stride <major>.<minor>"`; the active patch build is not remembered across restarts. Extend the setting or add `ActiveAlternateVersion` and update the restore logic in `MainViewModel.RetrieveLocalStrideVersions`.

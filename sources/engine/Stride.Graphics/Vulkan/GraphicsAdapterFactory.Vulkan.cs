@@ -137,10 +137,9 @@ namespace Stride.Graphics
             // Fall back to bundled MoltenVK shipped at runtimes/<rid>/native/. The assembly may sit
             // in a per-API subfolder (multi-graphics-API hosts) while natives stay at the app base.
             var ownerDir = Path.GetDirectoryName(typeof(GraphicsAdapterFactory).Assembly.Location) ?? string.Empty;
-            var arch = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
             foreach (var dir in new[] { ownerDir, AppContext.BaseDirectory })
             {
-                var bundled = Path.Combine(dir, "runtimes", $"osx-{arch}", "native", "libvulkan.1.dylib");
+                var bundled = Path.Combine(dir, "runtimes", "osx-arm64", "native", "libvulkan.1.dylib");
                 if (File.Exists(bundled))
                     return bundled;
             }

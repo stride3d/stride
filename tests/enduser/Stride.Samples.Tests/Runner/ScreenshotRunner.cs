@@ -40,7 +40,7 @@ public static class ScreenshotRunner
     // and only Windows uses a .exe extension.
     private static readonly (string Folder, string Rid, string ExeExt) HostPlatform =
         OperatingSystem.IsLinux()  ? ("Linux",   "linux-x64", "") :
-        OperatingSystem.IsMacOS()  ? ("macOS",   RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "osx-arm64" : "osx-x64", "") :
+        OperatingSystem.IsMacOS()  ? ("macOS",   "osx-arm64", "") :
                                      ("Windows", "win-x64",   ".exe");
 
     private static readonly object InitLock = new();

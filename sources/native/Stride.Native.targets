@@ -105,9 +105,8 @@
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('Windows')) And $(_StridePlatforms.Contains(';Windows;'))" Include="win-x64;win-arm64" LibraryExtension=".dll" LibraryRuntime="win" />
     <StrideNativeCPU Condition="$(_StridePlatforms.Contains(';Linux;'))" Include="linux-x64" LibraryExtension=".so" LibraryRuntime="linux" />
-    <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('Windows')) And $(_StridePlatforms.Contains(';macOS;'))" Include="osx-x64" LibraryExtension=".dylib" LibraryRuntime="osx" />
-    <!-- macOS host builds its own osx-arm64 dylib via the system clang. -->
-    <StrideNativeCPU Condition="$([MSBuild]::IsOSPlatform('OSX')) And $(_StridePlatforms.Contains(';macOS;'))" Include="osx-arm64" LibraryExtension=".dylib" LibraryRuntime="osx" />
+    <!-- Windows host: bundled clang + lld (CompileNativeClang_macOS); macOS host: system clang (CompileNativeClang_macOSOnMac). -->
+    <StrideNativeCPU Condition="($([MSBuild]::IsOSPlatform('Windows')) Or $([MSBuild]::IsOSPlatform('OSX'))) And $(_StridePlatforms.Contains(';macOS;'))" Include="osx-arm64" LibraryExtension=".dylib" LibraryRuntime="osx" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
     <StrideNativeCPU Include="android-arm64;android-arm;android-x86;android-x64" LibraryExtension=".so" />
@@ -357,13 +356,16 @@
 
   </Target>
 
-  <!-- TODO: Target uses unknown origin of darwin-ld command. Maybe it comes from apple-llvm?. Blocks xplat build -->
+  <!-- Windows host: cross-compiles the osx-arm64 dylib with the bundled clang and lld. There is no macOS SDK, so
+       the dylib links no system library: its libc symbols resolve at load time in the process (flat namespace).
+       macOS 11.0 is the oldest arm64 macOS, and the minimum of the NativePath and Celt archives. Arm64 macOS only
+       loads signed code: lld signs the dylib ad hoc, as Apple's linker does. -force_load: see CompileNativeClang_macOSOnMac. -->
   <Target Name="CompileNativeClang_macOS" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="('$(TargetFramework)' == '$(StrideFramework)') And $([MSBuild]::IsOSPlatform('Windows')) And $(_StridePlatforms.Contains(';macOS;')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
-    <MakeDir Directories="$(OutputObjectPath)\osx-x64"/>
-    <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\osx-x64\native"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -DPLATFORM_MACOS -o &quot;$(OutputObjectPath)\osx-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -DPLATFORM_MACOS -o &quot;$(OutputObjectPath)\osx-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
-    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor darwin -arch x86_64 -w -flat_namespace -undefined dynamic_lookup -platform_version macos 10.11 10.11 -dylib -o &quot;$(StrideNativeOutputPath)\runtimes\osx-x64\native\$(StrideNativeOutputName).dylib&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\osx-x64\%(Filename)_x64.o&quot;', ' ') @(StrideNativePathLibsmacOS->'&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-x64\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-x64\libNativePath.a&quot;" />
+    <MakeDir Directories="$(OutputObjectPath)\osx-arm64"/>
+    <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\osx-arm64\native"/>
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClang) -DPLATFORM_MACOS -o &quot;$(OutputObjectPath)\osx-arm64\%(StrideNativeCFile.Filename)_arm64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target arm64-apple-macos11.0" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(StrideNativeClangCommand)&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -DPLATFORM_MACOS -o &quot;$(OutputObjectPath)\osx-arm64\%(StrideNativeCFile.Filename)_arm64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target arm64-apple-macos11.0" />
+    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor darwin -arch arm64 -w -flat_namespace -undefined dynamic_lookup -platform_version macos 11.0 11.0 -adhoc_codesign -dylib -install_name @rpath/$(StrideNativeOutputName).dylib -o &quot;$(StrideNativeOutputPath)\runtimes\osx-arm64\native\$(StrideNativeOutputName).dylib&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\osx-arm64\%(Filename)_arm64.o&quot;', ' ') @(StrideNativePathLibsmacOSArm64->'-force_load &quot;%(FullPath)&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-arm64\libNativePath.a&quot;" />
 
   </Target>
   

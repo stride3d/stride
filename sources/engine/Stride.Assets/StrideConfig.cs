@@ -76,7 +76,7 @@ namespace Stride.Assets
                 Name = PlatformType.macOS.ToString(),
                 IsAvailable = true,
                 TargetFramework = "net10.0",
-                RuntimeIdentifier = "osx-x64",
+                RuntimeIdentifier = "osx-arm64",
                 Type = PlatformType.macOS,
             };
             solutionPlatforms.Add(macOSPlatform);
