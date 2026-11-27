@@ -93,8 +93,9 @@ namespace Stride.Core.Presentation.Windows
                 if (HwndHelper.HasStyleFlag(Hwnd, NativeHelper.WS_CHILD))
                     return false;
 
+                // A dialog disables its owner: the main window, a blocking window (a progress window) or another modal
                 var owner = Owner;
-                return owner == null || owner.IsModal && owner.IsDisabled;
+                return owner == null || (owner.IsBlocking || owner.IsModal) && owner.IsDisabled;
             }
         }
 
