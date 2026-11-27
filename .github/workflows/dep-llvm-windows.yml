@@ -12,7 +12,7 @@ on:
     inputs:
       llvm-version:
         description: LLVM release version (tag llvmorg-<version> on llvm/llvm-project)
-        default: 22.1.2
+        default: 23.1.6
         required: true
       version:
         description: Package version (blank = the LLVM version and the next build number)
