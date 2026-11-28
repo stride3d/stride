@@ -11,6 +11,12 @@
   <array>
     <string>UIInterfaceOrientationLandscapeRight</string>
   </array>
+  <!-- The App Store installs the game only on an A12 GPU or newer, the oldest iPhone GPU that iOS 18 runs on.
+       iPhones need no key for this, but iPadOS 18 still runs on some older iPads. Change it to fit the game. -->
+  <key>UIRequiredDeviceCapabilities</key>
+  <array>
+    <string>iphone-ipad-minimum-performance-a12</string>
+  </array>
   <!-- Empty dict opts into the modern launch-screen path (avoids iOS-13+ legacy letterbox). -->
   <key>UILaunchScreen</key>
   <dict/>
