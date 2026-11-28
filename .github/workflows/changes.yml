@@ -204,6 +204,8 @@ jobs:
               - 'tests/infra/ios/**'
               - 'tests/**/iOS.Vulkan/**'
               - 'sources/Stride.iOS.slnf'
+              - 'global.json'
+              - 'nuget.config'
               - '.github/workflows/test-ios-game.yml'
               - '.github/actions/effect-cache/**'
               - '.github/actions/lfs-pull/**'
@@ -229,6 +231,9 @@ jobs:
             full:
               - 'sources/**'
               - 'deps/**'
+              # The SDK and the package sources
+              - 'global.json'
+              - 'nuget.config'
               # Projects of the full build that live outside sources/
               - 'tests/infra/Stride.*/**'
               - 'tests/enduser/Stride.Templates.Tests/**'
