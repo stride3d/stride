@@ -2,9 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Xaml.Behaviors;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Extensions;
 
 namespace Stride.Core.Presentation.Behaviors
 {
@@ -21,11 +23,36 @@ namespace Stride.Core.Presentation.Behaviors
         protected override void OnAttached()
         {
             AssociatedObject.SizeChanged += SizeChanged;
+            AssociatedObject.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler(ScrollChanged));
         }
 
         protected override void OnDetaching()
         {
             AssociatedObject.SizeChanged -= SizeChanged;
+            AssociatedObject.RemoveHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler(ScrollChanged));
+        }
+
+        // Text wrapped at the width of the ratio can need more height than the ratio gives: grow by what a scroll viewer inside
+        // can't show, as far as the window can grow on its screen; past that, the scroll viewer scrolls
+        private void ScrollChanged(object sender, [NotNull] ScrollChangedEventArgs e)
+        {
+            var overflow = e.ExtentHeight - e.ViewportHeight;
+            if (overflow <= 0 || double.IsNaN(AssociatedObject.Height))
+                return;
+
+            var maxHeight = AssociatedObject.MaxHeight;
+            if (Window.GetWindow(AssociatedObject) is { } window)
+            {
+                var windowMaxHeight = window.MaxHeight;
+                var area = window.GetWorkArea();
+                if (area != Rect.Empty)
+                    windowMaxHeight = Math.Min(windowMaxHeight, area.Height);
+                // The rest of the window (title, buttons, margins) keeps its height
+                maxHeight = Math.Min(maxHeight, windowMaxHeight - (window.ActualHeight - AssociatedObject.ActualHeight));
+            }
+            var height = Math.Min(Math.Ceiling(AssociatedObject.Height + overflow), Math.Floor(maxHeight));
+            if (height > AssociatedObject.Height)
+                AssociatedObject.Height = height;
         }
 
         private void SizeChanged(object sender, [NotNull] SizeChangedEventArgs e)
