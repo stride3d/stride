@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics.Debug;
 /// <remarks> Wireframes and contact lines are expanded by geometry shaders, so this needs <see cref="Stride.Graphics.GraphicsProfile.Level_10_0"/> or higher. </remarks>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(DebugRenderProcessor), ExecutionMode = ExecutionMode.Runtime)]
-[ComponentCategory("Bepu - Debug")]
+[ComponentCategory("Physics - Bepu Debug")]
 public class DebugRenderComponent : SyncScript
 {
     internal DebugRenderProcessor? _processor;
@@ -57,6 +57,13 @@ public class DebugRenderComponent : SyncScript
     /// </summary>
     [DataMember]
     public float ContactSize { get; set; } = 0.25f;
+
+    /// <summary>
+    /// Whether to draw the lines of the collidables that are an <see cref="Definitions.IDebugLineSource"/>, like the particles and springs of a soft body.
+    /// Which lines each of them draws is its own setting.
+    /// </summary>
+    [DataMember]
+    public bool ShowCollidableLines { get; set; } = true;
 
     public override void Update()
     {

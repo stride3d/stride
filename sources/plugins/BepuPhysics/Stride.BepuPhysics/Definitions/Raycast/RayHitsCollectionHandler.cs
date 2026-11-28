@@ -25,12 +25,14 @@ internal struct RayHitsCollectionHandler(BepuSimulation sim, ICollection<HitInfo
 
     public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
     {
-        collection.Add(new(ray.Origin + ray.Direction * t, normal, t, sim.GetComponent(collidable), childIndex));
+        var component = sim.GetComponent(collidable);
+        collection.Add(new(ray.Origin + ray.Direction * t, normal, t, component, component.GetChildIndex(collidable, childIndex)));
     }
 
     public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
     {
-        collection.Add(new(hitLocation, hitNormal, t, sim.GetComponent(collidable), -1));
+        var component = sim.GetComponent(collidable);
+        collection.Add(new(hitLocation, hitNormal, t, component, component.GetChildIndex(collidable, -1)));
     }
 
     public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
