@@ -725,6 +725,8 @@ public partial class ShaderMethod(
                 parentSymbol = parentSymbol.GroupMembers.Last(x => x.IdRef != function.Id && (FunctionType)x.Type == function.FunctionType);
 
             parentSymbol = ShaderDefinition.ImportSymbol(table, context, parentSymbol);
+            if (parentSymbol.OwnerType != null)
+                ShaderClass.MakeModuleAMixin(table, context, parentSymbol.OwnerType);
 
             functionInfo.Parent = parentSymbol.IdRef;
             functionInfo.Flags |= Specification.FunctionFlagsMask.Override;

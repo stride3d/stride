@@ -19,7 +19,7 @@ public partial class ShaderMixer
     /// (the root, then each composition), the final mixin order, the members each shader placed in that node, and for each
     /// method the override chain from the first definition to the winner (the one called; <c>base</c> goes one step left).
     /// Members of a <c>stage</c> shader used in a composition are placed in the root node; that shader then appears there as
-    /// "stage only".
+    /// "stage only". A shader used only through static references is a "module", once in the root node.
     /// </summary>
     public string? Explanation { get; private set; }
 
@@ -36,7 +36,7 @@ public partial class ShaderMixer
             builder.AppendLine($"node {nodePath}");
 
             foreach (var shader in node.Shaders)
-                builder.AppendLine($"  mixin {shader.ShaderName}{(shader.ImportStageOnly ? " (stage only)" : "")}");
+                builder.AppendLine($"  {(shader.IsModule ? "module" : "mixin")} {shader.ShaderName}{(shader.ImportStageOnly ? " (stage only)" : "")}");
 
             foreach (var shader in node.Shaders)
             {

@@ -1208,6 +1208,7 @@ public static partial class Specification
     {
         None = 0,
         NeedsFullImport = 1,
+        Module = 2,
     }
 
     [Flags]

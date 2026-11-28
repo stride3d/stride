@@ -1,0 +1,44 @@
+// PSMain(ExpectedResult=#04040404)
+
+namespace Stride.Shaders.Tests;
+
+shader StaticReferenceModuleOverriddenHelper
+{
+    float Value()
+    {
+        return 1.0;
+    }
+}
+
+shader StaticReferenceModuleOverriddenUser
+{
+    float Get()
+    {
+        return StaticReferenceModuleOverriddenHelper.Value();
+    }
+}
+
+// Overrides a method of the helper, which it sees through the static reference of its parent: the helper is then a mixin,
+// and the static call selects the override, as with any inherited method
+shader StaticReferenceModuleOverridden : StaticReferenceModuleOverriddenUser
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+
+    override float Value()
+    {
+        return 4.0;
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        float value = Get();
+        streams.ColorTarget = float4(value, value, value, value) / 255.0;
+    }
+}
