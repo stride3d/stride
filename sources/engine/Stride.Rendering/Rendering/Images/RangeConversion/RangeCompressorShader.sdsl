@@ -25,8 +25,9 @@ namespace Stride.Rendering.Images
             float3 mapped = color / (1 + maxComponent / targetRange);
             // and we don't apply gamma. because of big outlining artefact around [0-1] range objects in front of high [10-80] range emissive objects.
 
-            // write output for FXAA:
-            return float4(mapped, perceptiveLuma);
+            // write output for FXAA, rounded down to a half float so every GPU stores the same value:
+            float4 result = float4(mapped, perceptiveLuma);
+            return asfloat(asuint(result) & 0xFFFFE000);
         }
     };
 }

@@ -11,9 +11,9 @@ namespace Stride.Rendering.Images
 			
 			// reverse karis tone map:
 			float targetRange = 1.0;
-			float maxComponent = max(max(color.r, color.g), color.b);
-			float denominator = 1 - maxComponent / targetRange;
-			float3 reverseKaris = denominator > 0 ? color / denominator : color;
+			// A half-float target can hold exactly 1.0, so the max is capped at the largest half float below 1.
+			float maxComponent = min(max(max(color.r, color.g), color.b), 2047.0 / 2048.0);
+			float3 reverseKaris = color / (1 - maxComponent / targetRange);
 			
 			// write output for the rest of the post effects:
 			return float4(reverseKaris, 1.0);
