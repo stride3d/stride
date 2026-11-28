@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.Extensibility;
 using Microsoft.VisualStudio.Extensibility.Commands;
 using Microsoft.VisualStudio.Extensibility.Shell;
 using Microsoft.VisualStudio.ProjectSystem.Query;
+using NuGet.Configuration;
 using NuGet.Versioning;
 
 namespace Stride.VisualStudio.Commands;
@@ -51,7 +52,7 @@ internal sealed class OpenInGameStudioCommand : Command
             return;
         }
 
-        var gameStudio = LocateGameStudio(version);
+        var gameStudio = LocateGameStudio(solutionPath, version);
         if (gameStudio is null)
         {
             await ShowAsync($"Couldn't locate Stride Game Studio {version} in the NuGet package cache. Restore the solution first.", cancellationToken);
@@ -81,12 +82,13 @@ internal sealed class OpenInGameStudioCommand : Command
     private async Task ShowAsync(string message, CancellationToken cancellationToken)
         => await this.Extensibility.Shell().ShowPromptAsync(message, PromptOptions.OK, cancellationToken);
 
-    // Best-effort: find the version-matched Game Studio executable in the NuGet global packages cache.
-    private static string? LocateGameStudio(NuGetVersion version)
+    // Best-effort: find the version-matched Game Studio executable in the NuGet global packages folder the solution restores to.
+    private static string? LocateGameStudio(string solutionPath, NuGetVersion version)
     {
+        var settings = Settings.LoadDefaultSettings(Path.GetDirectoryName(solutionPath));
         var packagesRoot = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".nuget", "packages", "stride.gamestudio", version.ToNormalizedString());
+            SettingsUtility.GetGlobalPackagesFolder(settings),
+            "stride.gamestudio", version.ToNormalizedString());
         if (!Directory.Exists(packagesRoot))
             return null;
 

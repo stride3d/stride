@@ -12,7 +12,7 @@ set -e
 dotnet restore sources/Stride.Tests.Game.Runtime.slnf \
   -p:StridePlatforms=Linux \
   -p:StrideGraphicsApis=Vulkan
-LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64-nodmabuf/native/libvulkan_lvp.so" | head -1)
+LIB=$(find "${NUGET_PACKAGES:-$HOME/.nuget/packages}/stride.dependencies.lavapipe" -path "*/runtimes/linux-x64-nodmabuf/native/libvulkan_lvp.so" | head -1)
 if [ -z "$LIB" ]; then
   echo "::error::Lavapipe libvulkan_lvp.so (no-dma_buf variant) not found in NuGet cache"
   exit 1

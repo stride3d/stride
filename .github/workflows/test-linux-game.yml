@@ -117,12 +117,12 @@ jobs:
         run: |
           # CompilerApp needs a Vulkan device at build time (Skybox asset compilation),
           # and the runtime tests also resolve through this ICD. Restore first so the
-          # Stride.Dependencies.Lavapipe package is in the user NuGet cache, then point
+          # Stride.Dependencies.Lavapipe package is in the NuGet packages folder, then point
           # the Vulkan loader at the linux-x64 Lavapipe .so shipped inside that package.
           dotnet restore sources/Stride.Tests.Game.GPU.slnf \
             -p:StridePlatforms=Linux \
             -p:StrideGraphicsApis=Vulkan
-          LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
+          LIB=$(find "${NUGET_PACKAGES:-$HOME/.nuget/packages}/stride.dependencies.lavapipe" -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
           if [ -n "$LIB" ]; then
             LIB_ABS=$(readlink -f "$LIB")
             ICD_JSON="$PWD/lvp_icd.json"

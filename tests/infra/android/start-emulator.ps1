@@ -28,14 +28,15 @@ $isWin = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([Syst
 
 # Locate the Lavapipe ICD shipped in Stride.Dependencies.Lavapipe and point the Vulkan
 # loader at it. The package must already be restored — running `dotnet restore` on the
-# main solution at least once populates ~/.nuget/packages.
+# main solution at least once populates the NuGet packages folder.
 $homeDir = if ($env:USERPROFILE) { $env:USERPROFILE } else { $HOME }
+$nugetPackages = if ($env:NUGET_PACKAGES) { $env:NUGET_PACKAGES } else { [IO.Path]::Combine($homeDir, ".nuget", "packages") }
 # The version the repo pins, as CI uses; the NuGet cache can hold older ones.
 $packagesProps = [IO.Path]::Combine($PSScriptRoot, "..", "..", "..", "sources", "Directory.Packages.props")
 $lavapipeVersion = ([xml](Get-Content $packagesProps)).Project.ItemGroup.PackageVersion |
     Where-Object { $_.Include -eq "Stride.Dependencies.Lavapipe" } |
     Select-Object -ExpandProperty Version -First 1
-$nupkgRoot = [IO.Path]::Combine($homeDir, ".nuget", "packages", "stride.dependencies.lavapipe", $lavapipeVersion)
+$nupkgRoot = [IO.Path]::Combine($nugetPackages, "stride.dependencies.lavapipe", $lavapipeVersion)
 if (-not $lavapipeVersion -or -not (Test-Path $nupkgRoot)) {
     Write-Error "Lavapipe NuGet package $lavapipeVersion not found under $nupkgRoot. Run 'dotnet restore' first."
     exit 1
