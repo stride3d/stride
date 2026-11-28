@@ -20,6 +20,8 @@ partial class PackageSession
     // Set when LoadMissingDependencies restored the solution, or the projects without a solution file, once up front, so the
     // per-project restore below can be skipped (kept only as a fallback after a failed restore or an upgrade).
     private bool dependenciesRestoredUpFront;
+    // The projects whose restore up front failed: restored again when their dependencies load
+    private readonly HashSet<SolutionProject> unrestoredProjects = [];
     // During a session load, the files of the projects that the dependency phase evaluated as they are now (after the
     // restore): the asset listing that follows reads them instead of evaluating the projects again
     private Dictionary<string, Package.ProjectFiles>? loadProjectFiles;
@@ -104,23 +106,39 @@ partial class PackageSession
     /// <summary>
     /// Cheap scan for projects with a pending package upgrade that may carry source-code migrations.
     /// Reuses the cached MSBuild project (no restore) and the same upgrade-needed checks as
-    /// <see cref="PreLoadPackageDependencies"/>: a direct <c>PackageReference</c> whose declared version
-    /// is below the upgrader's target. Returns one entry per (project, upgrader) for the projects whose
+    /// <see cref="PreLoadPackageDependencies"/>: a <c>PackageReference</c> of the project, or of a project it references,
+    /// whose declared version is below the upgrader's target. Returns one entry per (project, upgrader) for the projects whose
     /// upgrade was confirmed; the runner does the version-gate and only opens a workspace when source
     /// rules actually apply.
     /// </summary>
     private List<PendingCodeUpgrade> DetectPendingCodeUpgrades(ILogger log, PackageLoadParameters loadParameters)
     {
         var result = new List<PendingCodeUpgrade>();
+        // The upgrades of each project scanned, or null when it is not upgraded
+        var upgradesPerProject = new Dictionary<SolutionProject, List<(PendingCodeUpgrade Code, PendingPackageUpgrade Package)>?>();
         foreach (var project in Projects.OfType<SolutionProject>())
+            Detect(project);
+        // A revert of an unfinished upgrade put back the files the session read: no code is migrated, not even of the projects
+        // confirmed before it
+        return RevertedUnfinishedUpgrade is null ? result : [];
+
+        // As in PreLoadPackageDependencies, a project gets the upgraders of the projects it references: an executable
+        // gets Stride through its game library, and its code is migrated with the library's
+        List<(PendingCodeUpgrade Code, PendingPackageUpgrade Package)>? Detect(SolutionProject project)
         {
+            if (upgradesPerProject.TryGetValue(project, out var detected))
+                return detected;
+            // Added first, so that a reference cycle ends here
+            var upgrades = new List<(PendingCodeUpgrade Code, PendingPackageUpgrade Package)>();
+            upgradesPerProject[project] = upgrades;
+
             // PreLoadPackageDependencies skips a project whose dependencies are ready, or whose upgrade already ended, so no
             // upgrade of it runs: this also saves an evaluation of every project when the references are loaded again
             if (project.FullPath is null || project.Package.State >= PackageState.DependenciesReady || IsUpgradeEnded(project.Package))
-                continue;
+                return upgrades;
             var projectPath = project.FullPath.ToOSPath();
             if (!File.Exists(projectPath))
-                continue;
+                return upgrades;
 
             Microsoft.Build.Evaluation.Project msProject;
             try
@@ -130,12 +148,25 @@ partial class PackageSession
             catch (Exception e)
             {
                 log.Verbose($"Code upgrade detection: could not load [{project.FullPath.GetFileName()}]: {e.Message}");
-                continue;
+                return upgrades;
             }
 
-            var projectCodeUpgrades = new List<PendingCodeUpgrade>();
-            var pendingPackageUpgrades = new List<PendingPackageUpgrade>();
-            var seen = new HashSet<PackageUpgrader>();
+            foreach (var projectReference in msProject.GetItems("ProjectReference").ToList())
+            {
+                var projectFile = new UFile(Path.Combine(Path.GetDirectoryName(projectPath)!, projectReference.EvaluatedInclude));
+                if (Projects.OfType<SolutionProject>().FirstOrDefault(x => x.FullPath == projectFile) is not { } referencedProject)
+                    continue;
+
+                // PreLoadPackageDependencies stops the upgrade of a project that references a project not upgraded
+                if (Detect(referencedProject) is not { } referencedUpgrades)
+                    return upgradesPerProject[project] = null;
+                foreach (var (code, package) in referencedUpgrades)
+                {
+                    if (!upgrades.Any(x => x.Code.Upgrader == code.Upgrader))
+                        upgrades.Add((code with { ProjectFullPath = project.FullPath }, package));
+                }
+            }
+
             foreach (var packageReference in msProject.GetItems("PackageReference"))
             {
                 if (!packageReference.HasMetadata("Version")
@@ -150,18 +181,21 @@ partial class PackageSession
                 if (range.MinVersion >= upgrader.Attribute.UpdatedVersionRange.MinVersion
                     || range.MinVersion < upgrader.Attribute.PackageMinimumVersion)
                     continue;
-                if (!seen.Add(upgrader))
+                if (upgrades.Any(x => x.Code.Upgrader == upgrader))
                     continue;
 
-                projectCodeUpgrades.Add(new PendingCodeUpgrade(upgrader, project.FullPath, range.MinVersion));
-                pendingPackageUpgrades.Add(new PendingPackageUpgrade(upgrader, new PackageDependency(packageReference.EvaluatedInclude, range), null));
+                upgrades.Add((new PendingCodeUpgrade(upgrader, project.FullPath, range.MinVersion),
+                    new PendingPackageUpgrade(upgrader, new PackageDependency(packageReference.EvaluatedInclude, range), null)));
             }
 
+            if (upgrades.Count == 0)
+                return upgrades;
             // The source migration writes user files, so it needs the same confirmation as the package upgrade.
-            if (projectCodeUpgrades.Count > 0 && PackageLoadParameters.ShouldUpgrade(RequestPackageUpgrade(project.Package, pendingPackageUpgrades, loadParameters)))
-                result.AddRange(projectCodeUpgrades);
+            if (!PackageLoadParameters.ShouldUpgrade(RequestPackageUpgrade(project.Package, upgrades.Select(x => x.Package).ToList(), loadParameters, log)))
+                return upgradesPerProject[project] = null;
+            result.AddRange(upgrades.Select(x => x.Code with { Report = UpgradeReport.GetOrAdd(x.Code.ProjectFullPath, x.Code.Upgrader, x.Code.FromVersion) }));
+            return upgrades;
         }
-        return result;
     }
 
     private async Task PreLoadPackageDependencies(ILogger log, SolutionProject project, PackageLoadParameters loadParameters)
@@ -350,13 +384,25 @@ partial class PackageSession
                 }
             }
 
+            // Without an upgrade pending, the steps an upgrade kept unfinished left can run again now. Those that changed the
+            // project change what it restores and evaluates.
+            if (pendingPackageUpgrades.Count == 0 && msProject is not null)
+            {
+                ContinueUnfinishedUpgrade(package, upgradePending: false, loadParameters, log);
+                if (UpgradeReport.Projects.FirstOrDefault(x => x.ProjectFullPath == project.FullPath)?.Upgraders.Any(x => x.IsRetry && x.Steps.Any(step => step.ChangedFiles.Count > 0)) == true)
+                {
+                    referencesUpgraded = true;
+                    msProject = LoadOrGetCachedProject(projectPath, loadParameters);
+                }
+            }
+
             if (pendingPackageUpgrades.Count > 0)
             {
-                if (IsUpgradeStopped(project, log))
+                if (IsUpgradeStopped(project, pendingPackageUpgrades, log))
                     return;
 
                 // Need upgrades, let's ask user confirmation
-                var upgradeAllowed = RequestPackageUpgrade(package, pendingPackageUpgrades, loadParameters);
+                var upgradeAllowed = RequestPackageUpgrade(package, pendingPackageUpgrades, loadParameters, log);
 
                 if (!PackageLoadParameters.ShouldUpgrade(upgradeAllowed))
                 {
@@ -394,16 +440,21 @@ partial class PackageSession
                     }
                     catch (Exception e)
                     {
-                        log.Error($"Could not upgrade the package references of [{project.FullPath.GetFileName()}]. {RestoreFromBackupHint}", e);
+                        ReportOf(this, package, pendingPackageUpgrade)?.AddFailure("Update the package references", e.Message);
+                        log.Error($"Could not upgrade the package references of [{project.FullPath.GetFileName()}].", e);
                         failedUpgrades.Add(package);
                         return;
                     }
 
                     var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
                     var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
+                    var report = ReportOf(this, package, pendingPackageUpgrade);
                     if (!packageUpgrader.UpgradeBeforeAssembliesLoaded(loadParameters, package.Session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage))
                     {
-                        log.Error($"Error while upgrading package [{package.Meta.Name}] for [{pendingPackageUpgrade.Dependency.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{expectedVersion}]. {RestoreFromBackupHint}");
+                        // A step that failed reported itself
+                        if (report is not null && report.Steps.All(x => x.Status != UpgradeStepStatus.Failed))
+                            report.AddFailure("Upgrade the project before its assemblies load");
+                        log.Error($"Error while upgrading package [{package.Meta.Name}] for [{pendingPackageUpgrade.Dependency.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{expectedVersion}].");
                         failedUpgrades.Add(package);
                         return;
                     }
@@ -414,7 +465,7 @@ partial class PackageSession
             // added to the solution that the up-front restore didn't cover.
             var assetsFile = msProject?.GetPropertyValue("ProjectAssetsFile");
             var restoreOutputMissing = string.IsNullOrEmpty(assetsFile) || !File.Exists(assetsFile);
-            if (loadParameters.AutoCompileProjects && (!dependenciesRestoredUpFront || referencesUpgraded || restoreOutputMissing))
+            if (loadParameters.AutoCompileProjects && (!dependenciesRestoredUpFront || unrestoredProjects.Contains(project) || referencesUpgraded || restoreOutputMissing))
             {
                 log.Verbose($"Restore NuGet packages for {project.Name}...");
                 try

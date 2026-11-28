@@ -165,6 +165,27 @@ public sealed class PackageLoadParameters
     public Func<Package, IList<PackageSession.PendingPackageUpgrade>, PackageUpgradeRequestedAnswer> PackageUpgradeRequested;
 
     /// <summary>
+    /// Occurs once the upgrade of the session ended, when a step of a whole project failed, with the reports of the projects
+    /// that failed: the answer holds for the upgrade of every project of the session. Without it, every file the upgrade changed
+    /// is put back as it was. Not raised without a backup: the files are kept.
+    /// </summary>
+    public Func<IReadOnlyList<ProjectUpgradeReport>, PackageUpgradeFailedAnswer>? PackageUpgradeFailed { get; set; }
+
+    /// <summary>
+    /// Occurs when an upgrade of a package is pending, and its project records an earlier upgrade that was kept unfinished (see
+    /// <see cref="PackageUpgrader.UnfinishedMetadata"/>), with the steps it left (only their ID when the upgrader no longer declares
+    /// them), and the backup folder that <see cref="UnfinishedUpgradeAnswer.Revert"/> puts the files back from, or <c>null</c>.
+    /// Without it, the upgrade stays unfinished, and the package isn't upgraded.
+    /// </summary>
+    public Func<Package, IReadOnlyList<UpgradeStepInfo>, string?, UnfinishedUpgradeAnswer>? UnfinishedUpgradeFound { get; set; }
+
+    /// <summary>
+    /// Whether the steps that upgrades kept unfinished left run again (see <see cref="PackageUpgrader.RetrySteps"/>), without
+    /// <see cref="UnfinishedUpgradeFound"/>, also in projects without an upgrade pending.
+    /// </summary>
+    public bool RetryUnfinishedUpgrades { get; set; }
+
+    /// <summary>
     /// Set by the in-place upgrade flow to tolerate transient NU1605 downgrades when restoring a solution from a
     /// mixed state. Off for normal loads (GameStudio, build), where a downgrade is a real error.
     /// </summary>

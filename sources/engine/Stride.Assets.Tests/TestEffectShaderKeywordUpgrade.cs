@@ -41,7 +41,9 @@ namespace Stride.Assets.Tests
             File.WriteAllText(Path.Combine(directory, "obj", "Debug", "Copy.sdfx"), OldEffect);
             var log = new LoggerResult();
 
-            StridePackageUpgrader.UpgradeEffectShaderKeywords(new ProjectUpgradeContext(null!, null!, new UFile(Path.Combine(directory, "Game.csproj")), log));
+            var context = new ProjectUpgradeContext(null!, null!, new UFile(Path.Combine(directory, "Game.csproj")), log);
+            StridePackageUpgrader.UpgradeEffectShaderKeywords(context);
+            context.ApplyChanges();
 
             var upgraded = OldEffect.Replace("shader Main", "effect Main");
             Assert.Equal([0xEF, 0xBB, 0xBF, .. Encoding.UTF8.GetBytes(upgraded)], File.ReadAllBytes(Path.Combine(directory, "Effects", "WithBom.sdfx")));
@@ -62,7 +64,7 @@ namespace Stride.Assets.Tests
                     {
                         mixin shaderBase;
                         mixin child Child;
-                        mixin compose shaderSlot = "shader";
+                        mixin compose shaderSlot = shaderValue;
                     };
 
                     partial  shader /* shader */ Child { mixin Other; }
@@ -79,7 +81,7 @@ namespace Stride.Assets.Tests
                     {
                         mixin shaderBase;
                         mixin child Child;
-                        mixin compose shaderSlot = "shader";
+                        mixin compose shaderSlot = shaderValue;
                     };
 
                     partial  effect /* shader */ Child { mixin Other; }
@@ -97,8 +99,8 @@ namespace Stride.Assets.Tests
         [InlineData("shader S { float4 F() { return 0; } };")]
         // A file that doesn't parse: its build reports the error
         [InlineData("shader Main { mixin Base; } }")]
-        // 'shader' only in a comment, a string or a name
-        [InlineData("// shader Main { }\neffect shaderMain { mixin shaderBase; mixin compose x = \"shader\"; }")]
+        // 'shader' only in a comment or a name
+        [InlineData("// shader Main { }\neffect shaderMain { mixin shaderBase; mixin compose x = shaderValue; }")]
         public void LeavesTheOtherFilesAlone(string text)
         {
             Assert.Null(StridePackageUpgrader.UpgradeEffectShaderKeywords(text, out var count));

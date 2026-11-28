@@ -48,4 +48,8 @@ public interface ICodeUpgradeRunner
 /// One project pending source migration: the upgrader that declared the rules, the project file, and
 /// the version the project is being upgraded from (the symbol-resolution baseline).
 /// </summary>
-public sealed record PendingCodeUpgrade(PackageUpgrader Upgrader, UFile ProjectFullPath, PackageVersion FromVersion);
+public sealed record PendingCodeUpgrade(PackageUpgrader Upgrader, UFile ProjectFullPath, PackageVersion FromVersion)
+{
+    /// <summary>Where the runner reports what each step did, or <c>null</c>.</summary>
+    public UpgraderReport? Report { get; init; }
+}

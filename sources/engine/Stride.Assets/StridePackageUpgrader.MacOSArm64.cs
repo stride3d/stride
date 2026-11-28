@@ -53,7 +53,7 @@ namespace Stride.Assets
             else if ((project.GetPropertyValue("RuntimeIdentifier") + ";" + project.GetPropertyValue("RuntimeIdentifiers")).Split(';').Any(x => x.Trim() == "osx-x64"))
             {
                 // Nothing in the project file: it comes from an imported file (Directory.Build.props)
-                context.Log.Warning($"[{context.ProjectFullPath.GetFileName()}] gets the osx-x64 runtime identifier from an imported file: macOS is osx-arm64 only now, change it there.");
+                context.UnitFailed(context.ProjectFullPath.ToOSPath(), "the project gets the osx-x64 runtime identifier from an imported file: macOS is osx-arm64 only now, change it to osx-arm64 there.");
             }
 
             void Set(string oldValue, string newValue, Action<string> set)

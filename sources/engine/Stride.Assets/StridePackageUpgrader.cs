@@ -29,7 +29,7 @@ using static Stride.Assets.CodeUpgrades;
 
 namespace Stride.Assets
 {
-    [PackageUpgrader(new[] { "Stride.Foundation", "Stride.Core", "Stride.Engine" }, "4.0.0.0", CurrentVersion, Name = UpgraderName)]
+    [PackageUpgrader(new[] { "Stride.Foundation", "Stride.Core", "Stride.Engine" }, "4.0.0.0", CurrentVersion, Name = UpgraderName, HelpLinkFormat = "https://doc.stride3d.net/en/upgrade/{version}.html#{id}")]
     public partial class StridePackageUpgrader : CodePackageUpgrader
     {
         // Should match Stride.nupkg
@@ -114,7 +114,7 @@ namespace Stride.Assets
             // methods to (extension) properties (fmt.IsSRgb() -> fmt.IsSRgb).
             registry.Code("4.4.0.0",
             [
-                Rewrite(
+                Rewrite("Read the `PixelFormat` helpers `IsSRgb`, `IsHDR`, `Is32bppWithAlpha` and `SizeInBytes` as properties",
                     MethodToProperty("Stride.Graphics.PixelFormatExtensions", "IsSRgb"),
                     MethodToProperty("Stride.Graphics.PixelFormatExtensions", "IsHDR"),
                     MethodToProperty("Stride.Graphics.PixelFormatExtensions", "Is32bppWithAlpha"),
@@ -127,7 +127,7 @@ namespace Stride.Assets
 
                 // 4.4: the memory helpers of Stride.Core.Utilities moved to Stride.Core.MemoryUtilities,
                 // some renamed along with their parameters (#1715).
-                Rewrite(
+                Rewrite("Move the memory helpers of `Utilities` to `MemoryUtilities`",
                     StaticMemberMove("Stride.Core.Utilities", "CopyWithAlignmentFallback", "Stride.Core.MemoryUtilities"),
                     StaticMemberMove("Stride.Core.Utilities", "Clear", "Stride.Core.MemoryUtilities"),
                     StaticMemberMove("Stride.Core.Utilities", "Swap", "Stride.Core.MemoryUtilities"),
@@ -143,7 +143,7 @@ namespace Stride.Assets
                 // 4.4: a lost graphics device is no longer recovered, so the reload hooks are gone:
                 // Buffer.RecreateWith returned its receiver, Reload and the DeviceReset events had no
                 // other use than being assigned or subscribed to.
-                Rewrite(
+                Rewrite("Remove the uses of the graphics device reload and reset hooks",
                     FluentCallRemove("Stride.Graphics.Buffer", "RecreateWith"),
                     AssignmentRemove("Stride.Graphics.GraphicsResourceBase", "Reload"),
                     AssignmentRemove("Stride.Graphics.IGraphicsDeviceService", "DeviceReset"),
@@ -161,13 +161,13 @@ namespace Stride.Assets
             [
                 // 4.5: audio left Stride.Engine for the optional Stride.Audio package; Game.Audio is an extension property
                 // there (a bare `Audio` in a game needs `this.` and the using) and a script reaches it as Game.Audio.
-                Rewrite(
+                Rewrite("Use `Game.Audio` as an extension member of `Stride.Audio`",
                     MemberToExtension("Stride.Engine.Game", "Audio", "Stride.Audio"),
                     MemberToExtension("Stride.Engine.ScriptComponent", "Audio", "Stride.Audio", throughMember: "Game")),
 
                 // 4.5: the assembly processor no longer names hand-written parameter keys; a source generator does, for
-                // the types marked [EffectKeys] (#3584).
-                AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute"),
+                // the types marked [EffectKeys] (#3584). A type left without it still compiles, and its keys have no name.
+                AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute") with { MayChangeBehaviour = true },
 
                 // 4.5: the assembly processor no longer pools the delegates passed to the Dispatcher; its callbacks take
                 // their captures as a state, in a static lambda (#3680).
@@ -180,7 +180,7 @@ namespace Stride.Assets
                 // UnsetRenderTargets becomes ResetTargets, which unbinds the same targets and also forgets them;
                 // ResetQueryPool had nothing to do (Vulkan resets a pool itself, Direct3D 12's was empty);
                 // SetStreamTargets bound buffers no shader could write since 4.4 (SDSL0170).
-                Rewrite(
+                Rewrite("Replace the `CommandList` members that only some graphics APIs had",
                     MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets"),
                     FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool"),
                     FluentCallRemove("Stride.Graphics.CommandList", "SetStreamTargets")),
@@ -207,32 +207,33 @@ namespace Stride.Assets
             [
                 // 4.5.4: the TouchController queries are no longer virtual, so that they can hide a captured controller;
                 // custom backends provide their input through the raw members instead.
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "Trigger", "RawTrigger", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "Grip", "RawGrip", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexPointing", "RawIndexPointing", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexResting", "RawIndexResting", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbUp", "RawThumbUp", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbResting", "RawThumbResting", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbAxis", "RawThumbAxis", SyntaxKind.ProtectedKeyword),
-                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbstickAxis", "RawThumbstickAxis", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressedDown", "IsRawPressedDown", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressed", "IsRawPressed", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressReleased", "IsRawPressReleased", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchedDown", "IsRawTouchedDown", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouched", "IsRawTouched", SyntaxKind.ProtectedKeyword),
-                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchReleased", "IsRawTouchReleased", SyntaxKind.ProtectedKeyword),
+                Combine("Move the overrides of the `TouchController` queries to their `protected` raw members, such as `Trigger` to `RawTrigger`",
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "Trigger", "RawTrigger", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "Grip", "RawGrip", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexPointing", "RawIndexPointing", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexResting", "RawIndexResting", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbUp", "RawThumbUp", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbResting", "RawThumbResting", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbAxis", "RawThumbAxis", SyntaxKind.ProtectedKeyword),
+                    PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbstickAxis", "RawThumbstickAxis", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressedDown", "IsRawPressedDown", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressed", "IsRawPressed", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressReleased", "IsRawPressReleased", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchedDown", "IsRawTouchedDown", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouched", "IsRawTouched", SyntaxKind.ProtectedKeyword),
+                    MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchReleased", "IsRawTouchReleased", SyntaxKind.ProtectedKeyword)),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the
             // NEW-version project (after the reference bump) by UpgradeBeforeAssembliesLoaded.
-            registry.Project("4.1.0.0", UpgradeProjectTo41);
-            registry.Project("4.2.0.0", UpgradeProjectTo42);
-            registry.Project("4.3.0.0", UpgradeProjectTo43);
-            registry.Project("4.4.0.0", UpgradeProjectTo44);
-            registry.Project("4.4.2.0", UpgradeEffectShaderKeywords);
-            registry.Project("4.5.0.0", UpgradeProjectTo45);
-            registry.Project("4.5.0.0", AddPluginPackageReferences);
-            registry.Project("4.5.5.0", UpgradeMacOSToArm64);
+            registry.Project("4.1.0.0", "Target .NET 6, and remove the `Stride` reference of Linux and macOS executables", UpgradeProjectTo41);
+            registry.Project("4.2.0.0", "Target .NET 8 instead of .NET 6", UpgradeProjectTo42);
+            registry.Project("4.3.0.0", "Target .NET 10 instead of .NET 8", UpgradeProjectTo43);
+            registry.Project("4.4.0.0", "Reference `Stride.AssetCompiler`, and rename the generated `.sdsl.cs` and `.sdfx.cs` files to `.bak`", UpgradeProjectTo44);
+            registry.Project("4.4.2.0", "Declare effects with `effect` instead of `shader` in `.sdfx` files", UpgradeEffectShaderKeywords);
+            registry.Project("4.5.0.0", "Add a `Stride.Audio` reference, since audio left `Stride.Engine`", UpgradeProjectTo45);
+            registry.Project("4.5.0.0", "Add the plugin packages whose assets the project has", AddPluginPackageReferences);
+            registry.Project("4.5.5.0", "Change the `osx-x64` runtime of macOS projects to `osx-arm64`", UpgradeMacOSToArm64);
         }
 
         private static bool IsSkippedPackage(string packageName)
@@ -353,7 +354,7 @@ namespace Stride.Assets
 
         // 4.4: rename the asset-compiler PackageReference (Stride.Core.Assets.CompilerApp -> Stride.AssetCompiler)
         // and retire the on-disk .sdsl.cs/.sdfx.cs siblings now produced by the Roslyn source generator into obj/.
-        private static void UpgradeProjectTo44(ProjectUpgradeContext context)
+        internal static void UpgradeProjectTo44(ProjectUpgradeContext context)
         {
             var project = context.Project;
             var log = context.Log;
@@ -369,25 +370,36 @@ namespace Stride.Assets
                     && (x.Include == "Stride.Core.Assets.CompilerApp" || x.Include == "Stride.AssetCompiler"))
                 .ToArray())
             {
+                // A retry runs the step again on the reference it already changed: then it changes nothing
                 if (compilerRef.Include == "Stride.Core.Assets.CompilerApp")
+                {
                     compilerRef.Include = "Stride.AssetCompiler";
+                    context.IsDirty = true;
+                }
 
                 var includeAssets = compilerRef.Metadata.FirstOrDefault(m => m.Name == "IncludeAssets");
-                if (includeAssets != null)
-                    includeAssets.Value = "build;buildTransitive";
-                else
+                if (includeAssets == null)
+                {
                     compilerRef.AddMetadata("IncludeAssets", "build;buildTransitive", true);
+                    context.IsDirty = true;
+                }
+                else if (includeAssets.Value != "build;buildTransitive")
+                {
+                    includeAssets.Value = "build;buildTransitive";
+                    context.IsDirty = true;
+                }
 
                 var privateAssets = compilerRef.Metadata.FirstOrDefault(m => m.Name == "PrivateAssets");
                 if (privateAssets != null)
+                {
                     compilerRef.RemoveChild(privateAssets);
-
-                context.IsDirty = true;
+                    context.IsDirty = true;
+                }
             }
 
             // .sdsl/.sdfx generated C# now comes from a Roslyn source generator into obj/, so rename any
             // on-disk siblings to .bak (recoverable, inert in build) and strip leftover csproj items /
-            // Generator metadata.
+            // Generator metadata. The renames happen once the step returned.
             var projectDir = context.ProjectFullPath.GetFullDirectory().ToOSPath();
             int renamedCount = 0;
             foreach (var file in Directory.EnumerateFiles(projectDir, "*.cs", SearchOption.AllDirectories))
@@ -396,22 +408,13 @@ namespace Stride.Assets
                     || file.EndsWith(".sdfx.cs", StringComparison.OrdinalIgnoreCase)))
                     continue;
 
-                // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/)
+                // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/) and backups
                 var rel = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                if (IsBuildOutput(rel))
+                if (IsBuildOutputOrBackup(rel))
                     continue;
 
-                try
-                {
-                    context.Backup?.Snapshot(file);
-                    File.Move(file, file + ".bak", overwrite: true);
-                    log.Info($"Renamed legacy generated shader file: {rel} -> {rel}.bak");
-                    renamedCount++;
-                }
-                catch (Exception e)
-                {
-                    log.Warning($"Could not rename legacy generated shader file [{rel}]", e);
-                }
+                context.MoveFile(file, file + ".bak", $"Renamed legacy generated shader file: {rel} -> {rel}.bak");
+                renamedCount++;
             }
 
             // Strip leftover csproj item nodes referencing .sdsl.cs / .sdfx.cs paths
@@ -453,7 +456,7 @@ namespace Stride.Assets
             }
 
             if (renamedCount > 0)
-                log.Info($"Renamed {renamedCount} legacy generated shader file(s) to .bak. The Roslyn source generator now produces these into obj/. Delete the .bak files when you've verified the upgrade.");
+                log.Info($"Renaming {renamedCount} legacy generated shader file(s) to .bak. The Roslyn source generator now produces these into obj/. Delete the .bak files when you've verified the upgrade.");
         }
 
         // 4.5: Stride.Engine no longer depends on Stride.Audio (an optional package now): a project that had audio
@@ -481,7 +484,7 @@ namespace Stride.Assets
             {
                 // Stride.Engine comes from an imported file (Directory.Build.props): no reference to copy. A project that
                 // gets it through a project reference gets audio the same way.
-                context.Log.Warning($"Audio is no longer part of Stride.Engine, and [{context.ProjectFullPath.GetFileName()}] gets Stride.Engine from an imported file, not its project file: add a Stride.Audio reference where it gets Stride.Engine if it uses audio.");
+                context.UnitFailed(context.ProjectFullPath.ToOSPath(), "audio is no longer part of Stride.Engine, which this project gets from an imported file: if it uses audio, add a Stride.Audio reference where it gets Stride.Engine.");
             }
         }
 
@@ -515,17 +518,24 @@ namespace Stride.Assets
 
         // 4.5: a project with assets of a plugin package it does not reference gets that package, shaped like its
         // Stride.Engine reference, so those assets keep loading and compiling.
-        private static void AddPluginPackageReferences(ProjectUpgradeContext context)
+        internal static void AddPluginPackageReferences(ProjectUpgradeContext context)
         {
             var project = context.Project;
             var packageReferences = project.Xml.ItemGroups.SelectMany(g => g.Items).Where(x => x.ItemType == "PackageReference").ToArray();
             var engineReference = packageReferences.FirstOrDefault(x => string.Equals(x.Include, "Stride.Engine", StringComparison.OrdinalIgnoreCase));
             var projectDir = context.ProjectFullPath.GetFullDirectory().ToOSPath();
-            var missingPackages = FindMissingPluginPackages(projectDir, packageReferences.Select(x => x.Include)).ToList();
+            // The references of imported files count, so that a retry finds the packages added there by hand
+            var evaluatedPackages = project.GetItems("PackageReference").Select(x => x.EvaluatedInclude).ToList();
+            var missingPackages = FindMissingPluginPackages(projectDir, packageReferences.Select(x => x.Include).Concat(evaluatedPackages)).ToList();
             if (engineReference == null)
             {
-                // Stride.Engine comes from elsewhere (Directory.Build.props, another package): no reference to copy
-                if (missingPackages.Count > 0)
+                if (missingPackages.Count == 0)
+                    return;
+                // Stride.Engine comes from an imported file (Directory.Build.props): no reference to copy. Through a project
+                // reference, the referenced project may bring the packages.
+                if (evaluatedPackages.Contains("Stride.Engine", StringComparer.OrdinalIgnoreCase))
+                    context.UnitFailed(context.ProjectFullPath.ToOSPath(), $"the project has assets of the {string.Join(", ", missingPackages)} package(s), which Stride.Assets no longer holds, and gets Stride.Engine from an imported file: add them where it gets Stride.Engine.");
+                else
                     context.Log.Warning($"The project has assets of the {string.Join(", ", missingPackages)} package(s), which Stride.Assets no longer holds, but no Stride.Engine reference in its project file to add them next to: add them where the project gets Stride.Engine.");
                 return;
             }
@@ -535,13 +545,13 @@ namespace Stride.Assets
         }
 
         /// <summary>
-        /// The plugin packages owning the asset files under <paramref name="projectDir"/> (build output excluded) that
+        /// The plugin packages owning the asset files under <paramref name="projectDir"/> (build output and backups excluded) that
         /// <paramref name="referencedPackages"/> lacks.
         /// </summary>
         internal static IEnumerable<string> FindMissingPluginPackages(string projectDir, IEnumerable<string> referencedPackages)
         {
             var assetExtensions = Directory.EnumerateFiles(projectDir, "*.sd*", SearchOption.AllDirectories)
-                .Where(file => !IsBuildOutput(Path.GetRelativePath(projectDir, file).Replace('\\', '/')))
+                .Where(file => !IsBuildOutputOrBackup(Path.GetRelativePath(projectDir, file).Replace('\\', '/')))
                 .Select(Path.GetExtension)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var referenced = referencedPackages.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -553,8 +563,10 @@ namespace Stride.Assets
                 .ToList();
         }
 
-        private static bool IsBuildOutput(string relativePath)
+        // The files under bin/ and obj/, and the copies of an upgrade backup, which is in the project folder when the solution is
+        internal static bool IsBuildOutputOrBackup(string relativePath)
             => relativePath.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) || relativePath.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                || relativePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase) || relativePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
+                || relativePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase) || relativePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase)
+                || UpgradeBackup.IsInBackupFolder(relativePath);
     }
 }

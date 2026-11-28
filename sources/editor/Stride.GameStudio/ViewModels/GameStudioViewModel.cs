@@ -44,6 +44,7 @@ namespace Stride.GameStudio.ViewModels
             OpenAboutPageCommand = new AnonymousCommand(serviceProvider, OpenAboutPage);
             OpenSessionCommand = new AnonymousTaskCommand<UFile>(serviceProvider, RestartAndOpenSession);
             ReloadSessionCommand = new AnonymousTaskCommand(serviceProvider, () => RestartAndOpenSession(Session.SolutionPath));
+            UpgradeReportBanner.ReloadCommand = ReloadSessionCommand;
             CloseSessionCommand = new AnonymousCommand(serviceProvider, RestartAndCloseSession);
             GraphicsDeviceLoss.Lost += OnGraphicsDeviceLost;
         }
@@ -136,6 +137,7 @@ namespace Stride.GameStudio.ViewModels
         {
             GraphicsDeviceLoss.Lost -= OnGraphicsDeviceLost;
             Preview?.Destroy();
+            UpgradeReportBanner.Dispose();
             base.Destroy();
         }
 

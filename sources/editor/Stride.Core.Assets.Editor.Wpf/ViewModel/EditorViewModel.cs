@@ -56,6 +56,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             Status = new StatusViewModel(ServiceProvider);
             Status.PushStatus("Ready");
+            UpgradeReportBanner = new UpgradeReportBannerViewModel(ServiceProvider);
 
             Instance = this;
         }
@@ -83,9 +84,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the current active session.
         /// </summary>
-        public SessionViewModel Session { get { return session; } private set { SetValue(ref session, value); } }
+        public SessionViewModel Session { get { return session; } private set { SetValue(ref session, value, () => UpgradeReportBanner.Session = value); } }
 
         public StatusViewModel Status { get; }
+
+        /// <summary>
+        /// The banner shown while a project of the session has an upgrade-report.md.
+        /// </summary>
+        public UpgradeReportBannerViewModel UpgradeReportBanner { get; }
 
         public MostRecentlyUsedFileCollection MRU { get; }
 

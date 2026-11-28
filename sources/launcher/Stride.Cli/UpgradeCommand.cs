@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
 using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Cli.Core;
 
 // upgrade: migrate a project's assets to a newer installed Stride version (what Game Studio does on open).
@@ -16,14 +17,39 @@ internal static class UpgradeCommand
         };
         var versionOptions = new CliVersion.Options($"Stride version to upgrade to (4.4.0 or newer), installed first when it isn't; {CliVersion.Options.LineHelp}. Defaults to the newest installed release (nightlies: project upgrades might not be fully tested).");
         var noBackup = new Option<bool>("--no-backup") { Description = "Skip the automatic backup of files the upgrade modifies before editing in place." };
+        var report = new Option<string?>("--report") { Description = "Write what the upgrade did to each project, in Markdown, to this file (Stride 4.5 and newer). It doesn't change the upgrade-report.md next to the solution." };
+        var verbose = new Option<bool>("--verbose", "-v") { Description = "Show the verbose log of the upgrade, with every step also when all of them are done." };
+        var keepPartial = new Option<bool>("--keep-partial") { Description = "After a failed step, keep the files as the upgrade left them, and record the steps to finish by hand. By default, every file it changed is put back as it was, in every project (Stride 4.5 and newer). Without a backup, the files are always kept." };
+        var markFinished = new Option<bool>("--mark-finished") { Description = "Mark an upgrade kept unfinished as finished once its steps are done by hand, and upgrade (Stride 4.5 and newer)." };
+        var retry = new Option<bool>("--retry") { Description = "Run again the project steps an upgrade kept unfinished left, and upgrade once none is left. Code steps don't run again: do them by hand (Stride 4.5 and newer)." };
+        var revert = new Option<bool>("--revert") { Description = "Put back every file the last upgrade changed, in every project, as it was before it, and don't upgrade: for an upgrade that left items to do by hand, whose records name its backup. The files as they are now are kept in a reverted folder of the backup (Stride 4.5 and newer)." };
 
         var command = new Command("upgrade", "Upgrade a project to a newer installed Stride version.");
         command.Arguments.Add(path);
         versionOptions.AddTo(command);
         command.Options.Add(noBackup);
+        command.Options.Add(report);
+        command.Options.Add(verbose);
+        command.Options.Add(keepPartial);
+        command.Options.Add(markFinished);
+        command.Options.Add(retry);
+        command.Options.Add(revert);
         command.SetAction(async (parseResult, cancellationToken) =>
         {
             var cwd = Environment.CurrentDirectory;
+            if (parseResult.GetValue(retry) && parseResult.GetValue(markFinished))
+            {
+                Console.Error.WriteLine("--retry and --mark-finished are alternatives: run the steps left again, or mark the upgrade as finished once they are done by hand.");
+                return 1;
+            }
+            var revertUpgrade = parseResult.GetValue(revert);
+            if (revertUpgrade && (parseResult.GetValue(retry) || parseResult.GetValue(markFinished) || parseResult.GetValue(keepPartial) || parseResult.GetValue(noBackup)
+                || parseResult.GetValue(report) is not null || !string.IsNullOrEmpty(parseResult.GetValue(versionOptions.Version)) || versionOptions.Filter(parseResult) != default))
+            {
+                Console.Error.WriteLine("--revert puts back the files of the last upgrade and doesn't upgrade: it takes no version, and none of the other upgrade options but --verbose.");
+                return 1;
+            }
+
             var explicitInput = parseResult.GetValue(path);
             if (explicitInput is not null && !File.Exists(explicitInput))
             {
@@ -42,43 +68,65 @@ internal static class UpgradeCommand
 
             var projectDirectory = Path.GetDirectoryName(Path.GetFullPath(input))!;
 
-            // Target version: an exact --version, else the newest installed that a line and the options allow, as
-            // install takes them. Upgrade is only supported to Stride 4.4.0+ (older asset compilers lack the 'upgrade' verb).
             PackageVersion target;
-            var versionSpec = parseResult.GetValue(versionOptions.Version);
             var filter = versionOptions.Filter(parseResult);
-            string? line = null;
-            // A line by its first version: no version of 4.3 can be upgraded to
-            if (!string.IsNullOrEmpty(versionSpec)
-                && !StrideVersionManager.SupportsUpgrade(new PackageVersion(VersionRules.TryParseLine(versionSpec, out line) ? $"{line}.0" : versionSpec)))
+            var unfinishedOnly = false;
+            if (revertUpgrade)
             {
-                Console.Error.WriteLine($"'stride upgrade' supports Stride 4.4.0 and newer only; {versionSpec} is older.");
-                return 1;
-            }
-            if (!string.IsNullOrEmpty(versionSpec) && line is null)
-            {
-                target = new PackageVersion(versionSpec);
-            }
-            else if (manager.FindUpgradeTarget(versionSpec, filter) is { } newest)
-            {
-                target = newest;
+                // The asset compiler of the version the last upgrade went to reads its records
+                if (manager.FindProjectVersion(projectDirectory) is not { } upgraded)
+                {
+                    Console.Error.WriteLine($"Could not determine the Stride version of the project in '{projectDirectory}'. Run 'dotnet restore' there to see if it restores.");
+                    return 1;
+                }
+                target = upgraded;
+                // A project back on its version before the upgrade, or never upgraded to 4.5, has no upgrade to revert
+                if (target.Version < new Version(4, 5, 0))
+                {
+                    Console.Error.WriteLine(RevertUnsupported(target));
+                    return 1;
+                }
             }
             else
             {
-                Console.Error.WriteLine(string.IsNullOrEmpty(versionSpec) && filter == default
-                    ? "No Stride 4.4.0 or newer is installed to upgrade to. Install one with 'stride sdk install', or pass --version or --prerelease / --nightly."
-                    : VersionRules.NoInstalledMatch(versionSpec, filter));
-                return 1;
-            }
+                // Target version: an exact --version, else the newest installed that a line and the options allow, as
+                // install takes them. Upgrade is only supported to Stride 4.4.0+ (older asset compilers lack the 'upgrade' verb).
+                var versionSpec = parseResult.GetValue(versionOptions.Version);
+                string? line = null;
+                // A line by its first version: no version of 4.3 can be upgraded to
+                if (!string.IsNullOrEmpty(versionSpec)
+                    && !StrideVersionManager.SupportsUpgrade(new PackageVersion(VersionRules.TryParseLine(versionSpec, out line) ? $"{line}.0" : versionSpec)))
+                {
+                    Console.Error.WriteLine($"'stride upgrade' supports Stride 4.4.0 and newer only; {versionSpec} is older.");
+                    return 1;
+                }
+                if (!string.IsNullOrEmpty(versionSpec) && line is null)
+                {
+                    target = new PackageVersion(versionSpec);
+                }
+                else if (manager.FindUpgradeTarget(versionSpec, filter) is { } newest)
+                {
+                    target = newest;
+                }
+                else
+                {
+                    Console.Error.WriteLine(string.IsNullOrEmpty(versionSpec) && filter == default
+                        ? "No Stride 4.4.0 or newer is installed to upgrade to. Install one with 'stride sdk install', or pass --version or --prerelease / --nightly."
+                        : VersionRules.NoInstalledMatch(versionSpec, filter));
+                    return 1;
+                }
 
-            // Skip when the project already targets the same-or-newer version (no re-reconcile, no downgrade).
-            // Best-effort since the current version can't always be determined; applies to explicit and implicit.
-            PackageVersion? current = null;
-            try { current = manager.ResolveVersion(null, projectDirectory); } catch { /* current unknown; proceed */ }
-            if (current is not null && target.CompareTo(current) <= 0)
-            {
-                Console.WriteLine($"Project is already on Stride {current}; nothing to upgrade (requested {target}).");
-                return 0;
+                // Skip when the project already targets the same-or-newer version (no re-reconcile, no downgrade).
+                // Best-effort since the current version can't always be determined; applies to explicit and implicit.
+                PackageVersion? current = null;
+                try { current = manager.ResolveVersion(null, projectDirectory); } catch { /* current unknown; proceed */ }
+                // --mark-finished or --retry on the current version end the upgrade kept unfinished, with nothing to upgrade
+                unfinishedOnly = (parseResult.GetValue(markFinished) || parseResult.GetValue(retry)) && current is not null && target.CompareTo(current) == 0;
+                if (current is not null && target.CompareTo(current) <= 0 && !unfinishedOnly)
+                {
+                    Console.WriteLine($"Project is already on Stride {current}; nothing to upgrade (requested {target}).");
+                    return 0;
+                }
             }
 
             var compiler = manager.LocateAssetCompiler(target);
@@ -113,11 +161,56 @@ internal static class UpgradeCommand
             var args = new List<string> { "upgrade", input };
             if (parseResult.GetValue(noBackup))
                 args.Add("--no-backup");
+            if (parseResult.GetValue(verbose))
+                args.Add("--verbose");
+            if (parseResult.GetValue(report) is { Length: > 0 } reportPath)
+            {
+                // An older asset compiler ignores options it doesn't know: one that writes the report uses UpgradeReportWriter
+                if (!DotNetHostSelector.ReferencesType(compiler, "UpgradeReportWriter"))
+                {
+                    Console.Error.WriteLine($"The Asset Compiler of Stride {target} can't write an upgrade report: --report needs a newer version.");
+                    return 1;
+                }
+                args.Add($"--report={Path.GetFullPath(reportPath)}");
+            }
+            if (parseResult.GetValue(keepPartial) || parseResult.GetValue(markFinished) || parseResult.GetValue(retry))
+            {
+                // An older asset compiler always leaves the files of a failed upgrade, and has no unfinished upgrade: one that has
+                // answers the failure question with PackageUpgradeFailedAnswer
+                if (!DotNetHostSelector.ReferencesType(compiler, "PackageUpgradeFailedAnswer"))
+                {
+                    Console.Error.WriteLine($"The Asset Compiler of Stride {target} can't keep, retry or finish an upgrade: --keep-partial, --retry and --mark-finished need a newer version.");
+                    return 1;
+                }
+                if (parseResult.GetValue(keepPartial))
+                    args.Add("--keep-partial");
+                if (parseResult.GetValue(markFinished))
+                    args.Add("--mark-finished");
+                if (parseResult.GetValue(retry))
+                    args.Add("--retry");
+                if (unfinishedOnly)
+                    args.Add("--unfinished-only");
+            }
+            if (revertUpgrade)
+            {
+                // An older asset compiler ignores options it doesn't know, and would upgrade again
+                if (!DotNetHostSelector.ReferencesType(compiler, "UpgradeRevert"))
+                {
+                    Console.Error.WriteLine(RevertUnsupported(target));
+                    return 1;
+                }
+                args.Add("--revert");
+            }
 
-            Console.WriteLine($"Upgrading {Path.GetFileName(input)} to Stride {target}...");
+            Console.WriteLine(revertUpgrade ? $"Reverting the last upgrade of {Path.GetFileName(input)}, the upgrade to Stride {target}..."
+                : unfinishedOnly ? $"Ending the unfinished upgrade of {Path.GetFileName(input)} to Stride {target}..."
+                : $"Upgrading {Path.GetFileName(input)} to Stride {target}...");
             return Tools.Run(compiler, $"the Asset Compiler for Stride {target}", args, wait: true, sessionPath: input, toolReadsHostArgs: false);
         });
 
         return command;
     }
+
+    private static string RevertUnsupported(PackageVersion version)
+        => $"The project is on Stride {version}, whose Asset Compiler can't revert an upgrade: --revert reverts an upgrade to a newer version, made with a backup. When the upgrade has a backup folder, copy its files back by hand.";
 }

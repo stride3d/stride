@@ -288,20 +288,53 @@
       </Button>
     </sd:ToolBar>
 
-    <!-- Safe mode (D12 A): how many plugins are off, "Restart normally" (the same project without safe mode), and the Plugins panel -->
-    <Border Name="SafeModeBanner" Grid.Row="2" Padding="8,4" BorderThickness="0,1" BorderBrush="Gray" Background="#30E0A040"
-            IsVisible="{Binding SafeModeBanner?.IsVisible, FallbackValue=False}">
-      <Grid ColumnDefinitions="*, Auto, Auto">
-        <TextBlock Name="SafeModeMessage" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding SafeModeBanner?.Message}"/>
-        <Button Name="OpenPluginsPanelButton" Grid.Column="1" Margin="8,0,0,0"
-                Content="{sd:LocalizeString Show the plugins, Context=Button}"
-                Command="{Binding SafeModeBanner?.OpenPluginsPanelCommand}"/>
-        <Button Name="RestartNormallyButton" Grid.Column="2" Margin="8,0,0,0"
-                Content="{sd:LocalizeString Restart normally, Context=Button}"
-                Command="{Binding SafeModeBanner?.RestartNormallyCommand}"
-                ToolTip.Tip="{sd:LocalizeString Open the project again with all its plugins, Context=ToolTip}"/>
-      </Grid>
-    </Border>
+    <!-- The banners under the toolbar -->
+    <StackPanel Grid.Row="2">
+      <!-- Safe mode (D12 A): how many plugins are off, "Restart normally" (the same project without safe mode), and the Plugins panel -->
+      <Border Name="SafeModeBanner" Padding="8,4" BorderThickness="0,1" BorderBrush="Gray" Background="#30E0A040"
+              IsVisible="{Binding SafeModeBanner?.IsVisible, FallbackValue=False}">
+        <Grid ColumnDefinitions="*, Auto, Auto">
+          <TextBlock Name="SafeModeMessage" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding SafeModeBanner?.Message}"/>
+          <Button Name="OpenPluginsPanelButton" Grid.Column="1" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Show the plugins, Context=Button}"
+                  Command="{Binding SafeModeBanner?.OpenPluginsPanelCommand}"/>
+          <Button Name="RestartNormallyButton" Grid.Column="2" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Restart normally, Context=Button}"
+                  Command="{Binding SafeModeBanner?.RestartNormallyCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Open the project again with all its plugins, Context=ToolTip}"/>
+        </Grid>
+      </Border>
+
+      <!-- While the last upgrade of a project of the session is unfinished, left items to check in its upgrade-report.md, or keeps a backup -->
+      <Border Name="UpgradeReportBanner" Padding="8,4" BorderThickness="0,1" BorderBrush="Gray" Background="#30E0A040"
+              IsVisible="{Binding UpgradeReportBanner.IsVisible}">
+        <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto, Auto">
+          <TextBlock Name="UpgradeReportMessage" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding UpgradeReportBanner.Message}"/>
+          <Button Name="OpenUpgradeReportButton" Grid.Column="1" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Open the report, Context=Button}"
+                  Command="{Binding UpgradeReportBanner.OpenCommand}"
+                  IsVisible="{Binding UpgradeReportBanner.HasReports}"/>
+          <Button Name="RetryUpgradeButton" Grid.Column="2" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Retry, Context=Button}"
+                  ToolTip.Tip="{sd:LocalizeString Run the project steps left again; code steps are done by hand, Context=ToolTip}"
+                  Command="{Binding UpgradeReportBanner.RetryCommand}"
+                  IsVisible="{Binding UpgradeReportBanner.CanRetry}"/>
+          <Button Name="RevertUpgradeButton" Grid.Column="3" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Revert, Context=Button}"
+                  ToolTip.Tip="{sd:LocalizeString Put back every file the upgrade changed as it was before it and keep the current ones in the backup; the project then opens again to upgrade, Context=ToolTip}"
+                  Command="{Binding UpgradeReportBanner.RevertCommand}"
+                  IsVisible="{Binding UpgradeReportBanner.CanRevert}"/>
+          <Button Name="MarkUpgradeFinishedButton" Grid.Column="4" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Mark as finished, Context=Button}"
+                  Command="{Binding UpgradeReportBanner.MarkFinishedCommand}"
+                  IsVisible="{Binding UpgradeReportBanner.IsUnfinished}"/>
+          <Button Name="RemoveUpgradeReportButton" Grid.Column="5" Margin="8,0,0,0"
+                  Content="{Binding UpgradeReportBanner.RemoveReportsLabel}"
+                  Command="{Binding UpgradeReportBanner.RemoveReportsCommand}"
+                  IsVisible="{Binding UpgradeReportBanner.CanRemoveReports}"/>
+        </Grid>
+      </Border>
+    </StackPanel>
 
     <!-- Session area: the panels and the editors, docked as the layout of the session says (MainViewModel.Panels); the
          floating ones are in windows of their own. The views of the panels come from DockViewLocator. -->

@@ -43,6 +43,17 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
     }
 
     /// <inheritdoc/>
+    public override IReadOnlyList<UpgradeStepInfo> GetUpgradeSteps(PackageVersion fromVersion)
+    {
+        var registry = new UpgradeRegistry();
+        DeclareUpgrades(registry);
+        return registry.GetSteps(Attribute.Name)
+            .Where(step => !step.IsRetired && fromVersion.Version < step.GateVersion.Version)
+            .Select(step => new UpgradeStepInfo(step.Id, step.Title, Attribute.GetHelpLink(step.Id, step.GateVersion), step.MayChangeBehaviour))
+            .ToList();
+    }
+
+    /// <inheritdoc/>
     public override bool Upgrade(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, IList<PackageLoadingAssetFile> assetFiles)
     {
         return true;
@@ -59,31 +70,90 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
         // Snapshot the original csproj before the passes below rewrite it.
         session.UpgradeBackup?.Snapshot(projectFullPath.ToOSPath());
 
+        var report = session.UpgradeReport.GetOrAdd(projectFullPath, this, dependency.Version.MinVersion);
+
         // Bump the upgrader's own package family to the current version (subclass hook).
         if (!UpgradeProjectReferences(projectFullPath, log))
+        {
+            report.AddFailure("Update the package references");
             return false;
+        }
 
-        // Version-gated structural csproj migrations declared via the upgrade registry (r.Project):
-        // load the project once, run each registration the project is upgrading across, save once.
+        // Version-gated structural csproj migrations declared via the upgrade registry (r.Project): each registration the
+        // project is upgrading across
         var registry = new UpgradeRegistry();
         DeclareUpgrades(registry);
-        var applicable = registry.ProjectUpgrades
-            .Where(registration => UpgradingFromBefore(dependency, registration.GateVersion))
+        var applicable = registry.GetSteps(Attribute.Name)
+            .Where(step => step.Declaration is ProjectUpgradeRegistration && UpgradingFromBefore(dependency, step.GateVersion))
             .ToArray();
-        if (applicable.Length == 0)
+        return RunProjectSteps(session, solutionProject, applicable, report, log);
+    }
+
+    /// <inheritdoc/>
+    public override void RetrySteps(PackageSession session, SolutionProject project, UpgraderReport report, ILogger log)
+    {
+        var left = report.Steps.Select(x => x.Id).OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
+        RunProjectSteps(session, project, RetryableSteps().Where(step => left.Contains(step.Id)).ToArray(), report, log);
+    }
+
+    /// <inheritdoc/>
+    public override bool CanRetryStep(string id)
+        => RetryableSteps().Any(step => string.Equals(step.Id, id, StringComparison.OrdinalIgnoreCase));
+
+    // The steps a retry runs: the project steps the upgrader still declares
+    private IEnumerable<DeclaredUpgradeStep> RetryableSteps()
+    {
+        var registry = new UpgradeRegistry();
+        DeclareUpgrades(registry);
+        return registry.GetSteps(Attribute.Name).Where(step => step.Declaration is ProjectUpgradeRegistration && !step.IsRetired);
+    }
+
+    // Runs the project steps on the project loaded once. Each step is saved once it returned, so a step that throws leaves the
+    // project as the previous one left it, and stops it. Returns false when a step failed.
+    private static bool RunProjectSteps(PackageSession session, SolutionProject solutionProject, IReadOnlyList<DeclaredUpgradeStep> steps, UpgraderReport report, ILogger log)
+    {
+        if (steps.Count == 0)
             return true;
 
+        var projectFullPath = solutionProject.FullPath;
         Project project = null;
         try
         {
             project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
             var context = new ProjectUpgradeContext(project, solutionProject, projectFullPath, log) { Backup = session.UpgradeBackup };
 
-            foreach (var registration in applicable)
-                registration.Upgrade(context);
+            foreach (var step in steps)
+            {
+                var result = report.Find(step.Id);
+                var failedUnitCount = context.FailedUnits.Count;
+                try
+                {
+                    ((ProjectUpgradeRegistration)step.Declaration).Upgrade(context);
+                }
+                catch (Exception e)
+                {
+                    result?.SetFailed(e);
+                    log.Error($"{step.Id}: Unable to upgrade project [{projectFullPath.GetFileName()}]: the step \"{step.Title}\" failed, and the steps after it don't run", e);
+                    return false;
+                }
 
-            if (context.IsDirty)
-                project.Save();
+                var changedFiles = new List<string>();
+                if (context.IsDirty)
+                {
+                    session.UpgradeBackup?.Snapshot(projectFullPath.ToOSPath());
+                    project.Save();
+                    context.IsDirty = false;
+                    changedFiles.Add(projectFullPath.ToOSPath());
+                }
+                changedFiles.AddRange(context.ApplyChanges());
+
+                if (result is not null)
+                {
+                    result.FailedUnits.AddRange(context.FailedUnits.Skip(failedUnitCount));
+                    result.ChangedFiles.AddRange(changedFiles.Distinct(StringComparer.OrdinalIgnoreCase));
+                    result.SetRan();
+                }
+            }
         }
         catch (Exception e)
         {

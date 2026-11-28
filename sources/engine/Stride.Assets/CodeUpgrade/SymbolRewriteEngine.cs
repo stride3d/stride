@@ -75,34 +75,41 @@ internal static class SymbolRewriteEngine
             return solution;
 
         // Apply per document. Each document is processed once (keyed by id), so its root is still the
-        // original tree when we read it — the collected spans stay valid.
+        // original tree when we read it — the collected spans stay valid. A document whose edits throw stays as it was.
         foreach (var (documentId, edits) in editsByDocument)
         {
             var document = solution.GetDocument(documentId);
             if (document is null)
                 continue;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken);
-            if (root is null)
-                continue;
-
-            var editor = await DocumentEditor.CreateAsync(document, cancellationToken);
-            var appliedSpans = new HashSet<(TextSpan, SymbolRewrite)>();
-            foreach (var edit in edits)
+            try
             {
-                // A node can be matched by multiple symbols (e.g. extension skeleton + implementation);
-                // apply each rewrite once per span. Distinct rewrites may share a span (a moved method
-                // that also had a parameter renamed), as long as they edit disjoint nodes.
-                if (!appliedSpans.Add((edit.Span, edit.Rewrite)))
+                var root = await document.GetSyntaxRootAsync(cancellationToken);
+                if (root is null)
                     continue;
-                // A reference in a documentation comment is a name of its cref
-                var node = root.FindNode(edit.Span, findInsideTrivia: true, getInnermostNodeForTie: true);
-                if (node is null)
-                    continue;
-                edit.Rewrite.RewriteReference(editor, node, edit.Symbol);
-            }
 
-            solution = editor.GetChangedDocument().Project.Solution;
+                var editor = await DocumentEditor.CreateAsync(document, cancellationToken);
+                var appliedSpans = new HashSet<(TextSpan, SymbolRewrite)>();
+                foreach (var edit in edits)
+                {
+                    // A node can be matched by multiple symbols (e.g. extension skeleton + implementation);
+                    // apply each rewrite once per span. Distinct rewrites may share a span (a moved method
+                    // that also had a parameter renamed), as long as they edit disjoint nodes.
+                    if (!appliedSpans.Add((edit.Span, edit.Rewrite)))
+                        continue;
+                    // A reference in a documentation comment is a name of its cref
+                    var node = root.FindNode(edit.Span, findInsideTrivia: true, getInnermostNodeForTie: true);
+                    if (node is null)
+                        continue;
+                    edit.Rewrite.RewriteReference(editor, node, edit.Symbol);
+                }
+
+                solution = editor.GetChangedDocument().Project.Solution;
+            }
+            catch (Exception e) when (e is not OperationCanceledException)
+            {
+                CodeUpgradeUnits.Failed(documentId, e);
+            }
         }
 
         return solution;

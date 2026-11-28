@@ -75,7 +75,7 @@ namespace Stride.Assets.Tests
         }
 
         [Fact]
-        public void WarnsWhenStrideEngineComesFromAnImportedFile()
+        public void LeavesTheReferenceToAddWhenStrideEngineComesFromAnImportedFile()
         {
             // As from a Directory.Build.props: no reference in the project file to copy
             File.WriteAllText(Path.Combine(directory, "Engine.props"), """
@@ -93,6 +93,10 @@ namespace Stride.Assets.Tests
 
             Assert.DoesNotContain(PackageReferences(context), x => x.Include == "Stride.Audio");
             Assert.False(context.IsDirty);
+            // An item left for the report, so that the step is partial
+            var unit = Assert.Single(context.FailedUnits);
+            Assert.Equal(Path.Combine(directory, "Game.csproj"), unit.Path);
+            Assert.Contains("add a Stride.Audio reference", unit.Error, StringComparison.Ordinal);
             Assert.Contains(log.Messages, m => m.Type == LogMessageType.Warning && m.Text.Contains("imported file", StringComparison.Ordinal));
         }
 

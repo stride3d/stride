@@ -452,16 +452,22 @@ public static class DotNetHostSelector
     /// Whether the app at <paramref name="appDllPath"/> understands <see cref="FrameworkArg"/> and <see cref="RelaunchedArg"/>:
     /// its assembly references this selector. An older editor would take those options for a session path.
     /// </summary>
-    public static bool SupportsHostSelection(string appDllPath)
+    public static bool SupportsHostSelection(string appDllPath) => ReferencesType(appDllPath, nameof(DotNetHostSelector));
+
+    /// <summary>
+    /// Whether the assembly at <paramref name="assemblyPath"/> uses a type named <paramref name="typeName"/> of another assembly:
+    /// a way to tell whether a version of a tool has a feature, without running it.
+    /// </summary>
+    public static bool ReferencesType(string assemblyPath, string typeName)
     {
         try
         {
-            using var stream = File.OpenRead(appDllPath);
+            using var stream = File.OpenRead(assemblyPath);
             using var pe = new PEReader(stream);
             var metadata = pe.GetMetadataReader();
             foreach (var handle in metadata.TypeReferences)
             {
-                if (metadata.GetString(metadata.GetTypeReference(handle).Name) == nameof(DotNetHostSelector))
+                if (metadata.GetString(metadata.GetTypeReference(handle).Name) == typeName)
                     return true;
             }
             return false;
