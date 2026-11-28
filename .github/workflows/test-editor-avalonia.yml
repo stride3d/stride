@@ -92,24 +92,55 @@ jobs:
             -p:Configuration="$BUILD_TYPE" \
             -p:StridePlatforms=${{ matrix.platform }} \
             ${{ env.COVERAGE_SETTINGS != '' && '-p:ContinuousIntegrationBuild=false' || '' }}
+      # Stride.GameStudio.Avalonia.Tests runs its tests one at a time (the application and the plugin registry are
+      # process-wide), so it would be the longest part of the job. A second process runs its classes that start with
+      # one of SHELL_LETTERS, and the solution runs everything else. Rebalance the letters when one part gets much longer.
+      # Both processes run from the same output folder: coverage must instrument in memory (tests/coverage.runsettings).
       - name: Test
         id: test
         run: |
           FILTER="${{ github.event.inputs.test-filter || inputs.test-filter }}"
           REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
-          FILTER_ARG=()
-          if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
           COVERAGE_ARG=()
           if [ -n "$COVERAGE_SETTINGS" ]; then COVERAGE_ARG=(--settings "$COVERAGE_SETTINGS"); fi
-          for i in $(seq 1 "$REPEAT"); do
-            echo "=== Test run $i / $REPEAT ==="
-            dotnet test "$EDITOR_SOLUTION" \
+          # Runs the tests of a project or solution: TRX prefix, project or solution, more arguments of dotnet test
+          run_tests() {
+            dotnet test "$2" \
               --no-build \
-              --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults \
+              --logger:"trx;LogFilePrefix=$1" --results-directory TestResults \
               --blame-hang-timeout 5m --blame-hang-dump-type full \
               -p:Configuration="$BUILD_TYPE" \
-              "${FILTER_ARG[@]}" "${COVERAGE_ARG[@]}" || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
+              "${COVERAGE_ARG[@]}" "${@:3}"
+          }
+          # A test filter or a repeat (flake hunting) runs in a single process
+          if [ -n "$FILTER" ] || [ "$REPEAT" -gt 1 ]; then
+            FILTER_ARG=()
+            if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
+            for i in $(seq 1 "$REPEAT"); do
+              echo "=== Test run $i / $REPEAT ==="
+              run_tests run-$i "$EDITOR_SOLUTION" "${FILTER_ARG[@]}" || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
+            done
+            exit 0
+          fi
+          SHELL_TESTS=sources/editor/Stride.GameStudio.Avalonia.Tests/Stride.GameStudio.Avalonia.Tests.csproj
+          SHELL_NS=Stride.GameStudio.Avalonia.Tests
+          SHELL_LETTERS=(S P U B)
+          shell_filter=; editor_filter=
+          for l in "${SHELL_LETTERS[@]}"; do
+            shell_filter+="${shell_filter:+|}FullyQualifiedName~$SHELL_NS.$l"
+            editor_filter+="${editor_filter:+&}FullyQualifiedName!~$SHELL_NS.$l"
           done
+          log=TestResults/console; mkdir -p $log
+          run_tests editor "$EDITOR_SOLUTION" --filter "$editor_filter" > $log/editor.log 2>&1 & editor_pid=$!
+          run_tests shell "$SHELL_TESTS" --filter "$shell_filter" > $log/shell.log 2>&1 & shell_pid=$!
+          status=0
+          wait $editor_pid || { echo "::error::The tests of the editor solution failed"; status=1; }
+          wait $shell_pid || { echo "::error::The shell tests of ${SHELL_LETTERS[*]} failed"; status=1; }
+          for part in editor shell; do echo "::group::Tests: $part"; cat $log/$part.log; echo "::endgroup::"; done
+          if grep -q 'No test matches the given testcase filter' $log/shell.log; then
+            echo "::warning::No shell test starts with ${SHELL_LETTERS[*]}: the solution ran them all. Check SHELL_NS and SHELL_LETTERS."
+          fi
+          exit $status
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v16
