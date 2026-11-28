@@ -88,6 +88,19 @@ public class StaticComponent : CollidableComponent
     /// <remarks> Statics are not affected by forces, <see cref="AttachInner"/> discards the inertia </remarks>
     internal override bool ShouldCalculateInertia => false;
 
+    protected override bool CanReshape => StaticReference is not null;
+
+    /// <inheritdoc cref="CollidableComponent.ReshapeInner"/>
+    protected override void ReshapeInner(TypedIndex shapeIndex, BodyInertia shapeInertia, Vector3 centerOfMassShift)
+    {
+        Debug.Assert(StaticReference is not null);
+
+        var sRef = StaticReference.Value;
+        sRef.Pose.Position += (Orientation * centerOfMassShift).ToNumeric();
+        sRef.SetShape(shapeIndex);
+        sRef.UpdateBounds();
+    }
+
     protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
         Debug.Assert(Processor is not null);
