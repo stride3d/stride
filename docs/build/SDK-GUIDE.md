@@ -277,7 +277,7 @@ Stride.Build.Sdk/Sdk/Sdk.targets (top)
 
 | Platform | Minimum | Why |
 |----------|---------|-----|
-| Android | API 24 | Vulkan needs API 24, and the native libraries are built for `android-24`. |
+| Android | API 33 | The Vulkan backend requires Vulkan 1.3, which the system Vulkan loader exposes only from Android 13 (API 33). Stride.Native is built for API 33 (`Stride.Native.targets`). The manifest of Stride.Graphics (`Platforms/Android/AndroidManifest.xml`), which the Android build merges into the game's, holds both: `minSdkVersion` 33, so a game with a lower minimum fails to build, and `android.hardware.vulkan.version` `0x403000`, so Google Play hides the game on devices whose driver has an older Vulkan. |
 | iOS | 18.0 | MoltenVK and Stride.Native are built for iOS 18.0 (`dep-moltenvk.xcconfig`, `Stride.Native.targets`). The iOS template also requires an A12 GPU (`iphone-ipad-minimum-performance-a12` in its Info.plist), for the iPads that iPadOS 18 still runs on. |
 
 ### Graphics API

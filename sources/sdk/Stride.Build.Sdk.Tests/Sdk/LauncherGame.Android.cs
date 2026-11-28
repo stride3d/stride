@@ -45,28 +45,25 @@ public class MainActivity : AvaloniaMainActivity
 
     private BackInvokedCallback? backCallback;
 
-    // SDK 33+ predictive back: OnBackPressed isn't called when the app has opted in (default for
+    // Predictive back: OnBackPressed isn't called when the app has opted in (default for
     // SDK 33+ targets), so route through the dispatcher. Register at OnResume/unregister at OnPause
     // with PriorityOverlay so we win over anything Avalonia or another layer registers.
     protected override void OnResume()
     {
         base.OnResume();
-        if (OperatingSystem.IsAndroidVersionAtLeast(33))
-        {
-            backCallback ??= new BackInvokedCallback(this);
-            OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
-                IOnBackInvokedDispatcher.PriorityOverlay, backCallback);
-        }
+        backCallback ??= new BackInvokedCallback(this);
+        OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+            IOnBackInvokedDispatcher.PriorityOverlay, backCallback);
     }
 
     protected override void OnPause()
     {
-        if (OperatingSystem.IsAndroidVersionAtLeast(33) && backCallback != null)
+        if (backCallback != null)
             OnBackInvokedDispatcher.UnregisterOnBackInvokedCallback(backCallback);
         base.OnPause();
     }
 
-    // Pre-API-33 path: predictive back isn't engaged, OnBackPressed still fires.
+    // When predictive back isn't engaged, OnBackPressed still fires.
     public override void OnBackPressed()
     {
         if (App.HandleBackRequest?.Invoke() == true) return;

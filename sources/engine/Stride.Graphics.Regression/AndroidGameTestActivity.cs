@@ -44,12 +44,9 @@ namespace Stride.Graphics.Regression
 
             // Android 13+ delivers back via OnBackInvokedDispatcher (predictive-back gesture);
             // OnBackPressed is bypassed entirely when the dispatcher has a callback registered.
-            if (OperatingSystem.IsAndroidVersionAtLeast(33))
-            {
-                backInvokedCallback = new BackInvokedCallback(this);
-                OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
-                    IOnBackInvokedDispatcher.PriorityDefault, backInvokedCallback);
-            }
+            backInvokedCallback = new BackInvokedCallback(this);
+            OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+                IOnBackInvokedDispatcher.PriorityDefault, backInvokedCallback);
         }
 
         // SDL on Android consumes KEYCODE_BACK as a regular input event before it reaches
@@ -84,7 +81,7 @@ namespace Stride.Graphics.Regression
 
         protected override void OnDestroy()
         {
-            if (backInvokedCallback != null && OperatingSystem.IsAndroidVersionAtLeast(33))
+            if (backInvokedCallback != null)
             {
                 OnBackInvokedDispatcher.UnregisterOnBackInvokedCallback(backInvokedCallback);
                 backInvokedCallback = null;

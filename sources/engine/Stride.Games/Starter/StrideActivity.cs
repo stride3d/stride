@@ -100,12 +100,9 @@ namespace Stride.Starter
                 Touchable = true,
                 //OutsideTouchable = true,
                 SoftInputMode = SoftInput.AdjustPan | SoftInput.StateVisible,
-                InputMethodMode = Android.Widget.InputMethod.Needed
+                InputMethodMode = Android.Widget.InputMethod.Needed,
+                TouchModal = true,
             };
-            if (OperatingSystem.IsAndroidVersionAtLeast(29))
-            {
-                popupWindow.TouchModal = true;
-            }
             popupWindow.SetBackgroundDrawable(new Android.Graphics.Drawables.ColorDrawable(Color.Transparent));
             var editTextOverlay = LayoutInflater.Inflate(AndroidResource.Layout.stride_popup_edittext, root: null) as ViewGroup;
             System.Diagnostics.Debug.Assert(editTextOverlay is not null, "Android Resource Layout for EditText is missing.");
