@@ -1,0 +1,8 @@
+!NormalFromHeightAsset
+Id: b1d399ce-7f9d-4ef9-8d18-c1cd45ca06c5
+SerializedVersion: {Stride: 1.0.0.0}
+Tags: []
+HeightInput: 2004ea99-5500-4c92-81a5-046bc01b9a38:Heightfield/Heightmap
+WrapMode: Clamp
+HeightInUnits: 100.0
+SizeInUnits: 512.0

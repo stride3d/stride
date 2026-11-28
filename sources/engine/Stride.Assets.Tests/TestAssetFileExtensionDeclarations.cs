@@ -27,6 +27,7 @@ namespace Stride.Assets.Tests
                 typeof(Models.ModelAsset).Assembly,
                 typeof(SpriteStudio.Assets.SpriteStudioModelAsset).Assembly,
                 typeof(BepuPhysics.Assets.HullAsset).Assembly,
+                typeof(Heightfield.Assets.HeightfieldAsset).Assembly,
                 typeof(Video.Assets.VideoAsset).Assembly,
                 typeof(Physics.Assets.ColliderShapeAsset).Assembly,
                 typeof(Audio.Assets.SoundAsset).Assembly,

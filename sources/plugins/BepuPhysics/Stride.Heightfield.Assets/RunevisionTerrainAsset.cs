@@ -32,7 +32,7 @@ namespace Stride.Heightfield.Assets;
 public sealed class RunevisionTerrainAsset : Asset
 {
     private const string CurrentVersion = "1.0.0.0";
-    public const string FileExtension = ".rvtrn";
+    public const string FileExtension = ".sdrvtrn";
 
     /// <summary>
     /// The width of the terrain captured within the texture

@@ -2,7 +2,7 @@
 Id: 81c9644d-cf07-4cfe-a3dd-5836202ba647
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../Resources/Models/HandModelRight.fbx
+Source: !file ../../Resources/Models/HandModelRight.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Nodes:
     2b83a4a0d5dde6216f7c2fe8b32bbfe2: {Name: RootNode, Depth: 0}

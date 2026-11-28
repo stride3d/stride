@@ -315,4 +315,5 @@ Hierarchy:
                         TouchRotationSpeed: {X: 1.0, Y: 0.7}
                     d08824b1e2bad0b6bcf75aefb2cad5f6: !BepuSample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSample.Game
                         Id: 6cdf9360-8926-4dd5-ac14-58b111da6701
+                        Priority: 1
                         CameraComponent: null
