@@ -3,6 +3,8 @@
 
 #if STRIDE_PLATFORM_ANDROID
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -31,6 +33,11 @@ namespace Stride.Starter
         private StatusBarVisibility lastVisibility;
         private RingerModeIntentReceiver ringerModeIntentReceiver;
 
+        private readonly Lock fatalMessageLock = new();
+        private bool isDestroying;
+        private TaskCompletionSource fatalMessageClosed;
+        private AlertDialog fatalMessageDialog;
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -51,6 +58,14 @@ namespace Stride.Starter
 
         protected override void OnDestroy()
         {
+            // SDL's OnDestroy waits for the game thread, which may wait for the player to close the fatal message
+            lock (fatalMessageLock)
+            {
+                isDestroying = true;
+                fatalMessageClosed?.TrySetResult();
+            }
+            fatalMessageDialog?.Dismiss();
+
             base.OnDestroy();
             GameContext.RecreateEditTextPopupWindow = true;
         }
@@ -161,6 +176,36 @@ namespace Stride.Starter
 
                 popupWindow.Dismiss();
             });
+        }
+
+        // Called from the game thread. When it returns, the game thread ends, and SDL finishes the activity.
+        internal void ShowFatalMessage(string title, string message)
+        {
+            var closed = new TaskCompletionSource();
+            lock (fatalMessageLock)
+            {
+                if (isDestroying)
+                    return;
+                fatalMessageClosed = closed;
+            }
+
+            RunOnUiThread(() =>
+            {
+                if (IsFinishing || IsDestroyed)
+                {
+                    closed.TrySetResult();
+                    return;
+                }
+
+                fatalMessageDialog = new AlertDialog.Builder(this)
+                    .SetTitle(title)
+                    .SetMessage(message)
+                    .SetCancelable(false)
+                    .SetPositiveButton(Android.Resource.String.Ok, (_, _) => closed.TrySetResult())
+                    .Create();
+                fatalMessageDialog.Show();
+            });
+            closed.Task.Wait();
         }
 
         // Created lazily here (called from OnResume), not in OnRun: OnRun is on a separate thread

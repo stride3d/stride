@@ -33,6 +33,19 @@ namespace Stride.Games
         internal void ShowEditTextPopup() => strideActivity.ShowEditTextPopup(editTextPopupWindow);
 
         internal void HideEditTextPopup() => strideActivity.HideEditTextPopup(editTextPopupWindow);
+
+        /// <summary>
+        /// Shows a message that ends the game, and waits until the player closes it.
+        /// </summary>
+        /// <returns><see langword="false"/> when there is no activity to show it.</returns>
+        internal bool ShowFatalMessage(string title, string message)
+        {
+            if (strideActivity is null)
+                return false;
+
+            strideActivity.ShowFatalMessage(title, message);
+            return true;
+        }
     }
 }
 #endif

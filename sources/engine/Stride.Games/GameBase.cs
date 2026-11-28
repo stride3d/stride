@@ -418,6 +418,7 @@ namespace Stride.Games
         /// Call this method to initialize the game, begin running the game loop, and start processing events for the game.
         /// </summary>
         /// <param name="gameContext">The window Context for this game.</param>
+        /// <remarks>On Android, it returns without starting the game when Stride can't use the GPU, once the player closed the message that says so.</remarks>
         /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
         public void Run(GameContext gameContext = null)
         {
@@ -451,6 +452,9 @@ namespace Stride.Games
             Context = gameContext;
 
             PrepareContext();
+
+            if (!gamePlatform.CheckDeviceCanRun(Context))
+                return;
 
             try
             {
