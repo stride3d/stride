@@ -105,8 +105,7 @@ public sealed class TestAssetCollection
 
         Assert.Equal(EditorSessionFixture.Url("Textures/Oak"), asset.Url);
         Assert.True(fixture.Session.IsDirty);
-        // The action history records the transaction after the asset properties changed notification, asynchronously
-        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.CanUndo, "the rename in the history");
+        Assert.True(fixture.Session.ActionHistory.CanUndo);
 
         undoRedo.Undo();
         Assert.Equal(EditorSessionFixture.Url("Textures/Wood"), asset.Url);

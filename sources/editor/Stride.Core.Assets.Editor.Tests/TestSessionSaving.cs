@@ -39,8 +39,6 @@ public sealed class TestSessionSaving
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         Edit(fixture, wood, "oak");
-        // The action history records the transaction asynchronously, after the asset properties changed notification
-        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Count > 0, "the edit in the history");
 
         Assert.True(await fixture.Session.SaveSessionAsync());
 

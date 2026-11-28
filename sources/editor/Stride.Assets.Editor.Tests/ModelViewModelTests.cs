@@ -64,7 +64,6 @@ public sealed class ModelViewModelTests
             var transactions = fixture.Session.ActionHistory.Transactions.Count;
 
             await fixture.Session.Dispatcher.InvokeTask(model.CreateSkeletonAsync);
-            await WaitForHistoryAsync(fixture, transactions);
 
             var skeleton = Assert.Single(fixture.Session.AllAssets, x => x.Asset is SkeletonAsset);
             Assert.Equal(["Root", "Hip"], ((SkeletonAsset)skeleton.Asset).Nodes.Select(x => x.Name));
@@ -120,15 +119,6 @@ public sealed class ModelViewModelTests
         // The asset view creates the new assets in its selected folder
         fixture.Session.Dispatcher.Invoke(() => fixture.Session.AssetCollection.SelectedLocations.Add(fixture.Package));
         return fixture;
-    }
-
-    /// <summary>
-    /// The action history records a creation once the asset notifications are done, on another thread: wait for it, so that the
-    /// test neither reads the history nor closes the session in the middle of them.
-    /// </summary>
-    private static Task WaitForHistoryAsync(AssetsSessionFixture fixture, int transactions)
-    {
-        return ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Count > transactions, "the creation to be recorded");
     }
 
     /// <summary>
