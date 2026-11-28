@@ -256,7 +256,7 @@ Cache/
 
         if (Sdtpl?.Type == SdtplMetadata.TemplateType.Sample)
         {
-            GenerateSlnxIfMissing(logger);
+            GenerateSlnx(logger);
             GenerateGitignoreIfMissing(logger);
         }
 
@@ -858,21 +858,22 @@ Cache/
         [PlatformType.Windows, PlatformType.Linux, PlatformType.macOS, PlatformType.Android, PlatformType.iOS];
 
     /// <summary>
-    /// Synthesizes a <c>MyTemplate.slnx</c> at the staged root when no solution is already present.
-    /// Walks <c>*.csproj</c> under the tree and emits a <c>&lt;Project&gt;</c> for each, wrapping
+    /// Synthesizes a <c>MyTemplate.slnx</c> at the staged root, in the place of any solution the sample
+    /// ships: that one is written for the samples tree (BepuSample's lists the pack it references by its
+    /// path there) and doesn't follow the platforms the user picks. Walks <c>*.csproj</c> under the tree and emits a <c>&lt;Project&gt;</c> for each, wrapping
     /// per-platform exec projects (those whose dir name ends in a known platform suffix) in
     /// <c>#if (XActive)</c> markers so the template engine's SpecialCustomOperations strips
     /// unselected platforms at instantiation. Exactly one exec — the highest-priority platform the
     /// user keeps (<see cref="StartupPlatformPriority"/>) — is marked <c>DefaultStartup</c>, since
     /// .slnx, unlike classic .sln, doesn't pick the startup project from file order.
     /// </summary>
-    private void GenerateSlnxIfMissing(ILogger logger)
+    private void GenerateSlnx(ILogger logger)
     {
-        var existing = Directory.EnumerateFiles(OutputDirectory!, "*.sln", SearchOption.TopDirectoryOnly)
-            .Concat(Directory.EnumerateFiles(OutputDirectory!, "*.slnx", SearchOption.TopDirectoryOnly))
-            .ToList();
-        if (existing.Count > 0)
-            return;
+        foreach (var shipped in Directory.EnumerateFiles(OutputDirectory!, "*", SearchOption.TopDirectoryOnly).Where(Stride.Core.Solutions.Solution.IsSolutionFile).ToList())
+        {
+            File.Delete(shipped);
+            logger.Info($"Dropped the sample's own solution {Path.GetFileName(shipped)}");
+        }
 
         // Discover csprojs and classify by per-platform suffix (null = the shared game library).
         var projects = new List<(string Csproj, string DirName, string? Platform)>();
