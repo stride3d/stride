@@ -77,7 +77,10 @@ internal sealed class EntityHierarchyAssetNodeUpdater : AssetNodePresenterUpdate
         if (typeof(EntityComponent).IsAssignableFrom(node.Type)
             || node.Type.IsInterface && node.Type.IsImplementedOnAny<EntityComponent>())
         {
-            node.AttachedProperties.Add(ReferenceData.Key, new ComponentReferenceViewModel());
+            // The property can also hold content when the interface is shared with a content type (Scene is IIdentifiable too):
+            // keep the content reference added by the session for the assets.
+            node.AttachedProperties.TryGetValue(ReferenceData.Key, out var contentReference);
+            node.AttachedProperties.Set(ReferenceData.Key, new ComponentReferenceViewModel(contentReference));
         }
         if (typeof(Entity) == node.Type)
         {

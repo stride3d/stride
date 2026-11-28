@@ -11,7 +11,7 @@ namespace Stride.Core.Assets.Editor.ViewModels
     {
         protected NodeViewModel TargetNode;
 
-        public void SetTargetNode(NodeViewModel node)
+        public virtual void SetTargetNode(NodeViewModel node)
         {
             TargetNode = node;
         }

@@ -6,13 +6,27 @@ using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Presentation.Quantum.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels;
 
-internal sealed class ComponentReferenceViewModel : AddReferenceViewModel
+/// <summary>
+/// Sets a component property to the component of a dropped entity.
+/// </summary>
+/// <param name="contentReference">The reference of a property that can also hold an asset; it takes the drops that are not entities.</param>
+internal sealed class ComponentReferenceViewModel(IAddReferenceViewModel? contentReference = null) : AddReferenceViewModel
 {
+    public override void SetTargetNode(NodeViewModel node)
+    {
+        base.SetTargetNode(node);
+        contentReference?.SetTargetNode(node);
+    }
+
     public override bool CanAddChildren(IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
     {
+        if (contentReference is not null && !children.Any(x => x is EntityViewModel))
+            return contentReference.CanAddChildren(children, modifiers, out message);
+
         EntityViewModel? entity = null;
         bool singleChild = true;
         foreach (var child in children)
@@ -49,6 +63,12 @@ internal sealed class ComponentReferenceViewModel : AddReferenceViewModel
 
     public override void AddChildren(IReadOnlyCollection<object> children, AddChildModifiers modifiers)
     {
+        if (contentReference is not null && !children.Any(x => x is EntityViewModel))
+        {
+            contentReference.AddChildren(children, modifiers);
+            return;
+        }
+
         var subEntity = (EntityViewModel)children.First();
         var index = subEntity.Components.IndexOf(TargetNode.Type.IsInstanceOfType);
         if (index >= 0)
