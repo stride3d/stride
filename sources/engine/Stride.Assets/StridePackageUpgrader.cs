@@ -263,7 +263,7 @@ namespace Stride.Assets
             if (tfm is null || tfm.IsGlobalProperty)
                 tfm = project.GetProperty("TargetFrameworks");
 
-            return tfm.IsGlobalProperty ? null : tfm;
+            return tfm is null || tfm.IsGlobalProperty ? null : tfm;
         }
 
         // 4.1: drop the old Stride ref from Linux/macOS executables (no longer needed for runtime.json),
@@ -307,48 +307,40 @@ namespace Stride.Assets
         }
 
         // 4.2: bump net6 to net8.
-        private static void UpgradeProjectTo42(ProjectUpgradeContext context)
-        {
-            var project = context.Project;
-            var solutionProject = context.SolutionProject;
-            if (GetTargetFramework(project) is { } tfm)
-            {
-                // Library
-                if (tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
-                {
-                    tfm.UnevaluatedValue = "net8.0";
-                    context.IsDirty = true;
-                    project.ReevaluateIfNecessary();
-                }
-                // Executable
-                else if ((tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
-                {
-                    tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net8.0-windows" : "net8.0";
-                    context.IsDirty = true;
-                    project.ReevaluateIfNecessary();
-                }
-            }
-        }
+        internal static void UpgradeProjectTo42(ProjectUpgradeContext context) => UpgradeTargetFrameworks(context, "net6", "net8.0");
 
         // 4.3: bump net8 to net10.
-        private static void UpgradeProjectTo43(ProjectUpgradeContext context)
+        internal static void UpgradeProjectTo43(ProjectUpgradeContext context) => UpgradeTargetFrameworks(context, "net8", "net10.0");
+
+        // Moves each `oldPrefix` entry of the target frameworks to `version`. In a library, the entry loses its platform, as the
+        // Game library of the templates targets a plain `version` on every platform. In an executable, the entry keeps its
+        // platform (`-windows`, `-android`, `-ios`), and an entry without one gets `-windows` on Windows.
+        private static void UpgradeTargetFrameworks(ProjectUpgradeContext context, string oldPrefix, string version)
         {
             var project = context.Project;
             var solutionProject = context.SolutionProject;
-            if (GetTargetFramework(project) is { } tfm)
+            if (GetTargetFramework(project) is not { } tfm)
+                return;
+
+            var entries = tfm.EvaluatedValue.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            if (!entries.Any(x => x.StartsWith(oldPrefix, StringComparison.Ordinal)))
+                return;
+
+            tfm.UnevaluatedValue = string.Join(';', entries.Select(UpgradeEntry).Distinct());
+            context.IsDirty = true;
+            project.ReevaluateIfNecessary();
+
+            string UpgradeEntry(string entry)
             {
-                // Library
-                if (tfm.EvaluatedValue.StartsWith("net8", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
-                {
-                    tfm.UnevaluatedValue = "net10.0";
-                    context.IsDirty = true;
-                }
-                // Executable
-                else if ((tfm.EvaluatedValue.StartsWith("net8", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
-                {
-                    tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net10.0-windows" : "net10.0";
-                    context.IsDirty = true;
-                }
+                if (!entry.StartsWith(oldPrefix, StringComparison.Ordinal))
+                    return entry;
+                if (solutionProject.Type == ProjectType.Library)
+                    return version;
+
+                var platformStart = entry.IndexOf('-');
+                return platformStart >= 0 ? version + entry[platformStart..]
+                    : solutionProject.Platform == PlatformType.Windows ? version + "-windows"
+                    : version;
             }
         }
 
