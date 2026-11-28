@@ -64,6 +64,16 @@ public interface IContentManager
     void Unload(string url);
 
     /// <summary>
+    /// Unloads the asset at the referenced URL.
+    /// </summary>
+    /// <param name="urlReference">The URL reference.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="urlReference"/> is null or empty.</exception>
+    void Unload(IUrlReference urlReference)
+    {
+        UrlReferenceContentManagerExtenstions.Unload(this, urlReference);
+    }
+
+    /// <summary>
     /// Gets the serializer.
     /// </summary>
     /// <value>The serializer.</value>

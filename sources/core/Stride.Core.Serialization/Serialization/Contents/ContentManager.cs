@@ -265,6 +265,17 @@ public sealed partial class ContentManager : IContentManager
     }
 
     /// <summary>
+    /// Unloads the asset at the referenced URL.
+    /// </summary>
+    /// <param name="urlReference">The URL reference.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="urlReference"/> is null or empty.</exception>
+    /// <exception cref="InvalidOperationException">Content not loaded through this ContentManager.</exception>
+    public void Unload(IUrlReference urlReference)
+    {
+        UrlReferenceContentManagerExtenstions.Unload(this, urlReference);
+    }
+
+    /// <summary>
     /// Computes statistics about the assets that are currently loaded. This method is intended to be used for debug purpose only.
     /// </summary>
     /// <returns>The statistics.</returns>
