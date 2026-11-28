@@ -166,52 +166,5 @@ namespace Stride.Engine.Tests
             SkipTestForPlatform(PlatformType.iOS);
             RunGameTest(new EffectFallbackTest());
         }
-
-        /// <summary>
-        /// Holds back the compilation of effects that use a tessellation shader until <see cref="Release"/>.
-        /// </summary>
-        private class GatedEffectCompiler : EffectCompilerChain
-        {
-            private readonly List<(TaskOrResult<EffectBytecodeCompilerResult> Inner, TaskCompletionSource<EffectBytecodeCompilerResult> Gate)> held = new();
-
-            public volatile bool Hold;
-
-            public int HeldCount { get { lock (held) return held.Count; } }
-
-            public GatedEffectCompiler(EffectCompilerBase compiler) : base(compiler)
-            {
-            }
-
-            public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId effectInputHash)
-            {
-                var result = base.Compile(mixinTree, effectParameters, compilerParameters, effectInputHash);
-                if (!Hold || !compilerParameters.ContainsKey(MaterialKeys.TessellationShader))
-                    return result;
-
-                var gate = new TaskCompletionSource<EffectBytecodeCompilerResult>();
-                lock (held)
-                    held.Add((result, gate));
-                return gate.Task;
-            }
-
-            public void Release()
-            {
-                Hold = false;
-                lock (held)
-                {
-                    foreach (var (inner, gate) in held)
-                    {
-                        try
-                        {
-                            gate.SetResult(inner.WaitForResult());
-                        }
-                        catch (Exception e)
-                        {
-                            gate.SetException(e);
-                        }
-                    }
-                }
-            }
-        }
     }
 }
