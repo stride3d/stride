@@ -52,6 +52,22 @@ public static class StrideXunitRunner
     // CI scripts already consume; total/failed counts are summed for the process exit code.
     internal static int RunHeadless(string[] args)
     {
+        // Without parallelization, xunit runs the tests on its caller's context. This thread blocks until the run
+        // ends, so a continuation posted to its context (AppKit's, on the macOS main thread) would never run.
+        var previousContext = SynchronizationContext.Current;
+        SynchronizationContext.SetSynchronizationContext(null);
+        try
+        {
+            return RunHeadlessCore(args);
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previousContext);
+        }
+    }
+
+    private static int RunHeadlessCore(string[] args)
+    {
         var filter = ParseVstestFilter(args);
         var repeat = ParseRepeat(args);
         // Always discover: a single-suite host has just the entry assembly; the Combined host
