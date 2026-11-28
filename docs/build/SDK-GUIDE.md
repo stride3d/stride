@@ -273,6 +273,13 @@ Stride.Build.Sdk/Sdk/Sdk.targets (top)
 | iOS | `STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS` |
 | All .NET | `STRIDE_RUNTIME_CORECLR` |
 
+**Minimum OS versions of the mobile platforms** (`SupportedOSPlatformVersion`, set in Stride.Platform.targets):
+
+| Platform | Minimum | Why |
+|----------|---------|-----|
+| Android | API 24 | Vulkan needs API 24, and the native libraries are built for `android-24`. |
+| iOS | 18.0 | MoltenVK and Stride.Native are built for iOS 18.0 (`dep-moltenvk.xcconfig`, `Stride.Native.targets`). The iOS template also requires an A12 GPU (`iphone-ipad-minimum-performance-a12` in its Info.plist), for the iPads that iPadOS 18 still runs on. |
+
 ### Graphics API
 
 | Property | Purpose | Set by |

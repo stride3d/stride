@@ -90,10 +90,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
     <OutputType>Exe</OutputType>
-    <!-- Pin the iOS deployment target to match what Stride.Native compiles against
-         (-mios-version-min=12.0). Without this, the iOS SDK assumes the current SDK
-         major version, which mismatches per-project Info.plist MinimumOSVersion. -->
-    <SupportedOSPlatformVersion Condition="'$(SupportedOSPlatformVersion)' == ''">12.2</SupportedOSPlatformVersion>
     <!-- xunit + test discovery is reflection-heavy and trips Mono's AOT compiler on a
          number of test-runner assemblies (xunit.core, xunit.execution.dotnet, Microsoft
          test platform DLLs). Interpreter mode is the standard for iOS Simulator + test

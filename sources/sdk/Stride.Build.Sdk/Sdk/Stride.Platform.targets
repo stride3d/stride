@@ -88,6 +88,9 @@
   <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)'">
     <Platform Condition="'$(Platform)' == ''">iPhone</Platform>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <!-- 18.0: the floor of the bundled MoltenVK and of Stride.Native (-mios-version-min=18.0). Without it, the
+         iOS SDK assumes its own major version, which mismatches the MinimumOSVersion of Info.plist. -->
+    <SupportedOSPlatformVersion Condition="'$(SupportedOSPlatformVersion)' == ''">18.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <!-- Create empty platform configuration so MSBuild/VS Configuration Manager knows about them -->
   <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhone'" />

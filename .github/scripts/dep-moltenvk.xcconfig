@@ -1,4 +1,6 @@
-// Build settings of dep-moltenvk.yml, set as XCODE_XCCONFIG_FILE: debug info, and arm64 only, the one architecture
-// of the RIDs Stride ships (osx-arm64, ios-arm64, iossimulator-arm64).
+// Build settings of dep-moltenvk.yml, set as XCODE_XCCONFIG_FILE: debug info, arm64 only (the one architecture
+// of the RIDs Stride ships: osx-arm64, ios-arm64, iossimulator-arm64), and Stride's iOS minimum.
 #include "dep-debug-info.xcconfig"
 ARCHS = arm64
+// Keep in sync with SupportedOSPlatformVersion in Stride.Platform.targets.
+IPHONEOS_DEPLOYMENT_TARGET = 18.0
