@@ -16,5 +16,11 @@
   <!-- Empty dict opts into the modern launch-screen path (avoids iOS-13+ legacy letterbox). -->
   <key>UILaunchScreen</key>
   <dict/>
+  <!-- Scene lifecycle, required by the iOS 27 SDK. AvaloniaAppDelegate gives the scene configuration. -->
+  <key>UIApplicationSceneManifest</key>
+  <dict>
+    <key>UIApplicationSupportsMultipleScenes</key>
+    <false/>
+  </dict>
 </dict>
 </plist>

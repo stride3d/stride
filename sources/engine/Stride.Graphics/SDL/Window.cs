@@ -128,9 +128,41 @@ namespace Stride.Graphics.SDL
             {
                 Handle = (IntPtr)info.Info.Cocoa.Window;
             }
+#if STRIDE_PLATFORM_IOS
+            AttachToScene((IntPtr)info.Info.UIKit.Window);
+#endif
             Application.RegisterWindow(this);
             Application.ProcessEvents();
         }
+
+#if STRIDE_PLATFORM_IOS
+        // In an app with a scene manifest, UIKit shows only the windows of a scene, and SDL2 creates its UIWindow without one.
+        private static void AttachToScene(IntPtr uiWindowHandle)
+        {
+            if (Foundation.NSBundle.MainBundle.ObjectForInfoDictionary("UIApplicationSceneManifest") is null)
+                return;
+
+            var uiWindow = ObjCRuntime.Runtime.GetNSObject<UIKit.UIWindow>(uiWindowHandle);
+            if (uiWindow is null || uiWindow.WindowScene is not null)
+                return;
+
+            UIKit.UIWindowScene scene = null;
+            foreach (var connected in UIKit.UIApplication.SharedApplication.ConnectedScenes)
+            {
+                if (connected is UIKit.UIWindowScene windowScene
+                    && (scene is null || windowScene.ActivationState == UIKit.UISceneActivationState.ForegroundActive))
+                    scene = windowScene;
+            }
+            if (scene is null)
+            {
+                Core.Diagnostics.GlobalLogger.GetLogger(nameof(Window)).Warning("No UIWindowScene is connected: the SDL window stays hidden in a scene app.");
+                return;
+            }
+
+            uiWindow.WindowScene = scene;
+            uiWindow.MakeKeyAndVisible();
+        }
+#endif
 #endregion
 
         /// <summary>

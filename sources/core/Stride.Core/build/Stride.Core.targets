@@ -185,4 +185,10 @@
   <PropertyGroup Condition="'$(TargetPlatformIdentifier)' == 'iOS'">
     <AfterMicrosoftNETSdkTargets>$(AfterMicrosoftNETSdkTargets);$(MSBuildThisFileDirectory)Stride.Core.iOSPublishOverride.targets</AfterMicrosoftNETSdkTargets>
   </PropertyGroup>
+
+  <!-- An iOS app uses the UIKit scene lifecycle: an empty scene manifest, unless its Info.plist has one of its own
+       (Overwrite=false keeps it whole). StrideUISceneManifest=false leaves the app's lifecycle to the project. -->
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'iOS' And '$(StrideUISceneManifest)' != 'false'">
+    <PartialAppManifest Include="$(MSBuildThisFileDirectory)Stride.Core.UISceneManifest.plist" Overwrite="false" />
+  </ItemGroup>
 </Project>
