@@ -10,6 +10,7 @@ using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Build;
@@ -96,8 +97,14 @@ internal sealed class ShellSessionFixture : IDisposable
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.GameStudio.Avalonia.Tests", Guid.NewGuid().ToString("N"));
         var fixture = new ShellSessionFixture(directory, App.InitializeServiceProvider());
-        if (!withMSBuild)
-            fixture.Main.LoadSessionFile = (path, result, loadParameters) => TestPackageLoad.WithoutMSBuild(path, executablePlatform, result, loadParameters);
+        var load = withMSBuild
+            ? fixture.Main.LoadSessionFile
+            : (path, result, loadParameters) => TestPackageLoad.WithoutMSBuild(path, executablePlatform, result, loadParameters);
+        fixture.Main.LoadSessionFile = (path, result, loadParameters) =>
+        {
+            fixture.LoadResult = result;
+            load(path, result, loadParameters);
+        };
         fixture.WritePackage(assets, executablePlatform);
         return fixture;
     }
@@ -105,35 +112,48 @@ internal sealed class ShellSessionFixture : IDisposable
     private static async Task<ShellSessionFixture> OpenAsync(PlatformType? executablePlatform, bool withMSBuild, (string Location, Asset Asset)[] assets)
     {
         var fixture = Create(executablePlatform, withMSBuild, assets);
-        try
-        {
-            await fixture.OpenAsync();
-        }
-        catch
-        {
-            fixture.Dispose();
-            throw;
-        }
+        await fixture.OpenAsync();
         return fixture;
     }
+
+    /// <summary>
+    /// What the last load of the session logged, the errors of the plugins that could not join it included; null before the
+    /// first load.
+    /// </summary>
+    public PackageSessionResult? LoadResult { get; private set; }
 
     /// <summary>
     /// Opens the package that <c>Create</c> wrote through the main view model, as the static <c>OpenAsync</c> does: a test
     /// can prepare the settings of the session in between.
     /// </summary>
+    /// <remarks>
+    /// A failed open disposes the fixture: the plugins that joined the session leave it, and what they registered for the
+    /// whole process (the template providers of the views) goes with them before the next test.
+    /// </remarks>
     public async Task OpenAsync()
     {
-        var opened = await Main.OpenSession(PackagePath);
-        // What the session does in the background once open, so that the tests start from a session at rest
-        if (Main.Session is { } session)
-            await session.Initialization;
-        if (opened != true || Main.Session is null)
-            throw new InvalidOperationException($"The session could not be opened ({opened}).");
+        try
+        {
+            var opened = await Main.OpenSession(PackagePath);
+            // What the session does in the background once open, so that the tests start from a session at rest
+            if (Main.Session is { } session)
+                await session.Initialization;
+            if (opened != true || Main.Session is null)
+            {
+                var errors = LoadResult?.Messages.Where(x => x.IsAtLeast(LogMessageType.Error)).Select(x => x.ToString()) ?? [];
+                throw new InvalidOperationException(string.Join(Environment.NewLine, errors.Prepend($"The session could not be opened ({opened}).")));
+            }
 
-        // The main view model forgets it when the editor restarts; it is still destroyed with the fixture
-        openedSession = Main.Session;
-        builder = openedSession.ServiceProvider.TryGet<GameStudioBuilderService>();
-        settingsProvider = openedSession.ServiceProvider.TryGet<GameSettingsProviderService>();
+            // The main view model forgets it when the editor restarts; it is still destroyed with the fixture
+            openedSession = Main.Session;
+            builder = openedSession.ServiceProvider.TryGet<GameStudioBuilderService>();
+            settingsProvider = openedSession.ServiceProvider.TryGet<GameSettingsProviderService>();
+        }
+        catch
+        {
+            Dispose();
+            throw;
+        }
     }
 
     /// <summary>
