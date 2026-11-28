@@ -139,7 +139,13 @@ public static class StrideXunitRunner
             Console.WriteLine($"  {testAssembly.GetName().Name}: total={iterTotal} passed={iterPassed} failed={iterFailed} skipped={iterSkipped}");
         }
 
-        Console.WriteLine($"Total: {total}, Passed: {passed}, Failed: {failed}, Skipped: {skipped}, Time: {totalTime:F2}s");
+        var summary = $"Total: {total}, Passed: {passed}, Failed: {failed}, Skipped: {skipped}, Time: {totalTime:F2}s";
+        Console.WriteLine(summary);
+#if ANDROID || IOS
+        // The host drivers can't read the exit code (Android kills its own process), so this file tells them the run ended.
+        Directory.CreateDirectory(MobileResultsRoot);
+        File.WriteAllText(Path.Combine(MobileResultsRoot, "run-end.txt"), summary + "\n");
+#endif
         return failed > 0 ? 1 : 0;
     }
 
@@ -273,21 +279,25 @@ public static class StrideXunitRunner
         return null;
     }
 
-    // Headless trx: Android writes to internal FilesDir (targetSdk 30+ scoped storage
-    // blocks app writes through the FUSE-bound external-files path); iOS writes to the
-    // sandboxed Documents (bundle dir is read-only); host scripts pull via
-    // `adb shell run-as <pkg>` / `xcrun simctl get_app_container ... data` respectively.
-    // Desktop drops it beside the test binary so `dotnet test --logger trx` parity tools
-    // find it without extra config.
+#if ANDROID || IOS
+    // The folder the host scripts pull. Android: internal FilesDir (targetSdk 30+ scoped storage
+    // blocks app writes through the FUSE-bound external-files path), pulled via `adb shell run-as <pkg>`.
+    // iOS: the sandboxed Documents (bundle dir is read-only), read via `xcrun simctl get_app_container ... data`.
+    private static string MobileResultsRoot =>
+#if ANDROID
+        Path.Combine(Android.App.Application.Context.FilesDir!.AbsolutePath, "tests", "local");
+#else
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "tests", "local");
+#endif
+#endif
+
+    // Headless trx: mobile writes under MobileResultsRoot. Desktop drops it beside the test
+    // binary so `dotnet test --logger trx` parity tools find it without extra config.
     internal static string GetTrxPath(Assembly testAssembly)
     {
         var name = testAssembly.GetName().Name ?? "tests";
-#if ANDROID
-        var root = Android.App.Application.Context.FilesDir!.AbsolutePath;
-        return Path.Combine(root, "tests", "local", name, $"{name}.trx");
-#elif IOS
-        var root = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        return Path.Combine(root, "tests", "local", name, $"{name}.trx");
+#if ANDROID || IOS
+        return Path.Combine(MobileResultsRoot, name, $"{name}.trx");
 #else
         var binDir = Path.GetDirectoryName(testAssembly.Location) ?? AppContext.BaseDirectory;
         return Path.Combine(binDir, "TestResults", $"{name}.trx");

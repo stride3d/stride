@@ -9,7 +9,8 @@
 #   4. launch MainActivity with --es xunit_command run (App.HeadlessMode path)
 #   5. wait for process exit
 #   6. pull tests/local/ (TRX + generated images) and the effect cache back to host
-#   7. exit non-zero if any test failed (parsed from the TRX)
+#   7. exit non-zero if any test failed (parsed from the TRX), or if the run didn't reach its end
+#      (timeout or crash: the runner writes tests/local/run-end.txt after its last suite)
 #
 # Works on Windows, Linux, and macOS via PowerShell Core (pwsh).
 
@@ -410,10 +411,11 @@ $pidLogcatPath = $null
 $pidLogcatProc = $null
 $lastPidLogcatSize = -1
 $lastPidLogcatGrowth = Get-Date
+$timedOut = $true
 while ((Get-Date) -lt $deadline) {
     $procPid = (Invoke-Adb shell pidof $Package 2>$null) -replace '\s', ''
     if (-not $procPid) {
-        if ($lastPid) { break }   # we saw it running, now it's gone
+        if ($lastPid) { $timedOut = $false; break }   # we saw it running, now it's gone
         if ((Get-Date) -ge $startupDeadline) {
             throw "Process $Package never appeared within $StartupTimeoutSeconds seconds (emulator/GPU likely broken)."
         }
@@ -444,7 +446,7 @@ while ((Get-Date) -lt $deadline) {
     Start-Sleep -Seconds 3
 }
 if ($pidLogcatProc -and -not $pidLogcatProc.HasExited) { try { $pidLogcatProc.Kill() } catch { } }
-if ((Get-Date) -ge $deadline) {
+if ($timedOut) {
     Write-Warning "Timed out waiting for $Package to exit; pulling whatever is available."
 }
 # pidof also comes back empty when the emulator died or stopped answering: then nothing can be pulled.
@@ -492,10 +494,13 @@ if ($canReadTombstones) {
     }
 }
 
-# 9. Parse TRX for pass/fail
+# 9. Parse TRX for pass/fail. The app kills its own process, so its exit code doesn't reach this
+# script: the run counts as complete only when the runner wrote run-end.txt after its last suite.
+$incomplete = if ($timedOut) { "it timed out after ${TimeoutSeconds}s" }
+              elseif (-not (Test-Path (Join-Path $ResultsDir 'run-end.txt'))) { "the app exited before run-end.txt was written (crash?)" }
 $trxFiles = Get-ChildItem -Path $ResultsDir -Recurse -Filter "*.trx" -ErrorAction SilentlyContinue
 if (-not $trxFiles) {
-    Write-Warning "No TRX files in $ResultsDir -- tests may not have run."
+    Write-Warning "No TRX files in $ResultsDir -- tests may not have run$(if ($incomplete) { ": $incomplete" })."
     exit 2
 }
 
@@ -515,8 +520,12 @@ foreach ($trx in $trxFiles) {
 
 if ($totalFailed -gt 0) {
     Write-Host "FAILED: $totalFailed test(s)." -ForegroundColor Red
-    exit 1
 }
+if ($incomplete) {
+    Write-Host "FAILED: the test run didn't finish, $incomplete. The TRX files cover only the suites that ran." -ForegroundColor Red
+}
+if ($totalFailed -gt 0) { exit 1 }
+if ($incomplete) { exit 3 }
 
 Write-Host "OK" -ForegroundColor Green
 exit 0

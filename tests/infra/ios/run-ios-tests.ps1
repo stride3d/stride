@@ -10,7 +10,8 @@
 #   4. launch the app with --xunit-command run (App.HeadlessMode path)
 #   5. wait for process exit
 #   6. copy tests/local/ (TRX + generated images) and the effect cache back to host
-#   7. exit non-zero if any test failed (parsed from the TRX)
+#   7. exit non-zero if any test failed (parsed from the TRX), or if the run didn't reach its end
+#      (timeout or crash: the runner writes tests/local/run-end.txt after its last suite)
 #
 # macOS-only (iOS Simulator). Requires Xcode + pwsh.
 
@@ -254,9 +255,11 @@ if ($StreamLog) {
 $resultsOnDevice = Join-Path $dataContainer "Documents/tests/local"
 Write-Host "Waiting for PID $procPid to exit (timeout: ${TimeoutSeconds}s)..."
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+$timedOut = $true
 while ((Get-Date) -lt $deadline) {
     & kill -0 $procPid 2>$null
     if ($LASTEXITCODE -ne 0) {
+        $timedOut = $false
         # PID gone — but the final TRX writeback can take a couple of seconds to surface on the
         # host-visible simulator filesystem. Give a brief grace window before proceeding to pull.
         Start-Sleep -Seconds 2
@@ -265,7 +268,7 @@ while ((Get-Date) -lt $deadline) {
     }
     Start-Sleep -Seconds 3
 }
-if ((Get-Date) -ge $deadline) {
+if ($timedOut) {
     Write-Warning "Timed out waiting for $Package to exit; pulling whatever is available."
     Invoke-Simctl terminate,$udid,$Package -AllowFailure | Out-Null
 }
@@ -285,16 +288,15 @@ if ($liveLogProc -and -not $liveLogProc.HasExited) {
 # the same --process arg in their command lines.
 & xcrun simctl spawn $udid pkill -f "log stream --process $procPid" 2>$null | Out-Null
 
-# If the test process exited without writing any TRX (early crash, abort in startup), the live
-# `log stream` started AFTER launch and missed the early output. Query the simulator's unified
-# log STORE retroactively to recover startup logs / abort messages.
-$anyTrx = Test-Path $resultsOnDevice -PathType Container
-if ($anyTrx) { $anyTrx = (Get-ChildItem -Path $resultsOnDevice -Filter '*.trx' -Recurse -ErrorAction SilentlyContinue).Count -gt 0 }
-if (-not $anyTrx) {
+# If the run didn't reach its end (crash, abort in startup, timeout), the live `log stream`
+# started AFTER launch and missed the early output. Query the simulator's unified log STORE
+# retroactively to recover startup logs / abort messages.
+$runEnded = Test-Path (Join-Path $resultsOnDevice 'run-end.txt')
+if (-not $runEnded) {
     $crashPath = Join-Path $ResultsDir "$Package.crashlog.txt"
     if (-not (Test-Path $ResultsDir)) { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
     # The log's process field is the executable name ($Suite), not the bundle id.
-    Write-Host "No TRX — extracting unified log for $Suite from simulator -> $crashPath"
+    Write-Host "The run didn't end — extracting unified log for $Suite from simulator -> $crashPath"
     & xcrun simctl spawn $udid log show --predicate "process == '$Suite'" --info --debug --last 5m 2>&1 | Set-Content $crashPath
     # Simulator app crashes also land as .ips reports on the HOST.
     Get-ChildItem "$HOME/Library/Logs/DiagnosticReports" -Filter "$Suite*.ips" -ErrorAction SilentlyContinue |
@@ -326,10 +328,13 @@ if ($MetalCacheDir -and (Test-Path $metalCacheOnDevice)) {
     & ditto $metalCacheOnDevice $MetalCacheDir
 }
 
-# 7. Parse TRX for pass/fail
+# 7. Parse TRX for pass/fail. The app's exit code doesn't reach this script, so the run counts
+# as complete only when the runner wrote run-end.txt after its last suite.
+$incomplete = if ($timedOut) { "it timed out after ${TimeoutSeconds}s" }
+              elseif (-not $runEnded) { "the app exited before run-end.txt was written (crash?)" }
 $trxFiles = Get-ChildItem -Path $ResultsDir -Recurse -Filter "*.trx" -ErrorAction SilentlyContinue
 if (-not $trxFiles) {
-    Write-Warning "No TRX files in $ResultsDir -- tests may not have run."
+    Write-Warning "No TRX files in $ResultsDir -- tests may not have run$(if ($incomplete) { ": $incomplete" })."
     if ($startedSimulator -and -not $KeepSimulator) { Invoke-Simctl shutdown,$udid -AllowFailure | Out-Null }
     exit 2
 }
@@ -355,8 +360,12 @@ if ($startedSimulator -and -not $KeepSimulator) {
 
 if ($totalFailed -gt 0) {
     Write-Host "FAILED: $totalFailed test(s)." -ForegroundColor Red
-    exit 1
 }
+if ($incomplete) {
+    Write-Host "FAILED: the test run didn't finish, $incomplete. The TRX files cover only the suites that ran." -ForegroundColor Red
+}
+if ($totalFailed -gt 0) { exit 1 }
+if ($incomplete) { exit 3 }
 
 Write-Host "OK" -ForegroundColor Green
 exit 0
