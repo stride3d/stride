@@ -79,8 +79,9 @@ public static class Lavapipe
 
         // Last-resort: scan the NuGet package cache (handles ExcludeAssets="runtime"
         // where natives are not copied to output and this dll also may not be).
-        var nugetRoot = Environment.GetEnvironmentVariable("NUGET_PACKAGES")
-            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+        var nugetRoot = Environment.GetEnvironmentVariable("NUGET_PACKAGES") is { Length: > 0 } nugetPackages
+            ? nugetPackages
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
         var pkgRoot = Path.Combine(nugetRoot, "stride.dependencies.lavapipe");
         if (Directory.Exists(pkgRoot))
         {

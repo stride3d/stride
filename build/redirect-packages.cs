@@ -298,7 +298,9 @@ var failures = 0;
 var generatedStubs = new List<string>();
 var runnableOutputs = new List<string>(); // inputs of the manifest beside the csprojs and build/ assets
 ProjectInfo? adoptedProject = null; // --adopt: the one project whose manifest lines get refreshed
-var nugetPackagesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+var nugetPackagesDir = Environment.GetEnvironmentVariable("NUGET_PACKAGES") is { Length: > 0 } nugetPackagesOverride
+    ? nugetPackagesOverride
+    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
 
 foreach (var pkgPath in freshPackages)
 {
