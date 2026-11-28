@@ -18,10 +18,11 @@
     </Compile>
   </ItemGroup>
 
-  <!-- Build order only: pack-assets (Sdk.targets) runs Stride.Core.Tasks.dll from its bin folder. Other packages with
-       assets get it through Stride.Graphics; this one references nothing else. -->
+  <!-- Restore only: packs build and run Stride.Core.Tasks themselves (_StrideBuildPackAssetsTool in Sdk.targets). Other
+       packages with assets get it restored through Stride.Graphics; this one references nothing else. -->
   <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Tasks\Stride.Core.Tasks.csproj">
+      <BuildReference>false</BuildReference>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <GlobalPropertiesToRemove>TargetFramework;StrideGraphicsApi</GlobalPropertiesToRemove>

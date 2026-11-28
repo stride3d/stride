@@ -254,9 +254,37 @@
   <!-- ================================================================ -->
   <!-- Asset Packing Support (StridePackAssets) -->
   <!-- ================================================================ -->
+  <PropertyGroup>
+    <_StridePackAssetsToolProject>$(StrideRoot)sources/core/Stride.Core.Tasks/Stride.Core.Tasks.csproj</_StridePackAssetsToolProject>
+    <_StridePackAssetsTool>$(StrideRoot)sources/core/Stride.Core.Tasks/bin/$(Configuration)/$(StrideFramework)/Stride.Core.Tasks.dll</_StridePackAssetsTool>
+  </PropertyGroup>
+
+  <!-- Builds Stride.Core.Tasks, which runs pack-assets, when a pack needs it. A project reference would put it (and
+       Stride.Core.Assets) in front of each compile, though most builds never pack. The global properties are those of
+       a project reference without target framework and graphics API, so all callers share one build of it. A pack
+       with NoBuild (the redirect stub refresh) uses the tool its build made. -->
+  <Target Name="_StrideBuildPackAssetsTool" Condition="'$(NoBuild)' != 'true' Or !Exists('$(_StridePackAssetsTool)')">
+    <PropertyGroup>
+      <_StridePackAssetsToolUnsetConfiguration Condition="'$(BuildingInsideVisualStudio)' == 'true' Or '$(BuildingSolutionFile)' == 'true'">true</_StridePackAssetsToolUnsetConfiguration>
+    </PropertyGroup>
+    <AssignProjectConfiguration ProjectReferences="$(_StridePackAssetsToolProject)"
+                                CurrentProject="$(MSBuildProjectFullPath)"
+                                CurrentProjectConfiguration="$(Configuration)"
+                                CurrentProjectPlatform="$(Platform)"
+                                ResolveConfigurationPlatformUsingMappings="false"
+                                SolutionConfigurationContents="$(CurrentSolutionConfigurationContents)"
+                                ShouldUnsetParentConfigurationAndPlatform="$(_StridePackAssetsToolUnsetConfiguration)">
+      <Output TaskParameter="AssignedProjects" ItemName="_StridePackAssetsToolReference" />
+      <Output TaskParameter="UnassignedProjects" ItemName="_StridePackAssetsToolReference" />
+    </AssignProjectConfiguration>
+    <MSBuild Projects="@(_StridePackAssetsToolReference)" Targets="Build" BuildInParallel="$(BuildInParallel)"
+             Properties="%(_StridePackAssetsToolReference.SetConfiguration); %(_StridePackAssetsToolReference.SetPlatform)"
+             RemoveProperties="%(_StridePackAssetsToolReference.GlobalPropertiesToRemove);TargetFramework;StrideGraphicsApi;NoBuild$(_GlobalPropertiesToRemoveFromProjectReferences)" />
+  </Target>
+
   <!-- When StridePackAssets=true, use Stride.Core.Tasks to copy .sdpkg, assets and templates
        into the NuGet package. This is a lightweight operation that doesn't need CompilerApp. -->
-  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StrideInferEditorToolkit;_StrideResolveCompanionProjects" Condition="'$(StridePackAssets)' == 'true' Or '$(StrideContainsAssetTypes)' == 'true' Or '$(StridePackageKind)' != '' Or '@(StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
+  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StrideInferEditorToolkit;_StrideResolveCompanionProjects;_StrideBuildPackAssetsTool" Condition="'$(StridePackAssets)' == 'true' Or '$(StrideContainsAssetTypes)' == 'true' Or '$(StridePackageKind)' != '' Or '@(StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
     <!-- Host-loadable assembly whose types appear in assets: written into the packed sdpkg's
          HostAssemblies so the host loads the build matching its runtime, one entry per produced
          framework the host can load (a base netX.0 or a net*-windows*). -->
@@ -277,7 +305,7 @@
       <_StridePackKindArg Condition="'$(StridePackageKind)' != ''"> --pack-kind=&quot;$(StridePackageKind)&quot;</_StridePackKindArg>
       <_StridePackKindArg Condition="'$(StrideEditorToolkit)' != ''">$(_StridePackKindArg) --pack-toolkit=&quot;$(StrideEditorToolkit)&quot;</_StridePackKindArg>
     </PropertyGroup>
-    <Exec Command="dotnet &quot;$(StrideRoot)sources/core/Stride.Core.Tasks/bin/$(Configuration)/$(StrideFramework)/Stride.Core.Tasks.dll&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)stride&quot;$(_StridePackHostAssembliesArg)$(_StridePackCompanionArg)$(_StridePackKindArg)" ConsoleToMsBuild="true">
+    <Exec Command="dotnet &quot;$(_StridePackAssetsTool)&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)stride&quot;$(_StridePackHostAssembliesArg)$(_StridePackCompanionArg)$(_StridePackKindArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>
