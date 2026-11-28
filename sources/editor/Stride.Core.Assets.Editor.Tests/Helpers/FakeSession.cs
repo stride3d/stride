@@ -42,14 +42,15 @@ public sealed class FakeSession : ISessionViewModel, ISessionInternals
 
     /// <summary>
     /// Creates a session whose service provider holds <paramref name="pluginService"/> instead of <see cref="Plugins"/>, for example only
-    /// the part of the plugin service that the session objects use (<see cref="Stride.Core.Assets.Presentation.Services.IPresentationPluginService"/>).
+    /// the part of the plugin service that the session objects use (<see cref="Stride.Core.Assets.Presentation.Services.IPresentationPluginService"/>),
+    /// and <paramref name="dispatcher"/> instead of one that runs everything at once.
     /// </summary>
-    public FakeSession(object? pluginService)
+    public FakeSession(object? pluginService, IDispatcherService? dispatcher = null)
     {
         Dialogs = DialogRecorder.Create();
         ServiceProvider = new ViewModelServiceProvider(
         [
-            new NullDispatcherService(),
+            dispatcher ?? new NullDispatcherService(),
             UndoRedo,
             pluginService ?? Plugins,
             ProgressWindows,
@@ -139,7 +140,12 @@ public sealed class FakeSession : ISessionViewModel, ISessionInternals
 
     public AssetViewModel GetAssetById(AssetId id) => assets.GetValueOrDefault(id)!;
 
-    public Type GetAssetViewModelType(AssetItem assetItem) => typeof(AssetViewModel<>);
+    /// <summary>
+    /// Gets or sets the type of the view models of the assets: a generic definition takes the type of the asset.
+    /// </summary>
+    public Type AssetViewModelType { get; set; } = typeof(AssetViewModel<>);
+
+    public Type GetAssetViewModelType(AssetItem assetItem) => AssetViewModelType;
 
     public void NotifyAssetPropertiesChanged(IReadOnlyCollection<AssetViewModel> assets) => NotifiedAssetChanges.Add(assets);
 

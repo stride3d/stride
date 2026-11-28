@@ -37,7 +37,7 @@ public class SpriteFontViewModel : AssetViewModel<SpriteFontAsset>
         : base(parameters)
     {
         GeneratePrecompiledFontCommand = new AnonymousTaskCommand(ServiceProvider, GeneratePrecompiledFont);
-        assetCommands.Add(new MenuCommandInfo(ServiceProvider, GeneratePrecompiledFontCommand) { DisplayName = "Generate precompiled font", Tooltip = "Generate precompiled font" });
+        AddAssetCommand(new MenuCommandInfo(ServiceProvider, GeneratePrecompiledFontCommand) { DisplayName = "Generate precompiled font", Tooltip = "Generate precompiled font" });
     }
 
     public ICommandBase GeneratePrecompiledFontCommand { get; }

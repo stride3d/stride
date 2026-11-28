@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Diagnostics;
+using Stride.Core.Presentation.Commands;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
@@ -148,6 +149,22 @@ public class TestSessionObjects
     }
 
     [Fact]
+    public void AssetCommandsAreAddedInTheConstructorWithTheCommandsOfTheTypeFirst()
+    {
+        // The editor creates the assets of a session on the thread that loads it, not on the UI thread of the dispatcher
+        var dispatcher = new QueueDispatcherService();
+        var session = new FakeSession(null, dispatcher) { AssetViewModelType = typeof(CommandsAssetViewModel) };
+        var package = session.CreateLocalPackage("Game");
+
+        var asset = package.CreateAsset(package.AssetMountPoint, new AssetItem("MyAsset", new TestSessionAsset()), true, new LoggerResult());
+
+        Assert.Equal(
+            ["First", "Second", "Create derived asset", "Create replacing asset", "Clear archetype", "Clear replaces"],
+            asset.AssetCommands.Select(x => x.DisplayName));
+        Assert.Equal(0, dispatcher.Pending);
+    }
+
+    [Fact]
     public void AssetsCanBeCreatedInSessionsOfSeveralThreads()
     {
         // The dependencies of the assets are tracked in a set shared by every session; the tests create assets in parallel
@@ -237,5 +254,26 @@ public class TestSessionObjects
         }
 
         public override bool AcceptAssetType(Type assetType) => true;
+    }
+
+    /// <summary>
+    /// A view model that adds a command of its type, as the scene view model does on the entity hierarchy one.
+    /// </summary>
+    public class FirstCommandAssetViewModel : AssetViewModel<TestSessionAsset>
+    {
+        public FirstCommandAssetViewModel(AssetViewModelConstructionParameters parameters)
+            : base(parameters)
+        {
+            AddAssetCommand(new MenuCommandInfo(ServiceProvider, new AnonymousCommand(ServiceProvider, () => { })) { DisplayName = "First" });
+        }
+    }
+
+    public sealed class CommandsAssetViewModel : FirstCommandAssetViewModel
+    {
+        public CommandsAssetViewModel(AssetViewModelConstructionParameters parameters)
+            : base(parameters)
+        {
+            AddAssetCommand(new MenuCommandInfo(ServiceProvider, new AnonymousCommand(ServiceProvider, () => { })) { DisplayName = "Second" });
+        }
     }
 }
