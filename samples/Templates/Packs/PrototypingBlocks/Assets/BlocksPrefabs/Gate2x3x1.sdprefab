@@ -21,28 +21,28 @@ Hierarchy:
                         Model: 924c9ca7-d8b3-4966-bc05-086bb500ff85:Models/Gate2x3x1
                         Materials:
                             ecd1b81c86e9114d86fcdf436455648f~0: c1d40f25-8760-420b-8e26-ef8a2b999678:Materials/GridMTArc
-                    87e4f56b172adb4f897ce1addcb0ec93: !StaticColliderComponent
+                    87e4f56b172adb4f897ce1addcb0ec93: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 6bf5e487-2a17-4fdb-897c-e1addcb0ec93
-                        CanSleep: true
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        ColliderShapes:
-                            a1c1b887166010479e2107a88b2b487b: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 0.1, Y: 3.0, Z: 1.0}
-                                LocalOffset: {X: 0.95, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                            074ade2fd377c241b6ae9a90479aa04b: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 0.1, Y: 3.0, Z: 1.0}
-                                LocalOffset: {X: -0.95, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                            a3e0a6655569be4c90956f046d42feb2: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 2.0, Y: 0.6, Z: 1.0}
-                                LocalOffset: {X: 0.0, Y: 1.2, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                a1c1b887166010479e2107a88b2b487b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.95, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.1, Y: 3.0, Z: 1.0}
+                                074ade2fd377c241b6ae9a90479aa04b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: -0.95, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.1, Y: 3.0, Z: 1.0}
+                                a3e0a6655569be4c90956f046d42feb2: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 1.2, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 2.0, Y: 0.6, Z: 1.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: null

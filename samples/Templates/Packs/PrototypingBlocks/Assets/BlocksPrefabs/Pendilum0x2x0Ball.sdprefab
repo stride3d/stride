@@ -21,23 +21,25 @@ Hierarchy:
                         Model: a4db3eeb-2715-4e8f-bba0-452eb7ca2d47:Models/Pendilum0x2x0Ball
                         Materials:
                             375be21b17b931489b7075f15158cba7~0: ad74e5da-cb10-46b7-9c34-3d65a478df12:Materials/GridMTHazard
-                    15332955af647b4bbc35c45c75d70935: !StaticColliderComponent
+                    15332955af647b4bbc35c45c75d70935: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 55293315-64af-4b7b-bc35-c45c75d70935
-                        CollisionGroup: StaticFilter
-                        CanSleep: true
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        ColliderShapes:
-                            f25e17f1e10a734e961b31e0b3404c31: !CylinderColliderShapeDesc
-                                Height: 2.0
-                                Radius: 0.025
-                                LocalOffset: {X: 0.0, Y: -1.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                            51ea13cc1d15d04db5e9e97bf6d32625: !SphereColliderShapeDesc
-                                Is2D: false
-                                Radius: 0.25
-                                LocalOffset: {X: 0.0, Y: -2.25, Z: 0.0}
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                f25e17f1e10a734e961b31e0b3404c31: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: -1.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.025
+                                    Length: 2.0
+                                51ea13cc1d15d04db5e9e97bf6d32625: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: -2.25, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.25
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionLayer: Layer4
+                        CollisionGroup: {}
+                        ContactEventHandler: null

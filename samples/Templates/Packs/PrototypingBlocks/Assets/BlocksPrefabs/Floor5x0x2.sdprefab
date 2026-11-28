@@ -21,18 +21,19 @@ Hierarchy:
                         Model: ac849bac-7dd5-4a3d-af3b-4f0b83d432ab:Models/Floor5x0x2
                         Materials:
                             97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
-                    8f2d709e00a8674d8f31b62fda1f5a47: !StaticColliderComponent
+                    8f2d709e00a8674d8f31b62fda1f5a47: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 9e702d8f-a800-4d67-8f31-b62fda1f5a47
-                        CanSleep: true
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        ColliderShapes:
-                            e19f717d1849dd4a9ae927b5bc1a7e17: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 5.0, Y: 0.05, Z: 2.0}
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                e19f717d1849dd4a9ae927b5bc1a7e17: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 5.0, Y: 0.05, Z: 2.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionLayer: Layer2
+                        CollisionGroup: {}
+                        ContactEventHandler: null

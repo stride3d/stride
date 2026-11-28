@@ -1,15 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.BepuPhysics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
-using Stride.Physics;
 
 namespace CSharpIntermediate.Code
 {
     public class CharacterMovement : SyncScript
     {
-        public Vector3 MovementMultiplier = new Vector3(3, 0, 4);
         private CharacterComponent character;
 
         public override void Start()
@@ -19,29 +18,27 @@ namespace CSharpIntermediate.Code
 
         public override void Update()
         {
-            var velocity = new Vector3();
+            var movementDirection = Vector2.Zero;
             if (Input.IsKeyDown(Keys.W))
             {
-                velocity.Z++;
+                movementDirection.Y++;
             }
             if (Input.IsKeyDown(Keys.S))
             {
-                velocity.Z--;
+                movementDirection.Y--;
             }
 
             if (Input.IsKeyDown(Keys.A))
             {
-                velocity.X++;
+                movementDirection.X++;
             }
             if (Input.IsKeyDown(Keys.D))
             {
-                velocity.X--;
+                movementDirection.X--;
             }
 
-            velocity.Normalize();
-            velocity *= MovementMultiplier;
-            velocity = Vector3.Transform(velocity, Entity.Transform.Rotation);
-            character.SetVelocity(velocity);
+            movementDirection.Normalize();
+            character.MoveVector = movementDirection;
         }
     }
 }
