@@ -62,6 +62,7 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
+      - uses: ./.github/actions/runner-folders
 
       - uses: actions/setup-dotnet@v6
         with:

@@ -70,6 +70,7 @@ jobs:
         with:
           lfs: true
           submodules: true
+      - uses: ./.github/actions/runner-folders
       - uses: actions/download-artifact@v8
         with:
           pattern: shader-corpus-*

@@ -91,6 +91,7 @@ jobs:
       - uses: ./.github/actions/stride-checkout
         with:
           ref: ${{ github.ref }}
+      - uses: ./.github/actions/runner-folders
       - uses: ./.github/actions/unpublished-packages
 
       - name: Configure crash dumps
@@ -151,7 +152,7 @@ jobs:
           Get-ChildItem bin\packages\Stride.*.nupkg -ErrorAction SilentlyContinue |
             Format-Table Name, Length, LastWriteTimeUtc -AutoSize
           Write-Host "=== NuGet global cache: stride.* extractions ==="
-          $cache = "$env:UserProfile\.nuget\packages"
+          $cache = (dotnet nuget locals global-packages --list) -replace '^global-packages:\s*'
           if (Test-Path $cache) {
             Get-ChildItem "$cache\stride.*" -Directory -ErrorAction SilentlyContinue |
               Get-ChildItem -Directory -ErrorAction SilentlyContinue |

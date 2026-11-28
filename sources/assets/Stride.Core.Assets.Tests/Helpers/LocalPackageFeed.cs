@@ -14,6 +14,9 @@ namespace Stride.Core.Assets.Tests.Helpers;
 /// </summary>
 internal sealed class LocalPackageFeed : IDisposable
 {
+    // The nuget.config names the packages folder, which NUGET_PACKAGES would override
+    static LocalPackageFeed() => Environment.SetEnvironmentVariable("NUGET_PACKAGES", null);
+
     /// <param name="root">The folder to set up (a test session's folder, so that its restores use this setup), or null for a new
     /// temporary one. It is deleted when disposed.</param>
     public LocalPackageFeed(string? root = null)

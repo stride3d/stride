@@ -170,6 +170,7 @@ jobs:
               - '.github/actions/effect-cache/**'
               - '.github/actions/lfs-pull/**'
               - '.github/actions/coverage-lane/**'
+              - '.github/actions/runner-folders/**'
               - '.github/actions/setup-vulkan-windows/**'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
@@ -239,6 +240,7 @@ jobs:
               - 'tests/coverage.runsettings'
               - '.github/actions/coverage-lane/**'
               - '.github/actions/lfs-pull/**'
+              - '.github/actions/runner-folders/**'
               - 'build/check-graphics-api-compat.ps1'
             # The Avalonia editor job: the folders of the projects sources/Stride.Editor.Avalonia.slnf builds,
             # engine included (the filter compiles it, and the editor tests run on top of it), and its build inputs
@@ -271,3 +273,4 @@ jobs:
               - '.github/workflows/test-editor-avalonia.yml'
               - '.github/actions/lfs-pull/**'
               - '.github/actions/coverage-lane/**'
+              - '.github/actions/runner-folders/**'

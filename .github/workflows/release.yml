@@ -165,6 +165,7 @@ jobs:
           lfs: true
           fetch-depth: 0  # Full history + tags needed for tag-based versioning
           fetch-tags: true
+      - uses: ./.github/actions/runner-folders
 
       - uses: actions/setup-dotnet@v6
         with:

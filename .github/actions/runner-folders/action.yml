@@ -1,0 +1,20 @@
+name: Runner folders
+description: >-
+  On Windows, puts TEMP, TMP and the NuGet packages and HTTP cache folders under RUNNER_TEMP, on the runner's D:
+  drive. The profile's folders are on C:, which is much slower: a cold build of Stride.slnx takes 40% longer
+  there. The .NET SDK stays the image's: moving it to D: gained nothing. Does nothing on the other systems. Use it
+  after the checkout, before the first restore.
+
+runs:
+  using: composite
+  steps:
+    - name: Use the runner temp folder (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $temp = Join-Path $env:RUNNER_TEMP temp
+        New-Item -ItemType Directory -Force -Path $temp | Out-Null
+        "TEMP=$temp" >> $env:GITHUB_ENV
+        "TMP=$temp" >> $env:GITHUB_ENV
+        "NUGET_PACKAGES=$(Join-Path $env:RUNNER_TEMP nuget\packages)" >> $env:GITHUB_ENV
+        "NUGET_HTTP_CACHE_PATH=$(Join-Path $env:RUNNER_TEMP nuget\http-cache)" >> $env:GITHUB_ENV

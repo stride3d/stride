@@ -115,6 +115,7 @@ jobs:
           fetch-tags: true
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || github.ref }}
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/runner-folders
       - uses: ./.github/actions/unpublished-packages
 
       - uses: ./.github/actions/effect-cache
@@ -320,6 +321,7 @@ jobs:
           submodules: true
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || github.ref }}
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/runner-folders
       - uses: ./.github/actions/unpublished-packages
 
       - name: Install build dependencies (Linux)

@@ -39,7 +39,8 @@ runs:
         New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
         Set-Content -Path "$tmpDir\LavapipeFetch.csproj" -Value '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>'
         dotnet add "$tmpDir\LavapipeFetch.csproj" package Stride.Dependencies.Lavapipe --version $version
-        $icd = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.lavapipe\$version" -Filter "lvp_icd*.json" -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
+        $packages = (dotnet nuget locals global-packages --list) -replace '^global-packages:\s*'
+        $icd = Get-ChildItem -Recurse -Path (Join-Path $packages "stride.dependencies.lavapipe\$version") -Filter "lvp_icd*.json" -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
         if (-not $icd) { throw "Lavapipe ICD not found in NuGet cache after restore." }
         New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
         New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icd.FullName -Value 0 -PropertyType DWord -Force | Out-Null

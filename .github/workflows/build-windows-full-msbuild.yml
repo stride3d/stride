@@ -43,6 +43,7 @@ jobs:
         with:
           submodules: true
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/runner-folders
       # VsDevCmd environment (VCINSTALLDIR etc.), exported for the following steps.
       - uses: ilammy/msvc-dev-cmd@v1
       - name: Restore

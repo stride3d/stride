@@ -48,6 +48,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
           exclude: samples
+      - uses: ./.github/actions/runner-folders
       - uses: ./.github/actions/unpublished-packages
       - name: Build
         run: |

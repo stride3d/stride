@@ -63,6 +63,7 @@ jobs:
           ref: ${{ inputs.commit }}
           fetch-depth: 2
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/runner-folders
       - uses: ./.github/actions/unpublished-packages
       - name: Cache keys
         id: keys
