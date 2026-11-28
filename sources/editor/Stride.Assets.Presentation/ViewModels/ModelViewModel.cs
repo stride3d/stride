@@ -42,7 +42,7 @@ public class ModelViewModel : ImportedAssetViewModel<ModelAsset>
 
         // FIXME: tooltip, icons, etc. should not be created on the view model side (see PDX-2952)
         // Note: the icon is a resource key that the view resolves (see MenuCommandInfo.Icon).
-        assetCommands.Add(new MenuCommandInfo(ServiceProvider, CreateSkeletonCommand)
+        AddAssetCommand(new MenuCommandInfo(ServiceProvider, CreateSkeletonCommand)
         {
             DisplayName = "Create Skeleton",
             Tooltip = "Create a skeleton asset",

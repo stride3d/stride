@@ -40,7 +40,7 @@ public sealed class SceneViewModel : EntityHierarchyViewModel, IAssetViewModel<S
         : base(parameters)
     {
         SetAsDefaultCommand = new AnonymousCommand(ServiceProvider, SetAsDefault);
-        assetCommands.Add(new MenuCommandInfo(ServiceProvider, SetAsDefaultCommand) { DisplayName = "Set as default", Tooltip = "Set as default scene" });
+        AddAssetCommand(new MenuCommandInfo(ServiceProvider, SetAsDefaultCommand) { DisplayName = "Set as default", Tooltip = "Set as default scene" });
         UpdateCommands();
 
         Session.SessionStateChanged += SessionStateChanged;

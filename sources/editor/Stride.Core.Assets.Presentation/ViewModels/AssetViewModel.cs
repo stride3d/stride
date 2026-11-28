@@ -72,7 +72,8 @@ namespace Stride.Core.Assets.Presentation.ViewModels
     public abstract class AssetViewModel : SessionObjectViewModel, IChildViewModel, ISessionObjectViewModel, IAssetPropertyProviderViewModel, IDisposable
     {
         protected internal IAssetObjectNode AssetRootNode => PropertyGraph?.RootNode;
-        protected readonly ObservableList<MenuCommandInfo> assetCommands;
+        private readonly ObservableList<MenuCommandInfo> assetCommands;
+        private int typeCommandCount;
         protected readonly SessionNodeContainer NodeContainer;
         protected readonly bool Initializing;
         private readonly AnonymousCommand clearArchetypeCommand;
@@ -115,31 +116,27 @@ namespace Stride.Core.Assets.Presentation.ViewModels
             createReplacingAssetCommand = new AnonymousCommand(ServiceProvider, CreateReplacingAsset) { IsEnabled = CanReplace };
             clearArchetypeCommand = new AnonymousCommand(ServiceProvider, ClearArchetype) { IsEnabled = Asset.Archetype != null };
             clearReplacesCommand = new AnonymousCommand(ServiceProvider, ClearReplaces) { IsEnabled = IsReplacing };
-            // Note: the icons are resource keys that the view resolves (see MenuCommandInfo.Icon). The commands are still added
-            // asynchronously so that the ones that derived view models add in their constructor keep coming first.
-            Dispatcher.InvokeAsync(() =>
+            // Note: the icons are resource keys that the view resolves (see MenuCommandInfo.Icon).
+            assetCommands.Add(new MenuCommandInfo(ServiceProvider, createDerivedAssetCommand)
             {
-                assetCommands.Add(new MenuCommandInfo(ServiceProvider, createDerivedAssetCommand)
-                {
-                    DisplayName = "Create derived asset",
-                    Icon = "ImageCopyLink",
-                });
-                assetCommands.Add(new MenuCommandInfo(ServiceProvider, createReplacingAssetCommand)
-                {
-                    DisplayName = "Create replacing asset",
-                    Icon = "ImageCopyLink",
-                });
-                assetCommands.Add(new MenuCommandInfo(ServiceProvider, clearArchetypeCommand)
-                {
-                    DisplayName = "Clear archetype",
-                    Icon = "ImageDeleteLink",
-                });
-                assetCommands.Add(new MenuCommandInfo(ServiceProvider, clearReplacesCommand)
-                {
-                    DisplayName = "Clear replaces",
-                    Icon = "ImageDeleteLink",
-                });
-            }).Forget();
+                DisplayName = "Create derived asset",
+                Icon = "ImageCopyLink",
+            });
+            assetCommands.Add(new MenuCommandInfo(ServiceProvider, createReplacingAssetCommand)
+            {
+                DisplayName = "Create replacing asset",
+                Icon = "ImageCopyLink",
+            });
+            assetCommands.Add(new MenuCommandInfo(ServiceProvider, clearArchetypeCommand)
+            {
+                DisplayName = "Clear archetype",
+                Icon = "ImageDeleteLink",
+            });
+            assetCommands.Add(new MenuCommandInfo(ServiceProvider, clearReplacesCommand)
+            {
+                DisplayName = "Clear replaces",
+                Icon = "ImageDeleteLink",
+            });
             NodeContainer = parameters.Container;
             PropertyGraph = Session.GraphContainer.TryGetGraph(assetItem.Id);
             if (PropertyGraph != null)
@@ -289,6 +286,14 @@ namespace Stride.Core.Assets.Presentation.ViewModels
         }
 
         public IReadOnlyObservableCollection<MenuCommandInfo> AssetCommands => assetCommands;
+
+        /// <summary>
+        /// Adds a command of the asset type to <see cref="AssetCommands"/>: they come in the order they are added, before the commands of every asset.
+        /// </summary>
+        protected void AddAssetCommand([NotNull] MenuCommandInfo command)
+        {
+            assetCommands.Insert(typeCommandCount++, command);
+        }
 
         public override IEnumerable<IDirtiable> Dirtiables => Directory != null ? base.Dirtiables.Concat(Directory.Dirtiables) : base.Dirtiables;
 
