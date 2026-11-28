@@ -80,6 +80,7 @@ jobs:
           submodules: true
           ref: ${{ github.ref }}
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/runner-folders
       - uses: ./.github/actions/unpublished-packages
       # With coverage, ContinuousIntegrationBuild=false keeps the real source paths in the pdbs (CI=true maps them
       # to /_/), so that the coverage report finds the sources; this job ships no package.

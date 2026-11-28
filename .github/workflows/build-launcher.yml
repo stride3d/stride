@@ -59,6 +59,7 @@ jobs:
       - uses: ./.github/actions/stride-checkout
         with:
           exclude: samples
+      - uses: ./.github/actions/runner-folders
       - name: Build
         run: |
           dotnet build sources\launcher\Stride.Launcher.slnx `

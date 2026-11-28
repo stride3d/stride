@@ -62,6 +62,7 @@ jobs:
           lfs: true
           fetch-depth: 0  # full history + tags for the re-publish guard
           fetch-tags: true
+      - uses: ./.github/actions/runner-folders
 
       - uses: actions/setup-dotnet@v6
         with:

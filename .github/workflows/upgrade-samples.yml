@@ -23,6 +23,7 @@ jobs:
         with:
           lfs: true
           persist-credentials: false  # the push uses the token of the stride-bot action
+      - uses: ./.github/actions/runner-folders
 
       - uses: actions/setup-dotnet@v6
         with:

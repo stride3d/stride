@@ -32,6 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/lfs-pull
+      - uses: ./.github/actions/runner-folders
 
       - name: Build ParallelBuildAuditor
         run: dotnet build build\tools\ParallelBuildAuditor\ParallelBuildAuditor.csproj -c Release -nologo -v:m
