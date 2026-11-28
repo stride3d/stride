@@ -122,10 +122,7 @@ jobs:
           Built: $(date -u +%Y-%m-%d)
           Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           EOF
-          # The symbols job creates this pre-release on stride3d/stride only
-          if [ "${{ github.repository }}" = stride3d/stride ]; then
-            echo "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/ffmpeg/${{ steps.version.outputs.number }}" >> VERSION.txt
-          fi
+          echo "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/ffmpeg/${{ steps.version.outputs.number }}" >> VERSION.txt
           cat VERSION.txt
 
       - uses: actions/upload-artifact@v7

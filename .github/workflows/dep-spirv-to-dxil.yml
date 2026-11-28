@@ -126,10 +126,7 @@ jobs:
           )
           if ('${{ steps.version.outputs.source }}') { $lines += '${{ steps.version.outputs.source }}' }
           $lines += "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }} (for workflow and deps/spirv-to-dxil/mesa-pipeline.patch)"
-          # The symbols job creates this pre-release on stride3d/stride only
-          if ('${{ github.repository }}' -eq 'stride3d/stride') {
-            $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/spirv-to-dxil/${{ steps.version.outputs.number }}"
-          }
+          $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/spirv-to-dxil/${{ steps.version.outputs.number }}"
           $lines | Out-File out/VERSION.txt
           Get-ChildItem out, symbols
 

@@ -220,7 +220,7 @@ jobs:
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
             "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           )
-          # The symbols job creates this pre-release on stride3d/stride only
+          # The symbols job creates this pre-release after publish, which runs on stride3d/stride only
           if ('${{ github.repository }}' -eq 'stride3d/stride') {
             $lines += "Debug files: ${{ github.server_url }}/${{ github.repository }}/releases/tag/deps/assimp/${{ needs.resolve.outputs.number }}"
           }

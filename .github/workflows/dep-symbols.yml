@@ -3,6 +3,7 @@ name: "Dep: Symbols Pre-release"
 # Keeps the debug files of a dependency build (.pdb, .so.debug, .dSYM) as a GitHub pre-release, after the
 # run's artifacts expire. The shipped binaries are stripped, and a later rebuild gives debug files that don't match them.
 # The calling workflow uploads them as artifacts named symbols-<name>-<rid>, and its VERSION.txt in another artifact.
+# The pre-release goes to the repository of the run: a build on a fork keeps its debug files on the fork.
 
 on:
   workflow_call:
@@ -44,8 +45,6 @@ run-name: Symbols of ${{ inputs.name }} ${{ inputs.version }} from run ${{ input
 jobs:
   release:
     name: Create symbols pre-release
-    # Forks keep the debug files as artifacts of the run only.
-    if: github.repository == 'stride3d/stride'
     runs-on: ubuntu-24.04
     permissions:
       actions: read # the artifacts of another run

@@ -110,11 +110,8 @@ jobs:
             printf 'Built: %s\n' "$(date -u +%Y-%m-%d)"
             printf 'Workflow: %s/%s/actions/runs/%s\n' \
               "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}"
-            # The symbols job creates this pre-release on stride3d/stride only
-            if [ "${{ github.repository }}" = stride3d/stride ]; then
-              printf 'Debug files: %s/%s/releases/tag/deps/moltenvk/%s\n' \
-                "${{ github.server_url }}" "${{ github.repository }}" "${{ steps.version.outputs.number }}"
-            fi
+            printf 'Debug files: %s/%s/releases/tag/deps/moltenvk/%s\n' \
+              "${{ github.server_url }}" "${{ github.repository }}" "${{ steps.version.outputs.number }}"
           } > out/VERSION.txt
 
       - name: List contents

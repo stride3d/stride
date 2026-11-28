@@ -1,8 +1,9 @@
 # Computes the version of a dependency build: <official version>.<build>[-<pre-release>][+<source>].
 # - Official: the version of the dependency, which the calling workflow reads from the sources it builds.
 # - Build: the highest build of that official version, plus 1. The builds are the deps/<name>/<version> tags of the
-#   symbols pre-releases on stride3d/stride (dep-symbols.yml), and the versions of the package on nuget.org (unlisted
-#   ones included). A dependency that moves from committed binaries to a package keeps its numbering.
+#   symbols pre-releases (dep-symbols.yml) on stride3d/stride and on the fork that runs the build, and the versions
+#   of the package on nuget.org (unlisted ones included). A dependency that moves from committed binaries to a package
+#   keeps its numbering.
 # - Source: build metadata, which NuGet ignores for ordering. The commit, after a g as in git describe (g4a21a48a38);
 #   from a fork, its owner first (stride3d.gd18cf4701a). -Marker adds identifiers, such as patches-1.
 # Writes to GITHUB_OUTPUT: version (full), number (without the metadata: the version to reference and to tag),
@@ -82,10 +83,14 @@ $metadata += $Marker
 # Identifiers of build metadata are [0-9A-Za-z-], separated by dots
 $metadata = @(($metadata -join '.') -split '\.' | ForEach-Object { ($_ -replace '[^0-9A-Za-z-]+', '-').Trim('-') } | Where-Object { $_ })
 
-# The tags of stride3d/stride, also from a fork: the builds that Stride uses come from there
+# The tags of stride3d/stride, also from a fork: the builds that Stride uses come from there.
+# A fork adds its own tags, so that its next build doesn't take the number of its last one.
 $buildTags = "refs/tags/deps/$Name/"
-$published = @(git ls-remote --tags https://github.com/stride3d/stride.git "$buildTags*" | ForEach-Object {
-    ($_ -split '\t')[1].Substring($buildTags.Length) -replace '\^\{\}$', ''
+$repositories = @('stride3d/stride') + @($env:GITHUB_REPOSITORY | Where-Object { $_ -and $_ -ne 'stride3d/stride' })
+$published = @(foreach ($repository in $repositories) {
+    git ls-remote --tags "https://github.com/$repository.git" "$buildTags*" | ForEach-Object {
+        ($_ -split '\t')[1].Substring($buildTags.Length) -replace '\^\{\}$', ''
+    }
 })
 if ($PackageId) {
     $response = Invoke-WebRequest "https://api.nuget.org/v3-flatcontainer/$($PackageId.ToLowerInvariant())/index.json" -SkipHttpErrorCheck
@@ -108,7 +113,7 @@ if ($Override) {
     do { $number = "$numeric.$build" + $(if ($pre) { "-$pre" }); $build++ } while ($published -contains $number.ToLowerInvariant())
     $version = $number + $(if ($metadata) { '+' + ($metadata -join '.') })
 }
-if ($published -contains $number.ToLowerInvariant()) { throw "$Name $number already exists, as a deps/$Name tag on stride3d/stride or on nuget.org" }
+if ($published -contains $number.ToLowerInvariant()) { throw "$Name $number already exists, as a deps/$Name tag ($($repositories -join ', ')) or on nuget.org" }
 
 "$Name $version (official version $Official)"
 if ($sourceLine) { $sourceLine }
