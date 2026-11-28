@@ -11,12 +11,15 @@ using Android.Content;
 using Android.Content.Res;
 using Android.OS;
 using Android.Runtime;
+using Stride.Core.Diagnostics;
 using Stride.Graphics;
 
 namespace Stride.Games
 {
     internal class GamePlatformAndroid : GamePlatform, IGraphicsDeviceFactory
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GamePlatformAndroid));
+
         [DllImport("libc.so")]
         private static extern int __system_property_get(string name, IntPtr value);
 
@@ -110,6 +113,32 @@ namespace Stride.Games
                 AppContextType.Headless => new GameWindowHeadless(),
                 _ => null,
             };
+        }
+
+        // A device that can't be created would stop the app with only the system's "keeps stopping" dialog, the reason in logcat.
+        // Google Play hides the game from such devices (the manifest of Stride.Graphics requires Vulkan 1.3), but a sideloaded APK
+        // or another store doesn't.
+        internal override bool CheckDeviceCanRun(GameContext gameContext)
+        {
+            if (gameContext is not GameContextAndroid androidContext)
+                return true;
+
+            string message;
+            try
+            {
+                var adapter = GraphicsAdapterFactory.DefaultAdapter;
+                if (adapter.UnsupportedReason is not { } reason)
+                    return true;
+                message = $"Its graphics processor, {adapter.Description}, can't be used: {reason}";
+            }
+            catch (Exception e)
+            {
+                // No Vulkan driver, or no GPU in it
+                message = $"It has no graphics driver that the game can use: {e.Message}";
+            }
+
+            Log.Error($"This device can't run the game. {message}");
+            return !androidContext.ShowFatalMessage("This device can't run the game", message);
         }
 
         public override List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters)

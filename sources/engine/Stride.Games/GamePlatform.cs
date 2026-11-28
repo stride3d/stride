@@ -131,6 +131,12 @@ namespace Stride.Games
         /// </summary>
         public bool IsBlockingRun { get; protected set; }
 
+        /// <summary>
+        /// Checks, before the game starts, that the device can run it, and tells the player when it can't.
+        /// </summary>
+        /// <returns><see langword="false"/> when the player was told that the device can't run the game.</returns>
+        internal virtual bool CheckDeviceCanRun(GameContext gameContext) => true;
+
         public void Run(GameContext gameContext)
         {
             IsBlockingRun = !gameContext.IsUserManagingRun;
