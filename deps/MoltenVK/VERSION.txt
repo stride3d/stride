@@ -1,8 +1,9 @@
-MoltenVK main@21dd02d
-Version: 1.4.2.0+g21dd02dfa2
+MoltenVK 5189f8de86ec365860f63bf1da736815cfaea5cd@5189f8d
+Version: 1.4.3.1+g5189f8de86
 Repository: https://github.com/KhronosGroup/MoltenVK
-Source: built from git ref "main" on the macos-15 runner
+Source: built from git ref "5189f8de86ec365860f63bf1da736815cfaea5cd" on the macos-15 runner
 
-Stride: https://github.com/xen2/stride @ 4c3571b4ea8b2bdf7a33b1d1bdbecee9418e631b
-Built: 2026-05-28
-Workflow: https://github.com/xen2/stride/actions/runs/26553290571
+Stride: https://github.com/stride3d/stride @ 5831e357092a386301f3be03f107697098eacda8
+Built: 2026-11-28
+Workflow: https://github.com/stride3d/stride/actions/runs/46128443035
+Debug files: https://github.com/stride3d/stride/releases/tag/deps/moltenvk/1.4.3.1
