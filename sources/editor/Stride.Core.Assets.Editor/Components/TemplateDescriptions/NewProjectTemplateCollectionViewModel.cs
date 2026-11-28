@@ -16,10 +16,6 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 /// </summary>
 public sealed class NewProjectTemplateCollectionViewModel : ProjectTemplateCollectionViewModel
 {
-    // Ids of samples/Library/Library/Library.sdtpl and samples/Plugin/Plugin/Plugin.sdtpl; ProjectExecutable.sdtpl is matched by path
-    private static readonly Guid StrideLibraryTemplateId = new("7B79F1B7-3A55-4C84-AED9-3F4F3EE4B6E5");
-    private static readonly Guid StridePluginTemplateId = new("2D5E7F1A-8C3B-4E6A-9F0D-1B2C3D4E5F60");
-
     private readonly TemplateDescriptionGroupViewModel rootGroup;
     private bool arePropertiesValid;
 
@@ -36,7 +32,7 @@ public sealed class NewProjectTemplateCollectionViewModel : ProjectTemplateColle
 
         foreach (var template in session.FindTemplates(TemplateScope.Session))
         {
-            if (!IsAssetsOnlyTemplate(template))
+            if (!ShouldProvideTemplate(template))
                 continue;
 
             var viewModel = new TemplateDescriptionViewModel(serviceProvider, template);
@@ -91,10 +87,8 @@ public sealed class NewProjectTemplateCollectionViewModel : ProjectTemplateColle
         return GenerateUniqueNameAtLocation(Session.AllPackages.Select(x => x.Name).ToList());
     }
 
-    private static bool IsAssetsOnlyTemplate(TemplateDescription template)
+    private static bool ShouldProvideTemplate(TemplateDescription template)
     {
-        if (template.Id == StrideLibraryTemplateId || template.Id == StridePluginTemplateId)
-            return true;
-        return template.FullPath?.FullPath.EndsWith("ProjectExecutable.sdtpl", StringComparison.Ordinal) == true;
+        return template.TemplateType == TemplateType.Standard;
     }
 }

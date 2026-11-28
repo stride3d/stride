@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Stride.Core.Assets.Templates;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Assets.Templates;
@@ -125,12 +126,5 @@ internal sealed class SdtplMetadata
             if (item is YamlScalarNode s && s.Value is not null)
                 sink.Add(s.Value);
         }
-    }
-
-    public enum TemplateType
-    {
-        Sample,
-        Standard,
-        AssetPack
     }
 }

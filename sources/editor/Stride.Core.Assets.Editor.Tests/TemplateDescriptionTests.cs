@@ -42,14 +42,13 @@ public sealed class TemplateDescriptionTests
             Assert.Equal(TestTemplatePackage.GameId, game.Id);
             Assert.Equal("A game for the tests", game.Description);
             Assert.Same(TestTemplatePackage.Game, game.GetTemplate());
-            // A plugin can start a session, a code library only adds to one; the asset templates are not projects
-            Assert.Contains(general.Templates, x => x.Id == TestTemplatePackage.PluginId);
+            // Plugins, packages and asset templates shouldn't be available when creating a new project (solution)
+            Assert.DoesNotContain(templates.NewProjectGroup.GetTemplatesRecursively(), x => x.Id == TestTemplatePackage.PluginId);
             Assert.DoesNotContain(templates.NewProjectGroup.GetTemplatesRecursively(), x => x.Id == TestTemplatePackage.LibraryId);
             Assert.DoesNotContain(templates.NewProjectGroup.GetTemplatesRecursively(), x => x.Id == TestTemplatePackage.AssetId);
 
             // The list shows the templates of the selected group and of its sub-groups
             Assert.Contains(templates.Templates, x => x.Id == TestTemplatePackage.GameId);
-            Assert.Contains(templates.Templates, x => x.Id == TestTemplatePackage.PluginId);
             templates.SelectedGroup = games;
             Assert.Equal([game], templates.Templates);
             templates.SelectedGroup = general;
@@ -71,7 +70,6 @@ public sealed class TemplateDescriptionTests
         {
             templates.Location = new UDirectory(location.Path);
             var game = templates.NewProjectGroup.GetTemplatesRecursively().Single(x => x.Id == TestTemplatePackage.GameId);
-            var plugin = templates.NewProjectGroup.GetTemplatesRecursively().Single(x => x.Id == TestTemplatePackage.PluginId);
 
             templates.SelectedTemplate = game;
             Assert.True(templates.HasSelectedTemplate);
@@ -80,9 +78,6 @@ public sealed class TemplateDescriptionTests
             Assert.StartsWith(TestTemplatePackage.GameDefaultOutputName, templates.Name);
             Assert.NotEqual(TestTemplatePackage.GameDefaultOutputName, templates.Name);
             Assert.False(Directory.Exists(Path.Combine(location.Path, templates.Name)));
-
-            templates.SelectedTemplate = plugin;
-            Assert.Equal("MyTestPlugin", templates.Name);
 
             // A name typed by the user is kept when the selection changes
             templates.Name = "Adventure";

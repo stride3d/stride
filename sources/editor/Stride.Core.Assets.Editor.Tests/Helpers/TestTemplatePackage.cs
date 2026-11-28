@@ -128,6 +128,7 @@ public static class TestTemplatePackage
             DefaultOutputName = GameDefaultOutputName,
             Description = "A game for the tests",
             FullPath = new UFile(Path.Combine(directory, "TestGame" + TemplateDescription.FileExtension)),
+            TemplateType = TemplateType.Sample,
         });
         package.Templates.Add(new TemplateDescription
         {
