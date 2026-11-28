@@ -103,4 +103,14 @@ public static class Types
         [Display(2)]
         public List<SimpleType> List { get; set; } = [];
     }
+
+    public class ClassWithNullableMembers
+    {
+        [Display(1)]
+        public float? NullableFloat { get; set; }
+        [Display(2)]
+        public int? NullableInt { get; set; }
+        [Display(3)]
+        public double? NullableDouble { get; set; }
+    }
 }

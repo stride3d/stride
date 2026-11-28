@@ -82,6 +82,9 @@ public sealed class NumericTextBox : TemplatedControl
     public static readonly StyledProperty<double?> ValueProperty =
         AvaloniaProperty.Register<NumericTextBox, double?>(nameof(Value), 0.0, defaultBindingMode: BindingMode.TwoWay);
 
+    public static readonly StyledProperty<bool> AllowNullProperty =
+        AvaloniaProperty.Register<NumericTextBox, bool>(nameof(AllowNull));
+
     public static readonly StyledProperty<string?> PlaceholderTextProperty =
         TextBox.PlaceholderTextProperty.AddOwner<NumericTextBox>();
 
@@ -158,6 +161,17 @@ public sealed class NumericTextBox : TemplatedControl
     {
         get => GetValue(ValueProperty);
         set => SetValue(ValueProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether an empty text can be committed as a null value.
+    /// When true and the text is empty, the <see cref="Value"/> is set to null on commit,
+    /// instead of keeping the previous value. This is only valid for nullable target types.
+    /// </summary>
+    public bool AllowNull
+    {
+        get => GetValue(AllowNullProperty);
+        set => SetValue(AllowNullProperty, value);
     }
 
     public string? PlaceholderText
@@ -282,7 +296,7 @@ public sealed class NumericTextBox : TemplatedControl
         switch (e.Key)
         {
             case Key.Enter:
-                var commitSuccess = CommitInput();
+                var commitSuccess = CommitInput(true);
                 e.Handled = !commitSuccess;
                 if (commitSuccess)
                     ForgetTyping();
@@ -350,8 +364,8 @@ public sealed class NumericTextBox : TemplatedControl
 
     private double? ConvertTextToValue(string? text)
     {
-        if (string.IsNullOrEmpty(text))
-            return null;
+        if (string.IsNullOrWhiteSpace(text))
+            return AllowNull ? null : Value;
 
         var currentValueText = ConvertValueToText(Value);
         if (Equals(currentValueText, text))
@@ -495,7 +509,7 @@ public sealed class NumericTextBox : TemplatedControl
             sender.SetCurrentValue(MinimumProperty, sender.Maximum);
             needValidation = true;
         }
-        if (sender.Value > sender.Maximum)
+        if (sender.Value is { } value && value > sender.Maximum)
         {
             sender.SetCurrentValue(ValueProperty, sender.Maximum);
             needValidation = true;
@@ -516,7 +530,7 @@ public sealed class NumericTextBox : TemplatedControl
             sender.SetCurrentValue(MaximumProperty, sender.Minimum);
             needValidation = true;
         }
-        if (sender.Value < sender.Minimum)
+        if (sender.Value is { } value && value < sender.Minimum)
         {
             sender.SetCurrentValue(ValueProperty, sender.Minimum);
             needValidation = true;

@@ -114,6 +114,60 @@ public sealed class NumericTextBoxTests
     }
 
     [AvaloniaFact]
+    public void ClearingTheTextWithAllowNullCommitsANullValue()
+    {
+        var (window, box) = Show(new NumericTextBox { Value = 1.5, AllowNull = true });
+        var textBox = box.GetVisualDescendants().OfType<TextBox>().Single();
+
+        textBox.Focus();
+        textBox.SelectAll();
+        // The user deletes the selected text
+        window.KeyPressQwerty(PhysicalKey.Delete, RawInputModifiers.None);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Null(box.Value);
+
+        window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Null(box.Value);
+        Assert.Equal(string.Empty, box.Text);
+        Assert.Equal(string.Empty, textBox.Text);
+    }
+
+    [AvaloniaFact]
+    public void ClearingTheTextWithoutAllowNullKeepsTheValue()
+    {
+        var (window, box) = Show(new NumericTextBox { Value = 1.5 });
+        var textBox = box.GetVisualDescendants().OfType<TextBox>().Single();
+
+        textBox.Focus();
+        textBox.SelectAll();
+        // The user deletes the selected text
+        window.KeyPressQwerty(PhysicalKey.Delete, RawInputModifiers.None);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(1.5, box.Value);
+
+        // On commit, the text reverts to the value
+        window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(1.5, box.Value);
+        Assert.Equal("1.5", box.Text);
+        Assert.Equal("1.5", textBox.Text);
+    }
+
+    [AvaloniaFact]
+    public void ANullValueIsKeptWhenTheBoundsChange()
+    {
+        // This pins pre-existing behavior: the lifted double? comparisons were already no-ops for a null value,
+        // and the explicit guards in the change handlers are readability, not a behavior change
+        var (window, box) = Show(new NumericTextBox { Value = null, AllowNull = true });
+
+        box.Maximum = 3;
+        box.Minimum = -1;
+
+        Assert.Null(box.Value);
+    }
+
+    [AvaloniaFact]
     public void ChangingTheDecimalPlacesRoundsTheShownValue()
     {
         // A float shown as a double: what the property grid gets for 0.65f

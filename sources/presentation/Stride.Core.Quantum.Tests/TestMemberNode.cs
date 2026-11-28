@@ -11,6 +11,8 @@ public class TestMemberNode
     {
         public int IntValue { get; set; }
         public string? StringValue { get; set; }
+        public float? NullableFloatValue { get; set; }
+        public int? NullableIntValue { get; set; }
         public NestedClass? Reference { get; set; }
     }
 
@@ -55,6 +57,48 @@ public class TestMemberNode
             Assert.Equal(newValue, obj.IntValue);
         else
             Assert.Equal(newValue, obj.StringValue);
+    }
+
+    [Fact]
+    // A boxed double simulates a value coming from a numeric text box
+    public void TestMemberNodeUpdateNullableFloatValue()
+    {
+        var obj = new SimpleClass { NullableFloatValue = 0f, NullableIntValue = 0 };
+        var nodeContainer = new NodeContainer();
+        var parentNode = nodeContainer.GetOrCreateNode(obj);
+        var memberNode = parentNode[nameof(SimpleClass.NullableFloatValue)];
+
+        memberNode.Update(1.5);
+
+        Assert.Equal(1.5f, obj.NullableFloatValue);
+    }
+
+    [Fact]
+    // A boxed double simulates a value coming from a numeric text box
+    public void TestMemberNodeUpdateNullableIntValue()
+    {
+        var obj = new SimpleClass { NullableFloatValue = 0f, NullableIntValue = 0 };
+        var nodeContainer = new NodeContainer();
+        var parentNode = nodeContainer.GetOrCreateNode(obj);
+        var memberNode = parentNode[nameof(SimpleClass.NullableIntValue)];
+
+        memberNode.Update(2.0);
+
+        Assert.Equal(2, obj.NullableIntValue);
+    }
+
+    [Fact]
+    public void TestMemberNodeUpdateNullableValueToNull()
+    {
+        var obj = new SimpleClass { NullableFloatValue = 1.5f, NullableIntValue = 42 };
+        var nodeContainer = new NodeContainer();
+        var parentNode = nodeContainer.GetOrCreateNode(obj);
+
+        parentNode[nameof(SimpleClass.NullableFloatValue)].Update(null);
+        parentNode[nameof(SimpleClass.NullableIntValue)].Update(null);
+
+        Assert.Null(obj.NullableFloatValue);
+        Assert.Null(obj.NullableIntValue);
     }
 
     [Fact]
