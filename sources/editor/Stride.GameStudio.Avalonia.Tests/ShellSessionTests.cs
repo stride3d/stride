@@ -10,10 +10,13 @@ using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Materials;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
+using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
+using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
@@ -93,6 +96,27 @@ public sealed class ShellSessionTests
         Assert.Null(fixture.Main.Session);
         Assert.DoesNotContain(fixture.Main.RecentFiles, x => x.FilePath == missing);
         Assert.Contains(dialogs.Messages, x => x.Contains("does not exist", StringComparison.Ordinal));
+    }
+
+    [AvaloniaFact]
+    public async Task AFailedOpenNamesItsErrorAndTheNextSessionGetsThePlugins()
+    {
+        // As in the helpers that open a fixture of their own, only the failed open disposes it
+        var failed = ShellSessionFixture.Create(("Broken", new FailingViewModelTestAsset()));
+        // The progress window of a failed load stays open until the user closes it: a recording dialog service opens none
+        failed.ReplaceDialogService();
+
+        // The plugins have joined the session when its asset view models are made
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(failed.OpenAsync);
+        Assert.Contains(FailingViewModelTestAssetViewModel.Error, exception.Message, StringComparison.Ordinal);
+        Assert.False(Directory.Exists(failed.Directory));
+
+        // They left it with the fixture, and what they registered for the whole process with them: they join the next session.
+        // Its dialog service records too, so that the errors of plugins that could not join would not keep its progress window open.
+        using var fixture = ShellSessionFixture.Create(("Sheet", new SpriteSheetAsset()));
+        fixture.ReplaceDialogService();
+        await fixture.OpenAsync();
+        Assert.Empty(fixture.LoadResult!.Messages.Where(x => x.IsAtLeast(LogMessageType.Error)).Select(x => x.ToString()));
     }
 
     [AvaloniaFact]
@@ -195,5 +219,24 @@ public sealed class ShellSessionTests
         {
             await window.CloseAsync();
         }
+    }
+}
+
+[DataContract("FailingViewModelTestAsset")]
+[AssetDescription(".sdfailingviewmodeltest")]
+public sealed class FailingViewModelTestAsset : Asset;
+
+/// <summary>
+/// The view model of <see cref="FailingViewModelTestAsset"/>, which cannot be made: the session that loads it fails to open.
+/// </summary>
+[AssetViewModel<FailingViewModelTestAsset>]
+public sealed class FailingViewModelTestAssetViewModel : AssetViewModel<FailingViewModelTestAsset>
+{
+    public const string Error = "The view model of the test asset failed.";
+
+    public FailingViewModelTestAssetViewModel(AssetViewModelConstructionParameters parameters)
+        : base(parameters)
+    {
+        throw new InvalidOperationException(Error);
     }
 }
