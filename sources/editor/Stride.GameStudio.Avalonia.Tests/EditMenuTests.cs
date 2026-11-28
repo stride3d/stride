@@ -75,8 +75,7 @@ public sealed class EditMenuTests
             window.KeyReleaseQwerty(PhysicalKey.Z, RawInputModifiers.Control);
             await WindowTestHelper.PumpAsync();
             Assert.Equal("label", asset.PropertyGraph.RootNode[nameof(TextPropertiesAsset.Label)].Retrieve());
-            // The history enables Redo asynchronously after the undo
-            await WindowTestHelper.WaitUntilAsync(() => fixture.Main.RedoCommand.IsEnabled, "redo");
+            Assert.True(fixture.Main.RedoCommand.IsEnabled);
 
             window.KeyPressQwerty(PhysicalKey.Y, RawInputModifiers.Control);
             window.KeyReleaseQwerty(PhysicalKey.Y, RawInputModifiers.Control);

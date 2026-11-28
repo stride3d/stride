@@ -29,7 +29,7 @@ public sealed class SessionRecoveryServiceTests : IDisposable
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
         using var recovery = Start(fixture);
         var wood = Asset(fixture, "Wood");
-        await EditAsync(fixture, wood, "oak");
+        Edit(fixture, wood, "oak");
         var history = fixture.Session.ActionHistory.Transactions.Count;
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
 
@@ -82,7 +82,7 @@ public sealed class SessionRecoveryServiceTests : IDisposable
     {
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var recovery = Start(fixture);
-        await EditAsync(fixture, Asset(fixture, "Wood"), "oak");
+        Edit(fixture, Asset(fixture, "Wood"), "oak");
         Assert.True(await recovery.WriteCopiesAsync());
         var folder = recovery.ProcessFolder!;
         Assert.True(File.Exists(Path.Combine(folder, RecoveryStore.ManifestFileName)));
@@ -105,7 +105,7 @@ public sealed class SessionRecoveryServiceTests : IDisposable
     {
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         using var recovery = Start(fixture);
-        await EditAsync(fixture, Asset(fixture, "Wood"), "oak");
+        Edit(fixture, Asset(fixture, "Wood"), "oak");
 
         // The save is under way: IsSaving is set until it has written the assets
         var save = fixture.Session.SaveSessionAsync();
@@ -113,7 +113,7 @@ public sealed class SessionRecoveryServiceTests : IDisposable
         Assert.False(await recovery.WriteCopiesIfDueAsync());
         Assert.True(await save);
 
-        await EditAsync(fixture, Asset(fixture, "Wood"), "pine");
+        Edit(fixture, Asset(fixture, "Wood"), "pine");
         var busy = true;
         recovery.AddSkipCondition(() => busy);
         Assert.False(await recovery.WriteCopiesIfDueAsync());
@@ -125,7 +125,7 @@ public sealed class SessionRecoveryServiceTests : IDisposable
         // Off: no copies, and those written are removed
         recovery.IsEnabled = false;
         Assert.False(File.Exists(Path.Combine(recovery.ProcessFolder!, RecoveryStore.ManifestFileName)));
-        await EditAsync(fixture, Asset(fixture, "Wood"), "oak");
+        Edit(fixture, Asset(fixture, "Wood"), "oak");
         Assert.False(await recovery.WriteCopiesIfDueAsync());
     }
 
@@ -154,7 +154,7 @@ public sealed class SessionRecoveryServiceTests : IDisposable
     {
         await using var crashed = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Textures/Sand", "sand"));
         var before = Start(crashed);
-        await EditAsync(crashed, Asset(crashed, "Wood"), "oak");
+        Edit(crashed, Asset(crashed, "Wood"), "oak");
         CreateAsset(crashed, "Trees/Pine", "pine");
         DeleteAsset(crashed, Asset(crashed, "Stone"));
         crashed.OnUiThread(() => Asset(crashed, "Sand").Name = "Dune");
@@ -187,8 +187,7 @@ public sealed class SessionRecoveryServiceTests : IDisposable
         Assert.Null(recovery.FindRecovery());
         Assert.Equal(4, ReadManifest(recovery).Packages.Single().Assets.Count + ReadManifest(recovery).Packages.Single().DeletedAssets.Count);
 
-        // One step of the history, which undoes the restore (the history records it asynchronously)
-        await ExclusiveDispatcherService.WaitUntilAsync(() => session.ActionHistory.Transactions.Count > 0, "the restore in the history");
+        // One step of the history, which undoes the restore
         var transaction = Assert.Single(session.ActionHistory.Transactions);
         Assert.Equal("Restore the recovered changes", transaction.Name);
         session.UndoRedoService.Undo();
@@ -210,7 +209,7 @@ public sealed class SessionRecoveryServiceTests : IDisposable
     {
         await using var crashed = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var before = Start(crashed);
-        await EditAsync(crashed, Asset(crashed, "Wood"), "oak");
+        Edit(crashed, Asset(crashed, "Wood"), "oak");
         Assert.True(await before.WriteCopiesAsync());
 
         await using var fixture = await crashed.ReopenAsync();
@@ -232,7 +231,7 @@ public sealed class SessionRecoveryServiceTests : IDisposable
     {
         await using var first = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var running = Start(first);
-        await EditAsync(first, Asset(first, "Wood"), "oak");
+        Edit(first, Asset(first, "Wood"), "oak");
         Assert.True(await running.WriteCopiesAsync());
 
         // The same session in another editor: the process of the first one runs (it is this one)
@@ -254,17 +253,12 @@ public sealed class SessionRecoveryServiceTests : IDisposable
 
     private static AssetViewModel Asset(EditorSessionFixture fixture, string name) => fixture.Session.AllAssets.Single(x => x.Name == name);
 
-    private static async Task EditAsync(EditorSessionFixture fixture, AssetViewModel asset, string value)
+    private static void Edit(EditorSessionFixture fixture, AssetViewModel asset, string value)
     {
         var undoRedo = fixture.Session.UndoRedoService;
-        var count = fixture.Session.ActionHistory.Transactions.Count;
-        using (var transaction = undoRedo.CreateTransaction())
-        {
-            asset.PropertyGraph!.RootNode[nameof(TestEditorAsset.Value)].Update(value);
-            undoRedo.SetName(transaction, "Edit " + value);
-        }
-        // The action history records the transaction asynchronously
-        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Count > count, "the edit in the history");
+        using var transaction = undoRedo.CreateTransaction();
+        asset.PropertyGraph!.RootNode[nameof(TestEditorAsset.Value)].Update(value);
+        undoRedo.SetName(transaction, "Edit " + value);
     }
 
     private static AssetViewModel CreateAsset(EditorSessionFixture fixture, string location, string value)

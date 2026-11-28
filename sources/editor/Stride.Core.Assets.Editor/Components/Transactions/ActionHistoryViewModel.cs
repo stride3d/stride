@@ -111,44 +111,41 @@ public sealed class ActionHistoryViewModel : DispatcherViewModel
 
     // Note: the dirtiable manager of the undo/redo service handles the events of the stack before this view model, so the dirty
     // flags are current when the handlers below update the unsaved state of the session.
+    // The handlers update the history, hence Undo and Redo, before they notify the asset changes: the subscribers of the
+    // notification (thumbnails, previews, the editor game) can take long.
     private async void TransactionDone(object? sender, TransactionEventArgs e)
     {
         if (e.Transaction.Operations.Count == 0)
             return;
 
         session.Internals().UpdateHasUnsavedChanges();
-
-        var dirtying = e.Transaction.Operations.SelectMany(DirtiableManager.GetDirtyingOperations);
-        var dirtiables = new HashSet<AssetViewModel>(dirtying.SelectMany(x => x.Dirtiables.OfType<AssetViewModel>()));
-        if (dirtiables.Count > 0)
-        {
-            await session.NotifyAssetPropertiesChangedAsync(dirtiables);
-        }
         // The session may have closed meanwhile: its history, and the scope of its services, are gone
-        await Dispatcher.InvokeAsync(() =>
+        Dispatcher.Invoke(() =>
         {
             if (!IsDestroyed)
                 transactions.Add(new TransactionViewModel(ServiceProvider, e.Transaction));
         });
+        await NotifyAssetPropertiesChangedAsync(e.Transaction);
     }
 
     private async void TransactionUndoneOrRedone(object? sender, TransactionEventArgs e)
     {
         session.Internals().UpdateHasUnsavedChanges();
-        var dirtying = e.Transaction.Operations.SelectMany(DirtiableManager.GetDirtyingOperations);
-        var dirtiables = new HashSet<AssetViewModel>(dirtying.SelectMany(x => x.Dirtiables.OfType<AssetViewModel>()));
-        if (dirtiables.Count > 0)
-        {
-            await session.NotifyAssetPropertiesChangedAsync(dirtiables);
-        }
-
-        // The commands were refreshed when the undo or redo ran, before this handler updated the transactions: refresh them again
-        // now that IsDone is current, otherwise Redo stays disabled after an undo.
-        await Dispatcher.InvokeAsync(() =>
+        // The commands read IsDone of the steps, which the undo or redo changed
+        Dispatcher.Invoke(() =>
         {
             transactions.ForEach(x => x.Refresh());
             RefreshUndoRedoStatus();
         });
+        await NotifyAssetPropertiesChangedAsync(e.Transaction);
+    }
+
+    private Task NotifyAssetPropertiesChangedAsync(IReadOnlyTransaction transaction)
+    {
+        var dirtying = transaction.Operations.SelectMany(DirtiableManager.GetDirtyingOperations);
+        var dirtiables = new HashSet<AssetViewModel>(dirtying.SelectMany(x => x.Dirtiables.OfType<AssetViewModel>()));
+        // Tracked, so that the session closes once its subscribers are done
+        return dirtiables.Count > 0 ? session.TrackBackgroundWork(session.NotifyAssetPropertiesChangedAsync(dirtiables)) : Task.CompletedTask;
     }
 
     private void RefreshUndoRedoStatus()

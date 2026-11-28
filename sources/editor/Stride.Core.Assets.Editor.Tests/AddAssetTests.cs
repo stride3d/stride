@@ -417,15 +417,14 @@ public sealed class AddAssetTests
     }
 
     /// <summary>
-    /// Runs a template and waits for the action history to record the creation: it does so once the asset notifications are
-    /// done, on another thread, which the test must not race with a change of the selection (or the end of the session).
+    /// Runs a template and waits for the selection of the new assets.
     /// </summary>
     private static async Task<List<AssetViewModel>> RunAsync(EditorSessionFixture fixture, ITemplateDescriptionViewModel? template, IList<UFile>? files = null)
     {
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
         var assets = await fixture.OnUiThreadAsync(() => fixture.Assets.RunAssetTemplateAsync(template, files));
         if (assets.Count > 0)
-            await WaitForHistoryAsync(fixture, transactions);
+            await WaitForSelectionAsync(fixture, transactions);
         return assets;
     }
 
@@ -435,16 +434,16 @@ public sealed class AddAssetTests
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
         await fixture.OnUiThreadAsync(() => fixture.Assets.AddFilesAsync(files));
         if (fixture.Session.AllAssets.Count() > assets)
-            await WaitForHistoryAsync(fixture, transactions);
+            await WaitForSelectionAsync(fixture, transactions);
     }
 
     /// <summary>
-    /// Waits for the background work of a creation: the history entry, which the action history adds once the asset notifications
-    /// are done, and the selection of the new assets.
+    /// Checks that the creation is in the history, and waits for the selection of the new assets, which the asset view makes
+    /// in the background.
     /// </summary>
-    private static async Task WaitForHistoryAsync(EditorSessionFixture fixture, int transactions)
+    private static async Task WaitForSelectionAsync(EditorSessionFixture fixture, int transactions)
     {
-        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Count > transactions, "the creation to be recorded");
+        Assert.True(fixture.Session.ActionHistory.Transactions.Count > transactions, "the creation in the history");
         await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Assets.SelectedAssets.Count > 0, "the selection of the new assets");
     }
 

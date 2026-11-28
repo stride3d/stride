@@ -312,10 +312,8 @@ public sealed class AssetTemplateGeneratorTests
         var template = new TemplateDescriptionViewModel(fixture.ServiceProvider, LazyTemplates.Value.Templates.Single(x => x.Id == templateId));
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
         var assets = await fixture.Session.Dispatcher.InvokeTask(() => fixture.Session.AssetCollection.RunAssetTemplateAsync(template, files));
-        // The action history records the creation once the asset notifications are done, on another thread: wait for it, so that
-        // the test does not change the selection (nor close the session) in the middle of them
         if (assets.Count > 0)
-            await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Count > transactions, "the creation to be recorded");
+            Assert.True(fixture.Session.ActionHistory.Transactions.Count > transactions, "the creation in the history");
         return assets;
     }
 

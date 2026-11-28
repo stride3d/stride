@@ -51,7 +51,7 @@ public sealed class TagsViewModelTests
         Assert.Equal(["rock"], stone.Tags);
         Assert.Equal(["rock"], Names(fixture));
         Assert.Equal(TagsViewModel.AllCounter, Tag(fixture, "rock").Counter);
-        await AssertHistoryEntryAsync(fixture, "Added tag 'rock' to 2 assets");
+        AssertHistoryEntry(fixture, "Added tag 'rock' to 2 assets");
 
         undoRedo.Undo();
         Assert.Empty(wood.Tags);
@@ -90,7 +90,7 @@ public sealed class TagsViewModelTests
         Assert.Equal(["nature"], wood.Tags);
         Assert.Equal(["nature"], stone.Tags);
         Assert.Equal(TagsViewModel.AllCounter, Tag(fixture, "nature").Counter);
-        await AssertHistoryEntryAsync(fixture, "Added tag 'nature' to " + stone.Url);
+        AssertHistoryEntry(fixture, "Added tag 'nature' to " + stone.Url);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public sealed class TagsViewModelTests
 
         Assert.Equal(["brown"], wood.Tags);
         Assert.Empty(stone.Tags);
-        await AssertHistoryEntryAsync(fixture, "Remove tag 'nature' from 2 assets");
+        AssertHistoryEntry(fixture, "Remove tag 'nature' from 2 assets");
 
         undoRedo.Undo();
         Assert.Contains("nature", wood.Tags);
@@ -137,12 +137,9 @@ public sealed class TagsViewModelTests
         return fixture.Session.GetAssetByUrl(EditorSessionFixture.Url(location)) ?? throw new InvalidOperationException($"No asset at {location}");
     }
 
-    private static Task AssertHistoryEntryAsync(EditorSessionFixture fixture, string name)
+    private static void AssertHistoryEntry(EditorSessionFixture fixture, string name)
     {
-        // The action history records the transaction after the asset properties changed notification, asynchronously, through the
-        // dispatcher
-        var history = fixture.Session.ActionHistory;
-        return ExclusiveDispatcherService.WaitUntilAsync(() => history.Transactions.Any(x => x.Name == name), $"the history entry '{name}'");
+        Assert.Contains(fixture.Session.ActionHistory.Transactions, x => x.Name == name);
     }
 
     private static TagViewModel Tag(EditorSessionFixture fixture, string name) => fixture.Session.AssetTags.Tags.Single(x => x.Name == name);
