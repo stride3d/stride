@@ -7,8 +7,8 @@ namespace Stride.Core.CompilerServices.Analyzers;
 public class STRDIAG017EffectKeysAttributeOnGenericType : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG017";
-    private const string Title = "EffectKeysAttribute on Generic Type";
-    private const string MessageFormat = "The [EffectKeysAttribute] cannot be applied to generic type '{0}'";
+    private const string Title = "[EffectKeys] on a generic type";
+    private const string MessageFormat = "The [EffectKeys] attribute cannot be applied to generic type '{0}'.";
     private const string Category = DiagnosticCategory.Build;
 
     private static readonly DiagnosticDescriptor Rule = new(

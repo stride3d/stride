@@ -10,19 +10,29 @@ public class STRDIAG014UndeclaredAssetFileExtension : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG014";
     private const string Title = "Asset file extension not declared by a runtime assembly";
-    private const string MessageFormat = "Asset type '{0}' compiles '{1}' files to '{2}', which no referenced assembly declares. Add [assembly: Stride.Core.Serialization.AssetFileExtension(\"{1}\", typeof({2}))] to {3}, so the asset URL constants of games are typed.";
+    private const string NoRuntimeMessageFormat = "Asset type '{0}' compiles '{1}' files to '{2}', which no referenced assembly declares. Add [assembly: Stride.Core.Serialization.AssetFileExtension(\"{1}\", typeof({2}))] to a runtime assembly that games reference and this assembly references (your own runtime project, or '{3}' if you can change it), so the asset URL constants of games are typed.";
+    private const string HasRuntimeMessageFormat = "Asset type '{0}' compiles '{1}' files to '{2}', which no referenced assembly declares. Add [assembly: Stride.Core.Serialization.AssetFileExtension(\"{1}\", typeof({2}))] to the runtime assembly of this package ({3}), so the asset URL constants of games are typed.";
     private const string Category = DiagnosticCategory.Build;
 
-    private static readonly DiagnosticDescriptor Rule = new(
+    private static readonly DiagnosticDescriptor NoRuntimeRule = new(
         DiagnosticId,
         Title,
-        MessageFormat,
+        NoRuntimeMessageFormat,
         Category,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: string.Format(DiagnosticCategory.LinkFormat, DiagnosticId));
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+    private static readonly DiagnosticDescriptor HasRuntimeRule = new(
+        DiagnosticId,
+        Title,
+        HasRuntimeMessageFormat,
+        Category,
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: string.Format(DiagnosticCategory.LinkFormat, DiagnosticId));
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(NoRuntimeRule, HasRuntimeRule); } }
 
     public override void Initialize(AnalysisContext context)
     {
@@ -90,11 +100,8 @@ public class STRDIAG014UndeclaredAssetFileExtension : DiagnosticAnalyzer
             if (trimmed.Length == 0 || declared.Contains(Key(trimmed, contentType)))
                 continue;
 
-            var where = runtime is not null
-                ? $"'{runtime}', the runtime assembly of this package"
-                : $"a runtime assembly that games reference and this assembly references: your own runtime project, or '{contentType.ContainingAssembly?.Name}' if you can change it";
             foreach (var location in symbol.Locations)
-                context.ReportDiagnostic(Diagnostic.Create(Rule, location, symbol.Name, trimmed, contentType.ToDisplayString(), where));
+                context.ReportDiagnostic(Diagnostic.Create(runtime is null ? NoRuntimeRule : HasRuntimeRule, location, symbol.Name, trimmed, contentType.ToDisplayString(), runtime is null ? contentType.ContainingAssembly?.Name : runtime));
         }
     }
 

@@ -9,8 +9,8 @@ namespace Stride.Core.CompilerServices.Analyzers;
 public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG010";
-    private const string Title = "Invalid Constructor";
-    private const string MessageFormat = "The Type '{0}' doesn't have a public parameterless constructor, which is needed for Serialization";
+    private const string Title = "Invalid constructor";
+    private const string MessageFormat = "The type '{0}' doesn't have a public parameterless constructor, which is needed for serialization.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new(

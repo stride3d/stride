@@ -71,7 +71,7 @@ public class STRDIAG014_Test
             .AddReferences(runtime.ToMetadataReference());
 
         var diagnostic = Assert.Single(await assets.GetAnalyzerDiagnosticsAsync(new STRDIAG014UndeclaredAssetFileExtension()), d => d.GetMessage().Contains("'SpinAsset'"));
-        Assert.Contains("to 'Plugin', the runtime assembly of this package", diagnostic.GetMessage());
+        Assert.Contains("to the runtime assembly of this package (Plugin)", diagnostic.GetMessage());
     }
 
     [Fact]

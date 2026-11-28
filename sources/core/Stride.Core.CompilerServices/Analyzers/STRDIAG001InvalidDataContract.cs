@@ -9,8 +9,8 @@ namespace Stride.Core.CompilerServices.Analyzers;
 public class STRDIAG001InvalidDataContract : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG001";
-    private const string Title = "Invalid [DataContract] Attribute";
-    private const string MessageFormat = "The [DataContract] is not valid for the type '{0}'. Expected is a public/internal Accessor.";
+    private const string Title = "Invalid [DataContract] attribute";
+    private const string MessageFormat = "The [DataContract] attribute is not valid for type '{0}'. You have to change its accessor to public or internal.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new(

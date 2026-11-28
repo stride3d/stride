@@ -7,8 +7,8 @@ namespace Stride.Core.CompilerServices.Analyzers;
 public class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG007";
-    private const string Title = "Invalid [DataMember] Attribute";
-    private const string MessageFormat = "Invalid [DataMember] Attribute on the member '{0}'. A Delegate is not serializable.";
+    private const string Title = "Invalid [DataMember] attribute";
+    private const string MessageFormat = "Invalid [DataMember] attribute on the member '{0}'. A delegate is not serializable.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new(

@@ -10,8 +10,8 @@ namespace Stride.Core.CompilerServices.Analyzers;
 public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG003";
-    private const string Title = "Inaccessible Member";
-    private const string MessageFormat = "The member '{0}' with [DataMember] is not accesssible to the serializer. Only public/internal/internal protected visibility is supported, when the [DataMember] attribute is applied.";
+    private const string Title = "Inaccessible member";
+    private const string MessageFormat = "Member '{0}' is using the [DataMember] attribute while being inaccessible to the serializer. You have to use the public/internal/internal protected member access modifier when the [DataMember] attribute is applied.";
     private const string Category = DiagnosticCategory.Serialization;
 
     private static readonly DiagnosticDescriptor Rule = new(
