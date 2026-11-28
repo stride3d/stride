@@ -25,3 +25,4 @@ Written by `TestUpgradeSteps.StrideStepsMatchTheirList`: run it with `STRIDE_UPD
 | `Stride-4.5.3-C2` | Move the overrides of `GamePadDeviceBase.State` to `protected RawState` |
 | `Stride-4.5.4-C1` | Move the overrides of the `TouchController` queries to their `protected` raw members, such as `Trigger` to `RawTrigger` |
 | `Stride-4.5.5-P1` | Change the `osx-x64` runtime of macOS projects to `osx-arm64` |
+| `Stride-4.5.7-P1` | Raise the minimum Android version (`SupportedOSPlatformVersion`) of Android projects to Android 13 (API 33) |

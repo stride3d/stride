@@ -234,6 +234,7 @@ namespace Stride.Assets
             registry.Project("4.5.0.0", "Add a `Stride.Audio` reference, since audio left `Stride.Engine`", UpgradeProjectTo45);
             registry.Project("4.5.0.0", "Add the plugin packages whose assets the project has", AddPluginPackageReferences);
             registry.Project("4.5.5.0", "Change the `osx-x64` runtime of macOS projects to `osx-arm64`", UpgradeMacOSToArm64);
+            registry.Project("4.5.7.0", "Raise the minimum Android version (`SupportedOSPlatformVersion`) of Android projects to Android 13 (API 33)", UpgradeAndroidToApi33);
         }
 
         private static bool IsSkippedPackage(string packageName)
