@@ -9,6 +9,9 @@
     <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
     <DefineConstants>$(DefineConstants);STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">
+    <AndroidManifest>Platforms\Android\AndroidManifest.xml</AndroidManifest>
+  </PropertyGroup>
   <ItemGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
     <StrideNativeLib Include="..\..\..\deps\MoltenVK\$(StridePlatformDeps)\**\*.*">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>

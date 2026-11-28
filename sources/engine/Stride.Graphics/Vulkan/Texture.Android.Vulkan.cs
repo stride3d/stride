@@ -219,7 +219,7 @@ namespace Stride.Graphics
         }
 
         // P/Invokes for libandroid AHardwareBuffer reference counting / description.
-        // Available on Android API 26+ (already required by the rest of the platform).
+        // Available from Android API 26, below Stride's minimum.
         [DllImport("android")]
         private static extern void AHardwareBuffer_acquire(IntPtr buffer);
 
