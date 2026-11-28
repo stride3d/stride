@@ -120,7 +120,7 @@ namespace Stride.Assets.Sprite
             public SpriteSheetCommand(string url, SpriteSheetParameters parameters, IAssetFinder assetFinder)
                 : base(url, parameters, assetFinder)
             {
-                Version = 2;
+                Version = 3;
             }
 
             protected override void ComputeAssemblyHash(BinarySerializationWriter writer)

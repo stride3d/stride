@@ -78,9 +78,6 @@
 using System;
 using System.Runtime.InteropServices;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 using Stride.Core.Mathematics;
 using Stride.Graphics.Font;
 
@@ -89,7 +86,7 @@ namespace Stride.Assets.SpriteFont.Compiler
     // Writes the output sprite font binary file.
     internal static class OfflineRasterizedSpriteFontWriter
     {
-        public static Graphics.SpriteFont CreateSpriteFontData(IFontFactory fontFactory, SpriteFontAsset options, Glyph[] glyphs, float lineSpacing, float baseLine, Image<Rgba32> bitmap, bool srgb)
+        public static Graphics.SpriteFont CreateSpriteFontData(IFontFactory fontFactory, SpriteFontAsset options, Glyph[] glyphs, float lineSpacing, float baseLine, FontBitmap bitmap, bool srgb)
         {
             var fontGlyphs = ConvertGlyphs(glyphs);
             var images = new[] { GetImage(options, bitmap, srgb) };
@@ -117,7 +114,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             return fontGlyphs;
         }
 
-        static Graphics.Image GetImage(SpriteFontAsset options, Image<Rgba32> bitmap, bool srgb)
+        static Graphics.Image GetImage(SpriteFontAsset options, FontBitmap bitmap, bool srgb)
         {
             // TODO Currently we only support Rgba32 as an option. Grayscale might be added later
             return GetImageRgba32(bitmap, srgb);
@@ -125,7 +122,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Writes an uncompressed 32 bit font texture.
-        static Graphics.Image GetImageRgba32(Image<Rgba32> bitmap, bool srgb)
+        static Graphics.Image GetImageRgba32(FontBitmap bitmap, bool srgb)
         {
             var image = Graphics.Image.New2D(bitmap.Width, bitmap.Height, 1, srgb ? Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb : Graphics.PixelFormat.R8G8B8A8_UNorm);
             var pixelBuffer = image.PixelBuffer[0];
@@ -141,7 +138,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         }
 
         // Writes a block compressed monochromatic font texture.
-        static unsafe Graphics.Image GetCompressedMono(Image<Rgba32> bitmap, SpriteFontAsset options)
+        static unsafe Graphics.Image GetCompressedMono(FontBitmap bitmap, SpriteFontAsset options)
         {
             if ((bitmap.Width & 3) != 0 ||
                 (bitmap.Height & 3) != 0)
@@ -196,7 +193,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         // the possible 16 alpha values available in DXT3, so we can ensure the RGB and 
         // alpha channels always exactly match.
 
-        static void CompressBlock(Image<Rgba32> bitmap, int blockX, int blockY, SpriteFontAsset options, out BC2Pixel bc2Pixel)
+        static void CompressBlock(FontBitmap bitmap, int blockX, int blockY, SpriteFontAsset options, out BC2Pixel bc2Pixel)
         {
             long alphaBits = 0;
             int rgbBits = 0;

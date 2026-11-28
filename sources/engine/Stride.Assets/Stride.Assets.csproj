@@ -21,7 +21,6 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
-    <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="SSH.NET" PrivateAssets="compile" />
     <PackageReference Include="Microsoft.TemplateEngine.IDE" />
     <PackageReference Include="Microsoft.TemplateEngine.Edge" />

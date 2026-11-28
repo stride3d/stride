@@ -77,9 +77,6 @@
 
 using System.Runtime.InteropServices;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 using Stride.Core.Mathematics;
 using Stride.Graphics.Font;
 
@@ -88,7 +85,7 @@ namespace Stride.Assets.SpriteFont.Compiler
     // Writes the output sprite font binary file.
     internal static class SignedDistanceFieldFontWriter
     {
-        public static Graphics.SpriteFont CreateSpriteFontData(IFontFactory fontFactory, SpriteFontAsset options, Glyph[] glyphs, float lineSpacing, float baseLine, Image<Rgba32> bitmap)
+        public static Graphics.SpriteFont CreateSpriteFontData(IFontFactory fontFactory, SpriteFontAsset options, Glyph[] glyphs, float lineSpacing, float baseLine, FontBitmap bitmap)
         {
             var fontGlyphs = ConvertGlyphs(glyphs);
             var images = new[] { GetImage(options, bitmap) };
@@ -116,7 +113,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             return fontGlyphs;
         }
 
-        static Graphics.Image GetImage(SpriteFontAsset options, Image<Rgba32> bitmap)
+        static Graphics.Image GetImage(SpriteFontAsset options, FontBitmap bitmap)
         {
             // TODO Currently we only support Rgba32 as an option. Grayscale might be added later
             return GetImageRgba32(bitmap);
@@ -124,7 +121,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
         // Writes an uncompressed 32 bit font texture.
         // We have distance values encoded so we want uncompressed texture
-        static Graphics.Image GetImageRgba32(Image<Rgba32> bitmap)
+        static Graphics.Image GetImageRgba32(FontBitmap bitmap)
         {
             // TODO Maybe switch to 3-channel texture
             var image = Graphics.Image.New2D(bitmap.Width, bitmap.Height, 1, Graphics.PixelFormat.R8G8B8A8_UNorm);

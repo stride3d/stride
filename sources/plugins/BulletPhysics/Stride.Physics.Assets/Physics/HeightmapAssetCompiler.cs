@@ -49,6 +49,7 @@ namespace Stride.Physics.Assets
             public HeightmapConvertCommand(string url, HeightmapAsset parameters, IAssetFinder assetFinder)
                 : base(url, parameters, assetFinder)
             {
+                Version = 1;
             }
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)

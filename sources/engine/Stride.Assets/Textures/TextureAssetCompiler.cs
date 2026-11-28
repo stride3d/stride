@@ -55,7 +55,7 @@ namespace Stride.Assets.Textures
             public TextureConvertCommand(string url, TextureConvertParameters description, IAssetFinder assetFinder)
                 : base(url, description, assetFinder)
             {
-                Version = 5;
+                Version = 6;
             }
 
             public override IEnumerable<ObjectUrl> GetInputFiles()

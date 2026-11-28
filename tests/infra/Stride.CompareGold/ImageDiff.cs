@@ -2,14 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Graphics.Regression;
-using StbImageSharp;
+using StbImageNext;
 
 // Tolerance image comparison for the headless promote/dedup flow. Mirrors the runtime's
 // ImageTester: per-pixel max channel difference (R/G/B/A) → 256-bucket histogram → ImageThreshold
 // (thresholds.jsonc, linked from the engine) decides pass/fail. Same algorithm + rules the tests
 // assert and the UI shows, so a CI promote reaches the same verdict as a local CompareGold review.
 //
-// PNG decode uses StbImageSharp (managed, cross-platform) rather than the engine's native FreeImage
+// PNG decode uses StbImageNext (managed, cross-platform) rather than the engine's native FreeImage
 // path — decode is lossless so pixel values are identical regardless of decoder; this just avoids a
 // dependency on Stride.Graphics.
 internal static class ImageDiff

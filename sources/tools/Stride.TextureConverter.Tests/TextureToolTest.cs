@@ -757,7 +757,7 @@ namespace Stride.TextureConverter.Tests
             }
         }
 
-        // Lanczos3 (the asset compiler's filter) only exists in ImageSharp, which handles 8-bit BGRA/RGBA;
+        // Lanczos3 (the asset compiler's filter) only exists in StbImageNextLib, which handles 8-bit BGRA/RGBA;
         // other formats must still resize (issue #3441).
         [Theory]
         [InlineData(PixelFormat.B8G8R8A8_UNorm)]

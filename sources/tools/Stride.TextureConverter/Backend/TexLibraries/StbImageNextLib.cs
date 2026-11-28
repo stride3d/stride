@@ -5,47 +5,74 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Processors.Transforms;
+using StbImageNext;
+using StbImageNext.Encoders;
 
-using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Stride.TextureConverter.Requests;
 
-using SharpImage = SixLabors.ImageSharp.Image;
 using StridePixelFormat = Stride.Graphics.PixelFormat;
 
 namespace Stride.TextureConverter.TexLibraries
 {
     /// <summary>
-    /// Per-image data held by <see cref="ImageSharpTexLib"/>.
+    /// A bitmap of BGRA pixels, used by <see cref="StbImageNextLib"/>.
     /// </summary>
-    internal class ImageSharpTextureLibraryData : ITextureLibraryData
+    internal sealed class TextureBitmap
     {
-        public Image<Bgra32>[] Bitmaps { get; set; }
+        /// <summary>
+        /// The width of the bitmap in pixels.
+        /// </summary>
+        public int Width { get; }
+        /// <summary>
+        /// The height of the bitmap in pixels.
+        /// </summary>
+        public int Height { get; }
+        /// <summary>
+        /// BGRA pixel data, 4 bytes per pixel, row-major order.
+        /// </summary>
+        public byte[] Pixels { get; }
+
+        /// <summary>
+        /// Creates a new <see cref="TextureBitmap"/> with the specified width, height, and pixel data.
+        /// </summary>
+        /// <param name="width">The width of the bitmap in pixels.</param>
+        /// <param name="height">The height of the bitmap in pixels.</param>
+        /// <param name="pixels">The BGRA pixel data, 4 bytes per pixel, row-major order.</param>
+        public TextureBitmap(int width, int height, byte[] pixels)
+        {
+            Width = width;
+            Height = height;
+            Pixels = pixels;
+        }
+    }
+
+    /// <summary>
+    /// Per-image data held by <see cref="StbImageNextLib"/>.
+    /// </summary>
+    internal class StbImageNextTextureLibraryData : ITextureLibraryData
+    {
+        public TextureBitmap[] Bitmaps { get; set; }
 
         public IntPtr Data { get; set; }
     }
 
     /// <summary>
-    /// Performs <see cref="TextureTool"/> requests using the managed SixLabors.ImageSharp library:
+    /// Performs <see cref="TextureTool"/> requests using managed image codecs and pixel buffers:
     /// common bitmap I/O plus pixel-space operations (rescale, flip, R/B channel switch, gamma, sub-image swap).
     /// </summary>
-    internal class ImageSharpTexLib : ITexLibrary
+    internal class StbImageNextLib : ITexLibrary
     {
-        private static readonly Logger Log = GlobalLogger.GetLogger("ImageSharpTexLib");
+        private static readonly Logger Log = GlobalLogger.GetLogger("StbImageNextLib");
 
-        public ImageSharpTexLib() { }
+        public StbImageNextLib() { }
 
         public void Dispose() { }
 
         public void Dispose(TexImage image)
         {
-            var libraryData = (ImageSharpTextureLibraryData)image.LibraryData[this];
+            var libraryData = (StbImageNextTextureLibraryData)image.LibraryData[this];
             if (libraryData.Data != IntPtr.Zero)
                 Marshal.FreeHGlobal(libraryData.Data);
         }
@@ -59,10 +86,10 @@ namespace Stride.TextureConverter.TexLibraries
             switch (request.Type)
             {
                 case RequestType.Loading:
-                    return request is FileLoadingRequest file && IsSupportedFile(file.FilePath);
+                    return request is FileLoadingRequest file && IsSupportedFile(file.FilePath, isLoading: true);
 
                 case RequestType.Export:
-                    return IsSupportedFile(((ExportRequest)request).FilePath);
+                    return IsSupportedFile(((ExportRequest)request).FilePath, isLoading: false);
 
                 case RequestType.Rescaling:
                     return ((RescalingRequest)request).Filter != Filter.Rescaling.Nearest && IsSupportedPixelFormat(imageFormat, out _);
@@ -83,16 +110,16 @@ namespace Stride.TextureConverter.TexLibraries
         {
             if (image.Format.IsCompressed)
             {
-                Log.Error("ImageSharp can't process compressed texture.");
-                throw new TextureToolsException("ImageSharp can't process compressed texture.");
+                Log.Error("StbImageNextLib can't process compressed texture.");
+                throw new TextureToolsException("StbImageNextLib can't process compressed texture.");
             }
 
             if (!IsSupportedPixelFormat(image.Format, out bool swapRedBlue))
-                throw new ArgumentException($"The pixel format '{image.Format}' is not supported by ImageSharpTexLib");
+                throw new ArgumentException($"The pixel format '{image.Format}' is not supported by StbImageNextLib");
 
-            var libraryData = new ImageSharpTextureLibraryData();
+            var libraryData = new StbImageNextTextureLibraryData();
             image.LibraryData[this] = libraryData;
-            libraryData.Bitmaps = new Image<Bgra32>[image.SubImageArray.Length];
+            libraryData.Bitmaps = new TextureBitmap[image.SubImageArray.Length];
 
             for (int i = 0; i < image.SubImageArray.Length; ++i)
             {
@@ -111,7 +138,7 @@ namespace Stride.TextureConverter.TexLibraries
         {
             if (!image.LibraryData.ContainsKey(this))
                 return;
-            var libraryData = (ImageSharpTextureLibraryData)image.LibraryData[this];
+            var libraryData = (StbImageNextTextureLibraryData)image.LibraryData[this];
             if (libraryData.Bitmaps == null)
                 return;
 
@@ -143,15 +170,15 @@ namespace Stride.TextureConverter.TexLibraries
                     image.SubImageArray[i].DataSize = slicePitch;
                     image.SubImageArray[i].Data = buffer + offset;
 
-                    CopyImageToBuffer(bmp, image.SubImageArray[i].Data, rowPitch, swapRedBlue);
+                    CopyBitmapToBuffer(bmp, image.SubImageArray[i].Data, rowPitch, swapRedBlue);
                     offset += slicePitch;
                 }
             }
             catch (AccessViolationException e)
             {
                 Marshal.FreeHGlobal(buffer);
-                Log.Error("Failed to copy ImageSharp data back into TexImage.", e);
-                throw new TextureToolsException("Failed to copy ImageSharp data back into TexImage.", e);
+                Log.Error("Failed to copy bitmap data back into TexImage.", e);
+                throw new TextureToolsException("Failed to copy bitmap data back into TexImage.", e);
             }
 
             nint oldBuffer = libraryData.Data;
@@ -160,15 +187,13 @@ namespace Stride.TextureConverter.TexLibraries
             if (oldBuffer != IntPtr.Zero && oldBuffer != image.Data)
                 Marshal.FreeHGlobal(oldBuffer);
 
-            for (int i = 0; i < libraryData.Bitmaps.Length; ++i)
-                libraryData.Bitmaps[i].Dispose();
             libraryData.Bitmaps = null;
             image.DisposingLibrary = this;
         }
 
         public void Execute(TexImage image, IRequest request)
         {
-            var libraryData = image.LibraryData.TryGetValue(this, out var libData) ? (ImageSharpTextureLibraryData)libData : null;
+            var libraryData = image.LibraryData.TryGetValue(this, out var libData) ? (StbImageNextTextureLibraryData)libData : null;
 
             switch (request.Type)
             {
@@ -205,8 +230,8 @@ namespace Stride.TextureConverter.TexLibraries
                     break;
 
                 default:
-                    Log.Error("ImageSharpTexLib can't handle this request: " + request.Type);
-                    throw new TextureToolsException("ImageSharpTexLib can't handle this request: " + request.Type);
+                    Log.Error("StbImageNextLib can't handle this request: " + request.Type);
+                    throw new TextureToolsException("StbImageNextLib can't handle this request: " + request.Type);
             }
         }
 
@@ -214,15 +239,17 @@ namespace Stride.TextureConverter.TexLibraries
         {
             Log.Verbose("Loading " + loader.FilePath + " ...");
 
-            Image<Bgra32> bitmap;
+            TextureBitmap bitmap;
             int alphaSize;
             try
             {
-                var info = SharpImage.Identify(loader.FilePath);
-                alphaSize = info?.PixelType.AlphaRepresentation == PixelAlphaRepresentation.None ? 0 : 8;
-                bitmap = SharpImage.Load<Bgra32>(loader.FilePath);
+                using var stream = File.OpenRead(loader.FilePath);
+                var decoded = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+                alphaSize = decoded.SourceComp is ColorComponents.GreyAlpha or ColorComponents.RedGreenBlueAlpha ? 8 : 0;
+                SwapRedBlue(decoded.Data);
+                bitmap = new TextureBitmap(decoded.Width, decoded.Height, decoded.Data);
             }
-            catch (Exception e)
+            catch (Exception e) when (e is not TextureToolsException)
             {
                 Log.Error("Loading file " + loader.FilePath + " failed: " + e.Message);
                 throw new TextureToolsException("Loading file " + loader.FilePath + " failed: " + e.Message);
@@ -243,7 +270,7 @@ namespace Stride.TextureConverter.TexLibraries
             // Materialize an unmanaged buffer up front so external callers reading image.Data
             // (e.g. TextureHelper.GetAlphaLevels right after Load) see valid pixel data.
             nint buffer = Marshal.AllocHGlobal(slicePitch);
-            CopyImageToBuffer(bitmap, buffer, rowPitch, swapRedBlue: false);
+            CopyBitmapToBuffer(bitmap, buffer, rowPitch, swapRedBlue: false);
 
             image.Data = buffer;
             image.SubImageArray[0].Data = buffer;
@@ -253,7 +280,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.SubImageArray[0].RowPitch = rowPitch;
             image.SubImageArray[0].SlicePitch = slicePitch;
 
-            var libraryData = new ImageSharpTextureLibraryData
+            var libraryData = new StbImageNextTextureLibraryData
             {
                 Bitmaps = new[] { bitmap },
                 Data = buffer,
@@ -262,19 +289,18 @@ namespace Stride.TextureConverter.TexLibraries
             image.DisposingLibrary = this;
         }
 
-        private void Rescale(TexImage image, ImageSharpTextureLibraryData libraryData, RescalingRequest rescale)
+        private void Rescale(TexImage image, StbImageNextTextureLibraryData libraryData, RescalingRequest rescale)
         {
             int width = rescale.ComputeWidth(image);
             int height = rescale.ComputeHeight(image);
-            var sampler = ToSampler(rescale.Filter);
 
             Log.Verbose($"Rescaling image to {width}x{height} with {rescale.Filter} ...");
 
-            Image<Bgra32>[] newTab;
+            TextureBitmap[] newTab;
 
             if (image.Dimension == TexImage.TextureDimension.Texture3D)
             {
-                newTab = new Image<Bgra32>[image.ArraySize * image.FaceCount * image.Depth];
+                newTab = new TextureBitmap[image.ArraySize * image.FaceCount * image.Depth];
 
                 int subImagesPerArrayMember = 0;
                 int curDepth = image.Depth;
@@ -290,22 +316,20 @@ namespace Stride.TextureConverter.TexLibraries
                     for (int i = 0; i < image.Depth; ++i)
                     {
                         var src = libraryData.Bitmaps[i + j * subImagesPerArrayMember];
-                        newTab[ct++] = src.Clone(c => c.Resize(width, height, sampler));
+                        newTab[ct++] = ResizeBitmap(src, width, height, rescale.Filter);
                     }
                 }
             }
             else
             {
-                newTab = new Image<Bgra32>[image.ArraySize];
+                newTab = new TextureBitmap[image.ArraySize * image.FaceCount];
                 int ct = 0;
                 for (int i = 0; i < libraryData.Bitmaps.Length; i += image.MipmapCount)
                 {
-                    newTab[ct++] = libraryData.Bitmaps[i].Clone(c => c.Resize(width, height, sampler));
+                    newTab[ct++] = ResizeBitmap(libraryData.Bitmaps[i], width, height, rescale.Filter);
                 }
             }
 
-            for (int i = 0; i < libraryData.Bitmaps.Length; ++i)
-                libraryData.Bitmaps[i].Dispose();
             libraryData.Bitmaps = newTab;
 
             image.Rescale(width, height);
@@ -316,7 +340,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.DataSize = slicePitch * image.ArraySize * image.FaceCount * image.Depth;
         }
 
-        private void SwitchChannels(TexImage image, ImageSharpTextureLibraryData libraryData)
+        private void SwitchChannels(TexImage image, StbImageNextTextureLibraryData libraryData)
         {
             // libraryData.Bitmaps always stay in canonical Bgra32.
             // Actual R/B byte swap happens when saving.
@@ -325,25 +349,23 @@ namespace Stride.TextureConverter.TexLibraries
                 : StridePixelFormat.B8G8R8A8_UNorm;
         }
 
-        private void Flip(TexImage image, ImageSharpTextureLibraryData libraryData, FlippingRequest flip)
+        private void Flip(TexImage image, StbImageNextTextureLibraryData libraryData, FlippingRequest flip)
         {
             Log.Verbose($"Flipping image : {flip.Flip} ...");
 
-            var mode = flip.Flip == Orientation.Vertical ? FlipMode.Vertical : FlipMode.Horizontal;
             foreach (var bmp in libraryData.Bitmaps)
-                bmp.Mutate(c => c.Flip(mode));
+                FlipBitmap(bmp, flip.Flip);
 
             image.Flip(flip.Flip);
         }
 
-        private void FlipSub(ImageSharpTextureLibraryData libraryData, FlippingSubRequest flipSub)
+        private void FlipSub(StbImageNextTextureLibraryData libraryData, FlippingSubRequest flipSub)
         {
             Log.Verbose($"Flipping image : sub-image {flipSub.SubImageIndex} {flipSub.Flip} ...");
 
             if (flipSub.SubImageIndex >= 0 && flipSub.SubImageIndex < libraryData.Bitmaps.Length)
             {
-                var mode = flipSub.Flip == Orientation.Vertical ? FlipMode.Vertical : FlipMode.Horizontal;
-                libraryData.Bitmaps[flipSub.SubImageIndex].Mutate(c => c.Flip(mode));
+                FlipBitmap(libraryData.Bitmaps[flipSub.SubImageIndex], flipSub.Flip);
             }
             else
             {
@@ -351,7 +373,7 @@ namespace Stride.TextureConverter.TexLibraries
             }
         }
 
-        private void Swap(ImageSharpTextureLibraryData libraryData, SwappingRequest swap)
+        private void Swap(StbImageNextTextureLibraryData libraryData, SwappingRequest swap)
         {
             Log.Verbose($"Swapping image : sub-image {swap.FirstSubImageIndex} and {swap.SecondSubImageIndex} ...");
 
@@ -367,7 +389,7 @@ namespace Stride.TextureConverter.TexLibraries
             }
         }
 
-        private void Export(TexImage image, ImageSharpTextureLibraryData libraryData, ExportRequest request)
+        private void Export(TexImage image, StbImageNextTextureLibraryData libraryData, ExportRequest request)
         {
             string directory = Path.GetDirectoryName(request.FilePath);
             string fileName = Path.GetFileNameWithoutExtension(request.FilePath);
@@ -411,7 +433,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.Save(request.FilePath);
         }
 
-        private void CorrectGamma(ImageSharpTextureLibraryData libraryData, GammaCorrectionRequest request)
+        private void CorrectGamma(StbImageNextTextureLibraryData libraryData, GammaCorrectionRequest request)
         {
             Log.Verbose($"Applying a gamma correction of {request.Gamma} ...");
 
@@ -423,112 +445,111 @@ namespace Stride.TextureConverter.TexLibraries
 
             foreach (var bmp in libraryData.Bitmaps)
             {
-                bmp.ProcessPixelRows(accessor =>
+                for (int i = 0; i < bmp.Pixels.Length; i += 4)
                 {
-                    for (int y = 0; y < accessor.Height; ++y)
-                    {
-                        var row = accessor.GetRowSpan(y);
-                        for (int x = 0; x < row.Length; ++x)
-                        {
-                            var p = row[x];
-                            row[x] = new Bgra32(lut[p.B], lut[p.G], lut[p.R], p.A);
-                        }
-                    }
-                });
+                    bmp.Pixels[i] = lut[bmp.Pixels[i]];
+                    bmp.Pixels[i + 1] = lut[bmp.Pixels[i + 1]];
+                    bmp.Pixels[i + 2] = lut[bmp.Pixels[i + 2]];
+                }
             }
         }
 
-        private static unsafe Image<Bgra32> WrapAsImage(IntPtr data, int width, int height, int rowPitch, bool swapRedBlue)
+        private static unsafe TextureBitmap WrapAsImage(IntPtr data, int width, int height, int rowPitch, bool swapRedBlue)
         {
-            var img = new Image<Bgra32>(width, height);
-            var src = (byte*)data;
-            img.ProcessPixelRows(accessor =>
-            {
-                for (int y = 0; y < height; ++y)
-                {
-                    var dstRow = accessor.GetRowSpan(y);
-                    var srcSpan = new ReadOnlySpan<Bgra32>(src + y * rowPitch, width);
-                    if (swapRedBlue)
-                    {
-                        for (int x = 0; x < width; ++x)
-                        {
-                            var p = srcSpan[x];
-                            dstRow[x] = new Bgra32(p.B, p.G, p.R, p.A);
-                        }
-                    }
-                    else
-                    {
-                        srcSpan.CopyTo(dstRow);
-                    }
-                }
-            });
-            return img;
+            var pixels = new byte[checked(width * height * 4)];
+            for (int y = 0; y < height; y++)
+                new ReadOnlySpan<byte>((void*)(data + y * rowPitch), width * 4).CopyTo(pixels.AsSpan(y * width * 4, width * 4));
+            if (swapRedBlue)
+                SwapRedBlue(pixels);
+            return new TextureBitmap(width, height, pixels);
         }
 
-        private static unsafe void CopyImageToBuffer(Image<Bgra32> bmp, IntPtr dest, int destStride, bool swapRedBlue)
+        private static void SwapRedBlue(Span<byte> pixels)
         {
-            var destPtr = (byte*)dest;
-            int width = bmp.Width;
-            int height = bmp.Height;
-            // ProcessPixelRows can't capture raw pointers in the closure under safe rules; route through
-            // a temporary local pointer captured by-value.
-            long destBase = (long)destPtr;
-            bmp.ProcessPixelRows(accessor =>
-            {
-                var dst = (byte*)destBase;
-                for (int y = 0; y < height; ++y)
-                {
-                    var row = accessor.GetRowSpan(y);
-                    var dstSpan = new Span<Bgra32>(dst + y * destStride, width);
-                    if (swapRedBlue)
-                    {
-                        for (int x = 0; x < width; ++x)
-                        {
-                            var p = row[x];
-                            dstSpan[x] = new Bgra32(p.B, p.G, p.R, p.A);
-                        }
-                    }
-                    else
-                    {
-                        row.CopyTo(dstSpan);
-                    }
-                }
-            });
+            for (int i = 0; i < pixels.Length; i += 4)
+                (pixels[i], pixels[i + 2]) = (pixels[i + 2], pixels[i]);
         }
 
-        private static void SaveImage(Image<Bgra32> bmp, string filePath)
+        private static unsafe void CopyBitmapToBuffer(TextureBitmap bmp, IntPtr dest, int destStride, bool swapRedBlue)
+        {
+            var pixels = bmp.Pixels;
+            if (swapRedBlue)
+            {
+                for (int y = 0; y < bmp.Height; y++)
+                {
+                    var row = new ReadOnlySpan<byte>(pixels, y * bmp.Width * 4, bmp.Width * 4);
+                    var destRow = new Span<byte>((void*)(dest + y * destStride), bmp.Width * 4);
+                    for (int x = 0; x < bmp.Width; x++)
+                    {
+                        destRow[x * 4] = row[x * 4 + 2];     // R
+                        destRow[x * 4 + 1] = row[x * 4 + 1]; // G
+                        destRow[x * 4 + 2] = row[x * 4];     // B
+                        destRow[x * 4 + 3] = row[x * 4 + 3]; // A
+                    }
+                }
+            }
+            else
+            {
+                for (int y = 0; y < bmp.Height; y++)
+                    new ReadOnlySpan<byte>(pixels, y * bmp.Width * 4, bmp.Width * 4).CopyTo(new Span<byte>((void*)(dest + y * destStride), bmp.Width * 4));
+            }
+        }
+
+        private static void FlipBitmap(TextureBitmap bmp, Orientation orientation)
+        {
+            for (int y = 0; y < bmp.Height; y++)
+            for (int x = 0; x < bmp.Width; x++)
+            {
+                int targetX = orientation == Orientation.Vertical ? x : bmp.Width - 1 - x;
+                int targetY = orientation == Orientation.Vertical ? bmp.Height - 1 - y : y;
+                int source = (y * bmp.Width + x) * 4;
+                int target = (targetY * bmp.Width + targetX) * 4;
+                if (source >= target)
+                    continue;
+                for (int c = 0; c < 4; c++)
+                    (bmp.Pixels[source + c], bmp.Pixels[target + c]) = (bmp.Pixels[target + c], bmp.Pixels[source + c]);
+            }
+        }
+
+        private static void SaveImage(TextureBitmap bmp, string filePath)
         {
             string ext = Path.GetExtension(filePath).ToLowerInvariant();
+            var pixels = (byte[])bmp.Pixels.Clone();
+            SwapRedBlue(pixels);
+            using var stream = File.Create(filePath);
+            const ColorComponents components = ColorComponents.RedGreenBlueAlpha;
             switch (ext)
             {
                 case ".jpg":
                 case ".jpeg":
-                    bmp.Save(filePath, new JpegEncoder { Quality = 90, ColorType = JpegEncodingColor.YCbCrRatio420 });
+                    JpgEncoder.EncodeToStream(stream, pixels, bmp.Width, bmp.Height, components, 90);
+                    break;
+                case ".png":
+                    PngEncoder.EncodeToStream(stream, pixels, bmp.Width, bmp.Height, components);
+                    break;
+                case ".bmp":
+                    BmpEncoder.EncodeToStream(stream, pixels, bmp.Width, bmp.Height, components);
+                    break;
+                case ".tga":
+                    TgaEncoder.EncodeToStream(stream, pixels, bmp.Width, bmp.Height, components);
                     break;
                 default:
-                    bmp.Save(filePath);
-                    break;
+                    throw new NotSupportedException($"Unsupported image extension '{ext}'.");
             }
         }
 
-        private static IResampler ToSampler(Filter.Rescaling filter) => filter switch
+        private static TextureBitmap ResizeBitmap(TextureBitmap image, int width, int height, Filter.Rescaling filter)
         {
-            Filter.Rescaling.Box => KnownResamplers.Box,
-            Filter.Rescaling.Bicubic => KnownResamplers.Bicubic,
-            Filter.Rescaling.Bilinear => KnownResamplers.Triangle,
-            Filter.Rescaling.BSpline => KnownResamplers.Spline,
-            Filter.Rescaling.CatmullRom => KnownResamplers.CatmullRom,
-            Filter.Rescaling.Lanczos3 => KnownResamplers.Lanczos3,
-            Filter.Rescaling.Nearest => KnownResamplers.NearestNeighbor,
-            _ => KnownResamplers.Bicubic,
-        };
+            return new TextureBitmap(width, height, TextureResampler.Resize(image.Pixels, image.Width, image.Height, width, height, filter));
+        }
 
-        private static bool IsSupportedFile(string filePath)
+        private static bool IsSupportedFile(string filePath, bool isLoading)
         {
             string ext = Path.GetExtension(filePath).ToLowerInvariant();
             return ext switch
             {
-                ".png" or ".jpg" or ".jpeg" or ".bmp" or ".gif" or ".tga" or ".tif" or ".tiff" or ".webp" or ".pbm" or ".qoi" => true,
+                ".png" or ".jpg" or ".jpeg" or ".bmp" or ".tga" => true,
+                ".gif" => isLoading,
                 _ => false,
             };
         }

@@ -191,20 +191,7 @@ namespace Stride.Graphics.Tests
                     {
                         foreach (ImageFileType intermediateFormat in Enum.GetValues<ImageFileType>())
                         {
-                            if (Platform.Type == PlatformType.Android && (
-                                intermediateFormat == ImageFileType.Bmp || // TODO remove this when Save method is implemented for the bmp format
-                                intermediateFormat == ImageFileType.Gif || // TODO remove this when Save method is implemented for the gif format
-                                intermediateFormat == ImageFileType.Tiff || // TODO remove this when Save method is implemented for the tiff format
-                                sourceFormat == ImageFileType.Bmp || // TODO remove this when Load method is fixed for the bmp format
-                                sourceFormat == ImageFileType.Tiff)) // TODO remove this when Load method is fixed for the tiff format
-                                continue;
-
-                            // iOS ImageIO premultiplies during decode; PNG (and other lossless container
-                            // formats via ImageSharp) can't tag premul state, so Image.Load → Save → Image.Load
-                            // through them ends up doubly-premultiplied. Skip when the intermediate is one of
-                            // those formats. Stride/DDS intermediates preserve bytes verbatim and still work.
-                            if (Platform.Type == PlatformType.iOS && intermediateFormat is
-                                ImageFileType.Png or ImageFileType.Bmp or ImageFileType.Gif or ImageFileType.Jpg or ImageFileType.Tiff)
+                            if (intermediateFormat is ImageFileType.Gif or ImageFileType.Tiff || sourceFormat == ImageFileType.Tiff)
                                 continue;
 
                             if (intermediateFormat == ImageFileType.Tga || sourceFormat == ImageFileType.Tga) // TODO remove this when Load/Save methods are implemented for Tga.
@@ -219,10 +206,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestLoadPremultiplied()
         {
-            // iOS ImageIO premultiplies on decode; PNG can't tag premul state, so the
-            // Load→Save→Load roundtrip through PNG ends up doubly-premultiplied — inherently
-            // untestable on iOS. See AlphaLoadMode.cs platform notes.
-            SkipTestForPlatform(PlatformType.iOS);
             var intermediateFormat = ImageFileType.Png;
 
             PerformTest(
@@ -255,6 +238,116 @@ namespace Stride.Graphics.Tests
                         image2.Dispose();
                     }
                 });
+        }
+
+        [Theory]
+        [InlineData(ImageFileType.Png)]
+        [InlineData(ImageFileType.Bmp)]
+        public void StandardFormatsPreserveAndPremultiplyAlpha(ImageFileType format)
+        {
+            using var source = Image.New2D(1, 1, 1, PixelFormat.R8G8B8A8_UNorm);
+            source.PixelBuffer[0].SetPixel(0, 0, 0x0D000003u);
+            using var stream = new MemoryStream();
+            source.Save(stream, format);
+            var encoded = stream.ToArray();
+
+            using var straight = Image.Load(encoded, alphaLoadMode: AlphaLoadMode.EnsureStraight);
+            Assert.Equal(PixelFormat.R8G8B8A8_UNorm, straight.Description.Format);
+            Assert.Equal(0x0D000003u, straight.PixelBuffer[0].GetPixel<uint>(0, 0));
+
+            using var premultiplied = Image.Load(encoded, alphaLoadMode: AlphaLoadMode.EnsurePremultiplied);
+            Assert.Equal(0x0D000000u, premultiplied.PixelBuffer[0].GetPixel<uint>(0, 0));
+        }
+
+        [Fact]
+        public void PngSavingConvertsBgraAndRespectsRowStride()
+        {
+            using var source = Image.New2D(1, 2, 1, PixelFormat.B8G8R8A8_UNorm, rowStride: 16);
+            source.PixelBuffer[0].SetPixel(0, 0, 0xFF112233u);
+            source.PixelBuffer[0].SetPixel(0, 1, 0xFF445566u);
+            using var stream = new MemoryStream();
+            source.Save(stream, ImageFileType.Png);
+            using var loaded = Image.Load(stream.ToArray());
+            Assert.Equal(0xFF332211u, loaded.PixelBuffer[0].GetPixel<uint>(0, 0));
+            Assert.Equal(0xFF665544u, loaded.PixelBuffer[0].GetPixel<uint>(0, 1));
+        }
+
+        [Theory]
+        [InlineData(PixelFormat.R8_UNorm)]
+        [InlineData(PixelFormat.A8_UNorm)]
+        public void PngSavingExpandsSingleChannel(PixelFormat format)
+        {
+            using var source = Image.New2D(1, 1, 1, format);
+            source.PixelBuffer[0].SetPixel(0, 0, (byte)0x42);
+            using var stream = new MemoryStream();
+            source.Save(stream, ImageFileType.Png);
+            using var loaded = Image.Load(stream.ToArray());
+            Assert.Equal(0xFF424242u, loaded.PixelBuffer[0].GetPixel<uint>(0, 0));
+        }
+
+        [Fact]
+        public void LoadTgaPreservesStraightAlpha()
+        {
+            byte[] data = [
+                0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                1, 0, 1, 0, 32, 0x28,
+                0x33, 0x22, 0x11, 0x7F
+            ];
+            using var loaded = Image.Load(data);
+            Assert.Equal(PixelFormat.R8G8B8A8_UNorm, loaded.Description.Format);
+            Assert.Equal(0x7F332211u, loaded.PixelBuffer[0].GetPixel<uint>(0, 0));
+        }
+
+        [Fact]
+        public void LoadPsd()
+        {
+            byte[] data = [
+                0x38, 0x42, 0x50, 0x53, 0, 1, 0, 0, 0, 0, 0, 0,
+                0, 4, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 0, 3,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0x11, 0x22, 0x33, 0xFF
+            ];
+            using var loaded = Image.Load(data);
+            Assert.Equal(PixelFormat.R8G8B8A8_UNorm, loaded.Description.Format);
+            Assert.Equal(0xFF332211u, loaded.PixelBuffer[0].GetPixel<uint>(0, 0));
+        }
+
+        [Theory]
+        [InlineData(ImageFileType.Gif)]
+        [InlineData(ImageFileType.Tiff)]
+        public void GifAndTiffSavingIsNotSupported(ImageFileType format)
+        {
+            using var source = Image.New2D(1, 1, 1, PixelFormat.R8G8B8A8_UNorm);
+            using var stream = new MemoryStream();
+            Assert.Throws<NotSupportedException>(() => source.Save(stream, format));
+        }
+
+        [Theory]
+        [InlineData(AlphaLoadMode.Preserve)]
+        [InlineData(AlphaLoadMode.EnsureStraight)]
+        [InlineData(AlphaLoadMode.EnsurePremultiplied)]
+        public void GifTransparentPaletteEntryHasZeroRgb(AlphaLoadMode alphaLoadMode)
+        {
+            byte[] data = [
+                0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 2, 0, 1, 0, 0x80, 0, 0,
+                0xFF, 0xFF, 0xFF, 0xFF, 0, 0,
+                0x21, 0xF9, 4, 1, 0, 0, 0, 0,
+                0x2C, 0, 0, 0, 0, 2, 0, 1, 0, 0,
+                2, 2, 0x44, 0x0A, 0, 0x3B
+            ];
+            using var loaded = Image.Load(data, alphaLoadMode: alphaLoadMode);
+            Assert.Equal(0u, loaded.PixelBuffer[0].GetPixel<uint>(0, 0));
+            Assert.Equal(0xFF0000FFu, loaded.PixelBuffer[0].GetPixel<uint>(1, 0));
+        }
+
+        [Theory]
+        [InlineData(0x49, 0x49, 42, 0)]
+        [InlineData(0x49, 0x49, 43, 0)]
+        [InlineData(0x4D, 0x4D, 0, 42)]
+        [InlineData(0x4D, 0x4D, 0, 43)]
+        public void TiffLoadingIsNotSupported(byte first, byte second, byte third, byte fourth)
+        {
+            Assert.Throws<NotSupportedException>(() => Image.Load(new[] { first, second, third, fourth }));
         }
 
         private void ProcessFiles(Game game, ImageFileType sourceFormat, ImageFileType intermediateFormat)
@@ -295,13 +388,11 @@ namespace Stride.Graphics.Tests
                 using (var outStream = VirtualFileSystem.ApplicationCache.OpenStream(fileName + extension, VirtualFileMode.Create, VirtualFileAccess.Write))
                     image.Save(outStream, intermediateFormat);
 
-                if (intermediateFormat == ImageFileType.Stride || intermediateFormat == ImageFileType.Dds || (sourceFormat == intermediateFormat
-                    && intermediateFormat != ImageFileType.Gif)) // TODO: remove this when Giff compression/decompression is fixed
+                if (intermediateFormat == ImageFileType.Stride || intermediateFormat == ImageFileType.Dds || sourceFormat == intermediateFormat)
                 {
                     int allowSmallDifferences;
                     switch (intermediateFormat)
                     {
-                        case ImageFileType.Tiff:// TODO: remove this when tiff encryption implementation is stable
                         case ImageFileType.Png: // TODO: remove this when png  encryption implementation is stable
                             allowSmallDifferences = 1;
                             break;
@@ -328,7 +419,7 @@ namespace Stride.Graphics.Tests
             GC.Collect();
             GC.WaitForPendingFinalizers();
             var testMemoryAfter = GC.GetTotalMemory(true);
-            Log.Info($"Loaded {imageCount} and convert to (Dds, Jpg, Png, Gif, Bmp, Tiff) image from DirectXSDK test Memory: {testMemoryAfter - testMemoryBefore} bytes, in {time}ms");
+            Log.Info($"Loaded {imageCount} and convert to (Dds, Jpg, Png, Bmp) image from DirectXSDK test Memory: {testMemoryAfter - testMemoryBefore} bytes, in {time}ms");
         }
 
         internal static void CompareImage(Image from, Image to, bool ignoreAlpha, int allowedDifference = 0, string file = null)

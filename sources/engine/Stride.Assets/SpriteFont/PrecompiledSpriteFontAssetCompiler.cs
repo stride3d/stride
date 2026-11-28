@@ -32,6 +32,7 @@ namespace Stride.Assets.SpriteFont
             public PrecompiledSpriteFontCommand(string url, PrecompiledSpriteFontAsset description, IAssetFinder assetFinder)
                 : base(url, description, assetFinder)
             {
+                Version = 1;
             }
 
             public override IEnumerable<ObjectUrl> GetInputFiles()

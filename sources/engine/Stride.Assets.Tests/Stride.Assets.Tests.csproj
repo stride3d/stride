@@ -78,6 +78,7 @@
     <Compile Include="TestGraphicsCompositorUpgrader.cs" />
     <Compile Include="TestAssetUpgrade.cs" />
     <Compile Include="TestSystemFontProvider.cs" />
+    <Compile Include="TestSpriteFontBitmaps.cs" />
     <Compile Include="TestSignedDistanceFieldFont.cs" />
     <Compile Include="TestVisualScriptCompiler.cs" />
     <Compile Include="TexturePackerTests.cs" />

@@ -83,7 +83,7 @@ namespace Stride.Assets.SpriteFont
                 : base(url, description, assetFinder)
             {
                 this.colorspace = colorspace;
-                Version = 2;
+                Version = 3;
             }
 
             public override IEnumerable<ObjectUrl> GetInputFiles()

@@ -77,12 +77,7 @@
 
 using System;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 using Stride.Core.Mathematics;
-
-using Rectangle = SixLabors.ImageSharp.Rectangle;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
@@ -90,7 +85,7 @@ namespace Stride.Assets.SpriteFont.Compiler
     internal static class BitmapUtils
     {
         // Copies a rectangular area from one bitmap to another.
-        public static void CopyRect(Image<Rgba32> source, Rectangle sourceRegion, Image<Rgba32> output, Rectangle outputRegion)
+        public static void CopyRect(FontBitmap source, Rectangle sourceRegion, FontBitmap output, Rectangle outputRegion)
         {
             if (sourceRegion.Width != outputRegion.Width ||
                 sourceRegion.Height != outputRegion.Height)
@@ -109,7 +104,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Checks whether an area of a bitmap contains entirely the specified alpha value.
-        public static bool IsAlphaEntirely(byte expectedAlpha, Image<Rgba32> bitmap, Rectangle? region = null)
+        public static bool IsAlphaEntirely(byte expectedAlpha, FontBitmap bitmap, Rectangle? region = null)
         {
             var area = region.GetValueOrDefault(new Rectangle(0, 0, bitmap.Width, bitmap.Height));
 
@@ -127,7 +122,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Checks whether a bitmap contains entirely the specified RGB value.
-        public static bool IsRgbEntirely(Rgba32 expectedRgb, Image<Rgba32> bitmap)
+        public static bool IsRgbEntirely(Color expectedRgb, FontBitmap bitmap)
         {
             for (int y = 0; y < bitmap.Height; y++)
             {
@@ -152,7 +147,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Converts greyscale luminosity to alpha data.
-        public static void ConvertGreyToAlpha(Image<Rgba32> bitmap, Rectangle region)
+        public static void ConvertGreyToAlpha(FontBitmap bitmap, Rectangle region)
         {
             for (int y = 0; y < region.Height; y++)
             {
@@ -163,13 +158,13 @@ namespace Stride.Assets.SpriteFont.Compiler
                     // Average the red, green and blue values to compute brightness.
                     var alpha = (byte)((color.R + color.G + color.B) / 3);
 
-                    bitmap[region.X + x, region.Y + y] = new Rgba32(255, 255, 255, alpha);
+                    bitmap[region.X + x, region.Y + y] = new Color(255, 255, 255, alpha);
                 }
             }
         }
 
         // Converts a bitmap to premultiplied alpha format.
-        public static void PremultiplyAlphaClearType(Image<Rgba32> bitmap, bool srgb)
+        public static void PremultiplyAlphaClearType(FontBitmap bitmap, bool srgb)
         {
             for (int y = 0; y < bitmap.Height; y++)
             {
@@ -189,13 +184,13 @@ namespace Stride.Assets.SpriteFont.Compiler
                         a = (color.R + color.G + color.B) / 3;
                     }
 
-                    bitmap[x, y] = new Rgba32(color.R, color.G, color.B, (byte)a);
+                    bitmap[x, y] = new Color(color.R, color.G, color.B, (byte)a);
                 }
             }
         }
 
         // Converts a bitmap to premultiplied alpha format.
-        public static void PremultiplyAlpha(Image<Rgba32> bitmap, bool srgb)
+        public static void PremultiplyAlpha(FontBitmap bitmap, bool srgb)
         {
             for (int y = 0; y < bitmap.Height; y++)
             {
@@ -222,7 +217,7 @@ namespace Stride.Assets.SpriteFont.Compiler
                         b = (byte)(color.B * a / 255);
                     }
 
-                    bitmap[x, y] = new Rgba32(r, g, b, (byte)a);
+                    bitmap[x, y] = new Color(r, g, b, (byte)a);
                 }
             }
         }
@@ -232,7 +227,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         // make sure the one pixel border around each glyph contains the same RGB values as the edge of the
         // glyph itself, but with zero alpha. This processing is an elaborate no-op when using premultiplied
         // alpha, because the premultiply conversion will change the RGB of all such zero alpha pixels to black.
-        public static void PadBorderPixels(Image<Rgba32> bitmap, Rectangle region)
+        public static void PadBorderPixels(FontBitmap bitmap, Rectangle region)
         {
             // Pad the top and bottom.
             for (int x = region.Left; x < region.Right; x++)
@@ -257,11 +252,11 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Copies a single pixel within a bitmap, preserving RGB but forcing alpha to zero.
-        static void CopyBorderPixel(Image<Rgba32> bitmap, int sourceX, int sourceY, int destX, int destY)
+        static void CopyBorderPixel(FontBitmap bitmap, int sourceX, int sourceY, int destX, int destY)
         {
             var color = bitmap[sourceX, sourceY];
 
-            bitmap[destX, destY] = new Rgba32(color.R, color.G, color.B, (byte)0);
+            bitmap[destX, destY] = new Color(color.R, color.G, color.B, (byte)0);
         }
     }
 }

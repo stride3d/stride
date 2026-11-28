@@ -6,10 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Graphics.Font;
 
 namespace Stride.Assets.SpriteFont.Compiler
@@ -105,7 +103,7 @@ namespace Stride.Assets.SpriteFont.Compiler
                     FreeTypeNative.FT_Load_Glyph(face, glyphIndex, (int)FreeTypeLoadFlags.Default | (int)loadTarget);
                 }
 
-                var emptyBitmap = new Image<Rgba32>(1, 1);
+                var emptyBitmap = new FontBitmap(1, 1);
                 var glyph = new Glyph(character, emptyBitmap)
                 {
                     XOffset = 0,
@@ -138,7 +136,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
             if (width == 0 || height == 0)
             {
-                var emptyBitmap = new Image<Rgba32>(1, 1);
+                var emptyBitmap = new FontBitmap(1, 1);
                 return new Glyph(character, emptyBitmap)
                 {
                     XOffset = face->glyph->bitmap_left,
@@ -147,7 +145,7 @@ namespace Stride.Assets.SpriteFont.Compiler
                 };
             }
 
-            var bitmap = new Image<Rgba32>(width, height);
+            var bitmap = new FontBitmap(width, height);
             var pixelMode = (FreeTypePixelMode)ftBitmap.pixel_mode;
 
             // Output format: grey value in R/G/B channels (ConvertGreyToAlpha handles the rest).
@@ -170,7 +168,7 @@ namespace Stride.Assets.SpriteFont.Compiler
                         grey = ftBitmap.buffer[y * ftBitmap.pitch + x];
                     }
 
-                    bitmap[x, y] = new Rgba32(grey, grey, grey, (byte)255);
+                    bitmap[x, y] = new Color(grey, grey, grey, (byte)255);
                 }
             }
 
