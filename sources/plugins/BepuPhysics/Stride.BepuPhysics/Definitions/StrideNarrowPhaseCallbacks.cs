@@ -20,19 +20,17 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
     {
     }
 
+    // Filters every pair here rather than per child, pairs of two convex shapes never go through the per child overload
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin)
     {
-        return a.Mobility == CollidableMobility.Dynamic || b.Mobility == CollidableMobility.Dynamic;
-    }
+        if (a.Mobility != CollidableMobility.Dynamic && b.Mobility != CollidableMobility.Dynamic)
+            return false;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB)
-    {
         const int DEFAULT_DISTANCE = 1;
 
-        var matA = collidableMaterials[pair.A];
-        var matB = collidableMaterials[pair.B];
+        var matA = collidableMaterials[a];
+        var matB = collidableMaterials[b];
 
         if (Simulation.CollisionMatrix.Get(matA.Layer, matB.Layer) == false)
             return false;
@@ -51,6 +49,25 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
             }
         }
 
+        // A component may refuse some of its bodies to another collidable, as particles pinned to a body do
+        if (Simulation.ContactFilters > 0)
+        {
+            var ownerA = Simulation.GetComponent(a);
+            var ownerB = Simulation.GetComponent(b);
+            if (ReferenceEquals(ownerA, ownerB) == false
+                && (ownerA.FiltersContactsWithOthers && ownerA.AllowContactWith(a.BodyHandle, ownerB) == false
+                    || ownerB.FiltersContactsWithOthers && ownerB.AllowContactWith(b.BodyHandle, ownerA) == false))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB)
+    {
         return true;
     }
 
@@ -63,6 +80,11 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
         pairMaterial.FrictionCoefficient = a.FrictionCoefficient * b.FrictionCoefficient;
         pairMaterial.MaximumRecoveryVelocity = MathF.Max(a.MaximumRecoveryVelocity, b.MaximumRecoveryVelocity);
         pairMaterial.SpringSettings = pairMaterial.MaximumRecoveryVelocity == a.MaximumRecoveryVelocity ? a.SpringSettings : b.SpringSettings;
+
+        // Two convex shapes outside of a compound or mesh, like the particles of a soft body, never go through the per child overload below;
+        // compounds and meshes may still end up here with a convex manifold once reduced, but those were already stored per child
+        if (typeof(TManifold) == typeof(ConvexContactManifold) && IsConvex(pair.A) && IsConvex(pair.B))
+            ConfigureContactManifold(workerIndex, pair, 0, 0, ref Unsafe.As<TManifold, ConvexContactManifold>(ref manifold));
 
 #if DEBUG
         // Validate that all manifolds have been stored through the other ConfigureContactManifold,
@@ -96,6 +118,13 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
         }
 
         return true;
+    }
+
+    private readonly bool IsConvex(CollidableReference collidable)
+    {
+        var simulation = Simulation.Simulation;
+        var shape = collidable.Mobility == CollidableMobility.Static ? simulation.Statics[collidable.StaticHandle].Shape : simulation.Bodies[collidable.BodyHandle].Collidable.Shape;
+        return simulation.Shapes[shape.Type].Compound == false;
     }
 
     public void Dispose()

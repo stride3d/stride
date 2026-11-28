@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Runtime.InteropServices;
+using Stride.BepuPhysics.Definitions;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
@@ -12,7 +13,7 @@ namespace Stride.BepuPhysics.Debug.Effects;
 /// <summary>
 /// A batch of world-space line segments rebuilt every frame and drawn in a single call.
 /// </summary>
-public sealed class LineRenderObject : RenderObject, IDisposable
+public sealed class LineRenderObject : RenderObject, IDebugLineCollector, IDisposable
 {
     private LineVertex[] _vertices = new LineVertex[256];
     private Buffer? _vertexBuffer;
